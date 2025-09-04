@@ -1,0 +1,53 @@
+{
+  "best": {
+    "gen": 2,
+    "wr": 0.875,
+    "params": {
+      "bulldozer": {
+        "dodgeTTI": 24.692863045898704,
+        "dodgePad": 12.178304044154258,
+        "spreadFar": 14,
+        "spreadNear": 10,
+        "engageDist": 144.3976463677829,
+        "centerPull": 0.46720153795515384
+      },
+      "anchor": {
+        "lineNear": 110.19744790752613,
+        "dodgeTTI": 18.428497478266287,
+        "dodgePad": 8.793685472379302,
+        "fireJitter": 4
+      },
+      "striker": {
+        "kite": 199.57449354448596,
+        "kiteTol": 46.09088915029828,
+        "leadScale": 0.46446071628909097,
+        "dodgeTTI": 16.729728005714836
+      },
+      "sniper": {
+        "prefer": 220,
+        "near": 33.33098247151628,
+        "far": 55.28106377097052,
+        "leadBase": 12,
+        "leadScale": 0.5,
+        "jitter": 3.102309958895365
+      },
+      "interceptor": {
+        "centerDist": 276.5275041792611,
+        "dodgeTTI": 22.516050732563926
+      },
+      "sweeper": {
+        "orbitNear": 173.8122073614438,
+        "offsetsFar": [
+          -6,
+          0,
+          6
+        ],
+        "offsetsNear": [
+          -4,
+          0,
+          4
+        ]
+      }
+    }
+  }
+}

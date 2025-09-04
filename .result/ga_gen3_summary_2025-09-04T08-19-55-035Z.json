@@ -1,0 +1,67 @@
+{
+  "gen": 3,
+  "pop": 10,
+  "gamesPer": 16,
+  "best": {
+    "idx": 7,
+    "wr": 0.9375,
+    "stat": {
+      "red": 15,
+      "blue": 1,
+      "draw": 0,
+      "winRate": 0.9375
+    }
+  },
+  "top5": [
+    {
+      "idx": 7,
+      "wr": 0.9375,
+      "stat": {
+        "red": 15,
+        "blue": 1,
+        "draw": 0,
+        "winRate": 0.9375
+      }
+    },
+    {
+      "idx": 5,
+      "wr": 0.8125,
+      "stat": {
+        "red": 13,
+        "blue": 3,
+        "draw": 0,
+        "winRate": 0.8125
+      }
+    },
+    {
+      "idx": 0,
+      "wr": 0.75,
+      "stat": {
+        "red": 12,
+        "blue": 4,
+        "draw": 0,
+        "winRate": 0.75
+      }
+    },
+    {
+      "idx": 1,
+      "wr": 0.75,
+      "stat": {
+        "red": 12,
+        "blue": 4,
+        "draw": 0,
+        "winRate": 0.75
+      }
+    },
+    {
+      "idx": 8,
+      "wr": 0.6875,
+      "stat": {
+        "red": 11,
+        "blue": 5,
+        "draw": 0,
+        "winRate": 0.6875
+      }
+    }
+  ]
+}
