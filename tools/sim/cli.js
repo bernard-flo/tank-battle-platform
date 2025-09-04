@@ -22,6 +22,7 @@ const botB = loadBot(bPath);
 const botsA = [botA];
 const botsB = [botB];
 
+const t0 = Date.now();
 const results = runMatch({ botsA, botsB, seed, rounds });
 
 const summary = results.reduce((acc, r) => ({
@@ -32,6 +33,7 @@ const summary = results.reduce((acc, r) => ({
 
 console.log(`[sim] ${botA.name} vs ${botB.name} | rounds=${rounds} seed=${seed}`);
 console.log(`[sim] result: A ${summary.winA} - B ${summary.winB}`);
+console.log(`[sim-perf] rounds=${rounds} perf=${Date.now()-t0}ms`);
 
 // 저장
 const resDir = path.join(process.cwd(), 'results');
@@ -40,4 +42,3 @@ const csv = ['round,aliveA,aliveB,time']
   .concat(results.map((r, i) => `${i+1},${r.aliveA},${r.aliveB},${r.time.toFixed(3)}`))
   .join('\n');
 fs.writeFileSync(path.join(resDir, 'last_match.csv'), csv);
-
