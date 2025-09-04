@@ -4,7 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test-ai": "node simulator/test.js"
+    "test-ai": "node simulator/test.js",
+    "train-ga": "node simulator/train_ga.js",
+    "train-ga:fast": "node simulator/train_ga.js 6 10 16 1111",
+    "train-ga:std": "node simulator/train_ga.js 12 14 30 4242"
   }
 }
-
