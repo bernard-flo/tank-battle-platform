@@ -1,7 +1,5 @@
 {
-  "safeMargin": 28,
-  "evadeReactDist": 200,
-  "leadMaxDeg": 18,
-  "aimJitterDeg": 2.0,
-  "fire_every_frames": 6
+  "ideal_range": 200,
+  "fire_every": 6
 }
+

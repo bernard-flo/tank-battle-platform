@@ -1,8 +1,5 @@
 {
-  "support_mid_range": 200,
-  "align_weight": 0.5,
-  "leadMaxDeg": 20,
-  "evadeReactDist": 200,
-  "aimJitterDeg": 1.2,
-  "fire_every_frames": 6
+  "ideal_range": 220,
+  "fire_every": 5
 }
+

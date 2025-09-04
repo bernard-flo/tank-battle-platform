@@ -1,14 +1,7 @@
 {
-  "ideal_range": 320,
   "orbit_deg": 90,
-  "leadMaxDeg": 18,
-  "evade_weight": 1,
-  "strafe_deg": 16,
-  "orbit_radius": 220,
-  "radius_pulse": 80,
-  "orbitFlipRate": 0.01,
-  "fire_every_frames": 6,
-  "aimJitterDeg": 1.4,
-  "safeMargin": 28,
-  "evadeReactDist": 200
+  "orbit_radius": 180,
+  "radius_jitter": 40,
+  "fire_every": 5
 }
+
