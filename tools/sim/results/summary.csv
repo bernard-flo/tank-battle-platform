@@ -1,16 +1,16 @@
 pair,winA,winB,avgAliveDiff,avgTime
-01_tanker_guardianvs02_dealer_sniper,6,6,0.000,39.42
-01_tanker_guardianvs03_dealer_flanker,6,1,0.333,56.27
-01_tanker_guardianvs04_normal_interceptor,4,1,0.200,64.03
-01_tanker_guardianvs05_normal_support,0,1,-0.067,85.00
-01_tanker_guardianvs06_tanker_bruiser,0,4,-0.267,72.94
-02_dealer_snipervs03_dealer_flanker,6,5,0.067,50.32
-02_dealer_snipervs04_normal_interceptor,3,5,-0.133,61.95
-02_dealer_snipervs05_normal_support,5,4,0.067,51.32
-02_dealer_snipervs06_tanker_bruiser,3,11,-0.533,27.82
-03_dealer_flankervs04_normal_interceptor,3,5,-0.133,46.72
-03_dealer_flankervs05_normal_support,1,3,-0.133,70.33
-03_dealer_flankervs06_tanker_bruiser,2,2,0.000,78.81
-04_normal_interceptorvs05_normal_support,1,1,0.000,79.48
-04_normal_interceptorvs06_tanker_bruiser,0,0,0.000,90.00
-05_normal_supportvs06_tanker_bruiser,6,0,0.400,60.27
+Tanker Guardian vs Dealer Sniper,0,0,0,90
+Tanker Guardian vs Dealer Flanker,0,0,0,90
+Tanker Guardian vs Normal Interceptor,0,0,0,90
+Tanker Guardian vs Normal Support,0,0,0,90
+Tanker Guardian vs Tanker Bruiser,0,0,0,90
+Dealer Sniper vs Dealer Flanker,0,0,0,90
+Dealer Sniper vs Normal Interceptor,0,0,0,90
+Dealer Sniper vs Normal Support,0,0,0,90
+Dealer Sniper vs Tanker Bruiser,0,0,0,90
+Dealer Flanker vs Normal Interceptor,0,0,0,90
+Dealer Flanker vs Normal Support,0,0,0,90
+Dealer Flanker vs Tanker Bruiser,0,0,0,90
+Normal Interceptor vs Normal Support,0,0,0,90
+Normal Interceptor vs Tanker Bruiser,0,0,0,90
+Normal Support vs Tanker Bruiser,0,0,0,90

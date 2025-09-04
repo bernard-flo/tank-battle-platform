@@ -6,14 +6,14 @@ export const DEFAULTS = Object.freeze({
   WIDTH: 800,
   HEIGHT: 600,
   TANK_R: 16,
-  BULLET_R: 6,
+  BULLET_R: 7,
   BULLET_SPEED: 400, // px/s
   BULLET_LIFE: 4.0,  // s
   FIRE_COOLDOWN: 0.5, // s
   TIME_LIMIT: 90, // s
   DT: 0.016,
   HP: 100,
-  DAMAGE: 32,
+  DAMAGE: 35,
   SPEEDS: { NORMAL: 120, TANKER: 105, DEALER: 130 },
 });
 
@@ -160,4 +160,3 @@ export function runMatch({ botA, botB, seed = 42, rounds = 3 }){
   }
   return results;
 }
-

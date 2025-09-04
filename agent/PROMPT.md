@@ -218,6 +218,15 @@ Export 생성 규칙
 
 2) docs(sim): README에 각도 단위 명시
 - `tools/sim/README.md`에 “봇 API의 `move`, `fire`는 degree 입력, 엔진 내부에서 rad 변환” 문구 추가.
+
+3) fix(sim/balance): 타격/충돌 파라미터 보정(필수)
+- engine DEFAULTS 조정: `DAMAGE=35`, `BULLET_R=7`(명세 일치)
+- README 기본 파라미터 표 갱신 및 rr 재실행. 요건: 최소 3 페어에서 승부 발생, avgTime이 90만 나오지 않음.
+- 커밋: `fix(sim/balance): DAMAGE=35, BULLET_R=7 and update docs`
+
+즉시 실행(보정 후)
+- cd tools/sim && npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+- 결과 파일(`results/summary.csv/json`) 갱신 시 커밋: `feat(sim/rr): refresh RR after balance tweaks`
 - 커밋: `docs(sim): document degree angles for bot API`
 
 3) refactor(sim/search): GA 모드를 엔진 기반 점수화로 교체

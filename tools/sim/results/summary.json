@@ -1,112 +1,107 @@
-{
-  "pairs": [
-    {
-      "pair": "01_tanker_guardian vs 02_dealer_sniper",
-      "winA": 6,
-      "winB": 6,
-      "avgAliveDiff": 0,
-      "avgTime": 39.42186666666551
-    },
-    {
-      "pair": "01_tanker_guardian vs 03_dealer_flanker",
-      "winA": 6,
-      "winB": 1,
-      "avgAliveDiff": 0.3333333333333333,
-      "avgTime": 56.26986666666813
-    },
-    {
-      "pair": "01_tanker_guardian vs 04_normal_interceptor",
-      "winA": 4,
-      "winB": 1,
-      "avgAliveDiff": 0.20000000000000004,
-      "avgTime": 64.02560000000224
-    },
-    {
-      "pair": "01_tanker_guardian vs 05_normal_support",
-      "winA": 0,
-      "winB": 1,
-      "avgAliveDiff": -0.06666666666666667,
-      "avgTime": 84.99626666666985
-    },
-    {
-      "pair": "01_tanker_guardian vs 06_tanker_bruiser",
-      "winA": 0,
-      "winB": 4,
-      "avgAliveDiff": -0.26666666666666666,
-      "avgTime": 72.94293333333555
-    },
-    {
-      "pair": "02_dealer_sniper vs 03_dealer_flanker",
-      "winA": 6,
-      "winB": 5,
-      "avgAliveDiff": 0.0666666666666667,
-      "avgTime": 50.31893333333253
-    },
-    {
-      "pair": "02_dealer_sniper vs 04_normal_interceptor",
-      "winA": 3,
-      "winB": 5,
-      "avgAliveDiff": -0.13333333333333333,
-      "avgTime": 61.94666666666753
-    },
-    {
-      "pair": "02_dealer_sniper vs 05_normal_support",
-      "winA": 5,
-      "winB": 4,
-      "avgAliveDiff": 0.06666666666666667,
-      "avgTime": 51.31520000000089
-    },
-    {
-      "pair": "02_dealer_sniper vs 06_tanker_bruiser",
-      "winA": 3,
-      "winB": 11,
-      "avgAliveDiff": -0.5333333333333333,
-      "avgTime": 27.82293333333261
-    },
-    {
-      "pair": "03_dealer_flanker vs 04_normal_interceptor",
-      "winA": 3,
-      "winB": 5,
-      "avgAliveDiff": -0.13333333333333333,
-      "avgTime": 46.715733333334924
-    },
-    {
-      "pair": "03_dealer_flanker vs 05_normal_support",
-      "winA": 1,
-      "winB": 3,
-      "avgAliveDiff": -0.13333333333333333,
-      "avgTime": 70.32746666666911
-    },
-    {
-      "pair": "03_dealer_flanker vs 06_tanker_bruiser",
-      "winA": 2,
-      "winB": 2,
-      "avgAliveDiff": 0,
-      "avgTime": 78.81493333333538
-    },
-    {
-      "pair": "04_normal_interceptor vs 05_normal_support",
-      "winA": 1,
-      "winB": 1,
-      "avgAliveDiff": 0,
-      "avgTime": 79.48160000000296
-    },
-    {
-      "pair": "04_normal_interceptor vs 06_tanker_bruiser",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 90.00000000000341
-    },
-    {
-      "pair": "05_normal_support vs 06_tanker_bruiser",
-      "winA": 6,
-      "winB": 0,
-      "avgAliveDiff": 0.4000000000000001,
-      "avgTime": 60.2677333333352
-    }
-  ],
-  "seed": 42,
-  "rounds": 5,
-  "repeat": 3
-}
+[
+  {
+    "pair": "Tanker Guardian vs Dealer Sniper",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Tanker Guardian vs Dealer Flanker",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Tanker Guardian vs Normal Interceptor",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Tanker Guardian vs Normal Support",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Tanker Guardian vs Tanker Bruiser",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Dealer Sniper vs Dealer Flanker",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Dealer Sniper vs Normal Interceptor",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Dealer Sniper vs Normal Support",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Dealer Sniper vs Tanker Bruiser",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Dealer Flanker vs Normal Interceptor",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Dealer Flanker vs Normal Support",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Dealer Flanker vs Tanker Bruiser",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Normal Interceptor vs Normal Support",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Normal Interceptor vs Tanker Bruiser",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  },
+  {
+    "pair": "Normal Support vs Tanker Bruiser",
+    "winA": 0,
+    "winB": 0,
+    "avgAliveDiff": 0,
+    "avgTime": 90
+  }
+]

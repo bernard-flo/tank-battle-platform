@@ -81,3 +81,7 @@
 2025-09-04 루프 #2-11 워커 지시 반영
 - PROMPT에 루프 #2-11 섹션 추가(엔진 실제화, RR/Search 엔진 통합, 결정성 체크/즉시 실행 배치/커밋 템플릿)
 - 현 상태 점검: tools/sim 엔진/rr/search/cli/README 구현 일치, params/result 아티팩트 경로 일원화 확인
+
+2025-09-04 루프 #2-11 밸런스 핫픽스
+- 명세 정합을 위해 엔진 DEFAULTS 보정 지시: DAMAGE=35, BULLET_R=7
+- rr 재실행으로 승부 발생 확인(≥3 페어, avgTime≠90). 결과/README 갱신 시 즉시 커밋 지시

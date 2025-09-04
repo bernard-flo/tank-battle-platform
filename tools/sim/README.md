@@ -10,6 +10,8 @@
 - BULLET_SPEED=400px/s, FIRE_COOLDOWN=0.5s, BULLET_LIFE=4s
 - TANK_SPEED: NORMAL=120, TANKER=105, DEALER=130
 - dt=0.016(60Hz), TIME_LIMIT=90s
+\n+밸런스(루프 #2 보정)
+- BULLET_R=7, DAMAGE=35 (무승부 빈도 감소용)
 
 명령 예시
 - 설치: `cd tools/sim && npm i`
@@ -22,4 +24,3 @@
 - `results/last_match.csv` — round,winA,winB,aliveDiff,time
 - `results/summary.csv/json` — pair,winA,winB,avgAliveDiff,avgTime
 - `results/search_*.csv`, `results/search_detail_*.csv`, `results/ga_*.csv`
-
