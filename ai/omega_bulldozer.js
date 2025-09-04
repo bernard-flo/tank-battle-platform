@@ -1,7 +1,7 @@
 function name(){return 'Omega Bulldozer';}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
-    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>28.147985132980914)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+9.349385703966057;if(d>safe+9.349385703966057)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>31.159867163357138)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+9.526356601629242;if(d>safe+9.526356601629242)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
     if(!enemies||!enemies.length)return;
     // 팀 집중사격: 체력/거리 가중치
     let tgt=enemies[0];
@@ -11,8 +11,8 @@ function update(tank,enemies,allies,bulletInfo){
     let dodged=false; const th=bestThreat(); if(th){const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]);}
     if(!dodged){
       const cx=450, cy=300; const toF=Math.atan2(cy-tank.y,cx-tank.x)*180/Math.PI;
-      const desired=(tgt.distance>175.57669634921479)? toC : toT; const pull=0.052011501648845354;
+      const desired=(tgt.distance>94.20738159657348)? toC : toT; const pull=0.5921106721508245;
       const mix=desired*(1-pull) + toF*pull; tryMove([mix, mix+15, mix-15, desired, desired+35, desired-35]);
     }
-    const spread = tgt.distance>160? 13.2415021016819 : 6.776147112907606; const jitter=(Math.random()-0.5)*spread; tank.fire(toT + jitter);
+    const spread = tgt.distance>160? 11.723369797642606 : 4.747352726946122; const jitter=(Math.random()-0.5)*spread; tank.fire(toT + jitter);
   }
