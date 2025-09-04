@@ -1,11 +1,10 @@
 {
   "name": "super6-sim",
-  "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "dependencies": {
-    "seedrandom": "^3.0.5",
-    "yargs": "^17.7.2"
+    "minimist": "^1.2.8",
+    "seedrandom": "^3.0.5"
   },
   "scripts": {
     "sim": "node cli.js --a ../../tanks/01_tanker_guardian.js --b ../../tanks/02_dealer_sniper.js --seed 42 --rounds 5",

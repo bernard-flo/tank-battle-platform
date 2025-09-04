@@ -1,34 +1,51 @@
-// 스니펫 샌드박스 로더
 import fs from 'fs';
 import path from 'path';
-import { DEFAULTS } from './engine.js';
+import seedrandom from 'seedrandom';
+import { Type } from './engine.js';
 
-function loadParamsFor(filePath, injected = {}) {
+function readParams(botKey){
   try {
-    const key = path.basename(filePath).replace(/\.js$/,'');
-    const pth = path.resolve(process.cwd(), 'tools/sim/params', `${key}.json`);
-    let disk = {};
-    if (fs.existsSync(pth)) {
-      disk = JSON.parse(fs.readFileSync(pth, 'utf8')) || {};
+    const p = path.resolve('tools/sim/params', botKey + '.json');
+    if (fs.existsSync(p)) {
+      const txt = fs.readFileSync(p, 'utf-8');
+      return JSON.parse(txt);
     }
-    const merged = { ...disk, ...injected };
-    // 단위 정합: bulletSpeed는 per-tick 단위로 주입
-    const bs = merged.bulletSpeed ?? DEFAULTS.BULLET_SPEED;
-    merged.bulletSpeed = bs * DEFAULTS.DT;
-    return Object.freeze(merged);
-  } catch (e) {
-    return Object.freeze(injected || {});
-  }
+  } catch (e) {}
+  return {};
 }
 
-export function loadBot(filePath, sandboxVars = {}) {
-  const code = fs.readFileSync(filePath, 'utf8');
-  const Type = { NORMAL: 1, TANKER: 2, DEALER: 4 };
-  const PARAMS = loadParamsFor(filePath, sandboxVars.PARAMS || {});
-  // 최소한의 샌드박싱: console 제거, Math.random 시드 주입
-  const mathShim = Object.create(Math);
-  mathShim.random = typeof sandboxVars.rng === 'function' ? sandboxVars.rng : Math.random;
-  const fn = new Function('Type','PARAMS','Math', `${code}; return { name, type, update };`);
-  const api = fn(Type, PARAMS, mathShim);
-  return api;
+export function loadBot(filePath, seed = 42){
+  const code = fs.readFileSync(filePath, 'utf-8');
+  const botKey = path.basename(filePath).replace(/\.js$/,'');
+  const params = readParams(botKey);
+
+  // 시드 RNG 주입
+  const rng = seedrandom(String(seed) + '|' + botKey);
+  const safeRandom = () => rng();
+
+  // 샌드박스 Function: 외부 전역 차단
+  const wrapper = new Function('with(this){ ' + code + '; return { name, type, update }; }');
+  // PARAMS/Type 주입, Math.random 오버라이드
+  const sandbox = Object.create(null);
+  sandbox.PARAMS = Object.freeze({ ...params });
+  sandbox.Type = Type;
+  sandbox.Math = { ...Math, random: safeRandom };
+
+  const api = wrapper.call(sandbox);
+  const botName = api.name();
+  const tVal = api.type();
+  let typeName = 'NORMAL';
+  if (tVal === Type.TANKER) typeName = 'TANKER';
+  else if (tVal === Type.DEALER) typeName = 'DEALER';
+
+  return {
+    key: botKey,
+    file: filePath,
+    name: botName,
+    type: tVal,
+    typeName,
+    params,
+    update: api.update,
+  };
 }
+

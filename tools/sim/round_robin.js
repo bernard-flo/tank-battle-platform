@@ -1,69 +1,85 @@
-#!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
+import minimist from 'minimist';
 import { runMatch } from './engine.js';
+import { loadBot } from './loader.js';
 
-const argv = yargs(hideBin(process.argv))
-  .option('seed',{ type:'number', default:42 })
-  .option('rounds',{ type:'number', default:5 })
-  .option('repeat',{ type:'number', default:3 })
-  .option('check',{ type:'boolean', default:false })
-  .help().argv;
+function ensureDir(p){ if(!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
+function pickLast(v, def){ return Array.isArray(v) ? (v.length? v[v.length-1] : def) : (v ?? def); }
 
-const pickLast = (v) => Array.isArray(v) ? v[v.length-1] : v;
-const SEED = Number(pickLast(argv.seed));
-const ROUNDS = Number(pickLast(argv.rounds));
-const REPEAT = Number(pickLast(argv.repeat));
+const args = minimist(process.argv.slice(2));
+const seed = Number(pickLast(args.seed, 42));
+const rounds = Number(pickLast(args.rounds, 5));
+const repeat = Number(pickLast(args.repeat, 3));
+const check = String(pickLast(args.check, 'false')) === 'true';
 
-fs.mkdirSync('results', { recursive: true });
+const botFiles = [
+  path.resolve('../../tanks/01_tanker_guardian.js'),
+  path.resolve('../../tanks/02_dealer_sniper.js'),
+  path.resolve('../../tanks/03_dealer_flanker.js'),
+  path.resolve('../../tanks/04_normal_interceptor.js'),
+  path.resolve('../../tanks/05_normal_support.js'),
+  path.resolve('../../tanks/06_tanker_bruiser.js'),
+];
 
-function listBots() {
-  const dir = path.resolve(process.cwd(), '../../tanks');
-  const files = fs.readdirSync(dir).filter(f=>f.endsWith('.js')).sort();
-  return files.map(f=>({ key: f.replace(/\.js$/,''), file: path.join(dir, f) }));
-}
+const bots = botFiles.map(f=>loadBot(f, seed));
 
-function evalPair(aKey, bKey, seed, rounds, repeat) {
-  // 실제 엔진 호출 반복 평가
-  const aPath = path.resolve(process.cwd(), '../../tanks', `${aKey}.js`);
-  const bPath = path.resolve(process.cwd(), '../../tanks', `${bKey}.js`);
-  let winA=0, winB=0, aliveSum=0, timeSum=0;
-  for (let r=0;r<repeat;r++) {
-    const res = runMatch({ a: aPath, b: bPath, rounds, seed: seed + r });
-    winA += res.summary.winA;
-    winB += res.summary.winB;
-    aliveSum += res.summary.avgAliveDiff;
-    timeSum += res.summary.avgTime;
-  }
-  return { winA, winB, avgAliveDiff: aliveSum/repeat, avgTime: timeSum/repeat };
-}
-
-const bots = listBots();
 const pairs = [];
-const csvPath = 'results/summary.csv';
-fs.writeFileSync(csvPath, 'pair,winA,winB,avgAliveDiff,avgTime\n');
-
-for (let i=0;i<bots.length;i++) {
-  for (let j=i+1;j<bots.length;j++) {
-    const A=bots[i], B=bots[j];
-    const res = evalPair(A.key, B.key, SEED, ROUNDS, REPEAT);
-    pairs.push({ pair: `${A.key} vs ${B.key}`, ...res });
-    fs.appendFileSync(csvPath, `${A.key}vs${B.key},${res.winA},${res.winB},${res.avgAliveDiff.toFixed(3)},${res.avgTime.toFixed(2)}\n`);
+for (let i=0;i<bots.length;i++){
+  for (let j=i+1;j<bots.length;j++){
+    pairs.push([bots[i], bots[j]]);
   }
 }
 
-const summary = { pairs, seed: SEED, rounds: ROUNDS, repeat: REPEAT };
-fs.writeFileSync('results/summary.json', JSON.stringify(summary, null, 2));
+const outDir = path.resolve('tools/sim/results'); ensureDir(outDir);
 
-// 결정성 체크: 첫 페어 2회 재평가 동일성 확인
-if (argv.check && pairs.length>0) {
-  const [firstA, firstB] = bots.slice(0,2);
-  const r1 = evalPair(firstA.key, firstB.key, SEED, ROUNDS, REPEAT);
-  const r2 = evalPair(firstA.key, firstB.key, SEED, ROUNDS, REPEAT);
-  const ok = (r1.winA===r2.winA && r1.winB===r2.winB && Math.abs(r1.avgTime-r2.avgTime)<1e-9);
-  console.log(`rr: deterministic check ${ok? 'OK':'FAIL'}`);
+const summary = [];
+for (const [A,B] of pairs){
+  let winA=0, winB=0, aliveSum=0, timeSum=0, total=0;
+  for (let k=0;k<repeat;k++){
+    const res = runMatch({ botA:A, botB:B, seed: seed + k, rounds });
+    winA += res.reduce((a,b)=>a+b.winA,0);
+    winB += res.reduce((a,b)=>a+b.winB,0);
+    aliveSum += res.reduce((a,b)=>a+b.aliveDiff,0) / res.length;
+    timeSum += res.reduce((a,b)=>a+b.time,0) / res.length;
+    total += 1;
+  }
+  const avgAliveDiff = Number((aliveSum/total).toFixed(3));
+  const avgTime = Number((timeSum/total).toFixed(3));
+  summary.push({ pair: `${A.name} vs ${B.name}`, winA, winB, avgAliveDiff, avgTime });
 }
 
-console.log(`rr: rounds=${ROUNDS} repeat=${REPEAT} seed=${SEED} pairs=${pairs.length}`);
+// 저장: CSV/JSON
+const csv = ['pair,winA,winB,avgAliveDiff,avgTime', ...summary.map(s=>`${s.pair},${s.winA},${s.winB},${s.avgAliveDiff},${s.avgTime}`)].join('\n');
+fs.writeFileSync(path.join(outDir,'summary.csv'), csv);
+fs.writeFileSync(path.join(outDir,'summary.json'), JSON.stringify(summary,null,2));
+
+if (check){
+  // 결정성: 동일 인자로 한 번 더 실행해 바이트 동일성 확인
+  const csv1 = fs.readFileSync(path.join(outDir,'summary.csv'));
+  const json1 = fs.readFileSync(path.join(outDir,'summary.json'));
+  // 재실행
+  const summary2 = [];
+  for (const [A,B] of pairs){
+    let winA=0, winB=0, aliveSum=0, timeSum=0, total=0;
+    for (let k=0;k<repeat;k++){
+      const res = runMatch({ botA:A, botB:B, seed: seed + k, rounds });
+      winA += res.reduce((a,b)=>a+b.winA,0);
+      winB += res.reduce((a,b)=>a+b.winB,0);
+      aliveSum += res.reduce((a,b)=>a+b.aliveDiff,0) / res.length;
+      timeSum += res.reduce((a,b)=>a+b.time,0) / res.length;
+      total += 1;
+    }
+    const avgAliveDiff = Number((aliveSum/total).toFixed(3));
+    const avgTime = Number((timeSum/total).toFixed(3));
+    summary2.push({ pair: `${A.name} vs ${B.name}`, winA, winB, avgAliveDiff, avgTime });
+  }
+  const csv2 = ['pair,winA,winB,avgAliveDiff,avgTime', ...summary2.map(s=>`${s.pair},${s.winA},${s.winB},${s.avgAliveDiff},${s.avgTime}`)].join('\n');
+  const json2 = JSON.stringify(summary2,null,2);
+  const ok = (csv === csv2) && (JSON.stringify(JSON.parse(json1),null,2) === json2);
+  console.log(ok ? 'rr: deterministic check OK' : 'rr: deterministic check FAIL');
+}
+
+// 간단 성능 로그(1줄)
+console.log(`rr: pairs=${pairs.length} rounds=${rounds} repeat=${repeat}`);
+

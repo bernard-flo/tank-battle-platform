@@ -1,31 +1,34 @@
-#!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
+import minimist from 'minimist';
 import { runMatch } from './engine.js';
+import { loadBot } from './loader.js';
 
-const argv = yargs(hideBin(process.argv))
-  .option('a', { type:'string', demandOption:true })
-  .option('b', { type:'string', demandOption:true })
-  .option('rounds', { type:'number', default:5 })
-  .option('seed', { type:'number', default:42 })
-  .option('out', { type:'string', default:'results/last_match.csv' })
-  .help().argv;
+function ensureDir(p){ if(!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
 
-const pickLast = (v) => Array.isArray(v) ? v[v.length-1] : v;
-const A = pickLast(argv.a);
-const B = pickLast(argv.b);
-const ROUNDS = Number(pickLast(argv.rounds));
-const SEED = Number(pickLast(argv.seed));
-const OUT = pickLast(argv.out);
+const args = minimist(process.argv.slice(2));
+const aFile = Array.isArray(args.a) ? args.a[args.a.length-1] : args.a;
+const bFile = Array.isArray(args.b) ? args.b[args.b.length-1] : args.b;
+const seed = Number(Array.isArray(args.seed)?args.seed[args.seed.length-1]:args.seed ?? 42);
+const rounds = Number(Array.isArray(args.rounds)?args.rounds[args.rounds.length-1]:args.rounds ?? 5);
 
-fs.mkdirSync(path.dirname(OUT), { recursive: true });
-const res = runMatch({ a: A, b: B, rounds: ROUNDS, seed: SEED });
-// 간결 로그
-console.log(`sim: ${path.basename(A)} vs ${path.basename(B)} | rounds=${ROUNDS} seed=${SEED}`);
-// CSV 기록
-fs.writeFileSync(OUT, 'round,winA,winB,aliveDiff,time\n');
-for (const r of res.rounds) {
-  fs.appendFileSync(OUT, `${r.round},${r.winA},${r.winB},${r.aliveDiff},${r.time.toFixed(3)}\n`);
+if(!aFile || !bFile){
+  console.log('usage: node cli.js --a <botA.js> --b <botB.js> [--seed 42] [--rounds 5]');
+  process.exit(1);
 }
+
+const botA = loadBot(aFile, seed);
+const botB = loadBot(bFile, seed);
+const res = runMatch({ botA, botB, seed, rounds });
+
+// 결과 저장
+const outDir = path.resolve('tools/sim/results'); ensureDir(outDir);
+const out = path.join(outDir, 'last_match.csv');
+const header = 'round,winA,winB,aliveDiff,time\n';
+const lines = res.map(r=>[r.round,r.winA,r.winB,r.aliveDiff,r.time].join(','));
+fs.writeFileSync(out, header + lines.join('\n'));
+
+// 콘솔 요약 1줄
+const sumA = res.reduce((a,b)=>a+b.winA,0); const sumB = res.reduce((a,b)=>a+b.winB,0);
+console.log(`sim: ${botA.name} vs ${botB.name} => A:${sumA} B:${sumB} rounds:${rounds}`);
+

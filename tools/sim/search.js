@@ -1,221 +1,150 @@
-#!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
-import { runMatch, makeRng } from './engine.js';
+import minimist from 'minimist';
+import seedrandom from 'seedrandom';
+import { runMatch } from './engine.js';
+import { loadBot } from './loader.js';
 
-const argv = yargs(hideBin(process.argv))
-  .option('bot', { type:'string', demandOption:true, desc:'bot key like 02_dealer_sniper' })
-  .option('budget', { type:'number', default:50 })
-  .option('beam', { type:'number', default:5 })
-  .option('seed', { type:'number', default:7 })
-  .option('mode', { type:'string', default:'beam' })
-  .option('gens', { type:'number', default:12 })
-  .option('pop', { type:'number', default:24 })
-  .option('elite', { type:'number', default:4 })
-  .option('mut', { type:'number', default:0.25 })
-  .option('opponents', { type:'string', default:'01_tanker_guardian,06_tanker_bruiser' })
-  .option('rounds', { type:'number', default:5 })
-  .option('timeW', { type:'number', default:0.05 })
-  .option('check', { type:'boolean', default:false })
-  .help().argv;
+function ensureDir(p){ if(!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
+function pickLast(v, def){ return Array.isArray(v) ? (v.length? v[v.length-1] : def) : (v ?? def); }
 
-fs.mkdirSync('results', { recursive: true });
-fs.mkdirSync('params', { recursive: true });
-fs.mkdirSync('params/history', { recursive: true });
+const args = minimist(process.argv.slice(2));
+const botKey = pickLast(args.bot, '02_dealer_sniper');
+const budget = Number(pickLast(args.budget, 100));
+const beam = Number(pickLast(args.beam, 5));
+const seed = Number(pickLast(args.seed, 7));
+const mode = pickLast(args.mode, 'beam');
+const opponentsArg = pickLast(args.opponents, '01_tanker_guardian,06_tanker_bruiser');
+const opponents = opponentsArg.split(',').map(s=>s.trim()).filter(Boolean);
+const timeW = Number(pickLast(args.timeW, 0.05));
+const check = String(pickLast(args.check, 'false')) === 'true';
 
-const pickLast = (v) => Array.isArray(v) ? v[v.length-1] : v;
-const BOT = pickLast(argv.bot);
-const botKey = BOT.replace(/\.js$/,'');
-const out = `results/search_${botKey}.csv`;
-const outDetail = `results/search_detail_${botKey}.csv`;
-fs.writeFileSync(out, 'trial,score,json\n');
-fs.writeFileSync(outDetail, 'trial,opponent,winA,winB,avgTime\n');
+const rng = seedrandom(String(seed));
+function R(){ return rng(); }
 
-const SEED = Number(pickLast(argv.seed));
-const ROUNDS = Number(pickLast(argv.rounds));
-const BEAM = Number(pickLast(argv.beam));
-const TIMEW = Number(pickLast(argv.timeW));
-const rng = makeRng(SEED);
-
-// 파라미터 샘플러(합리적 기본 범위)
+// 파라미터 공간 정의
 const SPACE = {
-  ideal_range: [160, 520],
-  orbit_deg: [10, 120],
-  leadMaxDeg: [8, 26],
-  evade_weight: [0.2, 2.0],
-  strafe_deg: [8, 36],
-  orbit_radius: [140, 320],
-  radius_pulse: [40, 140],
-  orbitFlipRate: [0.001, 0.02],
-  fire_every_frames: [3, 9],
-  aimJitterDeg: [0.5, 2.5],
-  safeMargin: [16, 40],
-  evadeReactDist: [160, 260]
+  ideal_range: [120, 380],
+  orbit_deg: [15, 110],
+  radius: [140, 240],
+  radius_jitter: [10, 80],
+  strafe_deg: [8, 28],
+  fire_every: [3, 8]
 };
 
-function sampleParams() {
-  const p = {};
-  for (const [k,[lo,hi]] of Object.entries(SPACE)) {
-    const r = rng();
-    if (Number.isInteger(lo) && Number.isInteger(hi)) {
-      p[k] = Math.round(lo + r*(hi-lo));
-    } else {
-      p[k] = lo + r*(hi-lo);
-      // 일부는 정수화
-      if (k === 'fire_every_frames') p[k] = Math.max(2, Math.round(p[k]));
-    }
+function sampleParams(){
+  const p={};
+  for (const k of Object.keys(SPACE)){
+    const [a,b]=SPACE[k];
+    p[k] = Math.round(a + (b-a)*R());
   }
   return p;
 }
 
-function writeParamsForTrial(key, obj) {
-  const pth = `params/${key}.json`;
-  fs.writeFileSync(pth, JSON.stringify(obj, null, 2));
+function mutate(p, sigma=0.2){
+  const q={};
+  for (const k of Object.keys(SPACE)){
+    const [a,b]=SPACE[k];
+    const span=b-a; const v=p[k] ?? Math.round((a+b)/2);
+    const nv = Math.round(v + (R()*2-1)*span*sigma);
+    q[k] = Math.max(a, Math.min(b, nv));
+  }
+  return q;
 }
 
-function evalAgainst(botKey, oppKey, seed, rounds) {
-  const aPath = path.resolve(process.cwd(), '../../tanks', `${botKey}.js`);
-  const bPath = path.resolve(process.cwd(), '../../tanks', `${oppKey}.js`);
-  const res = runMatch({ a: aPath, b: bPath, seed, rounds });
-  return { winA: res.summary.winA, winB: res.summary.winB, avgTime: res.summary.avgTime };
+function saveParams(botKey, params){
+  ensureDir('tools/sim/params');
+  const file = path.resolve('tools/sim/params', botKey + '.json');
+  fs.writeFileSync(file, JSON.stringify(params,null,2));
 }
 
-const OPP = pickLast(argv.opponents);
-const opponents = OPP.split(',').map(s=>s.trim()).filter(Boolean);
+function readBot(file){ return loadBot(file, seed); }
 
-let best = { score: -1e9, params: null };
-const beam = [];
+function scoreBotAgainst(botFile, oppFiles, params){
+  // trial 시작 전에 params/<bot>.json 덮어쓰기
+  saveParams(path.basename(botFile).replace(/\.js$/,''), params);
+  const bot = readBot(botFile);
+  let total = 0; let sum = 0;
+  const detail=[];
+  for (const oppFile of oppFiles){
+    const opp = readBot(oppFile);
+    const res = runMatch({ botA: bot, botB: opp, seed, rounds: 5 });
+    const w = res.reduce((a,b)=>a+b.winA,0);
+    const avgTime = res.reduce((a,b)=>a+b.time,0)/res.length;
+    const s = w + avgTime*timeW;
+    sum += s; total += 1;
+    detail.push({ opp: opp.name, wins: w, avgTime: Number(avgTime.toFixed(3)), score: Number(s.toFixed(3)) });
+  }
+  return { score: sum/total, detail };
+}
 
-const BUDGET = Number(pickLast(argv.budget));
-if (argv.mode === 'ga') {
-  // GA 모드: 엔진 기반 점수화
-  const gaOut = `results/ga_${botKey}.csv`;
-  fs.writeFileSync(gaOut, 'gen,bestScore\n');
-  const GENS = Number(pickLast(argv.gens));
-  const POP = Number(pickLast(argv.pop));
-  const ELITE = Math.max(1, Number(pickLast(argv.elite)));
-  const MUT = Number(pickLast(argv.mut));
+function botPathOf(key){ return path.resolve('../../tanks', key + '.js'); }
 
-  // 초기 개체군(기존 params 시드 1개 포함 시도)
-  let population = [];
-  function loadCurrentParams() {
-    try {
-      const pth = path.resolve(process.cwd(), 'params', `${botKey}.json`);
-      if (fs.existsSync(pth)) {
-        const obj = JSON.parse(fs.readFileSync(pth,'utf8'));
-        if (obj && typeof obj === 'object') return obj;
+async function main(){
+  const botFile = botPathOf(botKey);
+  const oppFiles = opponents.map(botPathOf);
+  ensureDir('tools/sim/results'); ensureDir('tools/sim/params/history/'+botKey);
+  const resCSV = path.resolve('tools/sim/results', `search_${botKey}.csv`);
+  const detCSV = path.resolve('tools/sim/results', `search_detail_${botKey}.csv`);
+
+  if (mode === 'ga'){
+    // 간단 GA
+    const gens = Number(pickLast(args.gens, 12));
+    const popN = Number(pickLast(args.pop, 24));
+    const eliteN = Number(pickLast(args.elite, 4));
+    const mut = Number(pickLast(args.mut, 0.25));
+    const gaCSV = path.resolve('tools/sim/results', `ga_${botKey}.csv`);
+    fs.writeFileSync(gaCSV, 'gen,bestScore\n');
+    let pop = Array.from({length:popN}, ()=>sampleParams());
+    let best = null; let bestScore = -1e9;
+    for (let g=0; g<gens; g++){
+      const scored = pop.map(p=>({ p, ...scoreBotAgainst(botFile, oppFiles, p) }));
+      scored.sort((a,b)=>b.score-a.score);
+      const elites = scored.slice(0, eliteN).map(s=>s.p);
+      if (scored[0].score > bestScore){ bestScore = scored[0].score; best = scored[0].p; saveParams(botKey, best); fs.writeFileSync(path.resolve('tools/sim/params/history', botKey, `gen${g}.json`), JSON.stringify(best,null,2)); }
+      fs.appendFileSync(gaCSV, `${g},${bestScore.toFixed(3)}\n`);
+      // 다음 세대: 엘리트 보존 + 변이
+      const next = [...elites];
+      while (next.length < popN){
+        const base = elites[Math.floor(R()*elites.length)] || scored[Math.floor(R()*scored.length)].p;
+        next.push(mutate(base, mut));
       }
-    } catch {}
-    return null;
-  }
-  const seeded = loadCurrentParams();
-  if (seeded) population.push(seeded);
-  while (population.length < POP) population.push(sampleParams());
-
-  function scoreParams(p) {
-    writeParamsForTrial(botKey, p);
-    let total = 0;
-    for (const opp of opponents) {
-      const { winA, winB, avgTime } = evalAgainst(botKey, opp, SEED, ROUNDS);
-      total += (winA - winB) + (1/avgTime) * TIMEW;
+      pop = next;
     }
-    return total / Math.max(1, opponents.length);
-  }
-
-  function clampToSpace(p) {
-    const q = { ...p };
-    for (const [k,[lo,hi]] of Object.entries(SPACE)) {
-      if (q[k] == null) continue;
-      q[k] = Math.min(hi, Math.max(lo, q[k]));
-      if (Number.isInteger(lo) && Number.isInteger(hi)) q[k] = Math.round(q[k]);
+    // 최종 best 저장
+    saveParams(botKey, best);
+    // 결정성 체크(선택)
+    if (check){
+      const a = scoreBotAgainst(botFile, oppFiles, best).score;
+      const b = scoreBotAgainst(botFile, oppFiles, best).score;
+      console.log(a===b? 'search: GA deterministic OK' : 'search: GA deterministic FAIL');
     }
-    return q;
+    console.log(`search(GA): ${botKey} best=${bestScore.toFixed(3)}`);
+    return;
   }
 
-  function mutate(p) {
-    const q = { ...p };
-    for (const k of Object.keys(SPACE)) {
-      if (rng() < MUT) {
-        const [lo, hi] = SPACE[k];
-        const range = hi - lo;
-        // 간단 가우시안 근사: 박스-뮬러
-        const u1 = Math.max(1e-9, rng());
-        const u2 = Math.max(1e-9, rng());
-        const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2*Math.PI*u2);
-        const step = (range * 0.1) * z; // 범위의 10% 표준편차
-        q[k] = (q[k] ?? (lo + rng()*(hi-lo))) + step;
-      }
-    }
-    return clampToSpace(q);
+  // Beam 탐색
+  fs.writeFileSync(resCSV, 'trial,score\n');
+  fs.writeFileSync(detCSV, 'trial,opponent,wins,avgTime,score\n');
+  const beamSet = [];
+  let best=null, bestScore=-1e9;
+  for (let i=0;i<budget;i++){
+    const p = sampleParams();
+    const { score, detail } = scoreBotAgainst(botFile, oppFiles, p);
+    fs.appendFileSync(resCSV, `${i},${score.toFixed(3)}\n`);
+    for (const d of detail){ fs.appendFileSync(detCSV, `${i},${d.opp},${d.wins},${d.avgTime},${d.score}\n`); }
+    beamSet.push({ p, score });
+    beamSet.sort((a,b)=>b.score-a.score);
+    if (beamSet.length>beam) beamSet.length=beam;
+    if (score > bestScore){ bestScore=score; best=p; saveParams(botKey, best); }
   }
-
-  for (let g=1; g<=GENS; g++) {
-    // 평가
-    const scored = population.map(p => ({ p, s: scoreParams(p) }));
-    scored.sort((a,b)=>b.s-a.s);
-    const bestGen = scored[0];
-    if (bestGen.s > best.score) best = { score: bestGen.s, params: bestGen.p };
-    fs.appendFileSync(gaOut, `${g},${bestGen.s.toFixed(4)}\n`);
-
-    // 스냅샷 저장
-    const tsG = new Date().toISOString().replace(/[:.]/g,'-');
-    const histDirG = `params/history/${botKey}`;
-    fs.mkdirSync(histDirG, { recursive: true });
-    fs.writeFileSync(`${histDirG}/${tsG}.json`, JSON.stringify(bestGen.p, null, 2));
-
-    // 다음 세대 구성: 엘리트 보존 + 변이 샘플로 채우기
-    const elites = scored.slice(0, ELITE).map(e=>e.p);
-    const next = elites.slice();
-    while (next.length < POP) {
-      const parent = elites[Math.floor(rng()*elites.length)] || scored[Math.floor(rng()*scored.length)].p;
-      next.push(mutate(parent));
-    }
-    population = next;
+  if (check){
+    const s1 = scoreBotAgainst(botFile, oppFiles, best).score;
+    const s2 = scoreBotAgainst(botFile, oppFiles, best).score;
+    console.log(s1===s2? 'search: deterministic OK' : 'search: deterministic FAIL');
   }
-} else {
-for (let trial=1; trial<=BUDGET; trial++) {
-  const params = sampleParams();
-  // 1) trial 파라미터를 실제 평가에 적용: 파일로 덮어쓰기
-  writeParamsForTrial(botKey, params);
-
-  // 2) 평가(다상대 의사 점수)
-  let totalScore = 0;
-  for (const opp of opponents) {
-    const { winA, winB, avgTime } = evalAgainst(botKey, opp, SEED + trial, ROUNDS);
-    const score = (winA - winB) + (1/avgTime) * TIMEW;
-    totalScore += score;
-    fs.appendFileSync(outDetail, `${trial},${opp},${winA},${winB},${avgTime.toFixed(2)}\n`);
-  }
-
-  // 3) 빔 유지
-  beam.push({ score: totalScore, params });
-  beam.sort((a,b)=>b.score-a.score);
-  if (beam.length > BEAM) beam.pop();
-
-  // 4) 요약 CSV 기록
-  fs.appendFileSync(out, `${trial},${totalScore.toFixed(4)},${JSON.stringify(params)}\n`);
-
-  if (totalScore > best.score) {
-    best = { score: totalScore, params };
-  }
-}
+  console.log(`search(beam): ${botKey} best=${bestScore.toFixed(3)}`);
 }
 
-// 최종 best 저장 + 스냅샷
-const ts = new Date().toISOString().replace(/[:.]/g,'-');
-const histDir = `params/history/${botKey}`;
-fs.mkdirSync(histDir, { recursive: true });
-fs.writeFileSync(`${histDir}/${ts}.json`, JSON.stringify(best.params, null, 2));
-writeParamsForTrial(botKey, best.params);
+main();
 
-// 결정성 셀프 체크(옵션)
-if (argv.check) {
-  const a = evalAgainst(botKey, opponents[0], SEED+1, ROUNDS);
-  const b = evalAgainst(botKey, opponents[0], SEED+1, ROUNDS);
-  const ok = (a.winA===b.winA && a.winB===b.winB && Math.abs(a.avgTime-b.avgTime)<1e-9);
-  console.log(`search: deterministic check ${ok? 'OK':'FAIL'}`);
-}
-
-console.log(`search: bot=${botKey} budget=${BUDGET} beam=${BEAM} seed=${SEED}`);
