@@ -5,7 +5,7 @@
 function name(){return 'Omega Bulldozer';}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
-    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>24.692863045898704)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+12.178304044154258;if(d>safe+12.178304044154258)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>32)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+13.618857092051703;if(d>safe+13.618857092051703)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
     if(!enemies||!enemies.length)return;
     // 팀 집중사격: 체력/거리 가중치
     let tgt=enemies[0];
@@ -15,41 +15,41 @@ function update(tank,enemies,allies,bulletInfo){
     let dodged=false; const th=bestThreat(); if(th){const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]);}
     if(!dodged){
       const cx=450, cy=300; const toF=Math.atan2(cy-tank.y,cx-tank.x)*180/Math.PI;
-      const desired=(tgt.distance>144.3976463677829)? toC : toT; const pull=0.46720153795515384;
+      const desired=(tgt.distance>180)? toC : toT; const pull=0.2079981215527471;
       const mix=desired*(1-pull) + toF*pull; tryMove([mix, mix+15, mix-15, desired, desired+35, desired-35]);
     }
-    const spread = tgt.distance>160? 14 : 10; const jitter=(Math.random()-0.5)*spread; tank.fire(toT + jitter);
+    const spread = tgt.distance>160? 9.51746731156606 : 5.3272811218973; const jitter=(Math.random()-0.5)*spread; tank.fire(toT + jitter);
   }
 
 // ===== OMEGA_ANCHOR =====
 function name(){return 'Omega Anchor';}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
-    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>18.428497478266287)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+8.793685472379302;if(d>safe+8.793685472379302)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>16.29554517683222)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+8.848976217444159;if(d>safe+8.848976217444159)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
     if(!enemies||!enemies.length)return;
     const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
     const acx=allies.length?allies.reduce((s,a)=>s+a.x,0)/allies.length:tank.x; const acy=allies.length?allies.reduce((s,a)=>s+a.y,0)/allies.length:tank.y;
     const fx=(acx*2+ecx)/3, fy=(acy*2+ecy)/3; const toF=Math.atan2(fy-tank.y,fx-tank.x)*180/Math.PI; const df=Math.hypot(fx-tank.x,fy-tank.y);
-    let ang = df<110.19744790752613? toF+90 : toF;
+    let ang = df<127.37018458164468? toF+90 : toF;
     let avoided=false; const th=bestThreat(); if(th){const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; avoided=tryMove([deg,deg+20,deg-20,deg+35,deg-35]);}
     if(!avoided) tryMove([ang, ang+15, ang-15, toF]);
     let n=enemies[0]; for(let e of enemies){const s1=Math.max(0,n.health)*0.6+n.distance*0.25;const s2=Math.max(0,e.health)*0.6+e.distance*0.25; if(s2<s1)n=e;}
-    const toN=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; const jitter=(Math.random()-0.5)*4; tank.fire(toN + jitter);
+    const toN=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; const jitter=(Math.random()-0.5)*11.107666197437872; tank.fire(toN + jitter);
   }
 
 // ===== OMEGA_STRIKER =====
 function name(){return 'Omega Striker';}
 function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
-    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>16.729728005714836)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+8;if(d>safe+8)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>23.06279803520603)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+8;if(d>safe+8)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
     if(!enemies||!enemies.length)return;
     let n=enemies[0]; for(let e of enemies){const s1=Math.max(0,n.health)*0.6+n.distance*0.25;const s2=Math.max(0,e.health)*0.6+e.distance*0.25; if(s2<s1)n=e;}
-    const to=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; const err=n.distance-199.57449354448596;
+    const to=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; const err=n.distance-183.0243990012621;
     let strafe = to + 90*(Math.random()<0.5?1:-1);
-    if(Math.abs(err)>46.09088915029828) strafe = err<0? to+180 : to;
+    if(Math.abs(err)>70) strafe = err<0? to+180 : to;
     let dodged=false; const th=bestThreat(); if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]); }
     if(!dodged) tryMove([strafe, strafe+20, strafe-20, to, to+180]);
-    const lead=Math.min(20, Math.max(-20, n.distance/11)); tank.fire(to + (err>0? (lead*0.46446071628909097) : 0));
+    const lead=Math.min(20, Math.max(-20, n.distance/11)); tank.fire(to + (err>0? (lead*0.49720283082761396) : 0));
   }
 
 // ===== OMEGA_SNIPER =====
@@ -60,19 +60,19 @@ function update(tank,enemies,allies,bulletInfo){
     if(!enemies||!enemies.length)return;
     let t=enemies[0]; for(let e of enemies) if(e.health<t.health) t=e;
     const to=Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI; const err=t.distance-220;
-    let ang=to+90*(Math.random()<0.5?1:-1); if(err<-33.33098247151628) ang=to+180; if(err>55.28106377097052) ang=to; tryMove([ang, ang+20, ang-20, to+180]);
-    const lead=Math.min(24, Math.max(-24, t.distance/12)); const jitter=(Math.random()-0.5)*3.102309958895365; tank.fire(to + (err>0? lead*0.5:0) + jitter);
+    let ang=to+90*(Math.random()<0.5?1:-1); if(err<-54.57055796363157) ang=to+180; if(err>40) ang=to; tryMove([ang, ang+20, ang-20, to+180]);
+    const lead=Math.min(24, Math.max(-24, t.distance/7.325852612629891)); const jitter=(Math.random()-0.5)*2.8760323146850664; tank.fire(to + (err>0? lead*0.2024293078717019:0) + jitter);
   }
 
 // ===== OMEGA_INTERCEPTOR =====
 function name(){return 'Omega Interceptor';}
 function type(){return Type.NORMAL;}
 function update(tank,enemies,allies,bulletInfo){
-    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>22.516050732563926)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+10;if(d>safe+10)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>18.169482231697117)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+10;if(d>safe+10)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
     if(!enemies||!enemies.length)return;
     const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const toC=Math.atan2(ecy-tank.y,ecx-tank.x)*180/Math.PI;
     const th=bestThreat(); if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; if(!tryMove([deg,deg+25,deg-25,deg+45,deg-45])) tryMove([deg+160,deg-160]); }
-    else { const d=Math.hypot(ecx-tank.x,ecy-tank.y); let ang=toC + (d<276.5275041792611?180:90)*(Math.random()<0.5?1:-1); tryMove([ang, ang+20, ang-20, toC]); }
+    else { const d=Math.hypot(ecx-tank.x,ecy-tank.y); let ang=toC + (d<280?180:90)*(Math.random()<0.5?1:-1); tryMove([ang, ang+20, ang-20, toC]); }
     let n=enemies[0]; for(let e of enemies) if(e.distance<n.distance) n=e; const to=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(to);
   }
 
@@ -83,7 +83,7 @@ function update(tank,enemies,allies,bulletInfo){
     function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
     if(!enemies||!enemies.length)return;
     const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const toC=Math.atan2(ecy-tank.y,ecx-tank.x)*180/Math.PI;
-    const d=Math.hypot(ecx-tank.x,ecy-tank.y); let orbit=toC + (d<173.8122073614438?180:90); tryMove([orbit, orbit+20, orbit-20, toC]);
+    const d=Math.hypot(ecx-tank.x,ecy-tank.y); let orbit=toC + (d<160?180:90); tryMove([orbit, orbit+20, orbit-20, toC]);
     let tgt=enemies[0]; for(let e of enemies){const s1=tgt.distance+Math.max(0,tgt.health)*0.02; const s2=e.distance+Math.max(0,e.health)*0.02; if(s2<s1) tgt=e;}
     const toT=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI; const off=(tgt.distance>200? [-6,0,6] : [-4,0,4]); tank.fire(toT + off[Math.floor(Math.random()*off.length)]);
   }
