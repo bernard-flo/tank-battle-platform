@@ -9,14 +9,18 @@
 - docs(sim): README 파라미터 범위/스코어 정의/실행 예시 업데이트.
 
 핫픽스(최우선):
-- sim 어댑터 호환성: engine.js에서 enemies 항목에 `health` 별칭 추가, 탱크 API에 `size` getter 추가(TANK_R 반환) — 기존 스니펫 참조 호환.
-- rr 인자 파싱: round_robin.js에서 `seed/rounds/repeat`에 pickLast(배열 마지막) 적용해 CLI 덮어쓰기 동작 보장.
-- 각도 단위 정합: engine.js의 tank.move/fire 입력은 degree로 받고 내부에서 rad 변환(deg→rad adapter) — 스니펫 일관화.
+✔ sim 어댑터 호환성: engine.js에서 enemies 항목에 `health` 별칭, 탱크 API에 `size` getter 유지(확인).
+✔ rr 인자 파싱: round_robin.js/search.js pickLast 적용 확인. cli.js에도 적용.
+✔ 각도 단위 정합: engine.js에서 move/fire deg→rad 어댑터 적용.
 
 GA 보강(필수 전환):
-- search.js의 `--mode ga`를 엔진 점수화(runMatch) 기반으로 교체(다상대 평균 점수, timeW 가중 포함).
-- 출력: results/ga_<bot>.csv(gen,bestScore), params/history/<bot> 스냅샷, 최종 params/<bot>.json 저장.
-- --check 시 결정성 OK 로그.
+✔ search.js `--mode ga` 엔진 점수화로 전환(다상대 평균+timeW).
+✔ 출력/스냅샷/최종 params 저장 구현, --check 결정성 OK.
+
+실행/검증 로그(요약):
+- rr: deterministic check OK, pairs=15, summary.csv/json 생성.
+- search(02/04): beam 완료, params 갱신 및 history 스냅샷 저장.
+- search(03): GA 6gens/16pop 단기 실행, ga_*.csv/스냅샷 생성.
 
 커밋 가이드 예시:
 - fix(sim/adapter): add health alias and tank.size
