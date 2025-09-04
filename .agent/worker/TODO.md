@@ -19,3 +19,8 @@ Hotfix/backlog:
   - 가설2: 발사 빈도/각 노이즈 과다 → fire_every 및 지터 범위 탐색 강화
   - 가설3: 탄 충돌 모델 단순 → BULLET_R 상향 완료(=16). 추가로 히트박스/시간보간 충돌 검토
 - 결정성 검증은 OK. 성능 로그(1회/10회) 요약 추가 예정
+
+Immediate hotfix (spec alignment):
+- engine DEFAULTS를 `BULLET_R=7`, `DAMAGE=35`로 조정하고 tools/sim/README.md 표와 동기화
+- engine.runMatch → 봇 `update` 4인자만 호출하도록 수정(PARAMS 5번째 인자 제거; loader 샌드박스 주입 사용)
+- `npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true` 2회 실행하여 summary.csv/json 바이트 동일성 및 승부 페어≥3 확인. 결과/README 커밋
