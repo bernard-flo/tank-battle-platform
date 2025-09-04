@@ -1,65 +1,52 @@
-function name() {
-  return 'Tanker Bruiser';
-}
+function name() { return 'Tanker Bruiser'; }
 
-function type() {
-  return Type.TANKER;
-}
+function type() { return Type.TANKER; }
 
-function update(tank, enemies, allies, bulletInfo) {
-  const toDeg = (r) => r * 180 / Math.PI;
-  const norm = (a) => ((a % 360) + 360) % 360;
-  const angleTo = (x1, y1, x2, y2) => toDeg(Math.atan2(y2 - y1, x2 - x1));
+function update(tank, enemies, allies, bulletInfo){
+  'use strict';
 
-  function moveSafe(a) {
-    a = norm(a);
-    if (tank.move(a)) return true;
-    for (let d of [15, -15, 30, -30, 60, -60, 90, -90, 120, -120]) {
-      if (tank.move(norm(a + d))) return true;
+  // ===== Utils =====
+  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
+  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
+  function tryMove(a){ const seq=[0,10,-10,20,-20,35,-35,50,-50,80]; for(const o of seq){ if(tank.move(a+o)) return true; } return false; }
+  function mostThreat(){ let best=null,score=0; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const d=Math.hypot(dx,dy)+1e-6; const approach=(-(b.vx*dx+b.vy*dy)/d); const s=(approach>0?approach:0)/d; if(s>score){score=s;best=b;} } return {b:best,s:score}; }
+  function evade(b){ const base=Math.atan2(b.vy,b.vx)*180/Math.PI; const l=base+90,r=base-90; const tx=tank.x-b.x, ty=tank.y-b.y; function proj(a){const r=a*Math.PI/180; return Math.cos(r)*tx+Math.sin(r)*ty;} const dir=proj(l)>proj(r)?l:r; return tryMove(dir + (Math.random()*2-1)*6); }
+  function pickFront(list){ if(!list||!list.length) return null; let best=list[0]; for(const e of list){ if(e.distance<best.distance) best=e; } return best; }
+  function nearWall(x,y,m){ return (x<m||x>900-m||y<m||y>600-m); }
+
+  // ===== Behavior =====
+  const threat = mostThreat();
+  if (threat.b && threat.s>0.002) {
+    if(!evade(threat.b)){
+      const away=angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
+      tryMove(away);
     }
-    return false;
   }
 
-  function threatBullet() {
-    if (!bulletInfo || bulletInfo.length === 0) return null;
-    let best = null, score = -1e9;
-    for (const b of bulletInfo) {
-      const rx = tank.x - b.x, ry = tank.y - b.y, r = Math.hypot(rx, ry) || 1e-6;
-      const rv = (-(b.vx * rx + b.vy * ry) / r);
-      if (rv <= 0) continue;
-      const s = rv * 1.1 + 180 / (r + 1);
-      if (s > score) { score = s; best = b; }
-    }
-    return best;
-  }
-
-  function dodge(b) {
-    const ang = toDeg(Math.atan2(b.vy, b.vx));
-    // 지그재그 유지: 수직 + 오프셋
-    const flip = ((Math.floor((tank.x + 2 * tank.y) / 50) % 2) ? 1 : -1);
-    moveSafe(ang + 90 * flip);
-  }
-
-  if (!enemies || enemies.length === 0) return;
-  let tgt = enemies[0];
-  for (const e of enemies) if (e.distance < tgt.distance) tgt = e;
-
-  const th = threatBullet();
-  if (th) {
-    dodge(th);
-  } else {
-    const base = angleTo(tank.x, tank.y, tgt.x, tgt.y);
-    if (tgt.distance > 160) {
-      // 지그재그 전진
-      const zig = ((Math.floor((tank.x + tank.y) / 40) % 2) ? 22 : -22);
-      moveSafe(base + zig);
+  const tgt = pickFront(enemies);
+  if (tgt){
+    const d=tgt.distance; const toTgt=angleTo(tank.x,tank.y,tgt.x,tgt.y);
+    // Zig-zag strafe sign from position-based parity
+    const zig = ((Math.floor((tank.x+tank.y)/50)%2) ? 1 : -1);
+    let moveDir;
+    if (nearWall(tank.x,tank.y,40)){
+      // wall sliding: move parallel along nearest wall
+      if (tank.x<40) moveDir = 0 + zig*15; else if (tank.x>860) moveDir = 180 + zig*15; else if (tank.y<40) moveDir = 90 + zig*15; else moveDir = 270 + zig*15;
+    } else if (d>220){
+      moveDir = toTgt + zig*20; // advance with slight strafe
+    } else if (d<120){
+      moveDir = toTgt + 180 + zig*15; // create breathing room
     } else {
-      // 근접 오비트
-      moveSafe(base + (((tank.x * 3 + tank.y) % 100 < 50) ? 90 : -90));
+      moveDir = toTgt + zig*90; // orbit pressure
     }
-  }
+    tryMove(moveDir + (Math.random()*2-1)*6);
 
-  const f = angleTo(tank.x, tank.y, tgt.x, tgt.y) + (((tank.x ^ tank.y) & 1) ? 2 : -2);
-  tank.fire(norm(f));
+    // constant pressure fire
+    tank.fire(toTgt + (Math.random()*2-1)*3);
+  } else {
+    // push toward center if no visible enemies
+    const c=angleTo(tank.x,tank.y,450,300);
+    tryMove(c);
+  }
 }
 
