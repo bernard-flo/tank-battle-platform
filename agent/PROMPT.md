@@ -198,6 +198,11 @@ Export 생성 규칙
 - refactor(sim/search): 엔진 호출 기반 점수화. trial마다 `params/<bot>.json` 덮어쓰기. 다상대 평균 점수, `beam` 유지. `--mode ga`에서는 세대·개체군·엘리트·변이로 진화.
 - docs(sim): README 각도 단위(deg 입력), 파라미터 표/스코어 정의 업데이트.
 
+즉시 실행 배치(엔진 통합 후)
+- cd tools/sim && npm i && npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+- npm run search -- --bot 02_dealer_sniper --budget 60 --beam 5 --opponents 01_tanker_guardian,06_tanker_bruiser --seed 7 --check true
+- npm run sim  # last_match.csv 생성 확인
+
 보강 지시(스펙 동기화):
 - fix(sim/engine): DEFAULTS에서 `BULLET_R=7`, `DAMAGE=35`로 교체.
 - refactor(sim/engine): `update(...)` 4인자만 호출하도록 수정(엔진에서 5번째 PARAMS 전달 제거).
