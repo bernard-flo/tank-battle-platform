@@ -63,14 +63,14 @@ function extractType(code){
   return Type.NORMAL;
 }
 
-function makePlayersFromTeam(teamCodes){
+function makePlayersFromTeam(teamCodes, oppCodes=adversaryPack){
   const players = [];
   for (let i=0;i<6;i++){
     const code = teamCodes[i];
     players.push({ id: `R${i+1}`, name: `R${i+1}`, code, team: 'red', type: extractType(code) });
   }
-  adversaryPack.forEach((code, i)=>{
-    players.push({ id: `B${i+1}`, name: `ADV${i+1}`, code, team: 'blue', type: extractType(code) });
+  oppCodes.forEach((code, i)=>{
+    players.push({ id: `B${i+1}`, name: `OPP${i+1}`, code, team: 'blue', type: extractType(code) });
   });
   return players;
 }
@@ -90,11 +90,18 @@ function mulberry32(a){
   };
 }
 
-function evaluate(params, seeds){
+function evaluate(params, seeds, hallOfFame=[]){
   const team = buildTeam(params).map(x=>x.code);
   let red=0, blue=0, draw=0;
-  for (const s of seeds){
-    const players = makePlayersFromTeam(team);
+  for (let idx=0; idx<seeds.length; idx++){
+    const s = seeds[idx];
+    // 홀 매치: 일부 시드에서는 명예의 전당과 대전해 과적합 방지
+    let opp = adversaryPack;
+    if (hallOfFame.length>0 && (idx % 3 === 0)){
+      const rival = hallOfFame[Math.floor(Math.random()*hallOfFame.length)];
+      opp = buildTeam(rival.params).map(x=>x.code);
+    }
+    const players = makePlayersFromTeam(team, opp);
     const res = runOne(players, s);
     if (res==='red') red++; else if (res==='blue') blue++; else draw++;
   }
@@ -131,7 +138,7 @@ async function main(){
     const scores = [];
     for (let i=0;i<population.length;i++){
       const p = population[i];
-      const perf = evaluate(p, seeds);
+      const perf = evaluate(p, seeds, hall);
       scores.push({ idx:i, wr: perf.winRate, stat: perf });
     }
     scores.sort((a,b)=>b.wr - a.wr);
@@ -177,4 +184,3 @@ async function main(){
 }
 
 main();
-
