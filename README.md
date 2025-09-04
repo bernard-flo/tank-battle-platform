@@ -7,6 +7,7 @@
 - 좌측/우측 팀 각 6개 텍스트박스의 Import 버튼으로 코드 일괄 입력 가능
 - 우리팀 AI 일괄 코드: `ai/EXPORT_ALL.txt` 파일 전체 복사 → Import에 붙여넣기 → 가져오기
 - (튜닝된) OMEGA 팀 코드: `ai/EXPORT_OMEGA.txt` 파일 전체 복사 → Import에 붙여넣기 → 가져오기
+  - OMEGA는 강화학습(GA)로 최적화된 6인 스쿼드입니다.
 - 시작: Start 버튼으로 전투 시작, Pause/Reset 사용 가능
 
 ## 자동 테스트 (로컬)
@@ -22,6 +23,8 @@
 - 빠른 시도(소세대/소게임): `node simulator/train_ga.js 6 10 16 1111` 또는 `npm run train-ga:fast`
 - 표준 시도(기본): `node simulator/train_ga.js 12 14 30 4242` 또는 `npm run train-ga:std`
 - 산출물: `ai/omega_*.js` 6종 및 `ai/EXPORT_OMEGA*.txt`(세대 스냅샷 포함), `.result/ga_*.json` 요약 저장
+
+> 참고: train_ga는 강적(adversaries) + Hall of Fame self-play 혼합 평가를 사용해 과적합을 줄입니다.
 
 ## 디렉토리
 
