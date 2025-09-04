@@ -90,6 +90,7 @@ if(mode==='ga'){
   let candidates = [];
   for(let i=0;i<budget;i++){
     const cand = sample(paramSpace());
+    // apply sampled PARAMS to file before evaluation
     writeParams(botKey, cand);
     let resAgg=[]; const oppList = opponents.length? opponents : ['01_tanker_guardian','06_tanker_bruiser'];
     for(const opp of oppList){ const res = runAgainst(botKey, opp); resAgg = resAgg.concat(res); const s = scoreResult(res); detailRows.push({trial:i, opp, score:s}); }
