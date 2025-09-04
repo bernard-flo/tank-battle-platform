@@ -21,3 +21,7 @@
 - tools/sim npm 설치 및 rr/search 실행 확인(results/* 산출)
 - RR 무승부가 B 승으로 집계되던 버그 수정(무승부는 양쪽 미집계)
 - tie fix 후 summary.csv 일관성 검증, search 결과 params 저장 확인
+ 
+2025-09-04 루프 #2-4 다음 지시
+- RR 장기 무승부 빈도를 낮추기 위해 health/damage 기반 보조 스코어 옵션 설계 제안(PoC 후 적용 여부 결정)
+- search 대상 확장(각 봇 상호 교대 상대, scoring 가중치 1:0.03~0.08 스윕) 검토 지시
