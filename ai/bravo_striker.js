@@ -14,6 +14,20 @@ function update(tank, enemies, allies, bulletInfo) {
     return false;
   }
 
+  function bestThreat(bullets){
+    let best=null, bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
+      const s2=vx*vx+vy*vy; if (!s2) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>35) continue;
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      if (d>160) continue;
+      const score = d + t*2;
+      if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+
   // 목표: 가장 가까운 적
   let nearest = enemies[0];
   for (let e of enemies) if (e.distance < nearest.distance) nearest = e;
@@ -31,19 +45,9 @@ function update(tank, enemies, allies, bulletInfo) {
   }
 
   // 탄 회피 우선
-  let dodged = false; let best = null; let bestScore = 1e9;
-  for (let b of bulletInfo) {
-    const dx = b.x - tank.x, dy = b.y - tank.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist > 140) continue;
-    const dot = dx*b.vx + dy*b.vy; // 접근 중이면 dot<0
-    if (dot >= 0) continue;
-    const approach = -dot/(dist+1e-6);
-    const score = dist - approach;
-    if (score < bestScore) { bestScore = score; best = b; }
-  }
-  if (best) {
-    const ang = Math.atan2(best.vy, best.vx) + Math.PI/2;
+  let dodged = false; const threat = bestThreat(bulletInfo);
+  if (threat) {
+    const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
     const deg = ang*180/Math.PI;
     dodged = tryMove([deg, deg+20, deg-20, deg+40, deg-40]);
   }
@@ -56,4 +60,3 @@ function update(tank, enemies, allies, bulletInfo) {
   const lead = Math.min(18, Math.max(-18, (nearest.distance/12))); // 거리 기반 소폭 선행
   tank.fire(toEnemy + (err>0? (lead*0.3) : 0));
 }
-

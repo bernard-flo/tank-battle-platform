@@ -10,6 +10,17 @@ function update(tank, enemies, allies, bulletInfo) {
   if (!enemies || enemies.length === 0) return;
   function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
 
+  function bestThreat(bullets){
+    let best=null, bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if (!s2) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>30) continue;
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy); if (d>140) continue;
+      const score=d + t*2; if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+
   // 팀 앵커: 중앙을 장악하며 라인 유지
   const ecx = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
   const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
@@ -25,15 +36,12 @@ function update(tank, enemies, allies, bulletInfo) {
   let ang = toFront;
   if (df < 120) ang = toFront + 90; // 충분히 전진 -> 측면 유지
 
-  // 탄환 회피(무거운 탱커는 최소 회피)
+  // 탄환 회피(무거운 탱커이므로 보수적 범위)
   let avoided = false;
-  for (let b of bulletInfo) {
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.sqrt(dx*dx+dy*dy);
-    if (dist<110 && (dx*b.vx+dy*b.vy)<0) {
-      const deg = (Math.atan2(b.vy,b.vx)+Math.PI/2)*180/Math.PI;
-      avoided = tryMove([deg,deg+20,deg-20]);
-      break;
-    }
+  const threat = bestThreat(bulletInfo);
+  if (threat){
+    const deg = (Math.atan2(threat.vy,threat.vx)+Math.PI/2)*180/Math.PI;
+    avoided = tryMove([deg,deg+20,deg-20,deg+35,deg-35]);
   }
   if (!avoided) tryMove([ang, ang+15, ang-15, toFront]);
 
@@ -44,4 +52,3 @@ function update(tank, enemies, allies, bulletInfo) {
   const jitter = (Math.random()-0.5)*8;
   tank.fire(toEnemy + jitter);
 }
-

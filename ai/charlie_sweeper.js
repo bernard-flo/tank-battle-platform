@@ -10,6 +10,21 @@ function update(tank, enemies, allies, bulletInfo) {
   if (!enemies || enemies.length === 0) return;
   function tryMove(angles) { for (let a of angles) if (tank.move(a)) return true; return false; }
 
+  // 탄 위협 평가 공통 함수
+  function bestThreat(bullets){
+    let best=null, bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
+      const s2=vx*vx+vy*vy; if (!s2) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>35) continue;
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      if (d>160) continue;
+      const score=d + t*2;
+      if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+
   // 적 중심 계산 후 원운동으로 측면 공략
   const ecx = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
   const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
@@ -24,16 +39,13 @@ function update(tank, enemies, allies, bulletInfo) {
   }
   const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
 
-  // 탄환 회피(간단)
+  // 탄환 회피(개선: TTI 기반)
   let avoided = false;
-  for (let b of bulletInfo) {
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.sqrt(dx*dx+dy*dy);
-    if (dist<130 && (dx*b.vx+dy*b.vy)<0) {
-      const ang = Math.atan2(b.vy,b.vx) + Math.PI/2;
-      const deg = ang*180/Math.PI;
-      avoided = tryMove([deg,deg+25,deg-25,deg+45,deg-45]);
-      if (avoided) break;
-    }
+  const threat = bestThreat(bulletInfo);
+  if (threat){
+    const ang = Math.atan2(threat.vy,threat.vx)+Math.PI/2;
+    const deg = ang*180/Math.PI;
+    avoided = tryMove([deg,deg+25,deg-25,deg+45,deg-45]);
   }
 
   if (!avoided) {
@@ -49,4 +61,3 @@ function update(tank, enemies, allies, bulletInfo) {
   const offsets = [-6, 0, 6];
   tank.fire(base + offsets[Math.floor(Math.random()*offsets.length)]);
 }
-

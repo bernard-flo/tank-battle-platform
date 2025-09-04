@@ -10,16 +10,13 @@ function update(tank, enemies, allies, bulletInfo) {
   if (!enemies || enemies.length === 0) return;
   function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
 
-  // 위협도 높은 탄환 우선 회피 -> 역선회
+  // 위협도 높은 탄환 우선 회피(TTI 기반)
   let threat = null; let best = 1e9;
-  for (let b of bulletInfo) {
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.sqrt(dx*dx+dy*dy);
-    if (dist>160) continue;
-    const dot = dx*b.vx + dy*b.vy;
-    if (dot>=0) continue;
-    const approach = -dot/(dist+1e-6);
-    const score = dist - 1.2*approach;
-    if (score<best){best=score; threat=b;}
+  for (let b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if (!s2) continue;
+    const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>35) continue;
+    const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy); if (d>165) continue;
+    const score = d + t*2; if (score<best){ best=score; threat=b; }
   }
   if (threat){
     const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
@@ -43,4 +40,3 @@ function update(tank, enemies, allies, bulletInfo) {
   const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180/Math.PI;
   tank.fire(toEnemy);
 }
-

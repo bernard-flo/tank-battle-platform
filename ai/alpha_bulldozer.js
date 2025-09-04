@@ -17,6 +17,22 @@ function update(tank, enemies, allies, bulletInfo) {
     return false;
   }
 
+  // 위협 평가: 최근접 접근 시간(TTI) 기반 위험도 계산
+  function bestThreat(bullets){
+    let best=null; let bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
+      const s2=vx*vx+vy*vy; if (s2<=0) continue;
+      const t=- (rx*vx+ry*vy)/s2; // 최근접 접근 시간(프레임 단위)
+      if (t<0 || t>35) continue; // 너무 멀거나 이미 지나감
+      const cx=rx+vx*t, cy=ry+vy*t; const d2=cx*cx+cy*cy; const d=Math.sqrt(d2);
+      if (d>170) continue; // 멀면 무시
+      const score = d + t*2; // 시간 여유와 거리 절충
+      if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+
   // 목표 선택: 가장 가까운 적 중 체력이 낮은 쪽 가중치
   let target = enemies[0];
   for (let e of enemies) {
@@ -37,21 +53,9 @@ function update(tank, enemies, allies, bulletInfo) {
 
   // 총알 회피: 접근 중인 탄환이 120 내 근접하면 직교 회피
   let dodged = false;
-  let closestThreat = null;
-  let minThreatScore = 1e9;
-  for (let b of bulletInfo) {
-    const dx = b.x - tank.x; const dy = b.y - tank.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist > 150) continue;
-    const dot = (dx * b.vx + dy * b.vy);
-    if (dot >= 0) continue; // 멀어지는 탄환
-    const approach = -dot / (dist + 1e-6);
-    const score = dist - approach; // 가까울수록, 접근 강할수록 위험
-    if (score < minThreatScore) { minThreatScore = score; closestThreat = b; }
-  }
-  if (closestThreat) {
-    // 위협 벡터에 수직으로 이동
-    const ang = Math.atan2(closestThreat.vy, closestThreat.vx) + Math.PI/2;
+  const threat = bestThreat(bulletInfo);
+  if (threat) {
+    const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
     const deg = ang * 180 / Math.PI;
     dodged = tryMove([deg, deg+20, deg-20, deg+40, deg-40]);
   }
@@ -70,4 +74,3 @@ function update(tank, enemies, allies, bulletInfo) {
   const jitter = (Math.random() - 0.5) * 10; // ±5°
   tank.fire(toTarget + jitter);
 }
-
