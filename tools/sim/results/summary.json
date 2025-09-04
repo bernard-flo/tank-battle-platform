@@ -2,108 +2,108 @@
   "pairs": [
     {
       "pair": "01_tanker_guardian vs 02_dealer_sniper",
-      "winA": 13,
-      "winB": 2,
-      "avgAliveDiff": 0.7333333333333334,
-      "avgTime": 31.598933333331615
+      "winA": 6,
+      "winB": 6,
+      "avgAliveDiff": 0,
+      "avgTime": 39.42186666666551
     },
     {
       "pair": "01_tanker_guardian vs 03_dealer_flanker",
-      "winA": 13,
+      "winA": 6,
       "winB": 1,
-      "avgAliveDiff": 0.8000000000000002,
-      "avgTime": 32.47999999999895
+      "avgAliveDiff": 0.3333333333333333,
+      "avgTime": 56.26986666666813
     },
     {
       "pair": "01_tanker_guardian vs 04_normal_interceptor",
-      "winA": 9,
-      "winB": 5,
-      "avgAliveDiff": 0.26666666666666666,
-      "avgTime": 43.65653333333037
+      "winA": 4,
+      "winB": 1,
+      "avgAliveDiff": 0.20000000000000004,
+      "avgTime": 64.02560000000224
     },
     {
       "pair": "01_tanker_guardian vs 05_normal_support",
-      "winA": 8,
-      "winB": 6,
-      "avgAliveDiff": 0.13333333333333333,
-      "avgTime": 28.029866666665345
+      "winA": 0,
+      "winB": 1,
+      "avgAliveDiff": -0.06666666666666667,
+      "avgTime": 84.99626666666985
     },
     {
       "pair": "01_tanker_guardian vs 06_tanker_bruiser",
-      "winA": 5,
-      "winB": 10,
-      "avgAliveDiff": -0.3333333333333333,
-      "avgTime": 37.79199999999789
+      "winA": 0,
+      "winB": 4,
+      "avgAliveDiff": -0.26666666666666666,
+      "avgTime": 72.94293333333555
     },
     {
       "pair": "02_dealer_sniper vs 03_dealer_flanker",
       "winA": 6,
-      "winB": 9,
-      "avgAliveDiff": -0.19999999999999998,
-      "avgTime": 28.916266666665194
+      "winB": 5,
+      "avgAliveDiff": 0.0666666666666667,
+      "avgTime": 50.31893333333253
     },
     {
       "pair": "02_dealer_sniper vs 04_normal_interceptor",
       "winA": 3,
-      "winB": 12,
-      "avgAliveDiff": -0.6,
-      "avgTime": 33.90506666666518
+      "winB": 5,
+      "avgAliveDiff": -0.13333333333333333,
+      "avgTime": 61.94666666666753
     },
     {
       "pair": "02_dealer_sniper vs 05_normal_support",
-      "winA": 1,
-      "winB": 14,
-      "avgAliveDiff": -0.8666666666666667,
-      "avgTime": 29.382399999998427
+      "winA": 5,
+      "winB": 4,
+      "avgAliveDiff": 0.06666666666666667,
+      "avgTime": 51.31520000000089
     },
     {
       "pair": "02_dealer_sniper vs 06_tanker_bruiser",
-      "winA": 4,
-      "winB": 10,
-      "avgAliveDiff": -0.39999999999999997,
-      "avgTime": 36.71786666666471
+      "winA": 3,
+      "winB": 11,
+      "avgAliveDiff": -0.5333333333333333,
+      "avgTime": 27.82293333333261
     },
     {
       "pair": "03_dealer_flanker vs 04_normal_interceptor",
-      "winA": 7,
-      "winB": 8,
-      "avgAliveDiff": -0.06666666666666665,
-      "avgTime": 29.269333333331854
+      "winA": 3,
+      "winB": 5,
+      "avgAliveDiff": -0.13333333333333333,
+      "avgTime": 46.715733333334924
     },
     {
       "pair": "03_dealer_flanker vs 05_normal_support",
-      "winA": 5,
-      "winB": 10,
-      "avgAliveDiff": -0.3333333333333333,
-      "avgTime": 22.09493333333259
+      "winA": 1,
+      "winB": 3,
+      "avgAliveDiff": -0.13333333333333333,
+      "avgTime": 70.32746666666911
     },
     {
       "pair": "03_dealer_flanker vs 06_tanker_bruiser",
-      "winA": 4,
-      "winB": 10,
-      "avgAliveDiff": -0.39999999999999997,
-      "avgTime": 38.410666666665385
+      "winA": 2,
+      "winB": 2,
+      "avgAliveDiff": 0,
+      "avgTime": 78.81493333333538
     },
     {
       "pair": "04_normal_interceptor vs 05_normal_support",
-      "winA": 7,
-      "winB": 8,
-      "avgAliveDiff": -0.06666666666666667,
-      "avgTime": 35.30666666666462
+      "winA": 1,
+      "winB": 1,
+      "avgAliveDiff": 0,
+      "avgTime": 79.48160000000296
     },
     {
       "pair": "04_normal_interceptor vs 06_tanker_bruiser",
-      "winA": 9,
-      "winB": 6,
-      "avgAliveDiff": 0.20000000000000004,
-      "avgTime": 36.79679999999787
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": 0,
+      "avgTime": 90.00000000000341
     },
     {
       "pair": "05_normal_support vs 06_tanker_bruiser",
-      "winA": 7,
-      "winB": 7,
-      "avgAliveDiff": 1.850371707708594e-17,
-      "avgTime": 37.699199999998385
+      "winA": 6,
+      "winB": 0,
+      "avgAliveDiff": 0.4000000000000001,
+      "avgTime": 60.2677333333352
     }
   ],
   "seed": 42,
