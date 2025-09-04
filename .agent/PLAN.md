@@ -1,22 +1,17 @@
-# PLAN
+# 목표
 
-목표: GA 기반으로 강력한 6인 팀 코드를 생성하고, 플랫폼 기본 코드(OMEGA_TEAM_CODES)를 최신 우승팀으로 갱신한다.
+tank_battle_platform.html에서 사용할 6개의 고성능 탱크 AI 코드를 설계/탑재하고, 손쉽게 불러올 수 있는 프리셋 버튼(RED/BLUE) 추가.
+장기적으로는 실험용 전략/파라미터 튜닝 및 자동화 스크립트 추가.
 
-단계:
-진행상태:
-- [완료] 시뮬레이터 GA 빠른 러닝으로 우승팀 스냅샷 생성 (최고 승률≈87.5%)
-- [완료] ai/omega_*.js 및 EXPORT_OMEGA*.txt 산출 확인/커밋
-- [완료] tank_battle_platform.html의 OMEGA_TEAM_CODES 자동 갱신 스크립트 추가 및 실행
-- [완료] README 사용법 보강/커밋
+# 현재 세션 계획
+1. AURORA 팀 6개 코드 설계 (회피/집중사격/포지셔닝 고도화)
+2. HTML에 프리셋(AURORA) 버튼 추가 및 로더 구현
+3. `ai/aurora_team.txt`로 배포 코드 저장 (Import/Export 호환)
+4. README에 사용법 간단 안내 추가
+5. 히스토리 요약 작성
 
-진행 업데이트:
-- [완료] GA 추가 학습(6gens/12pop/16games, seedBase=8888) 수행 – best WR=0.9375
-- [완료] ai/omega_*.js 및 EXPORT_OMEGA*.txt 반영
-- [완료] tank_battle_platform.html 기본값(OMEGA_TEAM_CODES) 갱신
-- [완료] adversaries 100전 평가 기록(WR=0.69)
+# 다음 계획 (TODO)
+- 다양한 맵/스폰 변형 대비 전략 다변화
+- 파라미터 스윕 스크립트로 자동 튜닝(.agent 아래 실험 로그)
+- 회피/사격 가중치 실험군 추가 (A/B 테스트)
 
-다음 작업(우선순위):
-1) 표준 GA 재학습(12/14/30) 1회 수행 및 반영
-2) 승률 검증(강적 400전), 결과 기록 반영
-3) 플랫폼 기본값 업데이트 및 EXPORT 파일 갱신
-4) 필요시 파라미터 범위/유틸 미세조정 후 재학습
