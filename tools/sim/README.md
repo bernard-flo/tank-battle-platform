@@ -13,6 +13,8 @@
 
 출력 정책:
 - 콘솔은 요약 10줄 내, 상세는 results/*.csv 및 summary.json 저장.
+- 라운드로빈 CSV 필드: `pair,winA,winB,avgAliveDiff,avgTime` (JSON도 병행 저장)
+- 결정성 체크 로그: `[rr-check] seed=<n> deterministic=<true|false> ...` 한 줄
 
 파라미터 주입(PARAMS):
 - 경로: `tools/sim/params/<파일키>.json` (예: `02_dealer_sniper.json`)
@@ -28,3 +30,4 @@
   - `strafe_deg`: 20~110
 - 스코어: `wins + avgTime*0.05`
 - 출력: `results/search_<bot>.csv` 전체 기록, 최상해는 `params/<bot>.json`
+- Trial 적용: 각 샘플 시작 전에 `params/<bot>.json`을 해당 값으로 덮어쓴 뒤 평가
