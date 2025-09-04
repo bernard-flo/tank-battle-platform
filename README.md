@@ -8,6 +8,7 @@
 - 우리팀 AI 일괄 코드: `ai/EXPORT_ALL.txt` 파일 전체 복사 → Import에 붙여넣기 → 가져오기
 - (튜닝된) OMEGA 팀 코드: `ai/EXPORT_OMEGA.txt` 파일 전체 복사 → Import에 붙여넣기 → 가져오기
   - OMEGA는 강화학습(GA)로 최적화된 6인 스쿼드입니다.
+  - 플랫폼 기본값도 최신 OMEGA로 자동 갱신됨(이 저장소의 `tank_battle_platform.html` 포함)
   - 현재 세션 기준 강적 스위트(adversaries) 상대로 400전 샘플 승률 약 56.8% (seed=999)
 - 시작: Start 버튼으로 전투 시작, Pause/Reset 사용 가능
 
@@ -38,6 +39,11 @@
 - `simulator/` 간이 시뮬레이터와 테스트 스크립트(강적/라인업 실험 포함)
 - `.result/`  세션별 결과 기록(요약/통계)
 - `.agent/`   작업 계획/메모 스크래치패드
+
+## 플랫폼 기본 코드 갱신
+
+- OMEGA 6인 팀을 플랫폼 HTML 기본값으로 반영: `node scripts/update_platform_defaults.js`
+  - `tank_battle_platform.html` 내 `OMEGA_TEAM_CODES` 블록이 최신 `ai/omega_*.js` 내용으로 자동 대체됩니다.
 
 ## 내보내기 파일 갱신
 
