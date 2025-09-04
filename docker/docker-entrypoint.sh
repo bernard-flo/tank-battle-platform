@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 while true; do
-  cat PROMPT.md | codex exec -
+  sh /project/run-agents.sh
 done
