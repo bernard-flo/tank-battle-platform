@@ -34,11 +34,11 @@ function update(tank, enemies, allies, bulletInfo) {
     return best;
   }
 
-  // 목표 선택: 가장 가까운 적 중 체력이 낮은 쪽 가중치
+  // 목표 선택: 팀 집중사격 — 체력 우선, 거리로 타이브레이크
   let target = enemies[0];
   for (let e of enemies) {
-    const s1 = target.distance + Math.max(0, target.health) * 0.01;
-    const s2 = e.distance + Math.max(0, e.health) * 0.01;
+    const s1 = Math.max(0, target.health) * 1.0 + target.distance * 0.1;
+    const s2 = Math.max(0, e.health) * 1.0 + e.distance * 0.1;
     if (s2 < s1) target = e;
   }
 
@@ -71,7 +71,8 @@ function update(tank, enemies, allies, bulletInfo) {
     tryMove(moveAngles);
   }
 
-  // 발사: 타깃 조준 + 약간의 산포로 방패를 뚫음
-  const jitter = (Math.random() - 0.5) * 10; // ±5°
+  // 발사: 타깃 조준 + 소량 산포, 근거리 더 정밀
+  const spread = target.distance > 160 ? 10 : 6;
+  const jitter = (Math.random() - 0.5) * spread; // ±스프레드/2
   tank.fire(toTarget + jitter);
 }

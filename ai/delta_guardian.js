@@ -26,11 +26,15 @@ function update(tank, enemies, allies, bulletInfo) {
   let protect = null; let minH = 1e9;
   for (let a of allies) { if (a.health < minH) { minH = a.health; protect = a; } }
 
-  // 적 중심 및 타깃
+  // 적 중심 및 타깃(팀 집중사격 가이드)
   const ecx = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
   const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
   let target = enemies[0];
-  for (let e of enemies) if (e.distance < target.distance) target = e;
+  for (let e of enemies) {
+    const s1 = Math.max(0, target.health)*1.0 + target.distance*0.1;
+    const s2 = Math.max(0, e.health)*1.0 + e.distance*0.1;
+    if (s2 < s1) target = e;
+  }
   const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
 
   // 방패 위치: 보호 대상과 적 중심 사이에 서기

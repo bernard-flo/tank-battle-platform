@@ -35,9 +35,13 @@ function update(tank, enemies, allies, bulletInfo) {
     tryMove([ang, ang+20, ang-20, toC]);
   }
 
-  // 타깃: 가장 가까운 적
+  // 타깃: 팀 집중사격 — 저체력 우선
   let nearest = enemies[0];
-  for (let e of enemies) if (e.distance < nearest.distance) nearest = e;
+  for (let e of enemies) {
+    const s1 = Math.max(0, nearest.health)*1.0 + nearest.distance*0.1;
+    const s2 = Math.max(0, e.health)*1.0 + e.distance*0.1;
+    if (s2 < s1) nearest = e;
+  }
   const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180/Math.PI;
   tank.fire(toEnemy);
 }

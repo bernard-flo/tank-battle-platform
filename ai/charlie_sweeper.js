@@ -30,11 +30,11 @@ function update(tank, enemies, allies, bulletInfo) {
   const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
   const toCenter = Math.atan2(ecy - tank.y, ecx - tank.x) * 180/Math.PI;
 
-  // 최근접 저체력 우선 타깃
+  // 팀 집중사격: 저체력 우선, 거리 보조
   let target = enemies[0];
   for (let e of enemies) {
-    const s1 = target.distance + Math.max(0, target.health)*0.02;
-    const s2 = e.distance + Math.max(0, e.health)*0.02;
+    const s1 = Math.max(0, target.health)*1.0 + target.distance*0.1;
+    const s2 = Math.max(0, e.health)*1.0 + e.distance*0.1;
     if (s2 < s1) target = e;
   }
   const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
@@ -56,8 +56,8 @@ function update(tank, enemies, allies, bulletInfo) {
     tryMove([orbit, orbit+20, orbit-20, toTarget, toTarget+180]);
   }
 
-  // 발사: 타깃 조준 + 3점사 산포 중 1발
+  // 발사: 산포 폭을 거리로 조절
   const base = toTarget;
-  const offsets = [-6, 0, 6];
+  const offsets = target.distance>200 ? [-6, 0, 6] : [-4, 0, 4];
   tank.fire(base + offsets[Math.floor(Math.random()*offsets.length)]);
 }
