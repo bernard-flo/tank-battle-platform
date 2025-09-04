@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-codex exec 'hi'
+while true; do
+  cat PROMPT.md | codex exec -
+done
