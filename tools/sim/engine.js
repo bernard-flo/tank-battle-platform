@@ -64,6 +64,7 @@ function stepSimulation(world, dt){
     // 이동 적용 (deg→rad 변환된 lastMoveDeg 사용)
     const speed = t.speed;
     const [ux,uy] = vecFromAngleDeg(t.lastMoveDeg ?? 0);
+    t.vx = ux * speed; t.vy = uy * speed;
     let nx = t.x + ux * speed * dt;
     let ny = t.y + uy * speed * dt;
     // 벽 충돌: 슬라이딩 느낌으로 가장자리에서 평행 유지
@@ -107,7 +108,7 @@ function stepSimulation(world, dt){
 }
 
 function toPublicTank(t){
-  return { x:t.x, y:t.y, vx:0, vy:0, hp:t.hp, health: t.hp };
+  return { x:t.x, y:t.y, vx:t.vx||0, vy:t.vy||0, hp:t.hp, health: t.hp };
 }
 
 export function runMatch({ botA, botB, seed = 42, rounds = 3 }){
