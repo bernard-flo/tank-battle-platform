@@ -5,6 +5,7 @@ function type() { return Type.DEALER; }
 function update(tank, enemies, allies, bulletInfo) {
   "use strict";
   // ===== 유틸 =====
+  const P = (typeof PARAMS === 'object' && PARAMS) || {};
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const angleTo = (ax, ay, bx, by) => Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
@@ -21,7 +22,7 @@ function update(tank, enemies, allies, bulletInfo) {
     // 간이 리드: 거리 기반 작은 보정(최대 10도)
     const base = angleTo(sx, sy, tx, ty);
     const d = Math.hypot(tx - sx, ty - sy);
-    const off = clamp((assumedTargetSpeed / BULLET_SPEED) * (d / 80), 0, 10);
+    const off = clamp((assumedTargetSpeed / BULLET_SPEED) * (d / 80), 0, (P.lead_max_deg ?? 10));
     return base + off * hashSign(sx + sy + tx + ty);
   };
 
@@ -57,22 +58,22 @@ function update(tank, enemies, allies, bulletInfo) {
 
     if (target) {
       const d = target.distance;
-      // 카이팅: 이상적 사거리 ~ 320
-      const ideal = 320;
+      // 카이팅: 이상적 사거리
+      const ideal = (P.ideal_range ?? 320);
       const aTo = angleTo(tank.x, tank.y, target.x, target.y);
       const orbitDir = hashSign(tank.x * 7.7 + tank.y * 3.1 + target.x * 2.3);
 
       if (d < ideal * 0.85) {
         // 너무 가까우면 멀어지며 스트레이프
-        const away = norm(aTo + 180 + orbitDir * 20);
+        const away = norm(aTo + 180 + orbitDir * (P.strafe_deg ?? 20));
         tryMove(away);
       } else if (d > ideal * 1.25) {
         // 너무 멀면 접근하되 큰 반경 유지
-        const inA = norm(aTo + orbitDir * 25);
+        const inA = norm(aTo + orbitDir * (P.strafe_deg ?? 20));
         tryMove(inA);
       } else {
         // 적을 크게 오비트(±90 근처)
-        const strafe = norm(aTo + orbitDir * 90);
+        const strafe = norm(aTo + orbitDir * (P.orbit_deg ?? 90));
         tryMove(strafe);
       }
 
@@ -87,4 +88,3 @@ function update(tank, enemies, allies, bulletInfo) {
     }
   }
 }
-

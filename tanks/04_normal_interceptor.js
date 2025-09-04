@@ -5,6 +5,7 @@ function type() { return Type.NORMAL; }
 function update(tank, enemies, allies, bulletInfo) {
   "use strict";
   // ===== 유틸 =====
+  const P = (typeof PARAMS === 'object' && PARAMS) || {};
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const angleTo = (ax, ay, bx, by) => Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
   const norm = (a) => ((a % 360) + 360) % 360;
@@ -14,7 +15,7 @@ function update(tank, enemies, allies, bulletInfo) {
   const leadAngle = (sx, sy, tx, ty) => {
     const base = angleTo(sx, sy, tx, ty);
     const d = Math.hypot(tx - sx, ty - sy);
-    const off = clamp((assumedTargetSpeed / BULLET_SPEED) * (d / 100), 0, 8);
+    const off = clamp((assumedTargetSpeed / BULLET_SPEED) * (d / 100), 0, (P.lead_max_deg ?? 8));
     return base + off * (Math.sin((sx + sy + tx + ty) * 0.002) >= 0 ? 1 : -1);
   };
 
@@ -39,9 +40,9 @@ function update(tank, enemies, allies, bulletInfo) {
     for (const e of enemies) { if (!target || e.distance < target.distance) target = e; }
     if (target) {
       const aTo = angleTo(tank.x, tank.y, target.x, target.y);
-      // 얕은 스트레이프 이동(±70)
+      // 얕은 스트레이프 이동(±P.strafe_deg)
       const sign = (Math.sin((tank.x + tank.y + target.x) * 0.003) >= 0) ? 1 : -1;
-      tryMove(norm(aTo + sign * 70));
+      tryMove(norm(aTo + sign * (P.strafe_deg ?? 70)));
       tank.fire(leadAngle(tank.x, tank.y, target.x, target.y));
     } else {
       // 타겟 없을 때 중앙 순찰
@@ -50,4 +51,3 @@ function update(tank, enemies, allies, bulletInfo) {
     }
   }
 }
-

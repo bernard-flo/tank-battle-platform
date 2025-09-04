@@ -5,6 +5,7 @@ function type() { return Type.TANKER; }
 function update(tank, enemies, allies, bulletInfo) {
   "use strict";
   // ===== 유틸 =====
+  const P = (typeof PARAMS === 'object' && PARAMS) || {};
   const angleTo = (ax, ay, bx, by) => Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
   const norm = (a) => ((a % 360) + 360) % 360;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -32,7 +33,7 @@ function update(tank, enemies, allies, bulletInfo) {
     const aTo = angleTo(tank.x, tank.y, cx, cy);
 
     // 벽-슬라이딩: 벽 근처면 평행 이동(±90)
-    const margin = 60 + tank.size * 0.5;
+    const margin = (P.wall_margin ?? 60) + tank.size * 0.5;
     const nearLeft = tank.x < margin, nearRight = tank.x > 900 - margin;
     const nearTop = tank.y < margin, nearBot = tank.y > 600 - margin;
     let moveAng = aTo;
@@ -42,7 +43,7 @@ function update(tank, enemies, allies, bulletInfo) {
       moveAng = norm((nearTop ? 90 : 270) + hashSign(tank.x) * 90); // 수직 벽과 평행
     } else {
       // 지그재그 오프셋
-      const zig = 20 * hashSign(Math.floor((tank.x + tank.y) / 20));
+      const zig = (P.zig_deg ?? 20) * hashSign(Math.floor((tank.x + tank.y) / 20));
       moveAng = norm(aTo + zig);
     }
     tryMove(moveAng);
@@ -54,4 +55,3 @@ function update(tank, enemies, allies, bulletInfo) {
     else tank.fire(moveAng);
   }
 }
-

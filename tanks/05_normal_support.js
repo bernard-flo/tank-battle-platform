@@ -5,6 +5,7 @@ function type() { return Type.NORMAL; }
 function update(tank, enemies, allies, bulletInfo) {
   "use strict";
   // ===== 유틸 =====
+  const P = (typeof PARAMS === 'object' && PARAMS) || {};
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const angleTo = (ax, ay, bx, by) => Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
   const norm = (a) => ((a % 360) + 360) % 360;
@@ -21,7 +22,7 @@ function update(tank, enemies, allies, bulletInfo) {
   let target = null; let bestF = Infinity;
   for (const e of enemies) {
     const dC = Math.hypot(e.x - allyC.x, e.y - allyC.y);
-    const f = dC + 0.15 * e.health;
+    const f = dC + (P.focus_health_weight ?? 0.15) * e.health;
     if (f < bestF) { bestF = f; target = e; }
   }
 
@@ -42,7 +43,7 @@ function update(tank, enemies, allies, bulletInfo) {
     // ===== 중거리 유지 =====
     if (target) {
       const d = target.distance;
-      const mid = 220; // 중거리 목표 반경
+      const mid = (P.mid_range ?? 220); // 중거리 목표 반경
       const aTo = angleTo(tank.x, tank.y, target.x, target.y);
       const orbit = (hash(tank.x + tank.y + target.x) >= 0.5) ? 1 : -1;
 
@@ -53,7 +54,7 @@ function update(tank, enemies, allies, bulletInfo) {
       } else if (d > mid * 1.2) {
         tryMove(norm(aTo + orbit * 20));
       } else {
-        tryMove(norm(aTo + orbit * 85));
+        tryMove(norm(aTo + orbit * (P.orbit_deg ?? 85)));
       }
 
       // 포커스 파이어: 동일 타겟으로 발사
@@ -65,4 +66,3 @@ function update(tank, enemies, allies, bulletInfo) {
     }
   }
 }
-

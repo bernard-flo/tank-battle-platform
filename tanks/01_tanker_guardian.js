@@ -5,6 +5,7 @@ function type() { return Type.TANKER; }
 function update(tank, enemies, allies, bulletInfo) {
   "use strict";
   // ===== 유틸리티 =====
+  const P = (typeof PARAMS === 'object' && PARAMS) || {};
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const angleTo = (ax, ay, bx, by) => Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
@@ -19,7 +20,7 @@ function update(tank, enemies, allies, bulletInfo) {
     const base = angleTo(sx, sy, tx, ty);
     // 거리 비례로 0~6도 사이 보정
     const d = Math.hypot(tx - sx, ty - sy);
-    const off = clamp(d / 100, 0, 6);
+    const off = clamp(d / 100, 0, (P.short_lead_max_deg ?? 6));
     return base + (hashSign(sx + sy + tx + ty) * off);
   };
   const tryMove = (ang) => {
@@ -87,7 +88,7 @@ function update(tank, enemies, allies, bulletInfo) {
       const mid = { x: (target.x + allyCenter.x) / 2, y: (target.y + allyCenter.y) / 2 };
       const desired = angleTo(tank.x, tank.y, mid.x, mid.y);
       // 보스턴 느낌의 작은 선회(±12도)로 각도 제어
-      const spin = 12 * hashSign(tank.x + tank.y + target.x + target.y);
+      const spin = (P.spin_deg ?? 12) * hashSign(tank.x + tank.y + target.x + target.y);
       tryMove(norm(desired + spin));
 
       // 짧은 리드샷
@@ -100,4 +101,3 @@ function update(tank, enemies, allies, bulletInfo) {
     }
   }
 }
-

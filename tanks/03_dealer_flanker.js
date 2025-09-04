@@ -5,6 +5,7 @@ function type() { return Type.DEALER; }
 function update(tank, enemies, allies, bulletInfo) {
   "use strict";
   // ===== 유틸 =====
+  const P = (typeof PARAMS === 'object' && PARAMS) || {};
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const angleTo = (ax, ay, bx, by) => Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
   const norm = (a) => ((a % 360) + 360) % 360;
@@ -42,10 +43,10 @@ function update(tank, enemies, allies, bulletInfo) {
   // ===== 원운동: 타겟 법선 방향(±90°)
   const aTo = angleTo(tank.x, tank.y, target.x, target.y);
   const orbitSign = hashSign(tank.x * 5.1 + tank.y * 2.9 + target.x * 1.7);
-  let radius = clamp(target.distance, 140, 260);
+  let radius = clamp(target.distance, (P.radius_min ?? 140), (P.radius_max ?? 260));
   // 주기적 반경 조절: 벽/충돌 회피를 위한 미세 진폭
-  const wiggle = 20 * orbitSign;
-  const want = norm(aTo + orbitSign * 90);
+  const wiggle = (P.wiggle ?? 20) * orbitSign;
+  const want = norm(aTo + orbitSign * (P.orbit_deg ?? 90));
   // 반경 보정: 너무 가깝다면 바깥쪽으로, 멀다면 안쪽으로 살짝
   const radialBias = (target.distance < radius ? -15 : (target.distance > radius ? 15 : 0));
   tryMove(norm(want + radialBias + wiggle * Math.sin((tank.x + tank.y) * 0.01)));
@@ -54,4 +55,3 @@ function update(tank, enemies, allies, bulletInfo) {
   const fireAngle = aTo + orbitSign * clamp(target.distance / 50, 0, 8);
   tank.fire(norm(fireAngle));
 }
-
