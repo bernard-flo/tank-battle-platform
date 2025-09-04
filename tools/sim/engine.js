@@ -13,7 +13,7 @@ export const DEFAULTS = Object.freeze({
   TIME_LIMIT: 90, // s
   DT: 0.016,
   HP: 100,
-  DAMAGE: 35,
+  DAMAGE: 45,
   SPEEDS: { NORMAL: 120, TANKER: 105, DEALER: 130 },
 });
 
