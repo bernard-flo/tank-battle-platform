@@ -3,6 +3,7 @@ FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       curl \
+      git \
       python3-full \
  && rm -rf /var/lib/apt/lists/*
 
