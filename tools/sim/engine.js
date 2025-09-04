@@ -6,14 +6,14 @@ export const DEFAULTS = Object.freeze({
   WIDTH: 800,
   HEIGHT: 600,
   TANK_R: 16,
-  BULLET_R: 16,
+  BULLET_R: 7,
   BULLET_SPEED: 400, // px/s
   BULLET_LIFE: 4.0,  // s
   FIRE_COOLDOWN: 0.5, // s
   TIME_LIMIT: 90, // s
   DT: 0.016,
   HP: 100,
-  DAMAGE: 50,
+  DAMAGE: 35,
   SPEEDS: { NORMAL: 120, TANKER: 105, DEALER: 130 },
 });
 
@@ -142,8 +142,8 @@ export function runMatch({ botA, botB, seed = 42, rounds = 3 }){
       const bulletInfoForB = world.bullets.filter(b=>b.side==='A').map(b=>({x:b.x,y:b.y,vx:b.vx,vy:b.vy}));
 
       // PARAMS/Type/Math.random 샌드박스 주입은 loader에서 처리, 여기선 update 호출만
-      try { botA.update.call(null, apiA, enemiesForA, alliesA, bulletInfoForA, P('A')); } catch(e) { /* ignore */ }
-      try { botB.update.call(null, apiB, enemiesForB, alliesB, bulletInfoForB, Q('B')); } catch(e) { /* ignore */ }
+      try { botA.update.call(null, apiA, enemiesForA, alliesA, bulletInfoForA); } catch(e) { /* ignore */ }
+      try { botB.update.call(null, apiB, enemiesForB, alliesB, bulletInfoForB); } catch(e) { /* ignore */ }
 
       stepSimulation(world, DEFAULTS.DT);
       time += DEFAULTS.DT;
