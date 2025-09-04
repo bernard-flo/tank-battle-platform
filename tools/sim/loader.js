@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import seedrandom from 'seedrandom';
-import { Type } from './engine.js';
+import { Type, DEFAULTS } from './engine.js';
 
 function readParams(botKey){
   try {
@@ -27,7 +27,9 @@ export function loadBot(filePath, seed = 42){
   const wrapper = new Function('with(this){ ' + code + '; return { name, type, update }; }');
   // PARAMS/Type 주입, Math.random 오버라이드
   const sandbox = Object.create(null);
-  sandbox.PARAMS = Object.freeze({ ...params });
+  // bulletSpeed는 per-tick 단위로 주입
+  const perTickBullet = DEFAULTS.BULLET_SPEED * DEFAULTS.DT;
+  sandbox.PARAMS = Object.freeze({ ...params, bulletSpeed: perTickBullet });
   sandbox.Type = Type;
   sandbox.Math = { ...Math, random: safeRandom };
 
@@ -48,4 +50,3 @@ export function loadBot(filePath, seed = 42){
     update: api.update,
   };
 }
-
