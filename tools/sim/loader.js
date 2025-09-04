@@ -29,9 +29,8 @@ export function loadBot(filePath, seed = 42){
   const wrapper = new Function('with(this){ ' + code + '; return { name, type, update }; }');
   // PARAMS/Type 주입, Math.random 오버라이드
   const sandbox = Object.create(null);
-  // bulletSpeed는 per-tick 단위로 주입
-  const perTickBullet = DEFAULTS.BULLET_SPEED * DEFAULTS.DT;
-  sandbox.PARAMS = Object.freeze({ ...params, bulletSpeed: perTickBullet });
+  // bulletSpeed는 px/s 단위로 주입(스니펫 리드샷 방정식과 일치)
+  sandbox.PARAMS = Object.freeze({ ...params, bulletSpeed: DEFAULTS.BULLET_SPEED });
   sandbox.Type = Type;
   sandbox.Math = { ...Math, random: safeRandom };
 
