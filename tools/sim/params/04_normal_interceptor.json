@@ -1,5 +1,8 @@
 {
-  "lead_max_deg": 8,
-  "strafe_deg": 70,
-  "evade_weight": 1.0
+  "ideal_range": 240,
+  "orbit_deg": 70,
+  "lead_max_deg": 4,
+  "evade_weight": 2.0,
+  "strafe_deg": 16
 }
+

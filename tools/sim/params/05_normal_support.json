@@ -1,5 +1,8 @@
 {
-  "mid_range": 220,
-  "focus_health_weight": 0.15,
-  "orbit_deg": 85
+  "ideal_range": 260,
+  "orbit_deg": 60,
+  "lead_max_deg": 4,
+  "evade_weight": 1.1,
+  "strafe_deg": 14
 }
+

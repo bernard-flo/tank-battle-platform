@@ -1,198 +1,108 @@
-// 간단한 2D 전투 엔진(60Hz 고정), Function 샌드박스 기반
-import seedrandom from 'seedrandom';
 import fs from 'fs';
-import path from 'path';
+import seedrandom from 'seedrandom';
 
-export const CONST = {
-  WIDTH: 800,
-  HEIGHT: 600,
-  TANK_R: 16,
-  BULLET_R: 6,
-  BULLET_SPEED: 400,
-  FIRE_COOLDOWN: 0.5,
-  SPEED: { NORMAL: 120, TANKER: 105, DEALER: 130 },
-  DT: 1 / 60
-};
+export const WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=6;
+export const BULLET_SPEED=400, FIRE_COOLDOWN=0.5;
+export const TANK_SPEED = { NORMAL:120, TANKER:105, DEALER:130 };
+export const DT=0.016;
 
-export function createRng(seed) {
-  const rng = seedrandom(String(seed));
-  return { next: () => rng(), int: (n) => Math.floor(rng() * n) };
+export const Type = { NORMAL:1, TANKER:2, DEALER:4 };
+
+export function makeRNG(seed){ return seedrandom(seed); }
+
+export function loadParamsFor(key){
+  const path = new URL(`./params/${key}.json`, import.meta.url).pathname;
+  try { const txt = fs.readFileSync(path,'utf8'); return JSON.parse(txt); } catch { return {}; }
 }
 
-function spawnPositions(rng, n, side) {
-  const arr = [];
-  for (let i = 0; i < n; i++) {
-    const x = side === 'A' ? 100 + rng.next() * 120 : CONST.WIDTH - (100 + rng.next() * 120);
-    const y = 80 + rng.next() * (CONST.HEIGHT - 160);
-    arr.push({ x, y });
+export class Bullet{
+  constructor(x,y,vx,vy,team){ this.x=x; this.y=y; this.vx=vx; this.vy=vy; this.team=team; this.alive=true; }
+  step(dt){ this.x += this.vx*dt; this.y += this.vy*dt; if (this.x<0||this.x>WIDTH||this.y<0||this.y>HEIGHT) this.alive=false; }
+}
+
+export class Tank{
+  constructor(bot, team, spawn){
+    this.bot=bot; this.team=team;
+    this.x=spawn.x; this.y=spawn.y; this.vx=0; this.vy=0;
+    this.hp=100; this.cool=0;
+    this._speed = (bot.type()===Type.TANKER?TANK_SPEED.TANKER: (bot.type()===Type.DEALER?TANK_SPEED.DEALER:TANK_SPEED.NORMAL));
+    this.name = bot.name();
   }
-  return arr;
-}
-
-export function runMatch({ botsA, botsB, seed = 42, rounds = 1, maxTime = 60 }) {
-  const rng = createRng(seed);
-  const results = [];
-
-  for (let round = 0; round < rounds; round++) {
-    const state = initState(botsA, botsB, rng);
-    const end = simulate(state, rng, maxTime);
-    results.push(end);
-  }
-  return results;
-}
-
-function initState(botsA, botsB, rng) {
-  const tanks = [];
-  const bullets = [];
-  const posA = spawnPositions(rng, botsA.length, 'A');
-  const posB = spawnPositions(rng, botsB.length, 'B');
-
-  const mkTank = (id, side, bot, pos) => ({
-    id, side, name: bot.name, type: bot.type, code: bot.code,
-    x: pos.x, y: pos.y, angle: 0, alive: true, lastFire: -Infinity,
-    size: CONST.TANK_R * 2, damage: dmgByType(bot.type),
-    speed: speedByType(bot.type), health: hpByType(bot.type), energy: hpByType(bot.type),
-    key: bot.key, params: loadParams(bot.key)
-  });
-
-  botsA.forEach((b, i) => tanks.push(mkTank(`A${i+1}`, 'A', b, posA[i])));
-  botsB.forEach((b, i) => tanks.push(mkTank(`B${i+1}`, 'B', b, posB[i])));
-
-  return { t: 0, tanks, bullets };
-}
-
-function speedByType(t) { return t === 1 ? CONST.SPEED.TANKER : (t === 2 ? CONST.SPEED.DEALER : CONST.SPEED.NORMAL); }
-function hpByType(t) { return t === 1 ? 150 : (t === 2 ? 80 : 100); }
-function dmgByType(t) { return t === 1 ? 4.5 : (t === 2 ? 6.5 : 5); }
-
-function simulate(state, rng, maxTime) {
-  const { DT } = CONST;
-  const steps = Math.floor(maxTime / DT);
-  for (let i = 0; i < steps; i++) {
-    state.t = i * DT;
-    stepAI(state);
-    stepPhysics(state, DT);
-    if (isEnded(state)) break;
-  }
-  const scoreA = state.tanks.filter(t => t.side === 'A' && t.alive).length;
-  const scoreB = state.tanks.filter(t => t.side === 'B' && t.alive).length;
-  return { time: state.t, aliveA: scoreA, aliveB: scoreB };
-}
-
-function stepAI(state) {
-  const { tanks, bullets } = state;
-  // moveAttempts 리셋
-  tanks.forEach(t => { t.hasMoved = false; t.moveAttempts = 0; });
-
-  for (const t of tanks) {
-    if (!t.alive) continue;
-    const enemies = tanks.filter(o => o.side !== t.side && o.alive).map(o => ({
-      x: o.x, y: o.y,
-      distance: Math.hypot(o.x - t.x, o.y - t.y),
-      angle: Math.atan2(o.y - t.y, o.x - t.x) * 180 / Math.PI,
-      health: o.health
-    }));
-    const allies = tanks.filter(o => o.side === t.side && o.alive && o.id !== t.id).map(o => ({
-      x: o.x, y: o.y, distance: Math.hypot(o.x - t.x, o.y - t.y), health: o.health
-    }));
-    const bulletInfo = state.bullets.filter(b => b.side !== t.side).map(b => ({
-      x: b.x, y: b.y, vx: b.vx, vy: b.vy, distance: Math.hypot(b.x - t.x, b.y - t.y)
-    }));
-
-    const tankAPI = Object.freeze({
-      move: Object.freeze((angle) => moveTank(state, t, angle)),
-      fire: Object.freeze((angle) => fireBullet(state, t, angle)),
-      x: t.x, y: t.y, health: t.health, energy: t.energy, type: t.type, size: t.size
-    });
-
-    try {
-      const secureFunc = new Function('tank', 'enemies', 'allies', 'bulletInfo', 'PARAMS',
-        `"use strict"; const Type={NORMAL:0,TANKER:1,DEALER:2}; const console=Object.freeze({log:()=>{},warn:()=>{},error:()=>{}}); const PARAMS=Object.freeze(arguments[4]||{}); ${t.code}\nupdate(tank,enemies,allies,bulletInfo);`
-      );
-      secureFunc(tankAPI, Object.freeze(enemies), Object.freeze(allies), Object.freeze(bulletInfo), Object.freeze(t.params||{}));
-    } catch (e) {
-      // 무시: 해당 프레임 AI 동작 스킵
-    }
-  }
-}
-
-function moveTank(state, t, direction) {
-  if (!t.alive || t.hasMoved) return false;
-  t.moveAttempts = (t.moveAttempts || 0) + 1;
-  if (t.moveAttempts > 10) { t.hasMoved = true; return true; }
-
-  const rad = (direction * Math.PI) / 180;
-  const nx = t.x + Math.cos(rad) * t.speed * CONST.DT;
-  const ny = t.y + Math.sin(rad) * t.speed * CONST.DT;
-
-  const r = t.size / 2;
-  if (nx - r < 0 || nx + r > CONST.WIDTH || ny - r < 0 || ny + r > CONST.HEIGHT) return false;
-  for (const o of state.tanks) {
-    if (o === t || !o.alive) continue;
-    const d = Math.hypot(o.x - nx, o.y - ny);
-    const combined = (o.size + t.size) / 2 + 4;
-    if (d < combined) return false;
-  }
-  t.x = nx; t.y = ny; t.angle = direction; t.hasMoved = true; return true;
-}
-
-function fireBullet(state, t, angle) {
-  if (!t.alive || angle == null) return false;
-  const now = state.t;
-  if (now - t.lastFire < CONST.FIRE_COOLDOWN) return false;
-  t.lastFire = now;
-  const rad = angle * Math.PI / 180;
-  state.bullets.push({
-    x: t.x, y: t.y,
-    vx: Math.cos(rad) * CONST.BULLET_SPEED * CONST.DT,
-    vy: Math.sin(rad) * CONST.BULLET_SPEED * CONST.DT,
-    side: t.side, damage: t.damage
-  });
-  return true;
-}
-
-function stepPhysics(state, dt) {
-  // 총알 업데이트 및 충돌
-  const { bullets, tanks } = state;
-  for (const b of bullets) { b.x += b.vx; b.y += b.vy; }
-
-  // 경계 제거
-  for (let i = bullets.length - 1; i >= 0; i--) {
-    const b = bullets[i];
-    if (b.x < 0 || b.x > CONST.WIDTH || b.y < 0 || b.y > CONST.HEIGHT) bullets.splice(i, 1);
-  }
-
-  // 피격 처리
-  for (let i = bullets.length - 1; i >= 0; i--) {
-    const b = bullets[i];
-    let hit = false;
-    for (const t of tanks) {
-      if (!t.alive || t.side === b.side) continue;
-      const d = Math.hypot(t.x - b.x, t.y - b.y);
-      if (d <= t.size / 2 + CONST.BULLET_R) {
-        t.health -= b.damage; if (t.health <= 0) t.alive = false;
-        hit = true; break;
+  api(world){
+    const self = this;
+    return {
+      get x(){ return self.x; }, get y(){ return self.y; }, get vx(){ return self.vx; }, get vy(){ return self.vy; },
+      move(angle){
+        const nx = self.x + Math.cos(angle)*self._speed*DT;
+        const ny = self.y + Math.sin(angle)*self._speed*DT;
+        if (nx < TANK_R || nx > WIDTH-TANK_R || ny < TANK_R || ny > HEIGHT-TANK_R) return false;
+        // basic ally collision soft-check
+        for(const t of world.tanks){ if (t===self) continue; const d=Math.hypot(nx-t.x, ny-t.y); if (d < TANK_R*2-2) return false; }
+        self.vx = (nx - self.x)/DT; self.vy = (ny - self.y)/DT; self.x = nx; self.y = ny; return true;
+      },
+      fire(angle){
+        if (self.cool>0) return false; self.cool = FIRE_COOLDOWN;
+        world.spawnBullet(self, angle); return true;
       }
+    };
+  }
+}
+
+export class World{
+  constructor(botsA, botsB, rng){
+    this.rng=rng; this.time=0; this.tanks=[]; this.bullets=[];
+    const spawnsA=[{x:WIDTH*0.2,y:HEIGHT*0.4},{x:WIDTH*0.2,y:HEIGHT*0.6},{x:WIDTH*0.2,y:HEIGHT*0.5}];
+    const spawnsB=[{x:WIDTH*0.8,y:HEIGHT*0.6},{x:WIDTH*0.8,y:HEIGHT*0.4},{x:WIDTH*0.8,y:HEIGHT*0.5}];
+    const bots = [...botsA, ...botsB];
+    for(let i=0;i<botsA.length;i++) this.tanks.push(new Tank(botsA[i], 'A', spawnsA[i%spawnsA.length]));
+    for(let i=0;i<botsB.length;i++) this.tanks.push(new Tank(botsB[i], 'B', spawnsB[i%spawnsB.length]));
+  }
+  spawnBullet(tank, angle){
+    const vx = Math.cos(angle)*BULLET_SPEED, vy=Math.sin(angle)*BULLET_SPEED;
+    const b = new Bullet(tank.x, tank.y, vx, vy, tank.team);
+    this.bullets.push(b);
+  }
+  step(){
+    // update bots
+    const allies = (t)=> this.tanks.filter(x=>x.team===t.team && x!==t).map(x=>({x:x.x,y:x.y,vx:x.vx,vy:x.vy,hp:x.hp}));
+    const enemies = (t)=> this.tanks.filter(x=>x.team!==t.team).map(x=>({x:x.x,y:x.y,vx:x.vx,vy:x.vy,hp:x.hp}));
+    const bulletInfo = (t)=> this.bullets.filter(b=>b.team!==t.team).map(b=>({x:b.x,y:b.y,vx:b.vx,vy:b.vy}));
+    for(const t of this.tanks){
+      if (t.cool>0) t.cool = Math.max(0, t.cool-DT);
     }
-    if (hit) bullets.splice(i, 1);
+    for(const t of this.tanks){
+      const api = t.api(this);
+      try{
+        t.bot.update(api, enemies(t), allies(t), bulletInfo(t));
+      }catch(e){ /* ignore bot error */ }
+    }
+    // bullets
+    for(const b of this.bullets){ if (b.alive) b.step(DT); }
+    // collisions
+    for(const b of this.bullets){ if (!b.alive) continue; for(const t of this.tanks){ if (t.team===b.team) continue; const d=Math.hypot(b.x-t.x, b.y-t.y); if (d < TANK_R+BULLET_R){ t.hp -= 20; b.alive=false; break; } } }
+    // cleanup
+    this.bullets = this.bullets.filter(b=>b.alive);
+    // time
+    this.time += DT;
   }
+  aliveCounts(){ const a=this.tanks.filter(t=>t.team==='A'&&t.hp>0).length; const b=this.tanks.filter(t=>t.team==='B'&&t.hp>0).length; return {a,b}; }
 }
 
-function isEnded(state) {
-  const aAlive = state.tanks.some(t => t.side === 'A' && t.alive);
-  const bAlive = state.tanks.some(t => t.side === 'B' && t.alive);
-  return !(aAlive && bAlive);
-}
-
-function loadParams(key) {
-  try {
-    const p = path.join(process.cwd(), 'params', `${key}.json`);
-    if (!fs.existsSync(p)) return {};
-    const raw = JSON.parse(fs.readFileSync(p, 'utf-8'));
-    // 구버전(search 결과 배열) 방지: 객체만 허용
-    if (Array.isArray(raw)) return {};
-    return raw || {};
-  } catch {
-    return {};
+export function runMatch(botsA, botsB, opts){
+  const {seed='42', maxTime=60} = opts||{}; const rng = seedrandom(seed);
+  const world = new World(botsA,botsB,rng);
+  let frames=0; let aliveAHist=0, aliveBHist=0;
+  while(world.time < maxTime){
+    world.step(); frames++;
+    const {a,b} = world.aliveCounts(); aliveAHist+=a; aliveBHist+=b;
+    if (a===0 || b===0) break;
   }
+  const {a,b}=world.aliveCounts();
+  const winner = a>b? 'A' : (b>a? 'B' : 'DRAW');
+  return {
+    time: world.time,
+    winner,
+    aliveA:a, aliveB:b,
+    avgAliveA: aliveAHist/frames, avgAliveB: aliveBHist/frames
+  };
 }

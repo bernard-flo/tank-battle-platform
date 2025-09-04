@@ -1,5 +1,8 @@
 {
-  "evade_weight": 1.0,
-  "short_lead_max_deg": 6,
-  "spin_deg": 12
+  "ideal_range": 200,
+  "orbit_deg": 60,
+  "lead_max_deg": 4,
+  "evade_weight": 1.2,
+  "strafe_deg": 12
 }
+

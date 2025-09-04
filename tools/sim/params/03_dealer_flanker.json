@@ -1,6 +1,8 @@
 {
-  "radius_min": 140,
-  "radius_max": 260,
-  "orbit_deg": 90,
-  "wiggle": 20
+  "ideal_range": 220,
+  "orbit_deg": 85,
+  "lead_max_deg": 5,
+  "evade_weight": 1.3,
+  "strafe_deg": 18
 }
+

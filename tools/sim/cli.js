@@ -1,44 +1,29 @@
-import { loadBot } from './loader.js';
-import { runMatch } from './engine.js';
+#!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
+import { runMatch } from './engine.js';
+import { loadBot } from './loader.js';
 
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const out = {};
-  for (let i = 0; i < args.length; i += 2) out[args[i].replace(/^--/, '')] = args[i+1];
-  return out;
-}
-
-const argv = parseArgs();
-const aPath = argv.a || '../../tanks/01_tanker_guardian.js';
-const bPath = argv.b || '../../tanks/02_dealer_sniper.js';
-const seed = Number(argv.seed || 42);
-const rounds = Number(argv.rounds || 5);
+function arg(name, def){ const i=process.argv.indexOf(`--${name}`); return i>0? process.argv[i+1]: def; }
+const aPath = arg('a', '../../tanks/01_tanker_guardian.js');
+const bPath = arg('b', '../../tanks/02_dealer_sniper.js');
+const seed = arg('seed','42');
+const rounds = parseInt(arg('rounds','3'));
 
 const botA = loadBot(aPath);
 const botB = loadBot(bPath);
 
-const botsA = [botA];
-const botsB = [botB];
+const resultsDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), './results');
+fs.mkdirSync(resultsDir, {recursive:true});
+const csvPath = path.join(resultsDir, 'last_match.csv');
+fs.writeFileSync(csvPath, 'round,winner,time,aliveA,aliveB,avgAliveA,avgAliveB\n');
 
-const t0 = Date.now();
-const results = runMatch({ botsA, botsB, seed, rounds });
+let winA=0, winB=0, draw=0; let totalTime=0;
+for(let r=0;r<rounds;r++){
+  const res = runMatch([botA],[botB],{seed: seed+':'+r});
+  if (res.winner==='A') winA++; else if (res.winner==='B') winB++; else draw++;
+  totalTime += res.time;
+  fs.appendFileSync(csvPath, `${r+1},${res.winner},${res.time.toFixed(3)},${res.aliveA},${res.aliveB},${res.avgAliveA.toFixed(3)},${res.avgAliveB.toFixed(3)}\n`);
+}
 
-const summary = results.reduce((acc, r) => ({
-  rounds: (acc.rounds||0)+1,
-  winA: acc.winA + (r.aliveA > r.aliveB ? 1 : 0),
-  winB: acc.winB + (r.aliveB > r.aliveA ? 1 : 0)
-}), { winA: 0, winB: 0 });
-
-console.log(`[sim] ${botA.name} vs ${botB.name} | rounds=${rounds} seed=${seed}`);
-console.log(`[sim] result: A ${summary.winA} - B ${summary.winB}`);
-console.log(`[sim-perf] rounds=${rounds} perf=${Date.now()-t0}ms`);
-
-// 저장
-const resDir = path.join(process.cwd(), 'results');
-fs.mkdirSync(resDir, { recursive: true });
-const csv = ['round,aliveA,aliveB,time']
-  .concat(results.map((r, i) => `${i+1},${r.aliveA},${r.aliveB},${r.time.toFixed(3)}`))
-  .join('\n');
-fs.writeFileSync(path.join(resDir, 'last_match.csv'), csv);
+console.log(`A vs B => A:${winA} B:${winB} D:${draw} avgT:${(totalTime/rounds).toFixed(2)}s`);
