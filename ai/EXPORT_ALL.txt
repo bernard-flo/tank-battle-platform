@@ -1,76 +1,290 @@
 // 이 파일의 내용을 "코드 내보내기/가져오기" 기능으로 가져오면 됩니다.
 
 // ===== Alpha Bulldozer =====
-function name() { return 'Alpha Bulldozer'; }
-function type() { return Type.TANKER; }
+function name() {
+  return 'Alpha Bulldozer';
+}
+function type() {
+  return Type.TANKER;
+}
 function update(tank, enemies, allies, bulletInfo) {
   if (!enemies || enemies.length === 0) return;
-  function tryMove(angles){ for (let a of angles){ if (tank.move(a)) return true; } return false; }
+  function tryMove(angles) {
+    for (let a of angles) {
+      if (tank.move(a)) return true;
+    }
+    return false;
+  }
+  function bestThreat(bullets){
+    let best=null; let bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
+      const s2=vx*vx+vy*vy; if (s2<=0) continue;
+      const t=- (rx*vx+ry*vy)/s2; // 최근접 접근 시간(프레임 단위)
+      if (t<0 || t>24) continue; // 0.5초 내 위협만 반응
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      const safe = tank.size/2 + 10;
+      if (d>safe+10) continue; // 충분히 빗나감
+      const score = d*0.8 + t*3; // 더 보수적으로 시간 가중
+      if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
   let target = enemies[0];
-  for (let e of enemies){ const s1=target.distance+Math.max(0,target.health)*0.01; const s2=e.distance+Math.max(0,e.health)*0.01; if (s2<s1) target=e; }
-  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
-  const toEnemyCenter=Math.atan2(ecy-tank.y, ecx-tank.x)*180/Math.PI; const toTarget=Math.atan2(target.y-tank.y, target.x-tank.x)*180/Math.PI;
-  let dodged=false, closest=null, best=1e9; for (let b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.hypot(dx,dy); if (dist>150) continue; const dot=dx*b.vx+dy*b.vy; if (dot>=0) continue; const approach=-dot/(dist+1e-6); const score=dist-approach; if (score<best){best=score; closest=b;} }
-  if (closest){ const ang=Math.atan2(closest.vy,closest.vx)+Math.PI/2; const deg=ang*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]); }
-  if (!dodged){ const cx=450, cy=300; const toCenter=Math.atan2(cy-tank.y, cx-tank.x)*180/Math.PI; const desired=(target.distance>120)?toEnemyCenter:toTarget; tryMove([desired,desired+15,desired-15,toCenter,desired+35,desired-35]); }
-  const jitter=(Math.random()-0.5)*10; tank.fire(toTarget + jitter);
+  for (let e of enemies) {
+    const s1 = target.distance + Math.max(0, target.health) * 0.01;
+    const s2 = e.distance + Math.max(0, e.health) * 0.01;
+    if (s2 < s1) target = e;
+  }
+  const ecx = enemies.reduce((s, e) => s + e.x, 0) / enemies.length;
+  const ecy = enemies.reduce((s, e) => s + e.y, 0) / enemies.length;
+  const acx = allies.length ? allies.reduce((s, a) => s + a.x, 0) / allies.length : tank.x;
+  const acy = allies.length ? allies.reduce((s, a) => s + a.y, 0) / allies.length : tank.y;
+  const toEnemyCenter = Math.atan2(ecy - tank.y, ecx - tank.x) * 180 / Math.PI;
+  const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+  let dodged = false;
+  const threat = bestThreat(bulletInfo);
+  if (threat) {
+    const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
+    const deg = ang * 180 / Math.PI;
+    dodged = tryMove([deg, deg+20, deg-20, deg+40, deg-40]);
+  }
+  if (!dodged) {
+    const cx = 450, cy = 300;
+    const toCenter = Math.atan2(cy - tank.y, cx - tank.x) * 180 / Math.PI;
+    const desired = (target.distance > 120) ? toEnemyCenter : toTarget;
+    const moveAngles = [desired, desired+15, desired-15, toCenter, desired+35, desired-35];
+    tryMove(moveAngles);
+  }
+  const jitter = (Math.random() - 0.5) * 10; // ±5°
+  tank.fire(toTarget + jitter);
 }
 
 // ===== Bravo Striker =====
-function name() { return 'Bravo Striker'; }
-function type() { return Type.DEALER; }
+function name() {
+  return 'Bravo Striker';
+}
+function type() {
+  return Type.DEALER;
+}
 function update(tank, enemies, allies, bulletInfo) {
-  if (!enemies || enemies.length === 0) return; function tryMove(angles){ for(let a of angles){ if(tank.move(a)) return true; } return false; }
-  let nearest=enemies[0]; for (let e of enemies) if (e.distance<nearest.distance) nearest=e; const toEnemy=Math.atan2(nearest.y-tank.y, nearest.x-tank.x)*180/Math.PI; const desiredRange=210; const err=nearest.distance-desiredRange; let strafe=toEnemy+90*(Math.random()<0.5?1:-1); if (Math.abs(err)>40) strafe=(err<0)?(toEnemy+180):toEnemy;
-  let dodged=false, bestB=null, best=1e9; for (let b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.hypot(dx,dy); if (dist>140) continue; const dot=dx*b.vx+dy*b.vy; if (dot>=0) continue; const approach=-dot/(dist+1e-6); const score=dist-approach; if (score<best){best=score; bestB=b;} }
-  if (bestB){ const ang=Math.atan2(bestB.vy,bestB.vx)+Math.PI/2; const deg=ang*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]); }
-  if (!dodged) tryMove([strafe, strafe+20, strafe-20, toEnemy, toEnemy+180]);
-  const lead=Math.min(18, Math.max(-18, (nearest.distance/12))); tank.fire(toEnemy + (err>0? (lead*0.3) : 0));
+  if (!enemies || enemies.length === 0) return;
+  function tryMove(angles) {
+    for (let a of angles) { if (tank.move(a)) return true; }
+    return false;
+  }
+  function bestThreat(bullets){
+    let best=null, bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
+      const s2=vx*vx+vy*vy; if (!s2) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>22) continue;
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      const safe = tank.size/2 + 8; if (d>safe+8) continue;
+      const score = d*0.9 + t*3;
+      if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+  let nearest = enemies[0];
+  for (let e of enemies) if (e.distance < nearest.distance) nearest = e;
+  const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+  const desiredRange = 210;
+  const err = nearest.distance - desiredRange;
+  let strafe = toEnemy + 90 * (Math.random() < 0.5 ? 1 : -1);
+  if (Math.abs(err) > 40) {
+    strafe = (err < 0) ? (toEnemy + 180) : toEnemy;
+  }
+  let dodged = false; const threat = bestThreat(bulletInfo);
+  if (threat) {
+    const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
+    const deg = ang*180/Math.PI;
+    dodged = tryMove([deg, deg+20, deg-20, deg+40, deg-40]);
+  }
+  if (!dodged) {
+    tryMove([strafe, strafe+20, strafe-20, toEnemy, toEnemy+180]);
+  }
+  const lead = Math.min(18, Math.max(-18, (nearest.distance/12))); // 거리 기반 소폭 선행
+  tank.fire(toEnemy + (err>0? (lead*0.3) : 0));
 }
 
 // ===== Charlie Sweeper =====
-function name() { return 'Charlie Sweeper'; }
-function type() { return Type.DEALER; }
+function name() {
+  return 'Charlie Sweeper';
+}
+function type() {
+  return Type.DEALER;
+}
 function update(tank, enemies, allies, bulletInfo) {
-  if (!enemies || enemies.length === 0) return; function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
-  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const toCenter=Math.atan2(ecy-tank.y, ecx-tank.x)*180/Math.PI; let target=enemies[0]; for (let e of enemies){ const s1=target.distance+Math.max(0,target.health)*0.02; const s2=e.distance+Math.max(0,e.health)*0.02; if (s2<s1) target=e; } const toTarget=Math.atan2(target.y-tank.y, target.x-tank.x)*180/Math.PI;
-  let avoided=false; for (let b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.hypot(dx,dy); if (dist<130 && (dx*b.vx+dy*b.vy)<0){ const ang=Math.atan2(b.vy,b.vx)+Math.PI/2; const deg=ang*180/Math.PI; avoided=tryMove([deg,deg+25,deg-25,deg+45,deg-45]); if (avoided) break; } }
-  if (!avoided){ const d=Math.hypot(ecx-tank.x, ecy-tank.y); let orbit=toCenter+90; if (d<180) orbit=toCenter+180; tryMove([orbit, orbit+20, orbit-20, toTarget, toTarget+180]); }
-  const base=toTarget; const offsets=[-6,0,6]; tank.fire(base + offsets[Math.floor(Math.random()*offsets.length)]);
+  if (!enemies || enemies.length === 0) return;
+  function tryMove(angles) { for (let a of angles) if (tank.move(a)) return true; return false; }
+  function bestThreat(bullets){
+    let best=null, bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
+      const s2=vx*vx+vy*vy; if (!s2) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>22) continue;
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      const safe=tank.size/2+8; if (d>safe+8) continue;
+      const score=d*0.9 + t*3;
+      if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+  const ecx = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+  const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+  const toCenter = Math.atan2(ecy - tank.y, ecx - tank.x) * 180/Math.PI;
+  let target = enemies[0];
+  for (let e of enemies) {
+    const s1 = target.distance + Math.max(0, target.health)*0.02;
+    const s2 = e.distance + Math.max(0, e.health)*0.02;
+    if (s2 < s1) target = e;
+  }
+  const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
+  let avoided = false;
+  const threat = bestThreat(bulletInfo);
+  if (threat){
+    const ang = Math.atan2(threat.vy,threat.vx)+Math.PI/2;
+    const deg = ang*180/Math.PI;
+    avoided = tryMove([deg,deg+25,deg-25,deg+45,deg-45]);
+  }
+  if (!avoided) {
+    const d = Math.sqrt((ecx-tank.x)**2 + (ecy-tank.y)**2);
+    let orbit = toCenter + 90;
+    if (d < 180) orbit = toCenter + 180;
+    tryMove([orbit, orbit+20, orbit-20, toTarget, toTarget+180]);
+  }
+  const base = toTarget;
+  const offsets = [-6, 0, 6];
+  tank.fire(base + offsets[Math.floor(Math.random()*offsets.length)]);
 }
 
 // ===== Delta Guardian =====
-function name() { return 'Delta Guardian'; }
-function type() { return Type.NORMAL; }
+function name() {
+  return 'Delta Guardian';
+}
+function type() {
+  return Type.NORMAL;
+}
 function update(tank, enemies, allies, bulletInfo) {
-  if (!enemies || enemies.length === 0) return; function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
-  let protect=null, minH=1e9; for (let a of allies){ if (a.health<minH){minH=a.health; protect=a;} }
-  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; let target=enemies[0]; for (let e of enemies) if (e.distance<target.distance) target=e; const toTarget=Math.atan2(target.y-tank.y, target.x-tank.x)*180/Math.PI;
-  let desired=toTarget; if (protect){ const midx=(protect.x+ecx)/2, midy=(protect.y+ecy)/2; desired=Math.atan2(midy-tank.y, midx-tank.x)*180/Math.PI; }
-  let dodged=false; for (let b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.hypot(dx,dy); if (dist<120 && (dx*b.vx+dy*b.vy)<0){ const ang=Math.atan2(b.vy,b.vx)+Math.PI/2; const deg=ang*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20]); if (dodged) break; } }
-  if (!dodged) tryMove([desired, desired+20, desired-20, toTarget]);
-  const jitter=(Math.random()-0.5)*6; tank.fire(toTarget + jitter);
+  if (!enemies || enemies.length === 0) return;
+  function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
+  function bestThreat(bullets){
+    let best=null, bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if (!s2) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>22) continue;
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      const safe=tank.size/2+9; if (d>safe+8) continue;
+      const score=d*0.9 + t*3; if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+  let protect = null; let minH = 1e9;
+  for (let a of allies) { if (a.health < minH) { minH = a.health; protect = a; } }
+  const ecx = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+  const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+  let target = enemies[0];
+  for (let e of enemies) if (e.distance < target.distance) target = e;
+  const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
+  let desired = toTarget;
+  if (protect) {
+    const midx = (protect.x + ecx)/2, midy = (protect.y + ecy)/2;
+    desired = Math.atan2(midy - tank.y, midx - tank.x) * 180/Math.PI;
+  }
+  let dodged = false;
+  const threat = bestThreat(bulletInfo);
+  if (threat){
+    const ang = Math.atan2(threat.vy,threat.vx)+Math.PI/2;
+    const deg = ang*180/Math.PI;
+    dodged = tryMove([deg, deg+20, deg-20, deg+35, deg-35]);
+  }
+  if (!dodged) {
+    tryMove([desired, desired+20, desired-20, toTarget]);
+  }
+  const jitter = (Math.random()-0.5)*6;
+  tank.fire(toTarget + jitter);
 }
 
 // ===== Echo Interceptor =====
-function name() { return 'Echo Interceptor'; }
-function type() { return Type.NORMAL; }
+function name() {
+  return 'Echo Interceptor';
+}
+function type() {
+  return Type.NORMAL;
+}
 function update(tank, enemies, allies, bulletInfo) {
-  if (!enemies || enemies.length === 0) return; function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
-  let threat=null, best=1e9; for (let b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.hypot(dx,dy); if (dist>160) continue; const dot=dx*b.vx+dy*b.vy; if (dot>=0) continue; const approach=-dot/(dist+1e-6); const score=dist-1.2*approach; if (score<best){best=score; threat=b;} }
-  if (threat){ const ang=Math.atan2(threat.vy,threat.vx)+Math.PI/2; const deg=ang*180/Math.PI; if (!tryMove([deg,deg+25,deg-25,deg+45,deg-45])){ tryMove([deg+180,deg+160,deg-160]); } }
-  else { const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const toC=Math.atan2(ecy-tank.y, ecx-tank.x)*180/Math.PI; const dist=Math.hypot(ecx-tank.x, ecy-tank.y); let ang=toC + (dist<220?180:90)*(Math.random()<0.5?1:-1); tryMove([ang, ang+20, ang-20, toC]); }
-  let nearest=enemies[0]; for (let e of enemies) if (e.distance<nearest.distance) nearest=e; const toEnemy=Math.atan2(nearest.y-tank.y, nearest.x-tank.x)*180/Math.PI; tank.fire(toEnemy);
+  if (!enemies || enemies.length === 0) return;
+  function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
+  let threat = null; let best = 1e9;
+  for (let b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if (!s2) continue;
+    const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>24) continue;
+    const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+    const safe=tank.size/2+8; if (d>safe+10) continue;
+    const score = d*0.85 + t*3; if (score<best){ best=score; threat=b; }
+  }
+  if (threat){
+    const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
+    const deg = ang*180/Math.PI;
+    if (!tryMove([deg,deg+25,deg-25,deg+45,deg-45])) {
+      tryMove([deg+180, deg+160, deg-160]);
+    }
+  } else {
+    const ecx = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+    const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+    const toC = Math.atan2(ecy - tank.y, ecx - tank.x) * 180/Math.PI;
+    const dist = Math.sqrt((ecx-tank.x)**2 + (ecy-tank.y)**2);
+    let ang = toC + (dist<220 ? 180 : 90)*(Math.random()<0.5?1:-1);
+    tryMove([ang, ang+20, ang-20, toC]);
+  }
+  let nearest = enemies[0];
+  for (let e of enemies) if (e.distance < nearest.distance) nearest = e;
+  const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180/Math.PI;
+  tank.fire(toEnemy);
 }
 
 // ===== Golf Anchor =====
-function name() { return 'Golf Anchor'; }
-function type() { return Type.TANKER; }
-function update(tank, enemies, allies, bulletInfo) {
-  if (!enemies || enemies.length === 0) return; function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
-  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const acx=allies.length?allies.reduce((s,a)=>s+a.x,0)/allies.length:tank.x; const acy=allies.length?allies.reduce((s,a)=>s+a.y,0)/allies.length:tank.y; const frontX=(acx*2+ecx)/3; const frontY=(acy*2+ecy)/3; const toFront=Math.atan2(frontY-tank.y, frontX-tank.x)*180/Math.PI; const df=Math.hypot(frontX-tank.x, frontY-tank.y); let ang=toFront; if (df<120) ang=toFront+90;
-  let avoided=false; for (let b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const dist=Math.hypot(dx,dy); if (dist<110 && (dx*b.vx+dy*b.vy)<0){ const deg=(Math.atan2(b.vy,b.vx)+Math.PI/2)*180/Math.PI; avoided=tryMove([deg,deg+20,deg-20]); break; } }
-  if (!avoided) tryMove([ang, ang+15, ang-15, toFront]);
-  let nearest=enemies[0]; for (let e of enemies) if (e.distance<nearest.distance) nearest=e; const toEnemy=Math.atan2(nearest.y-tank.y, nearest.x-tank.x)*180/Math.PI; const jitter=(Math.random()-0.5)*8; tank.fire(toEnemy + jitter);
+function name() {
+  return 'Golf Anchor';
 }
-
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (!enemies || enemies.length === 0) return;
+  function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
+  function bestThreat(bullets){
+    let best=null, bestScore=1e9;
+    for (let b of bullets){
+      const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if (!s2) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>20) continue;
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      const safe=tank.size/2+10; if (d>safe+6) continue;
+      const score=d*0.9 + t*3.2; if (score<bestScore){ bestScore=score; best=b; }
+    }
+    return best;
+  }
+  const ecx = enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+  const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+  const acx = allies.length ? allies.reduce((s,a)=>s+a.x,0)/allies.length : tank.x;
+  const acy = allies.length ? allies.reduce((s,a)=>s+a.y,0)/allies.length : tank.y;
+  const frontX = (acx*2 + ecx)/3; // 아군쪽에 더 가까운 전방선
+  const frontY = (acy*2 + ecy)/3;
+  const toFront = Math.atan2(frontY - tank.y, frontX - tank.x) * 180/Math.PI;
+  const df = Math.sqrt((frontX-tank.x)**2 + (frontY-tank.y)**2);
+  let ang = toFront;
+  if (df < 120) ang = toFront + 90; // 충분히 전진 -> 측면 유지
+  let avoided = false;
+  const threat = bestThreat(bulletInfo);
+  if (threat){
+    const deg = (Math.atan2(threat.vy,threat.vx)+Math.PI/2)*180/Math.PI;
+    avoided = tryMove([deg,deg+20,deg-20,deg+35,deg-35]);
+  }
+  if (!avoided) tryMove([ang, ang+15, ang-15, toFront]);
+  let nearest = enemies[0];
+  for (let e of enemies) if (e.distance < nearest.distance) nearest = e;
+  const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180/Math.PI;
+  const jitter = (Math.random()-0.5)*8;
+  tank.fire(toEnemy + jitter);
+}
