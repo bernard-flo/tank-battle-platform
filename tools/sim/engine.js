@@ -74,6 +74,7 @@ export function runMatch(opts) {
         get x() { return ent.x; }, get y() { return ent.y; },
         get vx() { return ent.vx; }, get vy() { return ent.vy; },
         get hp() { return ent.hp; },
+        get size() { return DEFAULTS.TANK_R; },
         move(theta) {
           if (ent.moved || !ent.alive) return false;
           const nx = ent.x + Math.cos(theta) * speedPerTick;
@@ -110,8 +111,8 @@ export function runMatch(opts) {
       if (A.fireCd > 0) A.fireCd--; if (B.fireCd > 0) B.fireCd--;
 
       // 적/아군/총알 정보 구성(상대 탄약만 제공)
-      const aEnemies = [{ x: B.x, y: B.y, vx: B.vx, vy: B.vy, hp: B.hp }];
-      const bEnemies = [{ x: A.x, y: A.y, vx: A.vx, vy: A.vy, hp: A.hp }];
+      const aEnemies = [{ x: B.x, y: B.y, vx: B.vx, vy: B.vy, hp: B.hp, health: B.hp }];
+      const bEnemies = [{ x: A.x, y: A.y, vx: A.vx, vy: A.vy, hp: A.hp, health: A.hp }];
       const aAllies = [];
       const bAllies = [];
       const aBullets = bullets.filter(bu => bu.side !== A.side).map(bu => ({ x: bu.x, y: bu.y, vx: bu.vx, vy: bu.vy }));
