@@ -1,102 +1,63 @@
-function name() { return 'Tanker Guardian'; }
-
+function name() { return "Tanker Guardian"; }
 function type() { return Type.TANKER; }
-
 function update(tank, enemies, allies, bulletInfo) {
-  'use strict';
-
-  // ===== Utilities (local only) =====
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-  function dist(ax, ay, bx, by) { const dx = bx - ax, dy = by - ay; return Math.hypot(dx, dy); }
-  function angleTo(ax, ay, bx, by) { return Math.atan2(by - ay, bx - ax) * 180 / Math.PI; }
-  function normAngle(a){ while(a>180) a-=360; while(a<-180) a+=360; return a; }
-  function tryMove(angle){
-    // engine limits to 10 attempts per tick
-    const order = [0, 15, -15, 30, -30, 45, -45, 60, -60, 90];
-    for (let i=0;i<order.length;i++){
-      if (tank.move(angle + order[i])) return true;
+  // 유틸리티 (파일 내부 한정)
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  function dist(ax, ay, bx, by){ return Math.hypot(ax-bx, ay-by); }
+  function angleTo(ax, ay, bx, by){ return Math.atan2(by - ay, bx - ax) * 180/Math.PI; }
+  function norm(a){ a%=360; return a<0?a+360:a; }
+  function tryMoveDir(dir){
+    dir = norm(dir);
+    if (tank.move(dir)) return true;
+    // 벽/충돌 시 소폭 보정 재시도
+    for (let d=10; d<=40; d+=10){
+      if (tank.move(norm(dir + d))) return true;
+      if (tank.move(norm(dir - d))) return true;
     }
     return false;
   }
-  function fireAtAngle(a){ tank.fire(a + (Math.random()*2-1)*3); }
-  const BULLET_SPEED = 8;
-
-  // Lead shot: short lead using assumed target lateral motion (unknown), add tiny jitter
-  function leadAngle(src, dst){
-    // Without velocity info, use direct aim with tiny forward bias
-    return angleTo(src.x, src.y, dst.x, dst.y);
-  }
-
-  // Threat scoring for bullets: approaching speed * inverse distance
-  function mostThreateningBullet() {
-    let best = null; let bestScore = 0;
-    for (const b of bulletInfo){
-      const dx = tank.x - b.x, dy = tank.y - b.y;
-      const d = Math.hypot(dx, dy) + 1e-6;
-      const approach = (-(b.vx*dx + b.vy*dy) / d); // >0 if approaching
-      const score = (approach>0?approach:0) * (1/(d));
-      if (score > bestScore){ bestScore = score; best = b; }
-    }
-    return {bullet: best, score: bestScore};
-  }
-
-  function evadeBullet(b){
-    // Move perpendicular to bullet velocity, pick side that increases separation
-    const base = Math.atan2(b.vy, b.vx) * 180/Math.PI;
-    const left = base + 90;
-    const right = base - 90;
-    // Pick the side with greater dot product away from bullet path
-    const toTank = {x: tank.x - b.x, y: tank.y - b.y};
-    function projAway(moveDeg){
-      const r = moveDeg * Math.PI/180;
-      const ux = Math.cos(r), uy = Math.sin(r);
-      return (ux*toTank.x + uy*toTank.y);
-    }
-    const dir = projAway(left) > projAway(right) ? left : right;
-    // small random to avoid predictability
-    return tryMove(dir + (Math.random()*2-1)*8);
-  }
-
-  // Target selection: distance -> low health -> centrality of enemy
-  function pickTarget(list){
-    if (!list || list.length===0) return null;
-    const cx = 450, cy = 300;
-    let best = null; let bestKey = null;
-    for (const e of list){
-      const k = [ Math.round(e.distance), Math.round(e.health), Math.round(dist(e.x,e.y,cx,cy)) ];
-      if (!best || k[0]<bestKey[0] || (k[0]===bestKey[0] && (k[1]<bestKey[1] || (k[1]===bestKey[1] && k[2]<bestKey[2])))){
-        best = e; bestKey = k;
-      }
+  function mostDangerousBullet() {
+    let best = null;
+    let bestScore = -Infinity;
+    for (const b of bulletInfo) {
+      const rx = tank.x - b.x, ry = tank.y - b.y;
+      const vx = b.vx, vy = b.vy;
+      const vv = vx*vx + vy*vy;
+      if (vv === 0) continue;
+      const t = -(rx*vx + ry*vy)/vv; // 최근접 시점
+      if (t < 0) continue; // 멀어지는 탄은 무시
+      const cx = rx + vx*t, cy = ry + vy*t;
+      const cd = Math.hypot(cx, cy);
+      const score = 1000/(1+cd) + 0.5/(1+t);
+      if (score > bestScore) { bestScore = score; best = {b, t, cd}; }
     }
     return best;
   }
 
-  // ===== Behavior =====
-  // 1) Bullet evasion (high priority)
-  const threat = mostThreateningBullet();
-  if (threat.bullet && threat.score > 0.002) { // threshold tuned for MVP
-    if (!evadeBullet(threat.bullet)) {
-      // fallback: radial move away from bullet
-      const away = angleTo(threat.bullet.x, threat.bullet.y, tank.x, tank.y);
-      tryMove(away + (Math.random()*2-1)*10);
-    }
-  } else {
-    // 2) Defensive positioning: stay near team center as front shield
-    let ax=0, ay=0, n=0;
-    for (const a of allies){ ax+=a.x; ay+=a.y; n++; }
-    const center = n>0 ? {x: ax/n, y: ay/n} : {x: 450, y: 300};
-    const toCenter = angleTo(tank.x, tank.y, center.x, center.y);
-    const dCenter = dist(tank.x, tank.y, center.x, center.y);
-    // Keep ~80px radius from allied center
-    const desired = dCenter>90 ? toCenter : (toCenter+180);
-    tryMove(desired + (Math.random()*2-1)*6);
-  }
+  // 1) 회피 우선
+  const threat = mostDangerousBullet();
+  if (threat && threat.cd < (tank.size/2 + 20)) {
+    const dir = Math.atan2(threat.b.vy, threat.b.vx) * 180/Math.PI;
+    // 탄 궤적 수직 방향으로 이동, 약간의 난수화
+    const offset = (Math.random()<0.5? -90: 90) + (Math.random()-0.5)*12;
+    tryMoveDir(dir + offset);
+  } else if (enemies.length) {
+    // 2) 선두 방패: 최근접 적에게 각도 우선 확보(짧은 리드샷)
+    let target = enemies[0];
+    for (const e of enemies) if (e.distance < target.distance) target = e;
 
-  // 3) Engage nearest threat with short lead
-  const target = pickTarget(enemies);
-  if (target){
-    const fireDeg = leadAngle({x:tank.x,y:tank.y}, target) + (Math.random()*2-1)*2;
-    fireAtAngle(fireDeg);
+    // 접근: 과도한 근접은 피하고, 탱커답게 중근거리(120~220)
+    const desired = clamp(target.distance - 170, -180, 180);
+    const dirTo = angleTo(tank.x, tank.y, target.x, target.y);
+    const moveDir = desired > 0 ? dirTo : norm(dirTo + 180);
+    tryMoveDir(moveDir + (Math.random()-0.5)*10);
+
+    // 짧은 리드샷: 거리 기반 소폭 보정
+    const lead = clamp(target.distance/20, -12, 12) * (Math.random()<0.5?1:-1);
+    tank.fire(norm(dirTo + lead));
+  } else {
+    // 대기 중 랜덤 드리프트로 포지션 조정
+    tryMoveDir(Math.random()*360);
   }
 }
 
@@ -104,79 +65,60 @@ function update(tank, enemies, allies, bulletInfo) {
 
 // ===== 다음 로봇 =====
 
-
-function name() { return 'Dealer Sniper'; }
-
+function name() { return "Dealer Sniper"; }
 function type() { return Type.DEALER; }
-
-function update(tank, enemies, allies, bulletInfo){
-  'use strict';
-
-  // ===== Utils =====
-  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
-  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
-  function tryMove(base){
-    const seq = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100];
-    for (let o of seq){ if (tank.move(base+o)) return true; }
+function update(tank, enemies, allies, bulletInfo) {
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function angleTo(ax,ay,bx,by){return Math.atan2(by-ay,bx-ax)*180/Math.PI;}
+  function norm(a){a%=360;return a<0?a+360:a;}
+  function tryMoveDir(dir){
+    dir = norm(dir);
+    if (tank.move(dir)) return true;
+    for (let d=8; d<=32; d+=8){
+      if (tank.move(norm(dir + d))) return true;
+      if (tank.move(norm(dir - d))) return true;
+    }
     return false;
   }
-  function mostThreatBullet(){
-    let best=null, score=0;
+  function mostDangerousBullet(){
+    let best=null,bestScore=-1;
     for (const b of bulletInfo){
-      const dx=tank.x-b.x, dy=tank.y-b.y, d=Math.hypot(dx,dy)+1e-6;
-      const approach = (-(b.vx*dx + b.vy*dy)/d);
-      const s = (approach>0?approach:0)/(d);
-      if (s>score){ score=s; best=b; }
+      const rx=tank.x-b.x, ry=tank.y-b.y; const vx=b.vx, vy=b.vy; const vv=vx*vx+vy*vy; if(!vv) continue;
+      const t=-(rx*vx+ry*vy)/vv; if(t<0) continue; const cx=rx+vx*t, cy=ry+vy*t; const cd=Math.hypot(cx,cy);
+      const sc=1200/(1+cd)+0.6/(1+t); if(sc>bestScore){bestScore=sc; best={b,cd,t};}
     }
-    return {b:best, s:score};
-  }
-  function evade(b){
-    const base = Math.atan2(b.vy,b.vx)*180/Math.PI;
-    const left = base+90, right=base-90;
-    const toTankX=tank.x-b.x, toTankY=tank.y-b.y;
-    function proj(a){ const r=a*Math.PI/180; return Math.cos(r)*toTankX+Math.sin(r)*toTankY; }
-    const dir = proj(left)>proj(right)?left:right;
-    return tryMove(dir + (Math.random()*2-1)*10);
-  }
-  function pickLowestHP(list){
-    if (!list||!list.length) return null;
-    let best=list[0];
-    for (const e of list){ if (e.health<best.health || (e.health===best.health && e.distance<best.distance)) best=e; }
     return best;
   }
 
-  // ===== Behavior =====
-  const threat = mostThreatBullet();
-  if (threat.b && threat.s>0.002){
-    if(!evade(threat.b)){
-      const away = angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
-      tryMove(away);
-    }
-  } else {
-    // Kiting/orbiting around target
-    const tgt = pickLowestHP(enemies);
-    if (tgt){
-      // Keep long distance ~350-420
-      const d = tgt.distance;
-      const toTgt = angleTo(tank.x,tank.y,tgt.x,tgt.y);
-      let moveDir;
-      if (d < 280) moveDir = toTgt + 180; // back off
-      else if (d > 450) moveDir = toTgt; // close in slightly
-      else {
-        // orbit with large radius
-        const sign = Math.random()<0.5?1:-1;
-        moveDir = toTgt + sign*90;
-      }
-      tryMove(moveDir + (Math.random()*2-1)*6);
+  // 장거리 카이팅: 위협 우선 회피 -> 최대 사거리 유지 -> 정밀 사격
+  const threat = mostDangerousBullet();
+  if (threat && threat.cd < (tank.size/2 + 24)){
+    const dir = Math.atan2(threat.b.vy, threat.b.vx)*180/Math.PI;
+    const offset = (Math.random()<0.5?-90:90) + (Math.random()-0.5)*10;
+    tryMoveDir(dir + offset);
+  }
 
-      // Fire with slight jitter (bullet speed 8)
-      const fireDeg = toTgt + (Math.random()*2-1)*3;
-      tank.fire(fireDeg);
-    } else {
-      // No target: drift towards arena center to gain vision
-      const centerDir = angleTo(tank.x,tank.y,450,300);
-      tryMove(centerDir + (Math.random()*2-1)*10);
+  if (enemies.length){
+    // 타겟: 체력 낮음 우선, 동률이면 원거리 유지가 쉬운 대상
+    let target = enemies[0];
+    for (const e of enemies){
+      if (e.health < target.health - 5) target = e; else if (Math.abs(e.health - target.health) <= 5 && e.distance > target.distance) target = e;
     }
+    const dirTo = angleTo(tank.x,tank.y,target.x,target.y);
+    // 거리 밸런스: 260~360 선호
+    const preferMin=260, preferMax=360;
+    let moveDir = dirTo;
+    if (target.distance < preferMin) moveDir = norm(dirTo + 180); // 벌리기
+    else if (target.distance > preferMax) moveDir = dirTo; // 추적
+    else moveDir = norm(dirTo + (Math.random()<0.5?90:-90)); // 측면 유지
+    tryMoveDir(moveDir + (Math.random()-0.5)*8);
+
+    // 사격: 작은 리드와 분산
+    const jitter = (Math.random()-0.5)*8;
+    const lead = clamp(target.distance/18, -14, 14) * (Math.random()<0.5?1:-1);
+    tank.fire(norm(dirTo + lead + jitter));
+  } else {
+    tryMoveDir(Math.random()*360);
   }
 }
 
@@ -184,189 +126,55 @@ function update(tank, enemies, allies, bulletInfo){
 
 // ===== 다음 로봇 =====
 
-
-function name() { return 'Dealer Flanker'; }
-
+function name() { return "Dealer Flanker"; }
 function type() { return Type.DEALER; }
-
-function update(tank, enemies, allies, bulletInfo){
-  'use strict';
-
-  // ===== Utils =====
-  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
-  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
-  function tryMove(a){
-    const seq=[0,15,-15,30,-30,45,-45,60,-60,90];
-    for(const o of seq){ if(tank.move(a+o)) return true; }
+function update(tank, enemies, allies, bulletInfo) {
+  function angleTo(ax,ay,bx,by){return Math.atan2(by-ay,bx-ax)*180/Math.PI;}
+  function norm(a){a%=360; return a<0?a+360:a;}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function tryMoveDir(dir){
+    dir = norm(dir);
+    if (tank.move(dir)) return true;
+    for (let d=10; d<=40; d+=10){
+      if (tank.move(norm(dir + d))) return true;
+      if (tank.move(norm(dir - d))) return true;
+    }
     return false;
   }
-  function mostThreatBullet(){
-    let best=null,score=0;
+  function mostDangerousBullet(){
+    let best=null,score=-1;
     for(const b of bulletInfo){
-      const dx=tank.x-b.x, dy=tank.y-b.y; const d=Math.hypot(dx,dy)+1e-6;
-      const approach = (-(b.vx*dx + b.vy*dy)/d);
-      const s=(approach>0?approach:0)/(d);
-      if(s>score){score=s;best=b;}
-    }
-    return {b:best,s:score};
-  }
-  function evade(b){
-    const base=Math.atan2(b.vy,b.vx)*180/Math.PI;
-    const left=base+90,right=base-90;
-    const tx=tank.x-b.x, ty=tank.y-b.y;
-    function proj(a){const r=a*Math.PI/180;return Math.cos(r)*tx+Math.sin(r)*ty;}
-    const dir=proj(left)>proj(right)?left:right;
-    return tryMove(dir + (Math.random()*2-1)*10);
-  }
-  function pickTarget(list){
-    if(!list||!list.length) return null;
-    let best=list[0];
-    for(const e of list){ if(e.distance<best.distance) best=e; }
-    return best;
-  }
-  function nearWall(x,y,margin){ return (x<margin||x>900-margin||y<margin||y>600-margin); }
-
-  // ===== Behavior =====
-  const threat=mostThreatBullet();
-  if(threat.b && threat.s>0.002){
-    if(!evade(threat.b)){
-      const away=angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
-      tryMove(away);
-    }
-    // still try to fire at nearest while evading
-  }
-
-  const tgt=pickTarget(enemies);
-  if(tgt){
-    const d=tgt.distance; const toTgt=angleTo(tank.x,tank.y,tgt.x,tgt.y);
-    const flip = (Math.random()<0.5?1:-1);
-    let moveDir;
-    // modulate radius to avoid collisions/walls
-    if (nearWall(tank.x,tank.y,50)){
-      // slide parallel to nearest wall: choose direction that increases in-bounds
-      if (tank.x<50) moveDir=0; else if (tank.x>850) moveDir=180; else if (tank.y<50) moveDir=90; else moveDir=270;
-    } else if (d<160){
-      moveDir = toTgt + 180; // pull out
-    } else if (d>260){
-      moveDir = toTgt; // close in a bit
-    } else {
-      moveDir = toTgt + flip*90; // orbit
-    }
-    tryMove(moveDir + (Math.random()*2-1)*8);
-
-    // Continuous fire with small offset
-    tank.fire(toTgt + (Math.random()*2-1)*4);
-  } else {
-    // regroup towards center when target missing
-    const cdir=angleTo(tank.x,tank.y,450,300);
-    tryMove(cdir);
-  }
-}
-
-
-
-// ===== 다음 로봇 =====
-
-
-function name() { return 'Normal Interceptor'; }
-
-function type() { return Type.NORMAL; }
-
-function update(tank, enemies, allies, bulletInfo){
-  'use strict';
-
-  // ===== Utils =====
-  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
-  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
-  function tryMove(a){ const seq=[0,15,-15,30,-30,45,-45,60,-60,90]; for(const o of seq){ if(tank.move(a+o)) return true; } return false; }
-  function mostThreat(){ let best=null,score=0; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const d=Math.hypot(dx,dy)+1e-6; const approach=(-(b.vx*dx+b.vy*dy)/d); const s=(approach>0?approach:0)/(d); if(s>score){score=s;best=b;} } return {b:best,s:score}; }
-  function evade(b){ const base=Math.atan2(b.vy,b.vx)*180/Math.PI; const l=base+90, r=base-90; const tx=tank.x-b.x, ty=tank.y-b.y; function proj(a){const r=a*Math.PI/180; return Math.cos(r)*tx+Math.sin(r)*ty;} const dir = proj(l)>proj(r)?l:r; return tryMove(dir + (Math.random()*2-1)*8); }
-  function pickNearest(list){ if(!list||!list.length) return null; let best=list[0]; for(const e of list){ if(e.distance<best.distance) best=e; } return best; }
-
-  // ===== Behavior =====
-  const threat = mostThreat();
-  if (threat.b && threat.s>0.002){
-    if(!evade(threat.b)){
-      const away=angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
-      tryMove(away);
-    }
-  } else {
-    // proactive intercept positioning: hover midline
-    const midDir = angleTo(tank.x,tank.y,450,300);
-    tryMove(midDir + (Math.random()*2-1)*10);
-  }
-
-  // Counter-fire when possible
-  const tgt = pickNearest(enemies);
-  if (tgt){
-    const fireDeg = angleTo(tank.x,tank.y,tgt.x,tgt.y) + (Math.random()*2-1)*3;
-    tank.fire(fireDeg);
-  }
-}
-
-
-
-// ===== 다음 로봇 =====
-
-
-function name() { return 'Normal Support'; }
-
-function type() { return Type.NORMAL; }
-
-function update(tank, enemies, allies, bulletInfo){
-  'use strict';
-
-  // ===== Utils =====
-  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
-  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
-  function tryMove(a){ const seq=[0,15,-15,30,-30,45,-45,60,-60,90]; for(const o of seq){ if(tank.move(a+o)) return true; } return false; }
-  function mostThreat(){ let best=null,score=0; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const d=Math.hypot(dx,dy)+1e-6; const approach=(-(b.vx*dx+b.vy*dy)/d); const s=(approach>0?approach:0)/d; if(s>score){score=s;best=b;} } return {b:best,s:score}; }
-  function evade(b){ const base=Math.atan2(b.vy,b.vx)*180/Math.PI; const l=base+90, r=base-90; const tx=tank.x-b.x, ty=tank.y-b.y; function proj(a){const r=a*Math.PI/180; return Math.cos(r)*tx+Math.sin(r)*ty;} const dir=proj(l)>proj(r)?l:r; return tryMove(dir + (Math.random()*2-1)*8); }
-  function pickCommonTarget(list){
-    if(!list||!list.length) return null;
-    const cx=450, cy=300;
-    let best=null,bkey=null;
-    for(const e of list){
-      const key=[Math.round(e.distance), Math.round(e.health), Math.round(dist(e.x,e.y,cx,cy))];
-      if(!best || key[0]<bkey[0] || (key[0]===bkey[0] && (key[1]<bkey[1] || (key[1]===bkey[1] && key[2]<bkey[2])))){
-        best=e; bkey=key;
-      }
+      const rx=tank.x-b.x, ry=tank.y-b.y; const vx=b.vx, vy=b.vy; const vv=vx*vx+vy*vy; if(!vv) continue;
+      const t=-(rx*vx+ry*vy)/vv; if (t<0) continue; const cx=rx+vx*t, cy=ry+vy*t; const cd=Math.hypot(cx,cy);
+      const sc=900/(1+cd)+0.5/(1+t); if (sc>score){score=sc; best={b,cd,t};}
     }
     return best;
   }
 
-  // ===== Behavior =====
-  const threat=mostThreat();
-  if(threat.b && threat.s>0.002){
-    if(!evade(threat.b)){
-      const away=angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
-      tryMove(away);
-    }
+  // 위협 회피 우선
+  const threat = mostDangerousBullet();
+  if (threat && threat.cd < (tank.size/2 + 18)){
+    const dir = Math.atan2(threat.b.vy, threat.b.vx)*180/Math.PI;
+    tryMoveDir(dir + (Math.random()<0.5? -90:90));
   }
 
-  // Compute ally centroid
-  let ax=0, ay=0, n=0; for(const a of allies){ ax+=a.x; ay+=a.y; n++; }
-  const center = n?{x:ax/n,y:ay/n}:{x:450,y:300};
+  if (enemies.length){
+    let target = enemies[0]; for (const e of enemies) if (e.distance < target.distance) target = e;
+    const to = angleTo(tank.x,tank.y,target.x,target.y);
+    // 오비트: 타겟 법선 방향으로 원운동. 반경은 160~240를 들쑥날쑥 유지
+    const prefer = 200 + (Math.random()-0.5)*80;
+    let moveDir = norm(to + (Math.random()<0.55? 90: -90));
+    if (target.distance < prefer - 30) moveDir = norm(to + 180); // 거리를 벌려 반경 회복
+    if (target.distance > prefer + 30) moveDir = to;            // 반경 안으로 진입
+    tryMoveDir(moveDir + (Math.random()-0.5)*8);
 
-  const tgt = pickCommonTarget(enemies);
-  if (tgt){
-    const toTgt=angleTo(tank.x,tank.y,tgt.x,tgt.y);
-    const d=tgt.distance;
-    // Maintain mid range 220-300, and align with allies
-    let moveDir;
-    if (d<200) moveDir = toTgt+180; else if (d>320) moveDir = toTgt; else moveDir = toTgt + (Math.random()<0.5?90:-90);
-    // Blend toward ally center if far from it
-    const toCenter = angleTo(tank.x,tank.y,center.x,center.y);
-    const farFromPack = dist(tank.x,tank.y,center.x,center.y) > 140;
-    if (farFromPack) moveDir = (moveDir*0.4 + toCenter*0.6);
-    tryMove(moveDir + (Math.random()*2-1)*6);
-
-    // Focus fire
-    tank.fire(toTgt + (Math.random()*2-1)*3);
+    // 사격: 오비트 방향으로 약간 앞을 긁는 리드
+    const sweep = (moveDir - to); // +90/-90 근사
+    const lead = clamp((target.distance/22), -10, 10) * Math.sign(sweep || 1);
+    const jitter = (Math.random()-0.5)*6;
+    tank.fire(norm(to + lead + jitter));
   } else {
-    // No target: regroup to allies
-    const dir=angleTo(tank.x,tank.y,center.x,center.y);
-    tryMove(dir);
+    tryMoveDir(Math.random()*360);
   }
 }
 
@@ -374,56 +182,168 @@ function update(tank, enemies, allies, bulletInfo){
 
 // ===== 다음 로봇 =====
 
+function name() { return "Normal Interceptor"; }
+function type() { return Type.NORMAL; }
+function update(tank, enemies, allies, bulletInfo) {
+  function angleTo(ax,ay,bx,by){return Math.atan2(by-ay,bx-ax)*180/Math.PI;}
+  function norm(a){a%=360;return a<0?a+360:a;}
+  function tryMoveDir(dir){
+    dir = norm(dir);
+    if (tank.move(dir)) return true;
+    for (let d=12; d<=48; d+=12){
+      if (tank.move(norm(dir + d))) return true;
+      if (tank.move(norm(dir - d))) return true;
+    }
+    return false;
+  }
+  function threatScore(b){
+    const rx=tank.x-b.x, ry=tank.y-b.y; const vx=b.vx, vy=b.vy; const vv=vx*vx+vy*vy; if(!vv) return -1;
+    const closing=-(rx*vx+ry*vy)/Math.sqrt(vv); // 접근 성분
+    const t=-(rx*vx+ry*vy)/vv; // 최근접 시간
+    const cx=rx+vx*Math.max(0,t), cy=ry+vy*Math.max(0,t);
+    const cd=Math.hypot(cx,cy);
+    return (closing>0? closing:0)/(1+cd) + 0.6/(1+Math.max(0,t));
+  }
+  function mostDangerousBullet(){
+    let best=null, bs=-1;
+    for(const b of bulletInfo){
+      const s=threatScore(b); if (s>bs){bs=s; best=b;}
+    }
+    return best;
+  }
 
-function name() { return 'Tanker Bruiser'; }
+  // 1) 가장 위협적인 탄에 수직 회피
+  const b = mostDangerousBullet();
+  if (b){
+    const dir = Math.atan2(b.vy,b.vx)*180/Math.PI;
+    const offset = (Math.random()<0.5? -90:90) + (Math.random()-0.5)*12;
+    tryMoveDir(dir + offset);
+  }
 
+  // 2) 반격: 최근접 적에게 약한 리드샷
+  if (enemies.length){
+    let target=enemies[0]; for(const e of enemies) if(e.distance<target.distance) target=e;
+    const to = angleTo(tank.x,tank.y,target.x,target.y);
+    const lead = Math.min(10, target.distance/25) * (Math.random()<0.5?1:-1);
+    tank.fire(norm(to + lead + (Math.random()-0.5)*5));
+  }
+}
+
+
+
+// ===== 다음 로봇 =====
+
+function name() { return "Normal Support"; }
+function type() { return Type.NORMAL; }
+function update(tank, enemies, allies, bulletInfo) {
+  function angleTo(ax,ay,bx,by){return Math.atan2(by-ay,bx-ax)*180/Math.PI;}
+  function norm(a){a%=360;return a<0?a+360:a;}
+  function tryMoveDir(dir){
+    dir = norm(dir);
+    if (tank.move(dir)) return true;
+    for (let d=10; d<=40; d+=10){
+      if (tank.move(norm(dir + d))) return true;
+      if (tank.move(norm(dir - d))) return true;
+    }
+    return false;
+  }
+  function centroid(points){
+    if (!points.length) return {x:tank.x, y:tank.y};
+    let sx= tank.x, sy=tank.y, c=1;
+    for(const p of points){ sx+=p.x; sy+=p.y; c++; }
+    return {x:sx/c, y:sy/c};
+  }
+  function mostDangerousBullet(){
+    let best=null,score=-1; for(const b of bulletInfo){
+      const rx=tank.x-b.x, ry=tank.y-b.y; const vx=b.vx, vy=b.vy; const vv=vx*vx+vy*vy; if(!vv) continue;
+      const t=-(rx*vx+ry*vy)/vv; if(t<0) continue; const cx=rx+vx*t, cy=ry+vy*t; const cd=Math.hypot(cx,cy);
+      const sc=1000/(1+cd)+0.5/(1+t); if(sc>score){score=sc; best={b,cd,t};}
+    } return best;
+  }
+
+  // 1) 아군 중심 방어 포지셔닝 + 위협 회피
+  const allyCenter = centroid(allies);
+  const threat = mostDangerousBullet();
+  if (threat && threat.cd < (tank.size/2 + 20)){
+    const dir = Math.atan2(threat.b.vy, threat.b.vx)*180/Math.PI;
+    tryMoveDir(dir + (Math.random()<0.5? -90:90));
+  } else if (enemies.length){
+    // 공통 타겟: 아군 중심에서 가장 가까운 적
+    let focus = enemies[0];
+    let bestd = Math.hypot(enemies[0].x - allyCenter.x, enemies[0].y - allyCenter.y);
+    for (const e of enemies){
+      const d = Math.hypot(e.x - allyCenter.x, e.y - allyCenter.y);
+      if (d < bestd) { bestd = d; focus = e; }
+    }
+
+    // 중거리(200~300) 유지하며 중심과 각도 정렬
+    const to = angleTo(tank.x,tank.y,focus.x,focus.y);
+    let moveDir = to;
+    if (focus.distance < 200) moveDir = norm(to + 180);
+    else if (focus.distance > 300) moveDir = to;
+    else moveDir = norm(angleTo(tank.x,tank.y,allyCenter.x,allyCenter.y)); // 중심 정렬
+    tryMoveDir(moveDir + (Math.random()-0.5)*8);
+
+    // 포커스 파이어: 소폭 지터
+    const jitter = (Math.random()-0.5)*6;
+    tank.fire(norm(to + jitter));
+  } else {
+    tryMoveDir(Math.random()*360);
+  }
+}
+
+
+
+// ===== 다음 로봇 =====
+
+function name() { return "Tanker Bruiser"; }
 function type() { return Type.TANKER; }
-
-function update(tank, enemies, allies, bulletInfo){
-  'use strict';
-
-  // ===== Utils =====
-  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
-  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
-  function tryMove(a){ const seq=[0,10,-10,20,-20,35,-35,50,-50,80]; for(const o of seq){ if(tank.move(a+o)) return true; } return false; }
-  function mostThreat(){ let best=null,score=0; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const d=Math.hypot(dx,dy)+1e-6; const approach=(-(b.vx*dx+b.vy*dy)/d); const s=(approach>0?approach:0)/d; if(s>score){score=s;best=b;} } return {b:best,s:score}; }
-  function evade(b){ const base=Math.atan2(b.vy,b.vx)*180/Math.PI; const l=base+90,r=base-90; const tx=tank.x-b.x, ty=tank.y-b.y; function proj(a){const r=a*Math.PI/180; return Math.cos(r)*tx+Math.sin(r)*ty;} const dir=proj(l)>proj(r)?l:r; return tryMove(dir + (Math.random()*2-1)*6); }
-  function pickFront(list){ if(!list||!list.length) return null; let best=list[0]; for(const e of list){ if(e.distance<best.distance) best=e; } return best; }
-  function nearWall(x,y,m){ return (x<m||x>900-m||y<m||y>600-m); }
-
-  // ===== Behavior =====
-  const threat = mostThreat();
-  if (threat.b && threat.s>0.002) {
-    if(!evade(threat.b)){
-      const away=angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
-      tryMove(away);
+function update(tank, enemies, allies, bulletInfo) {
+  function angleTo(ax,ay,bx,by){return Math.atan2(by-ay,bx-ax)*180/Math.PI;}
+  function norm(a){a%=360;return a<0?a+360:a;}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function tryMoveDir(dir){
+    dir = norm(dir);
+    if (tank.move(dir)) return true;
+    // 벽-슬라이딩: 평행 방향으로 재시도
+    for (let d of [15,30,45]){
+      if (tank.move(norm(dir + d))) return true;
+      if (tank.move(norm(dir - d))) return true;
     }
+    return false;
+  }
+  function mostDangerousBullet(){
+    let best=null,score=-1; for(const b of bulletInfo){
+      const rx=tank.x-b.x, ry=tank.y-b.y; const vx=b.vx, vy=b.vy; const vv=vx*vx+vy*vy; if(!vv) continue;
+      const t=-(rx*vx+ry*vy)/vv; if(t<0) continue; const cx=rx+vx*t, cy=ry+vy*t; const cd=Math.hypot(cx,cy);
+      const sc=900/(1+cd)+0.5/(1+t); if(sc>score){score=sc; best={b,cd,t};}
+    } return best;
   }
 
-  const tgt = pickFront(enemies);
-  if (tgt){
-    const d=tgt.distance; const toTgt=angleTo(tank.x,tank.y,tgt.x,tgt.y);
-    // Zig-zag strafe sign from position-based parity
-    const zig = ((Math.floor((tank.x+tank.y)/50)%2) ? 1 : -1);
-    let moveDir;
-    if (nearWall(tank.x,tank.y,40)){
-      // wall sliding: move parallel along nearest wall
-      if (tank.x<40) moveDir = 0 + zig*15; else if (tank.x>860) moveDir = 180 + zig*15; else if (tank.y<40) moveDir = 90 + zig*15; else moveDir = 270 + zig*15;
-    } else if (d>220){
-      moveDir = toTgt + zig*20; // advance with slight strafe
-    } else if (d<120){
-      moveDir = toTgt + 180 + zig*15; // create breathing room
-    } else {
-      moveDir = toTgt + zig*90; // orbit pressure
-    }
-    tryMove(moveDir + (Math.random()*2-1)*6);
+  // 1) 위협 회피(가벼운 지그재그 유지)
+  const threat = mostDangerousBullet();
+  if (threat && threat.cd < (tank.size/2 + 22)){
+    const dir = Math.atan2(threat.b.vy, threat.b.vx)*180/Math.PI;
+    const zig = (Math.random()<0.5? -1:1) * (10 + Math.random()*10);
+    tryMoveDir(dir + 90 + zig);
+  }
 
-    // constant pressure fire
-    tank.fire(toTgt + (Math.random()*2-1)*3);
+  // 2) 압박 전진: 최근접 적에게 접근, 소폭 지그재그로 예측 회피
+  if (enemies.length){
+    let t = enemies[0]; for(const e of enemies) if(e.distance<t.distance) t=e;
+    const to = angleTo(tank.x,tank.y,t.x,t.y);
+    const zig = (Math.random()<0.5? -1:1) * (8 + Math.random()*10);
+    const desired = t.distance > 140 ? to : norm(to + 180); // 너무 붙으면 살짝 이탈
+    tryMoveDir(desired + zig);
+
+    const lead = clamp(t.distance/24, -12, 12) * (Math.random()<0.5?1:-1);
+    tank.fire(norm(to + lead + (Math.random()-0.5)*6));
   } else {
-    // push toward center if no visible enemies
-    const c=angleTo(tank.x,tank.y,450,300);
-    tryMove(c);
+    tryMoveDir(Math.random()*360);
   }
 }
+
+
+
+// ===== 다음 로봇 =====
 
