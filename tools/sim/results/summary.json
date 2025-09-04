@@ -1,122 +1,121 @@
-[
-  {
-    "A": "Tanker Guardian",
-    "B": "Dealer Sniper",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Tanker Guardian",
-    "B": "Dealer Flanker",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Tanker Guardian",
-    "B": "Normal Interceptor",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Tanker Guardian",
-    "B": "Normal Support",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Tanker Guardian",
-    "B": "Tanker Bruiser",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Dealer Sniper",
-    "B": "Dealer Flanker",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Dealer Sniper",
-    "B": "Normal Interceptor",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Dealer Sniper",
-    "B": "Normal Support",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Dealer Sniper",
-    "B": "Tanker Bruiser",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Dealer Flanker",
-    "B": "Normal Interceptor",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Dealer Flanker",
-    "B": "Normal Support",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Dealer Flanker",
-    "B": "Tanker Bruiser",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Normal Interceptor",
-    "B": "Normal Support",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Normal Interceptor",
-    "B": "Tanker Bruiser",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  },
-  {
-    "A": "Normal Support",
-    "B": "Tanker Bruiser",
-    "winA": 0,
-    "winB": 0,
-    "avgAliveDiff": 0,
-    "avgTime": 59.983
-  }
-]
+{
+  "seed": [
+    42,
+    42
+  ],
+  "rounds": [
+    5,
+    5
+  ],
+  "repeat": [
+    3,
+    3
+  ],
+  "summary": [
+    {
+      "pair": "01_tanker_guardian.js-02_dealer_sniper.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "01_tanker_guardian.js-03_dealer_flanker.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "01_tanker_guardian.js-04_normal_interceptor.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "01_tanker_guardian.js-05_normal_support.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "01_tanker_guardian.js-06_tanker_bruiser.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "02_dealer_sniper.js-03_dealer_flanker.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "02_dealer_sniper.js-04_normal_interceptor.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "02_dealer_sniper.js-05_normal_support.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "02_dealer_sniper.js-06_tanker_bruiser.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "03_dealer_flanker.js-04_normal_interceptor.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "03_dealer_flanker.js-05_normal_support.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "03_dealer_flanker.js-06_tanker_bruiser.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "04_normal_interceptor.js-05_normal_support.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "04_normal_interceptor.js-06_tanker_bruiser.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    },
+    {
+      "pair": "05_normal_support.js-06_tanker_bruiser.js",
+      "winA": 0,
+      "winB": 0,
+      "avgAliveDiff": null,
+      "avgTime": null
+    }
+  ]
+}

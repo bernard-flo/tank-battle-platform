@@ -1,16 +1,16 @@
 pair,winA,winB,avgAliveDiff,avgTime
-"Tanker Guardian vs Dealer Sniper",0,0,0,59.983
-"Tanker Guardian vs Dealer Flanker",0,0,0,59.983
-"Tanker Guardian vs Normal Interceptor",0,0,0,59.983
-"Tanker Guardian vs Normal Support",0,0,0,59.983
-"Tanker Guardian vs Tanker Bruiser",0,0,0,59.983
-"Dealer Sniper vs Dealer Flanker",0,0,0,59.983
-"Dealer Sniper vs Normal Interceptor",0,0,0,59.983
-"Dealer Sniper vs Normal Support",0,0,0,59.983
-"Dealer Sniper vs Tanker Bruiser",0,0,0,59.983
-"Dealer Flanker vs Normal Interceptor",0,0,0,59.983
-"Dealer Flanker vs Normal Support",0,0,0,59.983
-"Dealer Flanker vs Tanker Bruiser",0,0,0,59.983
-"Normal Interceptor vs Normal Support",0,0,0,59.983
-"Normal Interceptor vs Tanker Bruiser",0,0,0,59.983
-"Normal Support vs Tanker Bruiser",0,0,0,59.983
+01_tanker_guardian.js-02_dealer_sniper.js,0,0,NaN,NaN
+01_tanker_guardian.js-03_dealer_flanker.js,0,0,NaN,NaN
+01_tanker_guardian.js-04_normal_interceptor.js,0,0,NaN,NaN
+01_tanker_guardian.js-05_normal_support.js,0,0,NaN,NaN
+01_tanker_guardian.js-06_tanker_bruiser.js,0,0,NaN,NaN
+02_dealer_sniper.js-03_dealer_flanker.js,0,0,NaN,NaN
+02_dealer_sniper.js-04_normal_interceptor.js,0,0,NaN,NaN
+02_dealer_sniper.js-05_normal_support.js,0,0,NaN,NaN
+02_dealer_sniper.js-06_tanker_bruiser.js,0,0,NaN,NaN
+03_dealer_flanker.js-04_normal_interceptor.js,0,0,NaN,NaN
+03_dealer_flanker.js-05_normal_support.js,0,0,NaN,NaN
+03_dealer_flanker.js-06_tanker_bruiser.js,0,0,NaN,NaN
+04_normal_interceptor.js-05_normal_support.js,0,0,NaN,NaN
+04_normal_interceptor.js-06_tanker_bruiser.js,0,0,NaN,NaN
+05_normal_support.js-06_tanker_bruiser.js,0,0,NaN,NaN
