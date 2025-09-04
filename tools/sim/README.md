@@ -10,11 +10,20 @@
 - 단일 매치: `npm run sim`
 - 라운드로빈: `npm run rr`
 - 파라미터 탐색: `npm run search`
+  - 옵션 예시:
+    - 빔 탐색: `node search.js --bot 02_dealer_sniper --budget 200 --seed 7 --beam 5`
+    - GA 탐색: `node search.js --bot 02_dealer_sniper --mode ga --gens 20 --pop 30 --elite 4 --mut 0.2`
+    - 다상대: `--opponents 01_tanker_guardian,06_tanker_bruiser`
+    - 시간가중: `--timeW 0.05`
+    - 결정성 체크: `--check true`
 
 출력 정책:
 - 콘솔은 요약 10줄 내, 상세는 results/*.csv 및 summary.json 저장.
 - 라운드로빈 CSV 필드: `pair,winA,winB,avgAliveDiff,avgTime` (JSON도 병행 저장)
 - 결정성 체크 로그: `[rr-check] seed=<n> deterministic=<true|false> ...` 한 줄
+ - 퍼포먼스 로그:
+   - `[sim-perf] rounds=<n> perf=<ms>`
+   - `[rr-perf] pairs=<n> rounds=<n> repeat=<n> perf=<ms>`
 
 파라미터 주입(PARAMS):
 - 경로: `tools/sim/params/<파일키>.json` (예: `02_dealer_sniper.json`)
@@ -31,3 +40,6 @@
 - 스코어: `wins + avgTime*0.05`
 - 출력: `results/search_<bot>.csv` 전체 기록, 최상해는 `params/<bot>.json`
 - Trial 적용: 각 샘플 시작 전에 `params/<bot>.json`을 해당 값으로 덮어쓴 뒤 평가
+ - GA 모드: `results/ga_<bot>.csv` 세대별 최고 기록 저장(균등 교차/가우시안 변이)
+ - 다상대 상세: `results/search_detail_<bot>.csv`에 상대별 승수/시간 기록
+ - 스냅샷: 갱신 전 파라미터를 `params/history/<bot>/timestamp.json`에 백업
