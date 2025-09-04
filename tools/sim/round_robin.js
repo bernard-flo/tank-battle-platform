@@ -40,8 +40,9 @@ for (const [i, j] of pairs) {
   let totalRounds = 0;
   for (let r = 0; r < repeat; r++) {
     const results = runMatch({ botsA: [bots[i]], botsB: [bots[j]], seed: seed + r, rounds });
-    const s = results.reduce((acc, rr) => acc + (rr.aliveA > rr.aliveB ? 1 : 0), 0);
-    winA += s; winB += (rounds - s);
+    const aWins = results.reduce((acc, rr) => acc + (rr.aliveA > rr.aliveB ? 1 : 0), 0);
+    const bWins = results.reduce((acc, rr) => acc + (rr.aliveB > rr.aliveA ? 1 : 0), 0);
+    winA += aWins; winB += bWins; // 무승부는 양쪽 모두 승수 증가 없음
     sumAliveDiff += results.reduce((acc, rr) => acc + (rr.aliveA - rr.aliveB), 0);
     sumTime += results.reduce((acc, rr) => acc + rr.time, 0);
     totalRounds += results.length;
