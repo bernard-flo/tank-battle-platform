@@ -1,65 +1,78 @@
-function name() {
-  return 'Dealer Flanker';
-}
+function name() { return 'Dealer Flanker'; }
 
-function type() {
-  return Type.DEALER;
-}
+function type() { return Type.DEALER; }
 
-function update(tank, enemies, allies, bulletInfo) {
-  const toDeg = (r) => r * 180 / Math.PI;
-  const norm = (a) => ((a % 360) + 360) % 360;
-  const angleTo = (x1, y1, x2, y2) => toDeg(Math.atan2(y2 - y1, x2 - x1));
+function update(tank, enemies, allies, bulletInfo){
+  'use strict';
 
-  function moveSafe(a) {
-    a = norm(a);
-    if (tank.move(a)) return true;
-    for (let d of [20, -20, 40, -40, 70, -70, 110, -110]) {
-      if (tank.move(norm(a + d))) return true;
-    }
+  // ===== Utils =====
+  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
+  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
+  function tryMove(a){
+    const seq=[0,15,-15,30,-30,45,-45,60,-60,90];
+    for(const o of seq){ if(tank.move(a+o)) return true; }
     return false;
   }
-
-  function mostThreatBullet() {
-    if (!bulletInfo || bulletInfo.length === 0) return null;
-    let b0 = null, sc = -1e9;
-    for (const b of bulletInfo) {
-      const rx = tank.x - b.x, ry = tank.y - b.y;
-      const r = Math.hypot(rx, ry) || 1e-6;
-      const rv = (-(b.vx * rx + b.vy * ry) / r);
-      if (rv <= 0) continue;
-      const score = rv + 180 / (r + 1);
-      if (score > sc) { sc = score; b0 = b; }
+  function mostThreatBullet(){
+    let best=null,score=0;
+    for(const b of bulletInfo){
+      const dx=tank.x-b.x, dy=tank.y-b.y; const d=Math.hypot(dx,dy)+1e-6;
+      const approach = (-(b.vx*dx + b.vy*dy)/d);
+      const s=(approach>0?approach:0)/(d);
+      if(s>score){score=s;best=b;}
     }
-    return b0;
+    return {b:best,s:score};
+  }
+  function evade(b){
+    const base=Math.atan2(b.vy,b.vx)*180/Math.PI;
+    const left=base+90,right=base-90;
+    const tx=tank.x-b.x, ty=tank.y-b.y;
+    function proj(a){const r=a*Math.PI/180;return Math.cos(r)*tx+Math.sin(r)*ty;}
+    const dir=proj(left)>proj(right)?left:right;
+    return tryMove(dir + (Math.random()*2-1)*10);
+  }
+  function pickTarget(list){
+    if(!list||!list.length) return null;
+    let best=list[0];
+    for(const e of list){ if(e.distance<best.distance) best=e; }
+    return best;
+  }
+  function nearWall(x,y,margin){ return (x<margin||x>900-margin||y<margin||y>600-margin); }
+
+  // ===== Behavior =====
+  const threat=mostThreatBullet();
+  if(threat.b && threat.s>0.002){
+    if(!evade(threat.b)){
+      const away=angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
+      tryMove(away);
+    }
+    // still try to fire at nearest while evading
   }
 
-  function dodge(b) {
-    const a = toDeg(Math.atan2(b.vy, b.vx));
-    const flip = ((Math.floor((tank.x - tank.y) / 43) & 1) ? 1 : -1);
-    moveSafe(a + 90 * flip);
-  }
-
-  if (!enemies || enemies.length === 0) return;
-  let tgt = enemies[0];
-  for (const e of enemies) if (e.distance < tgt.distance) tgt = e;
-
-  const threat = mostThreatBullet();
-  if (threat) {
-    dodge(threat);
-  } else {
-    // 접근 후 측후방 오비트
-    if (tgt.distance > 220) {
-      moveSafe(angleTo(tank.x, tank.y, tgt.x, tgt.y));
+  const tgt=pickTarget(enemies);
+  if(tgt){
+    const d=tgt.distance; const toTgt=angleTo(tank.x,tank.y,tgt.x,tgt.y);
+    const flip = (Math.random()<0.5?1:-1);
+    let moveDir;
+    // modulate radius to avoid collisions/walls
+    if (nearWall(tank.x,tank.y,50)){
+      // slide parallel to nearest wall: choose direction that increases in-bounds
+      if (tank.x<50) moveDir=0; else if (tank.x>850) moveDir=180; else if (tank.y<50) moveDir=90; else moveDir=270;
+    } else if (d<160){
+      moveDir = toTgt + 180; // pull out
+    } else if (d>260){
+      moveDir = toTgt; // close in a bit
     } else {
-      const base = angleTo(tank.x, tank.y, tgt.x, tgt.y) + (((tank.x + tank.y) % 120 < 60) ? 90 : -90);
-      // 반경 보정: 너무 붙으면 약간 이탈, 멀면 접근
-      const adj = tgt.distance < 160 ? -20 : (tgt.distance > 240 ? 20 : 0);
-      moveSafe(base + adj);
+      moveDir = toTgt + flip*90; // orbit
     }
-  }
+    tryMove(moveDir + (Math.random()*2-1)*8);
 
-  const f = angleTo(tank.x, tank.y, tgt.x, tgt.y) + (((tank.x * 7 + tank.y) % 2) ? 1 : -1);
-  tank.fire(norm(f));
+    // Continuous fire with small offset
+    tank.fire(toTgt + (Math.random()*2-1)*4);
+  } else {
+    // regroup towards center when target missing
+    const cdir=angleTo(tank.x,tank.y,450,300);
+    tryMove(cdir);
+  }
 }
 
