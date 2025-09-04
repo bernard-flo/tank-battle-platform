@@ -9,9 +9,13 @@
 - [완료] tank_battle_platform.html의 OMEGA_TEAM_CODES 자동 갱신 스크립트 추가 및 실행
 - [완료] README 사용법 보강/커밋
 
+진행 업데이트:
+- [완료] GA 추가 학습(6gens/12pop/16games, seedBase=8888) 수행 – best WR=0.9375
+- [완료] ai/omega_*.js 및 EXPORT_OMEGA*.txt 반영
+- [완료] tank_battle_platform.html 기본값(OMEGA_TEAM_CODES) 갱신
+- [완료] adversaries 100전 평가 기록(WR=0.69)
+
 다음 작업(우선순위):
-1) GA 추가 학습 실행(중간 규모: gens=10, pop=16, games=24, seedBase=7777)로 새 챔피언 산출
-2) 산출된 6개 코드(ai/omega_*.js)로 플랫폼 기본값 갱신 및 EXPORT_ALL/Tuned 내보내기 갱신
-3) 강적 스위트 상대로 재평가 후 결과를 .result와 .agent/history에 기록
-4) 필요시 파라미터 범위 미세조정 및 재학습 반복
-5) 세션 히스토리 기록 및 정리
+1) 필요시 파라미터 범위 미세조정 및 재학습 반복(표준 세팅도 시도)
+2) 강적 스위트 확장/다변화로 일반화 성능 추가 향상
+3) 세션 히스토리 마무리 및 가이드 업데이트
