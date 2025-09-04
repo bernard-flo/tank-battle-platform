@@ -10,7 +10,16 @@
 - 실행 로그: 10줄 이내 요약, 세부는 CSV/JSON
 
 즉시 액션(다음 루프 목표)
-1) feat(sim): results 디렉토리 통일, rr CSV 확장, search trial에 샘플 PARAMS 적용
-2) feat(params): 6개 탱크 presets 생성(params/*.json)
-3) chore(sim): deterministic self-check 옵션 추가(rr/search)
-
+1) tools/sim 설치 및 RR 실행(시드 체크)
+   - cd tools/sim && npm i && npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+   - 커밋: feat(sim/rr): add RR outputs with deterministic check
+2) 빔 탐색 실행(02/04) 및 결과 반영
+   - npm run search -- --bot 02_dealer_sniper --budget 150 --beam 5 --seed 7 --opponents 01_tanker_guardian,06_tanker_bruiser --check true
+   - npm run search -- --bot 04_normal_interceptor --budget 150 --beam 5 --seed 7 --opponents 01_tanker_guardian,06_tanker_bruiser --check true
+   - 커밋: feat(sim/search): beam search for 02/04 and save best params
+3) GA 탐색(03) 단기 수행 및 스냅샷 저장
+   - node search.js --bot 03_dealer_flanker --mode ga --gens 15 --pop 24 --elite 4 --mut 0.25 --seed 11 --opponents 01_tanker_guardian,06_tanker_bruiser --timeW 0.05 --check true
+   - 커밋: feat(sim/search): GA short run for 03 and snapshot params
+4) params/<bot>.json 반영 검토 및 문서 갱신
+   - 필요 시 refactor(tanks): PARAMS 기본값 치환(v1 fallback 유지)
+   - docs(sim): README에 RR 요약 수치/파라미터 표 갱신
