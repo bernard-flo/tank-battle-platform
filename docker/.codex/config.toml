@@ -1,0 +1,3 @@
+preferred_auth_method = "apikey"
+sandbox_mode = "danger-full-access"
+approval_policy = "never"

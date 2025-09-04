@@ -1,0 +1,14 @@
+services:
+  bernard-container:
+    build: .
+    environment:
+      - OPENAI_API_KEY
+    volumes:
+      - ..:/project
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
