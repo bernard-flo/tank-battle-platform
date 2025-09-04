@@ -3,6 +3,7 @@ import path from 'path';
 import minimist from 'minimist';
 import { runMatch } from './engine.js';
 import { loadBot } from './loader.js';
+const baseDir = path.dirname(new URL(import.meta.url).pathname);
 
 function ensureDir(p){ if(!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
 function pickLast(v, def){ return Array.isArray(v) ? (v.length? v[v.length-1] : def) : (v ?? def); }
@@ -31,7 +32,7 @@ for (let i=0;i<bots.length;i++){
   }
 }
 
-const outDir = path.resolve('tools/sim/results'); ensureDir(outDir);
+const outDir = path.join(baseDir, 'results'); ensureDir(outDir);
 
 const summary = [];
 for (const [A,B] of pairs){
@@ -82,4 +83,3 @@ if (check){
 
 // 간단 성능 로그(1줄)
 console.log(`rr: pairs=${pairs.length} rounds=${rounds} repeat=${repeat}`);
-

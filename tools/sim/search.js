@@ -4,6 +4,7 @@ import minimist from 'minimist';
 import seedrandom from 'seedrandom';
 import { runMatch } from './engine.js';
 import { loadBot } from './loader.js';
+const baseDir = path.dirname(new URL(import.meta.url).pathname);
 
 function ensureDir(p){ if(!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true }); }
 function pickLast(v, def){ return Array.isArray(v) ? (v.length? v[v.length-1] : def) : (v ?? def); }
@@ -53,8 +54,8 @@ function mutate(p, sigma=0.2){
 }
 
 function saveParams(botKey, params){
-  ensureDir('tools/sim/params');
-  const file = path.resolve('tools/sim/params', botKey + '.json');
+  const pdir = path.join(baseDir, 'params'); ensureDir(pdir);
+  const file = path.join(pdir, botKey + '.json');
   fs.writeFileSync(file, JSON.stringify(params,null,2));
 }
 
@@ -78,14 +79,15 @@ function scoreBotAgainst(botFile, oppFiles, params){
   return { score: sum/total, detail };
 }
 
-function botPathOf(key){ return path.resolve('../../tanks', key + '.js'); }
+function botPathOf(key){ return path.resolve(baseDir, '../../tanks', key + '.js'); }
 
 async function main(){
   const botFile = botPathOf(botKey);
   const oppFiles = opponents.map(botPathOf);
-  ensureDir('tools/sim/results'); ensureDir('tools/sim/params/history/'+botKey);
-  const resCSV = path.resolve('tools/sim/results', `search_${botKey}.csv`);
-  const detCSV = path.resolve('tools/sim/results', `search_detail_${botKey}.csv`);
+  const resDir = path.join(baseDir, 'results'); ensureDir(resDir);
+  const histDir = path.join(baseDir, 'params', 'history', botKey); ensureDir(histDir);
+  const resCSV = path.join(resDir, `search_${botKey}.csv`);
+  const detCSV = path.join(resDir, `search_detail_${botKey}.csv`);
 
   if (mode === 'ga'){
     // 간단 GA
@@ -93,7 +95,7 @@ async function main(){
     const popN = Number(pickLast(args.pop, 24));
     const eliteN = Number(pickLast(args.elite, 4));
     const mut = Number(pickLast(args.mut, 0.25));
-    const gaCSV = path.resolve('tools/sim/results', `ga_${botKey}.csv`);
+    const gaCSV = path.join(resDir, `ga_${botKey}.csv`);
     fs.writeFileSync(gaCSV, 'gen,bestScore\n');
     let pop = Array.from({length:popN}, ()=>sampleParams());
     let best = null; let bestScore = -1e9;
@@ -101,7 +103,7 @@ async function main(){
       const scored = pop.map(p=>({ p, ...scoreBotAgainst(botFile, oppFiles, p) }));
       scored.sort((a,b)=>b.score-a.score);
       const elites = scored.slice(0, eliteN).map(s=>s.p);
-      if (scored[0].score > bestScore){ bestScore = scored[0].score; best = scored[0].p; saveParams(botKey, best); fs.writeFileSync(path.resolve('tools/sim/params/history', botKey, `gen${g}.json`), JSON.stringify(best,null,2)); }
+      if (scored[0].score > bestScore){ bestScore = scored[0].score; best = scored[0].p; saveParams(botKey, best); fs.writeFileSync(path.join(histDir, `gen${g}.json`), JSON.stringify(best,null,2)); }
       fs.appendFileSync(gaCSV, `${g},${bestScore.toFixed(3)}\n`);
       // 다음 세대: 엘리트 보존 + 변이
       const next = [...elites];
@@ -147,4 +149,3 @@ async function main(){
 }
 
 main();
-

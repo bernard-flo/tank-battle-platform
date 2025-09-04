@@ -3,9 +3,11 @@ import path from 'path';
 import seedrandom from 'seedrandom';
 import { Type, DEFAULTS } from './engine.js';
 
+const baseDir = path.dirname(new URL(import.meta.url).pathname);
+
 function readParams(botKey){
   try {
-    const p = path.resolve('tools/sim/params', botKey + '.json');
+    const p = path.join(baseDir, 'params', botKey + '.json');
     if (fs.existsSync(p)) {
       const txt = fs.readFileSync(p, 'utf-8');
       return JSON.parse(txt);
