@@ -6,12 +6,11 @@
 - 결과 경로: `tools/sim/results/` 하위에 단일/라운드로빈/탐색 CSV/JSON 저장
 
 기본 파라미터(가정치)
-- WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=6
+- WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=8
 - BULLET_SPEED=400px/s, FIRE_COOLDOWN=0.5s, BULLET_LIFE=4s
 - TANK_SPEED: NORMAL=120, TANKER=105, DEALER=130
 - dt=0.016(60Hz), TIME_LIMIT=90s
-\n+밸런스(루프 #2 보정)
-- BULLET_R=7, DAMAGE=35 (무승부 빈도 감소용)
+- DAMAGE=50 (무승부 빈도 감소용)
 
 명령 예시
 - 설치: `cd tools/sim && npm i`
