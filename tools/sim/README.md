@@ -17,3 +17,13 @@ PARAMS 주입
 출력 정책
 - 콘솔 요약 10줄 내. 상세는 CSV/JSON으로 저장.
 
+라운드로빈 출력
+- JSON: 각 페어별 집계(`winA/winB/avgAliveDiff/avgTime`).
+- CSV(summary.csv): `pair,winA,winB,avgAliveDiff,avgTime`.
+
+탐색 출력
+- `search_<bot>.csv`: 상위 후보(rank, trial, score)
+- `search_detail_<bot>.csv`: trial별 상대 점수 상세
+- `ga_<bot>.csv`: 세대별 상위 점수 요약
+- 최종 최적 파라미터: `params/<bot>.json`, 스냅샷: `params/history/<bot>/<timestamp>.json`
+
