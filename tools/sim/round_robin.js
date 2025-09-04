@@ -12,9 +12,10 @@ const argv = yargs(hideBin(process.argv))
   .option('check',{ type:'boolean', default:false })
   .help().argv;
 
-const SEED = Number(Array.isArray(argv.seed) ? argv.seed[0] : argv.seed);
-const ROUNDS = Number(Array.isArray(argv.rounds) ? argv.rounds[0] : argv.rounds);
-const REPEAT = Number(Array.isArray(argv.repeat) ? argv.repeat[0] : argv.repeat);
+const pickLast = (v) => Array.isArray(v) ? v[v.length-1] : v;
+const SEED = Number(pickLast(argv.seed));
+const ROUNDS = Number(pickLast(argv.rounds));
+const REPEAT = Number(pickLast(argv.repeat));
 
 fs.mkdirSync('results', { recursive: true });
 
