@@ -30,6 +30,11 @@ PARAMS 주입
 - `ga_<bot>.csv`: 세대별 상위 점수 요약
 - 최종 최적 파라미터: `params/<bot>.json`, 스냅샷: `params/history/<bot>/<timestamp>.json`
 
+GA 모드(엔진 점수화)
+- 실행: `npm run search -- --bot 03_dealer_flanker --mode ga --gens 12 --pop 24 --elite 4 --mut 0.25 --seed 11 --opponents 01_tanker_guardian,06_tanker_bruiser --timeW 0.05 --check true`
+- 평가: 각 세대에서 개체군을 실제 엔진으로 다상대 평가해 점수화. 점수 = (승수 차) + (1/avgTime)*timeW 의 상대별 합/평균.
+- 진화: 상위 ELITE 보존, 변이 확률 MUT로 파라미터별 가우시안 노이즈 후 범위 클램프, 개체군 크기 POP 유지.
+
 파라미터 범위(검색 기본값, camelCase)
 - ideal_range: 160..520
 - orbit_deg: 10..120
