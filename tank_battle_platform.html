@@ -1774,9 +1774,88 @@ function update(tank,enemies,allies,bulletInfo){
 }`
         ];
 
+        // 최적화 프리셋 팀(APEX) 코드: GA로 튜닝된 6개 탱크 역할별 AI
+        const APEX_TEAM_CODES = [
+`function name(){return 'Apex Bulldozer';}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>18.86550901612196)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+7.348411103473192;if(d>safe+7.348411103473192)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    if(!enemies||!enemies.length)return;
+    // 팀 집중사격: 체력/거리 가중치
+    let tgt=enemies[0];
+    for(let e of enemies){const s1=Math.max(0,tgt.health)*0.6 + tgt.distance*0.25; const s2=Math.max(0,e.health)*0.6 + e.distance*0.25; if(s2<s1) tgt=e;}
+    const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+    const toC=Math.atan2(ecy-tank.y,ecx-tank.x)*180/Math.PI; const toT=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI;
+    let dodged=false; const th=bestThreat(); if(th){const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]);}
+    if(!dodged){
+      const cx=450, cy=300; const toF=Math.atan2(cy-tank.y,cx-tank.x)*180/Math.PI;
+      const desired=(tgt.distance>80)? toC : toT; const pull=0.4939759772032156;
+      const mix=desired*(1-pull) + toF*pull; tryMove([mix, mix+15, mix-15, desired, desired+35, desired-35]);
+    }
+    const spread = tgt.distance>160? 13.086903723597235 : 4.862131948961447; const jitter=(Math.random()-0.5)*spread; tank.fire(toT + jitter);
+  }`,
+`function name(){return 'Apex Anchor';}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>20.610759430957753)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+12;if(d>safe+12)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    if(!enemies||!enemies.length)return;
+    const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+    const acx=allies.length?allies.reduce((s,a)=>s+a.x,0)/allies.length:tank.x; const acy=allies.length?allies.reduce((s,a)=>s+a.y,0)/allies.length:tank.y;
+    const fx=(acx*2+ecx)/3, fy=(acy*2+ecy)/3; const toF=Math.atan2(fy-tank.y,fx-tank.x)*180/Math.PI; const df=Math.hypot(fx-tank.x,fy-tank.y);
+    let ang = df<150.23679896989037? toF+90 : toF;
+    let avoided=false; const th=bestThreat(); if(th){const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; avoided=tryMove([deg,deg+20,deg-20,deg+35,deg-35]);}
+    if(!avoided) tryMove([ang, ang+15, ang-15, toF]);
+    let n=enemies[0]; for(let e of enemies){const s1=Math.max(0,n.health)*0.6+n.distance*0.25;const s2=Math.max(0,e.health)*0.6+e.distance*0.25; if(s2<s1)n=e;}
+    const toN=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; const jitter=(Math.random()-0.5)*9.318913123034791; tank.fire(toN + jitter);
+  }`,
+`function name(){return 'Apex Striker';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>21.100814078047467)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+8;if(d>safe+8)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    if(!enemies||!enemies.length)return;
+    let n=enemies[0]; for(let e of enemies){const s1=Math.max(0,n.health)*0.6+n.distance*0.25;const s2=Math.max(0,e.health)*0.6+e.distance*0.25; if(s2<s1)n=e;}
+    const to=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; const err=n.distance-205.9668050386403;
+    let strafe = to + 90*(Math.random()<0.5?1:-1);
+    if(Math.abs(err)>32.42492595697124) strafe = err<0? to+180 : to;
+    let dodged=false; const th=bestThreat(); if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]); }
+    if(!dodged) tryMove([strafe, strafe+20, strafe-20, to, to+180]);
+    const lead=Math.min(20, Math.max(-20, n.distance/11)); tank.fire(to + (err>0? (lead*0.5) : 0));
+  }`,
+`function name(){return 'Apex Sniper';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+    if(!enemies||!enemies.length)return;
+    let t=enemies[0]; for(let e of enemies) if(e.health<t.health) t=e;
+    const to=Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI; const err=t.distance-233.36072941557032;
+    let ang=to+90*(Math.random()<0.5?1:-1); if(err<-67.02975521982349) ang=to+180; if(err>57.181861530649) ang=to; tryMove([ang, ang+20, ang-20, to+180]);
+    const lead=Math.min(24, Math.max(-24, t.distance/11.151773448277222)); const jitter=(Math.random()-0.5)*4.165615841020884; tank.fire(to + (err>0? lead*0.5:0) + jitter);
+  }`,
+`function name(){return 'Apex Interceptor';}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}function bestThreat(){let best=null,score=1e9;for(let b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y,vx=b.vx,vy=b.vy;const s2=vx*vx+vy*vy;if(!s2)continue;const t=-(rx*vx+ry*vy)/s2;if(t<0||t>17.58149873996405)continue;const cx=rx+vx*t,cy=ry+vy*t;const d=Math.hypot(cx,cy);const safe=tank.size/2+10;if(d>safe+10)continue;const sc=d*0.88+t*3;if(sc<score){score=sc;best=b;}}return best;}
+    if(!enemies||!enemies.length)return;
+    const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const toC=Math.atan2(ecy-tank.y,ecx-tank.x)*180/Math.PI;
+    const th=bestThreat(); if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; if(!tryMove([deg,deg+25,deg-25,deg+45,deg-45])) tryMove([deg+160,deg-160]); }
+    else { const d=Math.hypot(ecx-tank.x,ecy-tank.y); let ang=toC + (d<275.7235838440086?180:90)*(Math.random()<0.5?1:-1); tryMove([ang, ang+20, ang-20, toC]); }
+    let n=enemies[0]; for(let e of enemies) if(e.distance<n.distance) n=e; const to=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(to);
+  }`,
+`function name(){return 'Apex Sweeper';}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+    function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+    if(!enemies||!enemies.length)return;
+    const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length; const ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const toC=Math.atan2(ecy-tank.y,ecx-tank.x)*180/Math.PI;
+    const d=Math.hypot(ecx-tank.x,ecy-tank.y); let orbit=toC + (d<160?180:90); tryMove([orbit, orbit+20, orbit-20, toC]);
+    let tgt=enemies[0]; for(let e of enemies){const s1=tgt.distance+Math.max(0,tgt.health)*0.02; const s2=e.distance+Math.max(0,e.health)*0.02; if(s2<s1) tgt=e;}
+    const toT=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI; const off=(tgt.distance>200? [-6,0,6] : [-4,0,4]); tank.fire(toT + off[Math.floor(Math.random()*off.length)]);
+  }`
+        ];
+
         // 프리셋 로더
         function loadPreset(team, presetName){
-            const src = presetName === 'AURORA' ? AURORA_TEAM_CODES : OMEGA_TEAM_CODES;
+            const src = presetName === 'AURORA' ? AURORA_TEAM_CODES : (presetName === 'APEX' ? APEX_TEAM_CODES : OMEGA_TEAM_CODES);
             for(let i=1;i<=6;i++){
                 const textarea = document.getElementById(`${team}-code-${i}`);
                 if(textarea && src[i-1]) textarea.value = src[i-1];
@@ -1784,8 +1863,8 @@ function update(tank,enemies,allies,bulletInfo){
         }
 
         function getDefaultCode(i, team) {
-            // 인덱스(1~6)에 대응하는 OMEGA 코드 제공
-            if (i >= 1 && i <= 6) return OMEGA_TEAM_CODES[i - 1];
+            // 인덱스(1~6)에 대응하는 APEX 코드 우선 제공, 없으면 OMEGA
+            if (i >= 1 && i <= 6) return (APEX_TEAM_CODES[i - 1] || OMEGA_TEAM_CODES[i - 1]);
             // 폴백: 기본 샘플
             const teamPrefix = team === 'red' ? 'R' : 'B';
             return `function name(){return 'Player ${teamPrefix}${i}';}\nfunction type(){return Type.NORMAL;}\nfunction update(tank,enemies){ if(enemies.length){ let n=enemies[0]; for(let e of enemies){ if(e.distance<n.distance) n=e; } const a=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(a); if(!tank.move(Math.random()*360)) tank.move(a+180);} }`;
