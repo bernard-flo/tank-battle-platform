@@ -954,6 +954,7 @@
                         <div class="team-header-right">
                             <button class="btn-control" onclick="openImport('red')">📥 Import</button>
                             <button class="btn-control" onclick="openExport('red')">📤 Export</button>
+                            <button class="btn-control" onclick="loadPreset('red','AURORA')">🌌 Preset AURORA</button>
                         </div>
                     </div>
 
@@ -998,6 +999,7 @@ function update(tank, enemies, allies, bulletInfo) {
                         <div class="team-header-right">
                             <button class="btn-control" onclick="openImport('blue')">📥 Import</button>
                             <button class="btn-control" onclick="openExport('blue')">📤 Export</button>
+                            <button class="btn-control" onclick="loadPreset('blue','AURORA')">🌌 Preset AURORA</button>
                         </div>
                     </div>
 
@@ -1682,6 +1684,102 @@ function update(tank,enemies,allies,bulletInfo){
     const toT=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI; const off=(tgt.distance>200? [-6,0,6] : [-4,0,4]); tank.fire(toT + off[Math.floor(Math.random()*off.length)]);
   }`
         ];
+
+        // 신규 프리셋 팀(AURORA) 코드: 6개 탱크 역할별 AI
+        const AURORA_TEAM_CODES = [
+`function name(){return 'Aurora Bulwark';}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+  function bestThreat(){let best=null,score=1e9;for(const b of bulletInfo){const rx=b.x-tank.x, ry=b.y-tank.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2)continue; const t=-(rx*vx+ry*vy)/s2; if(t<0||t>24) continue; const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy); const safe=tank.size/2+11; if(d>safe+10) continue; const sc=d*0.85 + t*2.8; if(sc<score){score=sc;best=b;}} return best;}
+  if(!enemies||!enemies.length) return;
+  // 팀 집중사격: 체력/거리 가중치
+  let tgt=enemies[0];
+  for(const e of enemies){const s1=Math.max(0,tgt.health)*0.6+tgt.distance*0.25; const s2=Math.max(0,e.health)*0.6+e.distance*0.25; if(s2<s1) tgt=e;}
+  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length, ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+  const acx=allies.length?allies.reduce((s,a)=>s+a.x,0)/allies.length:tank.x, acy=allies.length?allies.reduce((s,a)=>s+a.y,0)/allies.length:tank.y;
+  const focusX=(acx+ecx)/2, focusY=(acy+ecy)/2; // 전선 중앙을 밀어붙이되 과진입 방지
+  const toF=Math.atan2(focusY-tank.y,focusX-tank.x)*180/Math.PI;
+  let avoided=false; const th=bestThreat();
+  if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; avoided=tryMove([deg,deg+25,deg-25,deg+45,deg-45,toF]); }
+  if(!avoided){ const d=Math.hypot(focusX-tank.x,focusY-tank.y); const dir = d<150? toF+90 : toF; tryMove([dir, dir+15, dir-15, toF, toF+180]); }
+  const toT=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI; const spread=tgt.distance>170? 7 : 5; const jitter=(Math.random()-0.5)*spread; tank.fire(toT + jitter);
+}`,
+`function name(){return 'Aurora Guardian';}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+  function bestThreat(){let best=null,score=1e9;for(const b of bulletInfo){const rx=b.x-tank.x, ry=b.y-tank.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2)continue; const t=-(rx*vx+ry*vy)/s2; if(t<0||t>22) continue; const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy); const safe=tank.size/2+10; if(d>safe+10) continue; const sc=d*0.9 + t*3; if(sc<score){score=sc;best=b;}} return best;}
+  if(!enemies||!enemies.length) return;
+  // 아군 보호: 아군 중심과 적중심 사이에 위치하도록
+  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length, ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+  const acx=allies.length?allies.reduce((s,a)=>s+a.x,0)/allies.length:tank.x, acy=allies.length?allies.reduce((s,a)=>s+a.y,0)/allies.length:tank.y;
+  const guardX=(2*acx+ecx)/3, guardY=(2*acy+ecy)/3; const toG=Math.atan2(guardY-tank.y,guardX-tank.x)*180/Math.PI;
+  let avoided=false; const th=bestThreat();
+  if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; avoided=tryMove([deg,deg+20,deg-20,deg+35,deg-35]); }
+  if(!avoided){ const d=Math.hypot(guardX-tank.x,guardY-tank.y); const dir=d<120? toG+90 : toG; tryMove([dir, dir+15, dir-15, toG, toG+180]); }
+  // 집중 사격
+  let tgt=enemies[0]; for(const e of enemies){const s1=Math.max(0,tgt.health)*0.6+tgt.distance*0.25; const s2=Math.max(0,e.health)*0.6+e.distance*0.25; if(s2<s1) tgt=e;}
+  const toT=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI; const jitter=(Math.random()-0.5)*6; tank.fire(toT + jitter);
+}`,
+`function name(){return 'Aurora Reaper';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+  function bestThreat(){let best=null,score=1e9;for(const b of bulletInfo){const rx=b.x-tank.x, ry=b.y-tank.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2)continue; const t=-(rx*vx+ry*vy)/s2; if(t<0||t>18) continue; const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy); const safe=tank.size/2+8; if(d>safe+8) continue; const sc=d*0.85 + t*3; if(sc<score){score=sc;best=b;}} return best;}
+  if(!enemies||!enemies.length) return;
+  // 가장 약한 타겟
+  let tgt=enemies[0]; for(const e of enemies){const s1=Math.max(0,tgt.health)*0.6+tgt.distance*0.25; const s2=Math.max(0,e.health)*0.6+e.distance*0.25; if(s2<s1) tgt=e;}
+  const to=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI; const err=tgt.distance-210;
+  let strafe = to + 90*(Math.random()<0.5?1:-1); if(err<-30) strafe=to+180; if(err>45) strafe=to;
+  let dodged=false; const th=bestThreat(); if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; dodged=tryMove([deg,deg+20,deg-20,deg+40,deg-40]); }
+  if(!dodged) tryMove([strafe, strafe+20, strafe-20, to, to+180]);
+  const lead=Math.min(22, Math.max(-22, tgt.distance/12)); const jitter=(Math.random()-0.5)*3; tank.fire(to + (err>0? lead*0.55:0) + jitter);
+}`,
+`function name(){return 'Aurora Sniper';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+  if(!enemies||!enemies.length) return;
+  // 최저 체력 타겟 우선
+  let t=enemies[0]; for(const e of enemies) if(e.health<t.health) t=e;
+  const to=Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI; const err=t.distance-230;
+  let ang=to+90*(Math.random()<0.5?1:-1); if(err<-35) ang=to+180; if(err>55) ang=to; tryMove([ang, ang+20, ang-20, to+180]);
+  const lead=Math.min(24, Math.max(-24, t.distance/11.5)); const jitter=(Math.random()-0.5)*2.5; tank.fire(to + (err>0? lead*0.55:0) + jitter);
+}`,
+`function name(){return 'Aurora Harrier';}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+  function bestThreat(){let best=null,score=1e9;for(const b of bulletInfo){const rx=b.x-tank.x, ry=b.y-tank.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2)continue; const t=-(rx*vx+ry*vy)/s2; if(t<0||t>20) continue; const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy); const safe=tank.size/2+9; if(d>safe+9) continue; const sc=d*0.88 + t*3; if(sc<score){score=sc;best=b;}} return best;}
+  if(!enemies||!enemies.length) return;
+  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length, ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const toC=Math.atan2(ecy-tank.y,ecx-tank.x)*180/Math.PI;
+  const th=bestThreat(); if(th){ const deg=(Math.atan2(th.vy,th.vx)+Math.PI/2)*180/Math.PI; if(!tryMove([deg,deg+25,deg-25,deg+45,deg-45])) tryMove([deg+160,deg-160]); }
+  else { const d=Math.hypot(ecx-tank.x,ecy-tank.y); let ang=toC + (d<180?180:90)*(Math.random()<0.5?1:-1); tryMove([ang, ang+20, ang-20, toC]); }
+  let n=enemies[0]; for(const e of enemies) if(e.distance<n.distance) n=e; const to=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; const off=(n.distance>200? [-6,0,6] : [-4,0,4]); tank.fire(to + off[Math.floor(Math.random()*off.length)]);
+}`,
+`function name(){return 'Aurora Shepherd';}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  function tryMove(angles){for(let a of angles){if(tank.move(a))return true;}return false;}
+  if(!enemies||!enemies.length) return;
+  const ecx=enemies.reduce((s,e)=>s+e.x,0)/enemies.length, ecy=enemies.reduce((s,e)=>s+e.y,0)/enemies.length; const acx=allies.length?allies.reduce((s,a)=>s+a.x,0)/allies.length:tank.x, acy=allies.length?allies.reduce((s,a)=>s+a.y,0)/allies.length:tank.y;
+  const backX=(2*acx+ecx)/3, backY=(2*acy+ecy)/3; // 아군 뒤쪽 측면 유지
+  const toB=Math.atan2(backY-tank.y,backX-tank.x)*180/Math.PI; const d=Math.hypot(backX-tank.x,backY-tank.y);
+  tryMove([ d<140? toB+90 : toB, toB+15, toB-15 ]);
+  let tgt=enemies[0]; for(const e of enemies){const s1=Math.max(0,tgt.health)*0.65+tgt.distance*0.22; const s2=Math.max(0,e.health)*0.65+e.distance*0.22; if(s2<s1) tgt=e;}
+  const toT=Math.atan2(tgt.y-tank.y,tgt.x-tank.x)*180/Math.PI; const spread=tgt.distance>180? 10:7; const jitter=(Math.random()-0.5)*spread; tank.fire(toT + jitter);
+}`
+        ];
+
+        // 프리셋 로더
+        function loadPreset(team, presetName){
+            const src = presetName === 'AURORA' ? AURORA_TEAM_CODES : OMEGA_TEAM_CODES;
+            for(let i=1;i<=6;i++){
+                const textarea = document.getElementById(`${team}-code-${i}`);
+                if(textarea && src[i-1]) textarea.value = src[i-1];
+            }
+        }
 
         function getDefaultCode(i, team) {
             // 인덱스(1~6)에 대응하는 OMEGA 코드 제공
