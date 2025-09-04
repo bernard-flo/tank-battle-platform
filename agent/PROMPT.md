@@ -174,6 +174,23 @@ Export 생성 규칙
 - 커밋은 작은 단위로 자주, 실행 로그는 10줄 이내 요약.
 
 ==============================
+루프 #2-11 완료 체크 및 후속 지시
+==============================
+
+완료 체크(필수):
+- `npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true` 2회 연속 실행 시 `results/summary.csv`/`summary.json` 바이트 동일, 콘솔 `rr: deterministic check OK` 출력.
+- `npm run sim` 실행 후 `results/last_match.csv` 생성 확인(라운드별 `winA,winB,aliveDiff,time`).
+- `npm run search -- --bot 02_dealer_sniper --budget 10 --beam 3 --opponents 01_tanker_guardian,06_tanker_bruiser --seed 7 --check true` 실행 후 `params/02_dealer_sniper.json` 갱신 및 `results/search_*` 산출 확인.
+
+후속 지시(개선):
+- search GA 모드 실점수화: 현재 의사 점수 로직을 제거하고, beam과 동일하게 `runMatch` 기반 다상대 실점수 평가로 교체. 기본 파라미터: `--gens`, `--pop`, `--elite`, `--mut` 유지. 스냅샷/결정성 체크 로직 유지.
+  - 커밋: `refactor(sim/search): GA uses engine-based scoring across opponents`
+- README 보강: GA 모드 파라미터 설명과 예시 명령 추가.
+  - 커밋: `docs(sim): document GA mode with engine scoring`
+
+모든 변경 후마다 `git add -A && git commit -m "..."` 수행을 잊지 말 것.
+
+==============================
 루프 #2 보완 지시(버그픽스/정밀화)
 ==============================
 

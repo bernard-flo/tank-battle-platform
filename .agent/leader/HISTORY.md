@@ -62,3 +62,8 @@
 - engine.js 스텁 제거하고 실제 이동/탄/충돌/HP/쿨다운/RNG 구현 지시
 - rr/search에서 의사 평가 제거 → runMatch 기반 집계/스코어 산출로 통합 지시
 - 결정성 체크/성능 로그/CSV 규격 유지, 즉시 실행 배치 추가(NPM rr/search/sim)
+
+2025-09-04 루프 #2-11 결과
+- tools/sim 엔진 실제화/통합 확인: rr/check OK, sim CSV/rr summary 생성 정상
+- search(beam) 엔진 기반 점수화/params 덮어쓰기 동작 확인; GA는 후속 작업으로 엔진 점수화 지시
+- 프롬프트 보강: 완료 체크리스트/GA 실점수화 지시 추가
