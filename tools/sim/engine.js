@@ -99,6 +99,7 @@ function stepSimulation(world, dt){
       if ( (t.x-b.x)*(t.x-b.x) + (t.y-b.y)*(t.y-b.y) <= rr*rr ){
         t.hp -= DEFAULTS.DAMAGE;
         b.life = -1; // 소멸
+        if (!world.__hitLogged) { world.__hitLogged = 1; console.log('engine: hit'); }
       }
     }
   }
