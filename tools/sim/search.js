@@ -1,123 +1,75 @@
-#!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
-import { runMatch } from './engine.js';
-import { loadBot } from './loader.js';
+import minimist from 'minimist';
+import seedrandom from 'seedrandom';
+import { runMatch, ensureDirs } from './engine.js';
 
-const seed = (process.argv.includes('--seed')? process.argv[process.argv.indexOf('--seed')+1] : '7');
-const mode = (process.argv.includes('--mode')? process.argv[process.argv.indexOf('--mode')+1] : 'beam');
-const botKey = (process.argv.includes('--bot')? process.argv[process.argv.indexOf('--bot')+1] : '02_dealer_sniper');
-const budget = parseInt(process.argv.includes('--budget')? process.argv[process.argv.indexOf('--budget')+1] : '200');
-const beam = parseInt(process.argv.includes('--beam')? process.argv[process.argv.indexOf('--beam')+1] : '5');
-const gens = parseInt(process.argv.includes('--gens')? process.argv[process.argv.indexOf('--gens')+1] : '15');
-const pop = parseInt(process.argv.includes('--pop')? process.argv[process.argv.indexOf('--pop')+1] : '24');
-const elite = parseInt(process.argv.includes('--elite')? process.argv[process.argv.indexOf('--elite')+1] : '4');
-const mut = parseFloat(process.argv.includes('--mut')? process.argv[process.argv.indexOf('--mut')+1] : '0.25');
-const timeW = parseFloat(process.argv.includes('--timeW')? process.argv[process.argv.indexOf('--timeW')+1] : '0.05');
-const doCheck = process.argv.includes('--check');
-const oppArg = (process.argv.includes('--opponents')? process.argv[process.argv.indexOf('--opponents')+1] : '01_tanker_guardian,06_tanker_bruiser');
-const opponents = oppArg.split(',').filter(Boolean);
+const argv = minimist(process.argv.slice(2));
+const botKey = argv.bot; // e.g., 02_dealer_sniper
+const budget = +argv.budget || 100;
+const beam = +argv.beam || 5;
+const seed = argv.seed ?? 7;
+const opponents = (argv.opponents||'').split(',').filter(Boolean);
+const check = argv.check === true || argv.check === 'true';
+const timeW = argv.timeW ? +argv.timeW : 0.05;
 
-const tanksDir = path.resolve('../..','tanks');
-const botPath = path.join(tanksDir, `${botKey}.js`);
-const resultsDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), './results');
-const paramsDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), './params');
-fs.mkdirSync(resultsDir,{recursive:true}); fs.mkdirSync(paramsDir,{recursive:true});
+if(!botKey){ console.log('Usage: node search.js --bot 02_dealer_sniper --budget 100 [--beam 5]'); process.exit(1); }
 
-function saveParams(key, obj){
-  const p = path.join(paramsDir, `${key}.json`);
-  fs.writeFileSync(p, JSON.stringify(obj,null,2));
-}
-function snapshotParams(key, obj){
-  const dir = path.join(paramsDir,'history',key); fs.mkdirSync(dir,{recursive:true});
-  const ts = new Date().toISOString().replace(/[:.]/g,'-');
-  fs.writeFileSync(path.join(dir, `${ts}.json`), JSON.stringify(obj,null,2));
-}
+const rng = seedrandom(String(seed));
+const outDir = ensureDirs();
+const paramsDir = path.join(path.dirname(new URL(import.meta.url).pathname), 'params');
+if(!fs.existsSync(paramsDir)) fs.mkdirSync(paramsDir,{recursive:true});
 
-// 파라미터 공간 정의(범위)
-const space = {
-  ideal_range: [160, 360],
-  orbit_deg: [40, 120],
-  lead_max_deg: [0, 8],
-  evade_weight: [0.5, 3.0],
-  strafe_deg: [10, 35]
-};
-function randIn([a,b]){ return a + Math.random()*(b-a); }
-function clamp(v,[a,b]){ return Math.max(a, Math.min(b,v)); }
-function randomParams(){
+function paramSpace(){
   return {
-    ideal_range: Math.round(randIn(space.ideal_range)),
-    orbit_deg: Math.round(randIn(space.orbit_deg)),
-    lead_max_deg: randIn(space.lead_max_deg),
-    evade_weight: +randIn(space.evade_weight).toFixed(2),
-    strafe_deg: Math.round(randIn(space.strafe_deg))
+    ideal_range: [120, 480],
+    orbit_deg: [10, 120],
+    lead_max_deg: [5, 20],
+    evade_weight: [0.2, 2.0],
+    strafe_deg: [8, 40],
+    fire_every_frames: [3, 9]
   };
 }
-function crossover(a,b){
-  const c={}; for(const k of Object.keys(space)){ c[k] = Math.random()<0.5? a[k]: b[k]; } return c;
-}
-function mutate(x, rate){
-  const y={...x}; for(const k of Object.keys(space)){ if(Math.random()<rate){
-    const r = (space[k][1]-space[k][0]); const noise = (Math.random()*2-1)*0.2*r; y[k]=clamp(y[k]+noise, space[k]); if(Number.isInteger(x[k])) y[k]=Math.round(y[k]); }
-  } return y;
+function sample(space){ const s={}; for(const k in space){ const [a,b]=space[k]; s[k]=a+(b-a)*rng(); } s.fire_every_frames = Math.round(s.fire_every_frames); return s; }
+function clampParam(p){ const s=paramSpace(); const o={}; for(const k in p){ const [a,b]=s[k]||[p[k],p[k]]; o[k]=Math.max(a, Math.min(b, p[k])); } return o; }
+
+function paramsPath(key){ return path.join(paramsDir, `${key}.json`); }
+function writeParams(key,obj){ fs.writeFileSync(paramsPath(key), JSON.stringify(obj,null,2)); }
+function readParams(key){ try{ return JSON.parse(fs.readFileSync(paramsPath(key),'utf8')); }catch{ return {}; } }
+
+function scoreResult(arr){ const win = arr.filter(r=>r.winA).length; const time = arr.reduce((s,r)=>s+r.time,0)/arr.length; return win + (1/time)*timeW; }
+
+function runAgainst(key, opp){
+  const aPath = path.resolve(path.join(process.cwd(),'..','tanks', `${key}.js`));
+  const bPath = path.resolve(path.join(process.cwd(),'..','tanks', `${opp}.js`));
+  return runMatch({aPath,bPath,seed,rounds:5});
 }
 
-function evalOne(p){
-  // trial 전 PARAMS 저장(덮어쓰기)
-  saveParams(botKey, p);
-  const bot = loadBot(botPath);
-  let total=0, timeSum=0; const detail=[];
-  for(const oppKey of opponents){
-    const oppPath = path.join(tanksDir, `${oppKey}.js`);
-    const opp = loadBot(oppPath);
-    let w=0, rounds=5; for(let r=0;r<rounds;r++){ const res = runMatch([bot],[opp],{seed:`${seed}:${botKey}:${oppKey}:${JSON.stringify(p)}:${r}`}); if(res.winner==='A') w++; timeSum += res.time; }
-    const score = w + timeW*(timeSum/rounds);
-    total += score; detail.push({opp:oppKey, w, score});
-  }
-  return {score: total/opponents.length, time: timeSum/(opponents.length*5), params: p, detail};
+const detailRows = [];
+let candidates = [];
+for(let i=0;i<budget;i++){
+  const cand = sample(paramSpace());
+  // trial 적용: params/<botKey>.json 덮어쓰기
+  writeParams(botKey, cand);
+  let resAgg=[];
+  const oppList = opponents.length? opponents : ['01_tanker_guardian','06_tanker_bruiser'];
+  for(const opp of oppList){ const res = runAgainst(botKey, opp); resAgg = resAgg.concat(res); const s = scoreResult(res); detailRows.push({trial:i, opp, score:s}); }
+  const s = scoreResult(resAgg);
+  candidates.push({trial:i, params:cand, score:s});
+  candidates.sort((a,b)=>b.score-a.score); candidates = candidates.slice(0, beam);
 }
 
-const detailPath = path.join(resultsDir, `search_detail_${botKey}.csv`);
-fs.writeFileSync(detailPath, 'trial,opp,wins,subScore\n');
-const csvPath = path.join(resultsDir, `search_${botKey}.csv`);
-fs.writeFileSync(csvPath, 'trial,score,avgTime,ideal_range,orbit_deg,lead_max_deg,evade_weight,strafe_deg\n');
+// best 저장
+const best = candidates[0];
+writeParams(botKey, clampParam(best.params));
+fs.writeFileSync(path.join(outDir, `search_${botKey}.csv`), ['rank,trial,score'].concat(candidates.map((c,i)=>`${i+1},${c.trial},${c.score.toFixed(4)}`)).join('\n'));
+fs.writeFileSync(path.join(outDir, `search_detail_${botKey}.csv`), ['trial,opp,score'].concat(detailRows.map(r=>`${r.trial},${r.opp},${r.score.toFixed(4)}`)).join('\n'));
 
-function record(trial, res){
-  fs.appendFileSync(csvPath, `${trial},${res.score.toFixed(3)},${res.time.toFixed(3)},${res.params.ideal_range},${res.params.orbit_deg},${res.params.lead_max_deg.toFixed(2)},${res.params.evade_weight.toFixed(2)},${res.params.strafe_deg}\n`);
-  for(const d of res.detail){ fs.appendFileSync(detailPath, `${trial},${d.opp},${d.w},${d.score.toFixed(3)}\n`); }
+if(check){
+  // 결정적성 간단 체크: 동일 시드에서 best.score 재계산 동일 여부
+  const res = opponents.map(o=>runAgainst(botKey,o)).flat();
+  const s2 = scoreResult(res);
+  console.log(`Search best score recheck: ${(Math.abs(best.score - s2)<1e-6)?'OK':'DRIFT'}`);
 }
-
-if (mode==='ga'){
-  // GA: 초기개체(랜덤 + 현행 프리셋 1개 if exist)
-  let popu = Array.from({length:pop}, ()=>randomParams());
-  // seed preset
-  try{ const preset = JSON.parse(fs.readFileSync(path.join(paramsDir, `${botKey}.json`),'utf8')); popu[0]=preset; }catch{}
-  let best=null; let trial=0;
-  const gaPath = path.join(resultsDir, `ga_${botKey}.csv`);
-  fs.writeFileSync(gaPath, 'gen,rank,score,avgTime,ideal_range,orbit_deg,lead_max_deg,evade_weight,strafe_deg\n');
-  for(let g=0; g<gens; g++){
-    const scored = popu.map(p=>{ const r=evalOne(p); trial++; record(trial,r); return r; }).sort((a,b)=>b.score-a.score);
-    if (!best || scored[0].score>best.score) best = scored[0];
-    for(let k=0;k<Math.min(beam, scored.length);k++){
-      const r = scored[k]; fs.appendFileSync(gaPath, `${g},${k+1},${r.score.toFixed(3)},${r.time.toFixed(3)},${r.params.ideal_range},${r.params.orbit_deg},${r.params.lead_max_deg.toFixed(2)},${r.params.evade_weight.toFixed(2)},${r.params.strafe_deg}\n`);
-    }
-    // 선택/교배/변이
-    const elites = scored.slice(0, elite).map(x=>x.params);
-    const next=[...elites];
-    while(next.length<pop){ const a=elites[Math.floor(Math.random()*elites.length)], b=scored[Math.floor(Math.random()*scored.length)].params; next.push(mutate(crossover(a,b), mut)); }
-    popu = next;
-  }
-  if (best){ snapshotParams(botKey, best.params); saveParams(botKey, best.params); }
-  if (doCheck){ const r1=evalOne(best.params), r2=evalOne(best.params); console.log(`deterministic check: ${(Math.abs(r1.score-r2.score)<1e-9)?'OK':'MISMATCH'}`); }
-  console.log(`GA done. Best=${best.score.toFixed(3)} params saved.`);
-} else {
-  // Beam-like: budget 샘플 중 상위 N 유지
-  let pool=[]; let trial=0;
-  for(let i=0;i<budget;i++){
-    const p = randomParams(); const r=evalOne(p); trial++; record(trial,r); pool.push(r); pool.sort((a,b)=>b.score-a.score); if (pool.length>beam) pool.length=beam;
-  }
-  const best = pool[0]; if (best){ snapshotParams(botKey, best.params); saveParams(botKey, best.params); }
-  if (doCheck){ const r1=evalOne(best.params), r2=evalOne(best.params); console.log(`deterministic check: ${(Math.abs(r1.score-r2.score)<1e-9)?'OK':'MISMATCH'}`); }
-  console.log(`Search done. Best=${best.score.toFixed(3)} params saved.`);
-}
+console.log(`Search done: ${botKey}, best saved to params/${botKey}.json`);
 

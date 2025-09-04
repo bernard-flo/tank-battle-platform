@@ -1,8 +1,6 @@
 {
-  "ideal_range": 200,
-  "orbit_deg": 60,
-  "lead_max_deg": 4,
-  "evade_weight": 1.2,
-  "strafe_deg": 12
+  "ideal_range": 160,
+  "fire_every_frames": 8,
+  "orbit_bias": 0.25,
+  "bulletSpeed": 400
 }
-

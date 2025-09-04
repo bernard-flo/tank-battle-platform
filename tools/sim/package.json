@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "seedrandom": "^3.0.5"
+    "seedrandom": "^3.0.5",
+    "minimist": "^1.2.8"
   },
   "scripts": {
-    "sim": "node cli.js --a ../../tanks/01_tanker_guardian.js --b ../../tanks/02_dealer_sniper.js --seed 42 --rounds 5",
+    "sim": "node cli.js --a ../tanks/01_tanker_guardian.js --b ../tanks/02_dealer_sniper.js --seed 42 --rounds 5",
     "rr": "node round_robin.js --seed 42 --rounds 5 --repeat 3",
     "search": "node search.js --bot 02_dealer_sniper --budget 200 --seed 7"
   }

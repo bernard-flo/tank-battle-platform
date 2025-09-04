@@ -1,26 +1,14 @@
 import fs from 'fs';
-import path from 'path';
-import { Type, loadParamsFor } from './engine.js';
 
-function deriveKey(fp){
-  const base = path.basename(fp).replace(/\.js$/,'');
-  return base;
-}
+export const Type = Object.freeze({ NORMAL: 1, DEALER: 2, TANKER: 4 });
 
-export function loadBot(filePath){
-  const code = fs.readFileSync(filePath,'utf8');
-  const key = deriveKey(filePath);
-  const PARAMS = Object.freeze(loadParamsFor(key));
-  const wrapper = new Function('Type','PARAMS',`
-    const console = {log:()=>{}, warn:()=>{}, error:()=>{}}; // 차단
-    ${code}
-    return { name, type, update };
-  `);
-  const api = wrapper(Type, PARAMS);
-  // 간단 검증
-  if (typeof api.name !== 'function' || typeof api.type !== 'function' || typeof api.update !== 'function'){
-    throw new Error('Invalid bot snippet: missing name/type/update');
-  }
-  return api;
+export function loadBot(path, params = {}) {
+  const code = fs.readFileSync(path, 'utf8');
+  // 샌드박스: console/require 전부 없음
+  const factory = new Function('Type', 'PARAMS', `"use strict"; let console=undefined, require=undefined, process=undefined, fetch=undefined;\n${code}\nreturn { name: name(), type: type(), update };`);
+  const bot = factory(Type, Object.freeze(params||{}));
+  if (typeof bot.name !== 'string') throw new Error('Bot missing name()');
+  if (typeof bot.update !== 'function') throw new Error('Bot missing update()');
+  return bot;
 }
 

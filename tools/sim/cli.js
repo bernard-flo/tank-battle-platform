@@ -1,29 +1,23 @@
-#!/usr/bin/env node
+import minimist from 'minimist';
 import fs from 'fs';
 import path from 'path';
-import { runMatch } from './engine.js';
-import { loadBot } from './loader.js';
+import { runMatch, ensureDirs } from './engine.js';
 
-function arg(name, def){ const i=process.argv.indexOf(`--${name}`); return i>0? process.argv[i+1]: def; }
-const aPath = arg('a', '../../tanks/01_tanker_guardian.js');
-const bPath = arg('b', '../../tanks/02_dealer_sniper.js');
-const seed = arg('seed','42');
-const rounds = parseInt(arg('rounds','3'));
-
-const botA = loadBot(aPath);
-const botB = loadBot(bPath);
-
-const resultsDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), './results');
-fs.mkdirSync(resultsDir, {recursive:true});
-const csvPath = path.join(resultsDir, 'last_match.csv');
-fs.writeFileSync(csvPath, 'round,winner,time,aliveA,aliveB,avgAliveA,avgAliveB\n');
-
-let winA=0, winB=0, draw=0; let totalTime=0;
-for(let r=0;r<rounds;r++){
-  const res = runMatch([botA],[botB],{seed: seed+':'+r});
-  if (res.winner==='A') winA++; else if (res.winner==='B') winB++; else draw++;
-  totalTime += res.time;
-  fs.appendFileSync(csvPath, `${r+1},${res.winner},${res.time.toFixed(3)},${res.aliveA},${res.aliveB},${res.avgAliveA.toFixed(3)},${res.avgAliveB.toFixed(3)}\n`);
+const argv = minimist(process.argv.slice(2));
+const aPath = argv.a || argv.A;
+const bPath = argv.b || argv.B;
+const seed = argv.seed ?? 42;
+const rounds = argv.rounds ?? 5;
+if(!aPath || !bPath){
+  console.log('Usage: node cli.js --a <pathA> --b <pathB> [--seed 42] [--rounds 5]');
+  process.exit(1);
 }
+const outDir = ensureDirs();
+const res = runMatch({aPath, bPath, seed, rounds});
+const winsA = res.filter(r=>r.winA).length; const winsB = res.filter(r=>r.winB).length; const avgTime=(res.reduce((s,r)=>s+r.time,0)/res.length).toFixed(3);
+console.log(`A:${path.basename(aPath)} vs B:${path.basename(bPath)} => ${winsA}-${winsB}, avgTime:${avgTime}s`);
+// CSV 저장
+const csvPath = path.join(outDir, 'last_match.csv');
+const csv = ['round,winA,winB,aliveA,aliveB,time'].concat(res.map((r,i)=>`${i+1},${+r.winA},${+r.winB},${r.aliveA},${r.aliveB},${r.time.toFixed(3)}`)).join('\n');
+fs.writeFileSync(csvPath, csv);
 
-console.log(`A vs B => A:${winA} B:${winB} D:${draw} avgT:${(totalTime/rounds).toFixed(2)}s`);

@@ -1,8 +1,7 @@
 {
-  "ideal_range": 320,
-  "orbit_deg": 90,
-  "lead_max_deg": 6,
-  "evade_weight": 1.5,
-  "strafe_deg": 22
+  "ideal_range": 360,
+  "orbit_deg": 25,
+  "fire_every_frames": 6,
+  "kite_push": 0.9,
+  "bulletSpeed": 400
 }
-
