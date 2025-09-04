@@ -1,9 +1,10 @@
 # SUPER6 Simulator (tools/sim)
 
-- 상정 파라미터(가정치): WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=6, BULLET_SPEED=400, FIRE_COOLDOWN=0.5, dt=0.016.
+- 상정 파라미터(가정치): WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=7, BULLET_SPEED=400, FIRE_COOLDOWN=0.5, dt=0.016.
 - 타입 속도: NORMAL=120, TANKER=105, DEALER=130.
 - 로더: Function 샌드박스(`Type`, `PARAMS`)만 전달. 외부 접근 금지.
 - 결과 저장: tools/sim/results/ 하위로 일원화.
+- bulletSpeed 주입 단위: per-tick (엔진 DT를 곱해 스니펫에 전달)
 
 명령
 - `npm run sim` — 단일 매치 실행 → `results/last_match.csv`
@@ -17,9 +18,10 @@ PARAMS 주입
 출력 정책
 - 콘솔 요약 10줄 내. 상세는 CSV/JSON으로 저장.
 
-라운드로빈 출력
+라운드로빈 출력/결정성
 - JSON: 각 페어별 집계(`winA/winB/avgAliveDiff/avgTime`).
 - CSV(summary.csv): `pair,winA,winB,avgAliveDiff,avgTime`.
+- `--check` 옵션: 첫 페어 2회 재실행하여 결정성 로그 출력(OK/FAIL)
 
 탐색 출력
 - `search_<bot>.csv`: 상위 후보(rank, trial, score)
@@ -37,3 +39,4 @@ PARAMS 주입
 
 스코어 정의(탐색)
 - 점수 = 승수 + (1/avgTime) * timeW (기본 0.05)
+- `--opponents a,b,c` 다상대 평균합, `--beam` 상위 N 유지
