@@ -150,6 +150,24 @@ Export 생성 규칙
 - node search.js --bot 03_dealer_flanker --mode ga --gens 15 --pop 24 --elite 4 --mut 0.25 --seed 11 --opponents 01_tanker_guardian,06_tanker_bruiser --timeW 0.05 --check true
 - 실행 후 생성물(`tools/sim/results/*`, `tools/sim/params/*.json`)을 커밋
 
+이번 세션 실행 체크리스트(필수) — 변경마다 커밋
+1) tools/sim 설치 및 RR 실행
+   - 명령: 위 "즉시 실행 배치" 1~2행 수행
+   - 커밋: `feat(sim/rr): add RR outputs with deterministic check`
+2) 빔 탐색(02, 04) 실행 및 결과 저장
+   - 커밋: `feat(sim/search): beam search for 02/04 and save best params`
+3) GA 탐색(03) 단기 실행 및 스냅샷
+   - 커밋: `feat(sim/search): GA short run for 03 and snapshot params`
+4) params/<bot>.json 최신화 반영 여부 판단(반영 시)
+   - 커밋: `refactor(tanks): apply tuned PARAMS defaults (v1 fallback kept)`
+5) README/RR 요약 캡처(요약 수치만) 업데이트
+   - 커밋: `docs(sim): update RR summary and param table`
+
+검증(로그 10줄 내)
+- 동일 시드 재실행 결과 일치 로그(OK)
+- summary.csv와 summary.json 존재 확인
+- search_*.csv, search_detail_*.csv, ga_*.csv 생성 확인
+
 주의
 - 스니펫에 `PARAMS`가 없을 플랫폼 환경도 고려하여 기본 상수는 항상 남긴다.
 - 엔진의 `new Function` 샌드박스에서 `console`은 무효화, 외부 접근 금지.
