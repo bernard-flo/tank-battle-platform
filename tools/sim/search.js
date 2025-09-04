@@ -11,6 +11,10 @@ const argv = yargs(hideBin(process.argv))
   .option('beam', { type:'number', default:5 })
   .option('seed', { type:'number', default:7 })
   .option('mode', { type:'string', default:'beam' })
+  .option('gens', { type:'number', default:12 })
+  .option('pop', { type:'number', default:24 })
+  .option('elite', { type:'number', default:4 })
+  .option('mut', { type:'number', default:0.25 })
   .option('opponents', { type:'string', default:'01_tanker_guardian,06_tanker_bruiser' })
   .option('rounds', { type:'number', default:5 })
   .option('timeW', { type:'number', default:0.05 })
@@ -86,22 +90,90 @@ const beam = [];
 
 const BUDGET = Number(pickLast(argv.budget));
 if (argv.mode === 'ga') {
+  // GA 모드: 엔진 기반 점수화
   const gaOut = `results/ga_${botKey}.csv`;
   fs.writeFileSync(gaOut, 'gen,bestScore\n');
-  const gens = Math.max(1, Math.floor(BUDGET/3));
-  let bestScore = -1e9;
-  for (let g=1; g<=gens; g++) {
-    const s = Math.round(rng()*10) + g; // 의사 점수 증가
-    bestScore = Math.max(bestScore, s);
-    fs.appendFileSync(gaOut, `${g},${bestScore}\n`);
+  const GENS = Number(pickLast(argv.gens));
+  const POP = Number(pickLast(argv.pop));
+  const ELITE = Math.max(1, Number(pickLast(argv.elite)));
+  const MUT = Number(pickLast(argv.mut));
+
+  // 초기 개체군(기존 params 시드 1개 포함 시도)
+  let population = [];
+  function loadCurrentParams() {
+    try {
+      const pth = path.resolve(process.cwd(), 'params', `${botKey}.json`);
+      if (fs.existsSync(pth)) {
+        const obj = JSON.parse(fs.readFileSync(pth,'utf8'));
+        if (obj && typeof obj === 'object') return obj;
+      }
+    } catch {}
+    return null;
   }
-  // 간단 스냅샷 저장
-  const snap = sampleParams();
-  const ts2 = new Date().toISOString().replace(/[:.]/g,'-');
-  const histDir2 = `params/history/${botKey}`;
-  fs.mkdirSync(histDir2, { recursive: true });
-  fs.writeFileSync(`${histDir2}/${ts2}.json`, JSON.stringify(snap, null, 2));
-  writeParamsForTrial(botKey, snap);
+  const seeded = loadCurrentParams();
+  if (seeded) population.push(seeded);
+  while (population.length < POP) population.push(sampleParams());
+
+  function scoreParams(p) {
+    writeParamsForTrial(botKey, p);
+    let total = 0;
+    for (const opp of opponents) {
+      const { winA, winB, avgTime } = evalAgainst(botKey, opp, SEED, ROUNDS);
+      total += (winA - winB) + (1/avgTime) * TIMEW;
+    }
+    return total / Math.max(1, opponents.length);
+  }
+
+  function clampToSpace(p) {
+    const q = { ...p };
+    for (const [k,[lo,hi]] of Object.entries(SPACE)) {
+      if (q[k] == null) continue;
+      q[k] = Math.min(hi, Math.max(lo, q[k]));
+      if (Number.isInteger(lo) && Number.isInteger(hi)) q[k] = Math.round(q[k]);
+    }
+    return q;
+  }
+
+  function mutate(p) {
+    const q = { ...p };
+    for (const k of Object.keys(SPACE)) {
+      if (rng() < MUT) {
+        const [lo, hi] = SPACE[k];
+        const range = hi - lo;
+        // 간단 가우시안 근사: 박스-뮬러
+        const u1 = Math.max(1e-9, rng());
+        const u2 = Math.max(1e-9, rng());
+        const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2*Math.PI*u2);
+        const step = (range * 0.1) * z; // 범위의 10% 표준편차
+        q[k] = (q[k] ?? (lo + rng()*(hi-lo))) + step;
+      }
+    }
+    return clampToSpace(q);
+  }
+
+  for (let g=1; g<=GENS; g++) {
+    // 평가
+    const scored = population.map(p => ({ p, s: scoreParams(p) }));
+    scored.sort((a,b)=>b.s-a.s);
+    const bestGen = scored[0];
+    if (bestGen.s > best.score) best = { score: bestGen.s, params: bestGen.p };
+    fs.appendFileSync(gaOut, `${g},${bestGen.s.toFixed(4)}\n`);
+
+    // 스냅샷 저장
+    const tsG = new Date().toISOString().replace(/[:.]/g,'-');
+    const histDirG = `params/history/${botKey}`;
+    fs.mkdirSync(histDirG, { recursive: true });
+    fs.writeFileSync(`${histDirG}/${tsG}.json`, JSON.stringify(bestGen.p, null, 2));
+
+    // 다음 세대 구성: 엘리트 보존 + 변이 샘플로 채우기
+    const elites = scored.slice(0, ELITE).map(e=>e.p);
+    const next = elites.slice();
+    while (next.length < POP) {
+      const parent = elites[Math.floor(rng()*elites.length)] || scored[Math.floor(rng()*scored.length)].p;
+      next.push(mutate(parent));
+    }
+    population = next;
+  }
 } else {
 for (let trial=1; trial<=BUDGET; trial++) {
   const params = sampleParams();
