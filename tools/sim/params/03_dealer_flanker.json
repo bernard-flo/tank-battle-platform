@@ -1,7 +1,9 @@
 {
-  "orbit_range": 220,
-  "orbit_jitter": 40,
   "orbit_deg": 90,
-  "fire_every_frames": 4,
-  "bulletSpeed": 400
+  "orbit_radius": 240,
+  "radius_pulse": 90,
+  "leadMaxDeg": 20,
+  "evadeReactDist": 210,
+  "aimJitterDeg": 1.5,
+  "fire_every_frames": 5
 }

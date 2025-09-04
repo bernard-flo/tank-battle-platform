@@ -1,8 +1,6 @@
 {
-  "ideal_range": 220.53107492910672,
-  "orbit_deg": 13.809611980738442,
-  "lead_max_deg": 17.77462672702516,
-  "evade_weight": 0.8746736247736713,
-  "strafe_deg": 8.146873829081025,
+  "leadMaxDeg": 20,
+  "evadeReactDist": 220,
+  "aimJitterDeg": 1.5,
   "fire_every_frames": 6
 }

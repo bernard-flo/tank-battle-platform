@@ -1,6 +1,8 @@
 {
-  "mid_range": 240,
-  "align_weight": 0.4,
-  "fire_every_frames": 5,
-  "bulletSpeed": 400
+  "support_mid_range": 200,
+  "align_weight": 0.5,
+  "leadMaxDeg": 20,
+  "evadeReactDist": 200,
+  "aimJitterDeg": 1.2,
+  "fire_every_frames": 6
 }

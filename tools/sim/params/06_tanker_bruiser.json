@@ -1,6 +1,8 @@
 {
-  "ideal_range": 200,
-  "strafe_deg": 20,
-  "fire_every_frames": 4,
-  "bulletSpeed": 400
+  "bruiser_mid_range": 180,
+  "strafe_deg": 18,
+  "leadMaxDeg": 18,
+  "evadeReactDist": 200,
+  "aimJitterDeg": 1.2,
+  "fire_every_frames": 5
 }

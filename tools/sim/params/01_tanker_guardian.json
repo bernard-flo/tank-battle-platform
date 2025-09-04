@@ -1,6 +1,7 @@
 {
-  "ideal_range": 160,
-  "fire_every_frames": 8,
-  "orbit_bias": 0.25,
-  "bulletSpeed": 400
+  "safeMargin": 28,
+  "evadeReactDist": 200,
+  "leadMaxDeg": 18,
+  "aimJitterDeg": 2.0,
+  "fire_every_frames": 6
 }
