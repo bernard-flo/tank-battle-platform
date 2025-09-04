@@ -1,77 +1,40 @@
-// Normal Support v1 — 아군 보호/중거리 유지/포커스 파이어 동조
-function name() { return 'Normal Support'; }
-function type() { return Type.NORMAL; }
+// Normal Support — 아군 중심 보호, 포커스 파이어 동조, 중거리 유지
+function name(){ return 'Normal Support'; }
+function type(){ try { return Type.NORMAL; } catch(e){ return 1; } }
 
-function update(tank, enemies, allies, bulletInfo) {
-  // ===== 유틸 =====
-  function dist(ax, ay, bx, by) { const dx = bx-ax, dy = by-ay; return Math.hypot(dx, dy); }
-  function angleTo(ax, ay, bx, by) { return Math.atan2(by - ay, bx - ax) * 180 / Math.PI; }
-  function tryMove(angleDeg){
-    const step=15;
-    for(let i=0;i<10;i++){
-      const offs=((i>>1)+1)*step*(i%2===0?1:-1);
-      const ang=angleDeg+(i===0?0:offs);
-      if (tank.move(ang)) return true;
-    }
-    return false;
+function update(tank, enemies, allies, bulletInfo){
+  function dist(a,b){var dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy);} 
+  function angleTo(ax,ay,bx,by){return Math.atan2(by-ay,bx-ax)*180/Math.PI;}
+  function tryMove(a){ for(var i=0;i<10;i++){ var off=(i%2===0?1:-1)*Math.ceil(i/2)*12; tank.move(a+off);} }
+  function leadAngle(src,dst,bs){
+    var rx=dst.x-src.x, ry=dst.y-src.y; var dvx=dst.vx||0, dvy=dst.vy||0;
+    var a=dvx*dvx+dvy*dvy-bs*bs, b=2*(rx*dvx+ry*dvy), c=rx*rx+ry*ry; var t;
+    if(Math.abs(a)<1e-6){ t=(c>1e-6)?(-c/b):0; } else { var disc=b*b-4*a*c; if(disc<0)disc=0; var t1=(-b+Math.sqrt(disc))/(2*a); var t2=(-b-Math.sqrt(disc))/(2*a); t=Math.max(t1,t2);} if(!isFinite(t)||t<0) t=0;
+    return angleTo(src.x,src.y, dst.x+(dst.vx||0)*t, dst.y+(dst.vy||0)*t);
   }
-  function pickCommonTarget(){
-    if (enemies.length===0) return null;
-    // 공통 규칙: 가까움 → 체력 낮음 → 중앙 근접
-    function score(e){
-      const d = dist(tank.x,tank.y,e.x,e.y);
-      const dC = dist(e.x,e.y,450,300);
-      return -d + (1000-e.health)*0.001 - dC*0.0005;
-    }
-    let best=enemies[0];
-    for(const e of enemies){ if (score(e)>score(best)) best=e; }
-    return best;
-  }
-  function leadAngle(src, dst){
-    const base = angleTo(src.x, src.y, dst.x, dst.y);
-    const jitter = (Math.random()*2-1)*4;
-    return base + jitter;
-  }
-  function centerAllies(){
-    if (!allies || allies.length===0) return {x:tank.x,y:tank.y};
-    return { x: allies.reduce((s,a)=>s+a.x,0)/allies.length,
-             y: allies.reduce((s,a)=>s+a.y,0)/allies.length };
-  }
-  function evade(){
-    if (!bulletInfo || bulletInfo.length===0) return false;
-    let best=null, bestScore=-1e9;
-    for(const b of bulletInfo){
-      const rx=tank.x-b.x, ry=tank.y-b.y; const r=Math.hypot(rx,ry)+1e-6;
-      const vdot=(b.vx*rx+b.vy*ry)/r; const score=vdot/r;
-      if(score>bestScore){best=b;bestScore=score;}
-    }
-    if(!best) return false;
-    const bang=Math.atan2(best.vy,best.vx)*180/Math.PI;
-    const a1=bang+90,a2=bang-90;
-    const s=(ang)=>{const rad=ang*Math.PI/180;return Math.cos(rad)*(tank.x-best.x)+Math.sin(rad)*(tank.y-best.y);};
-    return tryMove(s(a1)>s(a2)?a1:a2);
-  }
+  function alliesCenter(){ if(!allies||allies.length===0) return {x:tank.x,y:tank.y}; var sx=0,sy=0; for(var i=0;i<allies.length;i++){sx+=allies[i].x;sy+=allies[i].y;} return {x:sx/allies.length, y:sy/allies.length}; }
 
-  // ===== 로직 =====
-  if (evade()) { const tgt=pickCommonTarget(); if (tgt) tank.fire(leadAngle(tank,tgt)); return; }
+  var P=(typeof PARAMS!=='undefined')?PARAMS:{};
+  var midRange = P.ideal_range ?? 220;
+  var bulletSpeed = P.bulletSpeed ?? 400;
 
-  const center = centerAllies();
-  const tgt = pickCommonTarget();
-  if (!tgt) return;
+  // 공동 타겟 선정: 아군 중심과 가장 가까운 적
+  var center = alliesCenter();
+  var focus=null, bd=1e9; if(enemies){ for(var i=0;i<enemies.length;i++){ var d=dist(center,enemies[i]); if(d<bd){bd=d; focus=enemies[i];} } }
+  if(!focus && enemies && enemies.length) focus=enemies[0];
 
-  // 아군 중심 근처에서 중거리 유지(260~340)
-  const toCenter = angleTo(tank.x, tank.y, center.x, center.y);
-  const toEnemy = angleTo(tank.x, tank.y, tgt.x, tgt.y);
-  const d = dist(tank.x, tank.y, tgt.x, tgt.y);
-  if (d < 240) {
-    tryMove(toEnemy + 180 + (Math.random()<0.5?-25:25));
-  } else if (d > 360) {
-    tryMove(toEnemy + (Math.random()<0.5?10:-10));
-  } else {
-    // 중심을 끼고 각도 정렬 유지
-    tryMove((toCenter*0.3 + toEnemy*0.7));
+  // 탄 회피 우선
+  var threat=null, best=-1e9; for(var i=0;i<(bulletInfo?bulletInfo.length:0);i++){ var b=bulletInfo[i]; var rx=tank.x-b.x, ry=tank.y-b.y; var d=Math.hypot(rx,ry)+1e-6; var rel=-(rx*(b.vx||0)+ry*(b.vy||0))/d; var sc=rel/d; if(sc>best){best=sc; threat=b;} }
+  if(threat && best>0){ var ang=Math.atan2(threat.vy||0, threat.vx||0)*180/Math.PI; tryMove(ang+90*(Math.random()<0.5?1:-1)); return; }
+
+  if(focus){
+    var d = dist(tank, focus);
+    var base = angleTo(tank.x,tank.y, focus.x, focus.y);
+    var moveAng = (d>midRange? base : base+180) + (Math.random()<0.5?8:-8);
+    tryMove(moveAng);
+    // 동조 사격
+    var aim = leadAngle(tank, focus, bulletSpeed);
+    if((tank._ns_t=(tank._ns_t||0)+1) % (P.fire_every??5)===0){ tank.fire(aim + (Math.random()*2-1)); }
   }
-
-  tank.fire(leadAngle(tank, tgt));
 }
 
