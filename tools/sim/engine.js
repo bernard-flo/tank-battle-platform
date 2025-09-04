@@ -1,10 +1,12 @@
 // NOTE: 시뮬레이터 엔진 골격 (추후 상세 구현)
 export const DEFAULTS = Object.freeze({
   WIDTH: 800, HEIGHT: 600,
-  TANK_R: 16, BULLET_R: 6,
+  TANK_R: 16, BULLET_R: 7,
   BULLET_SPEED: 400, FIRE_COOLDOWN: 0.5,
   SPEED: { NORMAL: 120, TANKER: 105, DEALER: 130 },
-  DT: 0.016, TIME_LIMIT: 60
+  DAMAGE: 35,
+  BULLET_LIFE: 4.0, // seconds
+  DT: 0.016, TIME_LIMIT: 90
 });
 
 export function makeRng(seed) {
