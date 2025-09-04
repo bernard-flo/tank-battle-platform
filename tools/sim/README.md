@@ -3,6 +3,7 @@
 - 상정 파라미터(가정치): WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=7, BULLET_SPEED=400, FIRE_COOLDOWN=0.5, dt=0.016.
 - 타입 속도: NORMAL=120, TANKER=105, DEALER=130.
 - 로더: Function 샌드박스(`Type`, `PARAMS`)만 전달. 외부 접근 금지.
+- 각도 단위: 봇 API의 `tank.move(angDeg)`, `tank.fire(angDeg)`는 degree(도) 입력이며, 엔진 내부에서 radian으로 변환해 처리합니다.
 - 결과 저장: tools/sim/results/ 하위로 일원화.
 - bulletSpeed 주입 단위: per-tick (엔진 DT를 곱해 스니펫에 전달)
 
