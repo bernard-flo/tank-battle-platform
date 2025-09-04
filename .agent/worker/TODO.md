@@ -40,3 +40,11 @@
 - 탐색 scoring 가중치 튜닝(승점:생존시간=1:0.03~0.08 범위 테스트)
 - 위험도 함수 개선: 탄 속도 벡터 기반 충돌 시간 예측(TTC) 가중
 - params 스냅샷 버저닝: params/<bot>.json 변경 시 자동 백업(params/history)
+
+루프 #3 TODO(탐색 고도화)
+- [ ] search.js: GA 모드 추가(--mode ga --gens 20 --pop 30 --elite 4 --mut 0.2)
+- [ ] search.js: 다상대 평가(--opponents 리스트, --timeW 가중 스윕)
+- [ ] search.js: 세대별/상대별 결과 CSV(results/ga_*, search_detail_*) 저장
+- [ ] sim: perf 타이밍(1회/10회) 로그 한 줄 출력 옵션 추가
+- [ ] params: params/history/<bot>/timestamp.json 스냅샷 저장 로직 추가
+- [ ] rr/search: --check 옵션으로 결정성 자가 점검 로그
