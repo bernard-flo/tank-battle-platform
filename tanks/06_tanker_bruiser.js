@@ -1,57 +1,39 @@
-// Tanker Bruiser — 전면 압박, 벽-슬라이딩, 지속 사격, 지그재그 회피
-function name() { return 'Tanker Bruiser'; }
-function type() { return Type.TANKER; }
+// Tanker Bruiser — 전면 압박, 벽-슬라이딩, 지그재그 예측 회피
+function dist(ax,ay,bx,by){ const dx=bx-ax, dy=by-ay; return Math.hypot(dx,dy); }
+function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax); }
+function safeLead(src, dst, bulletSpeed){
+  const rx=dst.x-src.x, ry=dst.y-src.y; const vx=dst.vx||0, vy=dst.vy||0;
+  const a=vx*vx+vy*vy-bulletSpeed*bulletSpeed, b=2*(rx*vx+ry*vy), c=rx*rx+ry*ry; let t=0;
+  if (Math.abs(a)<1e-6){ if(Math.abs(b)>1e-6) t=-c/b; }
+  else { const disc=b*b-4*a*c; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-b+s)/(2*a), t2=(-b-s)/(2*a); t=Math.min(t1,t2)>0?Math.min(t1,t2):Math.max(t1,t2); if(!isFinite(t)||t<0) t=0; }}
+  const axp=dst.x+(dst.vx||0)*t, ayp=dst.y+(dst.vy||0)*t; return Math.atan2(ayp-src.y, axp-src.x);
+}
+function pickPressureTarget(tank, enemies){
+  let best=null, score=1e9; for(const e of enemies||[]){ const d=dist(tank.x,tank.y,e.x,e.y); const s=d*0.7 + (e.hp||100)*0.3; if(s<score){score=s;best=e;} } return best;
+}
 
-function update(tank, enemies, allies, bulletInfo) {
-  "use strict";
-  // ===== 유틸 =====
-  const P = (typeof PARAMS === 'object' && PARAMS) || {};
-  const angleTo = (ax, ay, bx, by) => Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
-  const norm = (a) => ((a % 360) + 360) % 360;
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  const tryMove = (ang) => { const ds=[0,15,-15,30,-30,45,-45,60,-60,90]; for (const d of ds){ if (tank.move(norm(ang+d))) return true; } return false; };
-  const hashSign = (v) => (Math.sin(v * 0.0025) >= 0 ? 1 : -1);
+function name(){ return 'Tanker Bruiser'; }
+function type(){ return Type.TANKER; }
 
-  // ===== 위협 탄 회피(간헐) =====
-  let danger = null, score = 0;
-  for (const b of bulletInfo) {
-    const dx = tank.x - b.x, dy = tank.y - b.y; const d = Math.hypot(dx, dy) + 1e-3;
-    const toward = -(b.vx * (dx / d) + b.vy * (dy / d));
-    const s = toward > 0 ? toward / d : 0;
-    if (s > score) { score = s; danger = b; }
-  }
-  if (danger) {
-    const ba = Math.atan2(danger.vy, danger.vx) * 180 / Math.PI;
-    const dx = tank.x - danger.x, dy = tank.y - danger.y;
-    const side = (danger.vx * dy - danger.vy * dx) >= 0 ? -1 : 1;
-    if (!tryMove(norm(ba + side * 90))) tryMove(norm(ba - side * 90));
+function update(tank, enemies, allies, bulletInfo){
+  const BULLET_SPEED=400; const jitter=(Math.random()-0.5)*0.08;
+  const tgt = pickPressureTarget(tank, enemies||[]);
+  // 지그재그 타이머
+  if (!tank.__zig) tank.__zig = {dir: (Math.random()<0.5?1:-1), t: 30+Math.floor(Math.random()*30)};
+  tank.__zig.t -= 1; if (tank.__zig.t<=0){ tank.__zig.t = 30+Math.floor(Math.random()*30); tank.__zig.dir *= -1; }
+
+  if (tgt){
+    let base = angleTo(tank.x,tank.y,tgt.x,tgt.y);
+    // 벽-슬라이딩 보정
+    const M=26; if (tank.x<M) base = 0; else if (tank.x>800-M) base=Math.PI; if (tank.y<M) base=Math.PI/2; else if (tank.y>600-M) base=-Math.PI/2;
+    // 지그재그 측면 오프셋
+    let moveAng = base + tank.__zig.dir * 20*Math.PI/180 + jitter;
+    for(let i=0;i<10;i++){ if (tank.move(moveAng)) break; moveAng += ((i%2?1:-1) * 12*Math.PI/180); }
+    const fireAng = safeLead(tank, tgt, BULLET_SPEED) + (Math.random()-0.5)*0.02; tank.fire(fireAng);
   } else {
-    // ===== 압박 방향: 적 군집 중심 향해 전진
-    let cx = 450, cy = 300, n = 0;
-    for (const e of enemies) { cx += e.x; cy += e.y; n++; }
-    if (n > 0) { cx = cx / (n + 1); cy = cy / (n + 1); }
-    const aTo = angleTo(tank.x, tank.y, cx, cy);
-
-    // 벽-슬라이딩: 벽 근처면 평행 이동(±90)
-    const margin = (P.wall_margin ?? 60) + tank.size * 0.5;
-    const nearLeft = tank.x < margin, nearRight = tank.x > 900 - margin;
-    const nearTop = tank.y < margin, nearBot = tank.y > 600 - margin;
-    let moveAng = aTo;
-    if (nearLeft || nearRight) {
-      moveAng = norm((nearLeft ? 0 : 180) + hashSign(tank.y) * 90); // 수평 벽과 평행
-    } else if (nearTop || nearBot) {
-      moveAng = norm((nearTop ? 90 : 270) + hashSign(tank.x) * 90); // 수직 벽과 평행
-    } else {
-      // 지그재그 오프셋
-      const zig = (P.zig_deg ?? 20) * hashSign(Math.floor((tank.x + tank.y) / 20));
-      moveAng = norm(aTo + zig);
-    }
-    tryMove(moveAng);
-
-    // 지속 사격: 전진 방향 또는 가장 가까운 적 조준
-    let target = null;
-    for (const e of enemies) { if (!target || e.distance < target.distance) target = e; }
-    if (target) tank.fire(angleTo(tank.x, tank.y, target.x, target.y));
-    else tank.fire(moveAng);
+    // 타겟 없을 때 중앙으로 압박
+    let ang = angleTo(tank.x,tank.y,400,300) + tank.__zig.dir*20*Math.PI/180 + jitter;
+    for(let i=0;i<10;i++){ if (tank.move(ang)) break; ang += ((i%2?1:-1) * 12*Math.PI/180); }
   }
 }
+
