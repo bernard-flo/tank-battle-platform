@@ -146,3 +146,44 @@ Export 생성 규칙
 - 스니펫에 `PARAMS`가 없을 플랫폼 환경도 고려하여 기본 상수는 항상 남긴다.
 - 엔진의 `new Function` 샌드박스에서 `console`은 무효화, 외부 접근 금지.
 - 커밋은 작은 단위로 자주, 실행 로그는 10줄 이내 요약.
+
+==============================
+루프 #2 보완 지시(버그픽스/정밀화)
+==============================
+
+즉시 처리(변경마다 커밋):
+- fix(search): 탐색 시 샘플 파라미터를 실제 평가에 적용
+  - 간단 해법: 각 trial 시작 전에 `tools/sim/params/<botKey>.json`을 현재 샘플값으로 덮어쓰고 `runMatch` 실행.
+  - trial 종료 후 다음 샘플로 다시 덮어씌움. 최종 best는 마지막에 동일 경로에 저장.
+  - 커밋 메시지: `fix(sim/search): apply sampled PARAMS during trials`
+- feat(rr): 라운드로빈 지표 확장 및 CSV 저장 열 추가
+  - 추가 지표: 평균 생존 차(`avgAliveDiff`), 평균 종료 시간(`avgTime`).
+  - `results/summary.csv` 컬럼: `pair,winA,winB,avgAliveDiff,avgTime`.
+  - 커밋 메시지: `feat(sim/rr): add avgAliveDiff, avgTime to summary`
+- chore(sim): 시드 재현성 점검 로그
+  - `npm run rr` 1회 실행 시 첫 페어의 결과를 동일 시드로 2회 재실행하여 동일성 체크(Log만).
+  - 커밋 메시지: `chore(sim): add deterministic check log`
+
+정밀화(가능하면 이번 세션에):
+- feat(params): 6개 탱크 모두에 v1 프리셋 확장 저장
+  - 현재 일부만 존재. 누락 탱크에 합리적 기본값 템플릿 생성 후 저장.
+  - 커밋 메시지: `feat(params): add presets for all six tanks`
+- docs(sim): README에 라운드로빈/탐색 출력 필드 설명 및 파라미터 표 갱신
+  - 커밋 메시지: `docs(sim): document RR metrics and param table`
+
+추가 구현 가이드:
+- 엔진 PARAMS 주입 경로는 유지하되, 파일 로딩 실패 시 `{}`로 안전 폴백.
+- 파일 경로는 반드시 `tools/sim/params/` 하위로 고정. 외부 경로 접근 금지.
+- 실행 속도 로그(1회/10회 소요 초) 한 줄 요약만 남기고, 세부는 CSV/JSON으로 저장.
+
+권장 작업 순서(이번 보완):
+1) search.js에 trial별 PARAMS 파일 덮어쓰기 적용 → 커밋
+2) round_robin.js에 avgAliveDiff/avgTime 집계 및 CSV 컬럼 확장 → 커밋
+3) README에 지표/파라미터 설명 추가 → 커밋
+4) 누락 params 템플릿 작성(6종 완비) → 커밋
+5) 시드 재현성 로그 한 줄 추가 → 커밋
+
+검증 체크리스트(보완 후):
+- 동일 시드 재실행 시 요약 지표가 바이트 단위로 동일함.
+- search.csv의 상위 trial과 저장된 params/<botKey>.json 값이 일치함.
+- summary.csv에 확장 지표 열이 채워짐.

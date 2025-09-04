@@ -27,3 +27,10 @@
 - [ ] 동일 시드에서 결과 일관성 유지
 - [ ] rr 1회전/10회전 시간 로그 남김
 - [ ] SUPER6 내전에서 v1 대비 승률 향상 지점 캡처 및 기록
+
+2025-09-04 루프 #2-2 보완 과제
+- [ ] search.js: trial별 샘플 PARAMS를 params/<key>.json에 저장 후 평가(최종 best 저장)
+- [ ] round_robin.js: avgAliveDiff, avgTime 산출 및 summary.csv 컬럼 확장
+- [ ] README: RR 지표 정의와 파라미터 표 갱신, 실행 예시 최신화
+- [ ] params: 6종 모두 프리셋 파일 완비(누락 보강)
+- [ ] 재현성 로그: 동일 시드 2회 실행 결과 동일성 체크 로그 추가
