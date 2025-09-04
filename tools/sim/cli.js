@@ -13,12 +13,19 @@ const argv = yargs(hideBin(process.argv))
   .option('out', { type:'string', default:'results/last_match.csv' })
   .help().argv;
 
-fs.mkdirSync(path.dirname(argv.out), { recursive: true });
-const res = runMatch({ a: argv.a, b: argv.b, rounds: argv.rounds, seed: argv.seed });
+const pickLast = (v) => Array.isArray(v) ? v[v.length-1] : v;
+const A = pickLast(argv.a);
+const B = pickLast(argv.b);
+const ROUNDS = Number(pickLast(argv.rounds));
+const SEED = Number(pickLast(argv.seed));
+const OUT = pickLast(argv.out);
+
+fs.mkdirSync(path.dirname(OUT), { recursive: true });
+const res = runMatch({ a: A, b: B, rounds: ROUNDS, seed: SEED });
 // 간결 로그
-console.log(`sim: ${path.basename(argv.a)} vs ${path.basename(argv.b)} | rounds=${argv.rounds} seed=${argv.seed}`);
+console.log(`sim: ${path.basename(A)} vs ${path.basename(B)} | rounds=${ROUNDS} seed=${SEED}`);
 // CSV 기록
-fs.writeFileSync(argv.out, 'round,winA,winB,aliveDiff,time\n');
+fs.writeFileSync(OUT, 'round,winA,winB,aliveDiff,time\n');
 for (const r of res.rounds) {
-  fs.appendFileSync(argv.out, `${r.round},${r.winA},${r.winB},${r.aliveDiff},${r.time.toFixed(3)}\n`);
+  fs.appendFileSync(OUT, `${r.round},${r.winA},${r.winB},${r.aliveDiff},${r.time.toFixed(3)}\n`);
 }
