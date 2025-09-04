@@ -6,7 +6,7 @@ export const DEFAULTS = Object.freeze({
   WIDTH: 800,
   HEIGHT: 600,
   TANK_R: 16,
-  BULLET_R: 7,
+  BULLET_R: 12,
   BULLET_SPEED: 400, // px/s
   BULLET_LIFE: 4.0,  // s
   FIRE_COOLDOWN: 0.5, // s
