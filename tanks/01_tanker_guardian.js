@@ -26,7 +26,7 @@ function leadAngle(src, dst, vBullet) {
   }
   if (!isFinite(t) || t < 0) t = 0;
   const tx = dst.x + dvx * t, ty = dst.y + dvy * t;
-  return Math.atan2(ty - src.x /*bug guard*/, tx - src.x);
+  return Math.atan2(ty - src.y, tx - src.x);
 }
 
 function pickTarget(tank, enemies) {
@@ -145,4 +145,3 @@ function update(tank, enemies, allies, bulletInfo) {
     }
   }
 }
-
