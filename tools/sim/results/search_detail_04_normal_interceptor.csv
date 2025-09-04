@@ -1,41 +1,121 @@
-trial,opponent,winA,winB,avgTime
-1,01_tanker_guardian,0,1,76.76
-1,06_tanker_bruiser,1,2,41.23
-2,01_tanker_guardian,0,3,44.10
-2,06_tanker_bruiser,2,0,58.01
-3,01_tanker_guardian,0,2,57.08
-3,06_tanker_bruiser,0,2,59.13
-4,01_tanker_guardian,0,2,56.21
-4,06_tanker_bruiser,0,0,90.00
-5,01_tanker_guardian,0,1,72.85
-5,06_tanker_bruiser,2,1,47.86
-6,01_tanker_guardian,1,2,43.80
-6,06_tanker_bruiser,2,1,43.82
-7,01_tanker_guardian,0,2,62.74
-7,06_tanker_bruiser,1,1,64.18
-8,01_tanker_guardian,1,2,25.51
-8,06_tanker_bruiser,1,2,42.35
-9,01_tanker_guardian,0,0,90.00
-9,06_tanker_bruiser,0,1,73.84
-10,01_tanker_guardian,0,0,90.00
-10,06_tanker_bruiser,0,0,90.00
-11,01_tanker_guardian,1,0,74.42
-11,06_tanker_bruiser,1,0,74.52
-12,01_tanker_guardian,1,0,73.69
-12,06_tanker_bruiser,0,0,90.00
-13,01_tanker_guardian,0,1,72.88
-13,06_tanker_bruiser,1,1,60.44
-14,01_tanker_guardian,1,1,57.77
-14,06_tanker_bruiser,1,0,76.23
-15,01_tanker_guardian,0,0,90.00
-15,06_tanker_bruiser,0,2,58.32
-16,01_tanker_guardian,0,1,78.83
-16,06_tanker_bruiser,1,1,57.10
-17,01_tanker_guardian,0,2,57.51
-17,06_tanker_bruiser,0,1,72.87
-18,01_tanker_guardian,0,1,78.78
-18,06_tanker_bruiser,0,1,72.89
-19,01_tanker_guardian,1,0,74.23
-19,06_tanker_bruiser,0,0,90.00
-20,01_tanker_guardian,0,1,76.71
-20,06_tanker_bruiser,0,1,83.01
+trial,opponent,wins,avgTime,score
+0,Tanker Guardian,0,90,4.5
+0,Tanker Bruiser,0,90,4.5
+1,Tanker Guardian,0,90,4.5
+1,Tanker Bruiser,0,90,4.5
+2,Tanker Guardian,0,90,4.5
+2,Tanker Bruiser,0,90,4.5
+3,Tanker Guardian,0,90,4.5
+3,Tanker Bruiser,0,90,4.5
+4,Tanker Guardian,0,90,4.5
+4,Tanker Bruiser,0,90,4.5
+5,Tanker Guardian,0,90,4.5
+5,Tanker Bruiser,0,90,4.5
+6,Tanker Guardian,0,90,4.5
+6,Tanker Bruiser,0,90,4.5
+7,Tanker Guardian,0,90,4.5
+7,Tanker Bruiser,0,90,4.5
+8,Tanker Guardian,0,90,4.5
+8,Tanker Bruiser,0,90,4.5
+9,Tanker Guardian,0,90,4.5
+9,Tanker Bruiser,0,90,4.5
+10,Tanker Guardian,0,90,4.5
+10,Tanker Bruiser,0,90,4.5
+11,Tanker Guardian,0,90,4.5
+11,Tanker Bruiser,0,90,4.5
+12,Tanker Guardian,0,90,4.5
+12,Tanker Bruiser,0,90,4.5
+13,Tanker Guardian,0,90,4.5
+13,Tanker Bruiser,0,90,4.5
+14,Tanker Guardian,0,90,4.5
+14,Tanker Bruiser,0,90,4.5
+15,Tanker Guardian,0,90,4.5
+15,Tanker Bruiser,0,90,4.5
+16,Tanker Guardian,0,90,4.5
+16,Tanker Bruiser,0,90,4.5
+17,Tanker Guardian,0,90,4.5
+17,Tanker Bruiser,0,90,4.5
+18,Tanker Guardian,0,90,4.5
+18,Tanker Bruiser,0,90,4.5
+19,Tanker Guardian,0,90,4.5
+19,Tanker Bruiser,0,90,4.5
+20,Tanker Guardian,0,90,4.5
+20,Tanker Bruiser,0,90,4.5
+21,Tanker Guardian,0,90,4.5
+21,Tanker Bruiser,0,90,4.5
+22,Tanker Guardian,0,90,4.5
+22,Tanker Bruiser,0,90,4.5
+23,Tanker Guardian,0,90,4.5
+23,Tanker Bruiser,0,90,4.5
+24,Tanker Guardian,0,90,4.5
+24,Tanker Bruiser,0,90,4.5
+25,Tanker Guardian,0,90,4.5
+25,Tanker Bruiser,0,90,4.5
+26,Tanker Guardian,0,90,4.5
+26,Tanker Bruiser,0,90,4.5
+27,Tanker Guardian,0,90,4.5
+27,Tanker Bruiser,0,90,4.5
+28,Tanker Guardian,0,90,4.5
+28,Tanker Bruiser,0,90,4.5
+29,Tanker Guardian,0,90,4.5
+29,Tanker Bruiser,0,90,4.5
+30,Tanker Guardian,0,90,4.5
+30,Tanker Bruiser,0,90,4.5
+31,Tanker Guardian,0,90,4.5
+31,Tanker Bruiser,0,90,4.5
+32,Tanker Guardian,0,90,4.5
+32,Tanker Bruiser,0,90,4.5
+33,Tanker Guardian,0,90,4.5
+33,Tanker Bruiser,0,90,4.5
+34,Tanker Guardian,0,90,4.5
+34,Tanker Bruiser,0,90,4.5
+35,Tanker Guardian,0,90,4.5
+35,Tanker Bruiser,0,90,4.5
+36,Tanker Guardian,0,90,4.5
+36,Tanker Bruiser,0,90,4.5
+37,Tanker Guardian,0,90,4.5
+37,Tanker Bruiser,0,90,4.5
+38,Tanker Guardian,0,90,4.5
+38,Tanker Bruiser,0,90,4.5
+39,Tanker Guardian,0,90,4.5
+39,Tanker Bruiser,0,90,4.5
+40,Tanker Guardian,0,90,4.5
+40,Tanker Bruiser,0,90,4.5
+41,Tanker Guardian,0,90,4.5
+41,Tanker Bruiser,0,90,4.5
+42,Tanker Guardian,0,90,4.5
+42,Tanker Bruiser,0,90,4.5
+43,Tanker Guardian,0,90,4.5
+43,Tanker Bruiser,0,90,4.5
+44,Tanker Guardian,0,90,4.5
+44,Tanker Bruiser,0,90,4.5
+45,Tanker Guardian,0,90,4.5
+45,Tanker Bruiser,0,90,4.5
+46,Tanker Guardian,0,90,4.5
+46,Tanker Bruiser,0,90,4.5
+47,Tanker Guardian,0,90,4.5
+47,Tanker Bruiser,0,90,4.5
+48,Tanker Guardian,0,90,4.5
+48,Tanker Bruiser,0,90,4.5
+49,Tanker Guardian,0,90,4.5
+49,Tanker Bruiser,0,90,4.5
+50,Tanker Guardian,0,90,4.5
+50,Tanker Bruiser,0,90,4.5
+51,Tanker Guardian,0,90,4.5
+51,Tanker Bruiser,0,90,4.5
+52,Tanker Guardian,0,90,4.5
+52,Tanker Bruiser,0,90,4.5
+53,Tanker Guardian,0,90,4.5
+53,Tanker Bruiser,0,90,4.5
+54,Tanker Guardian,0,90,4.5
+54,Tanker Bruiser,0,90,4.5
+55,Tanker Guardian,0,90,4.5
+55,Tanker Bruiser,0,90,4.5
+56,Tanker Guardian,0,90,4.5
+56,Tanker Bruiser,0,90,4.5
+57,Tanker Guardian,0,90,4.5
+57,Tanker Bruiser,0,90,4.5
+58,Tanker Guardian,0,90,4.5
+58,Tanker Bruiser,0,90,4.5
+59,Tanker Guardian,0,90,4.5
+59,Tanker Bruiser,0,90,4.5

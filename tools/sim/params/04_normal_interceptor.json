@@ -1,5 +1,8 @@
 {
-  "ideal_range": 240,
+  "ideal_range": 193,
+  "orbit_deg": 18,
+  "radius": 225,
+  "radius_jitter": 36,
+  "strafe_deg": 8,
   "fire_every": 5
 }
-
