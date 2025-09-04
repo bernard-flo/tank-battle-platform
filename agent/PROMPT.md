@@ -338,3 +338,12 @@ Export 생성 규칙
 - cd tools/sim && npm i && npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
 - npm run search -- --bot 02_dealer_sniper --budget 60 --beam 5 --opponents 01_tanker_guardian,06_tanker_bruiser --seed 7 --check true
 - npm run sim
+
+보완 지시(어댑터/인자 파싱 핫픽스):
+- sim 어댑터 정합: 엔진이 `enemies`에 `hp` 외에 `health` 별칭을 함께 제공하고, 탱크 API에 `size`(=TANK_R) 읽기 전용을 노출. 기존 스니펫 참조(`e.health`, `tank.size`) 호환을 위해서임.
+  - 변경: engine.js의 적 정보 생성 시 `{ x,y,vx,vy,hp, health: hp }` 형태로 전달.
+  - 변경: makeTankApi 반환 객체에 `get size(){ return DEFAULTS.TANK_R; }` 추가.
+- rr/search 인자 파싱: package.json 기본 인자와 CLI 인자가 중복될 때 CLI 최종값이 우선되도록 `pickLast` 유틸(배열이면 마지막 요소)을 적용.
+  - round_robin.js: `seed/rounds/repeat`에 pickLast 적용.
+  - search.js: 기존과 동일하게 pickLast 유지, rr와 일관화.
+  - 커밋: `fix(sim/adapter): add health alias and tank.size`; `chore(sim/cli): prefer last CLI args`

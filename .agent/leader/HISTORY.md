@@ -67,3 +67,7 @@
 - tools/sim 엔진 실제화/통합 확인: rr/check OK, sim CSV/rr summary 생성 정상
 - search(beam) 엔진 기반 점수화/params 덮어쓰기 동작 확인; GA는 후속 작업으로 엔진 점수화 지시
 - 프롬프트 보강: 완료 체크리스트/GA 실점수화 지시 추가
+
+2025-09-04 루프 #2-11 핫픽스 지시
+- 어댑터 정합 보강: enemies에 health 별칭 추가, 탱크 API에 size 노출 지시(기존 스니펫 호환)
+- rr 인자 파싱 일관화: CLI 중복 인자 시 마지막 값 우선 적용 지시(pickLast)
