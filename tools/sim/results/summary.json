@@ -1,121 +1,112 @@
 {
-  "seed": [
-    42,
-    42
-  ],
-  "rounds": [
-    5,
-    5
-  ],
-  "repeat": [
-    3,
-    3
-  ],
+  "seed": 42,
+  "rounds": 5,
+  "repeat": 2,
   "summary": [
     {
       "pair": "01_tanker_guardian.js-02_dealer_sniper.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "01_tanker_guardian.js-03_dealer_flanker.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "01_tanker_guardian.js-04_normal_interceptor.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "01_tanker_guardian.js-05_normal_support.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "01_tanker_guardian.js-06_tanker_bruiser.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "02_dealer_sniper.js-03_dealer_flanker.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "02_dealer_sniper.js-04_normal_interceptor.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "02_dealer_sniper.js-05_normal_support.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "02_dealer_sniper.js-06_tanker_bruiser.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "03_dealer_flanker.js-04_normal_interceptor.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "03_dealer_flanker.js-05_normal_support.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "03_dealer_flanker.js-06_tanker_bruiser.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "04_normal_interceptor.js-05_normal_support.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "04_normal_interceptor.js-06_tanker_bruiser.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     },
     {
       "pair": "05_normal_support.js-06_tanker_bruiser.js",
       "winA": 0,
       "winB": 0,
-      "avgAliveDiff": null,
-      "avgTime": null
+      "avgAliveDiff": 0,
+      "avgTime": 60.016
     }
   ]
 }

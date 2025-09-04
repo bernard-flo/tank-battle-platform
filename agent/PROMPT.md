@@ -238,6 +238,36 @@ Export 생성 규칙
 - summary.csv에 확장 지표 열이 채워짐.
 
 ==============================
+루프 #2-9 지시(밸런스 튜닝 + 경로 수정)
+==============================
+
+목표: 무승부 빈도를 낮추고(`RR`에서 일부 페어는 유의미한 승부 발생) npm 스크립트 경로를 바로잡아 단일 매치 실행을 원클릭으로 가능하게 만든다.
+
+즉시 실행 배치(변경마다 커밋):
+- fix(sim): npm 스크립트 경로 수정
+  - `tools/sim/package.json`의 `sim` 스크립트에서 `--a ../tanks/...` → `--a ../../tanks/...`, `--b` 동일 수정
+  - 커밋: `chore(sim): fix script paths to project tanks`
+- balance(sim): 타이 빈도 감소 파라미터 조정
+  - `engine.js`에서 아래 중 2가지를 적용(권장 A+B)
+    - A) `TIME_LIMIT` 60 → 90 (더 많은 교전 기회)
+    - B) 총알 수명 3 → 4초(원거리 타격 허용)
+    - C) `BULLET_R` 6 → 7 또는 `damage` 30 → 35 중 하나 선택(과도한 킬 방지 차원에서 1가지만)
+  - 적용 후 `npm run rr -- --check`로 결정성+승부 발생 여부 확인
+  - 커밋: `balance(sim): extend time and bullet life to reduce ties`
+- chore(sim): 결정성/성능 로그 요약 유지 확인
+  - `rr --check` 결과 OK 로그 포함, perf 로그 유지
+  - 커밋: `chore(sim): add/check deterministic and perf logs`
+
+검증/아티팩트:
+- `tools/sim/results/summary.csv`에 최소 3개 이상 페어에서 winA 또는 winB가 0이 아님을 스크린샷/로그로 확인
+- 동일 시드 2회 재실행 시 `summary.csv/json` 동일
+- `npm run sim` 단일 매치가 정상 실행되고 `results/last_match.csv` 생성
+
+메모(주의):
+- 밸런스 튜닝은 과도한 킬을 만들지 않도록 작은 단계로 변경하고 RR로 즉시 확인할 것
+- 경로 수정은 도구 실행 품질 향상을 위한 것이며, 시뮬레이션 로직 변경과 별도 커밋으로 분리
+
+==============================
 루프 #3 지시(파라미터 자동 탐색 고도화)
 ==============================
 
