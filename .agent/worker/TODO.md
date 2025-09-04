@@ -14,3 +14,16 @@
 - 안정성: move 실패 시 재시도 로직 공통 유틸로 통일(중복 제거)
 - 방어 로직 보강: 벽 근접 시 각 전략별 별도 우선 이동 각도 테이블
 
+2025-09-04 루프 #2 실행 체크리스트(보완 과제)
+- [ ] tools/sim 결과 저장 경로를 `tools/sim/results/`로 통일(cli/rr/search)
+- [ ] round_robin에서 `summary.csv` 생성(pair,winA,winB)
+- [ ] params 프리셋 디렉토리 생성 및 각 탱크별 기본값 작성(params/*.json)
+- [ ] engine.js에서 PARAMS 주입(`const PARAMS = Object.freeze(...)`)
+- [ ] 탱크 코드에서 상수 일부를 PARAMS 기반으로 치환(호환 fallback 유지)
+- [ ] search.js를 무작위+빔 탐색으로 개선하고 최상 해를 params/<key>.json 저장
+- [ ] README에 파라미터/범위/스코어 정의/실행 예시 추가
+
+검증 체크
+- [ ] 동일 시드에서 결과 일관성 유지
+- [ ] rr 1회전/10회전 시간 로그 남김
+- [ ] SUPER6 내전에서 v1 대비 승률 향상 지점 캡처 및 기록

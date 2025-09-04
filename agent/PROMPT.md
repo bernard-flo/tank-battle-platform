@@ -109,3 +109,40 @@ Export 생성 규칙
 - chore(todo): seed improvement backlog
 
 이제 시작하자. 출력은 간결하게 유지하되, 모든 변경은 커밋하라.
+
+==============================
+이번 루프 실행 체크리스트(#2 - 보완/완료)
+==============================
+
+필수 보완 사항(현 코드 기준)
+- results 경로 일원화: `tools/sim/results/` 하위로 저장(단일/라운드로빈/탐색 공통)
+- round_robin CSV: `pair,winA,winB` 컬럼으로 `summary.csv` 추가(기존 JSON 유지)
+- 파라미터 주입: `params/*.json` 로드 → 엔진이 `const PARAMS = Object.freeze({...})`로 스니펫에 주입
+  - 키: 파일명 기반(`01_tanker_guardian` 등)
+  - 각 탱크별 기본 프리셋 생성: `params/<key>.json`
+  - 탱크 코드 상수는 `PARAMS.xxx ?? 기본값` 형태로 점진 치환(플랫폼 호환을 위한 fallback 유지)
+- 탐색(search.js) 고도화:
+  - 탐색 대상 파라미터 정의(예: `ideal_range`, `orbit_deg`, `lead_max_deg`, `evade_weight`, `strafe_deg`)
+  - 랜덤 샘플 + 톱N(beam) 유지, 스코어 = 승점 + 생존시간 가중(간단 합산)
+  - 최상 해를 해당 봇의 `params/<key>.json`로 저장(커밋)
+- README 보강: 파라미터 목록/범위/스코어 정의/실행 예시 추가
+
+권장 커밋 순서
+1) feat(sim): results 디렉토리 경로 통일(cli/round_robin/search)
+2) feat(sim): round_robin CSV(summary.csv) 출력
+3) feat(params): 프리셋 디렉토리 및 기본값 작성(params/*.json)
+4) feat(sim): 엔진 PARAMS 주입(secureFunc)
+5) refactor(tanks): PARAMS 활용으로 상수 치환(파일별 점진 반영)
+6) feat(sim): search 무작위+빔 탐색 구현(상위 N 저장)
+7) docs(sim): README 파라미터/범위/스코어 정의 추가
+
+실행 예시
+- cd tools/sim && npm i
+- npm run sim  → tools/sim/results/last_match.csv
+- npm run rr   → tools/sim/results/summary.csv, summary.json
+- npm run search -- --bot 02_dealer_sniper --budget 100
+
+주의
+- 스니펫에 `PARAMS`가 없을 플랫폼 환경도 고려하여 기본 상수는 항상 남긴다.
+- 엔진의 `new Function` 샌드박스에서 `console`은 무효화, 외부 접근 금지.
+- 커밋은 작은 단위로 자주, 실행 로그는 10줄 이내 요약.
