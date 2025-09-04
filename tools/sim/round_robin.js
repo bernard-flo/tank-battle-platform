@@ -12,7 +12,7 @@ const argv = yargs(hideBin(process.argv))
   .option('check',{ type:'boolean', default:false })
   .help().argv;
 
-fs.mkdirSync('tools/sim/results', { recursive: true });
+fs.mkdirSync('results', { recursive: true });
 
 function listBots() {
   const dir = path.resolve(process.cwd(), '../../tanks');
@@ -39,7 +39,7 @@ function evalPair(aKey, bKey, seed, rounds, repeat) {
 
 const bots = listBots();
 const pairs = [];
-const csvPath = 'tools/sim/results/summary.csv';
+const csvPath = 'results/summary.csv';
 fs.writeFileSync(csvPath, 'pair,winA,winB,avgAliveDiff,avgTime\n');
 
 for (let i=0;i<bots.length;i++) {
@@ -52,7 +52,7 @@ for (let i=0;i<bots.length;i++) {
 }
 
 const summary = { pairs, seed: argv.seed, rounds: argv.rounds, repeat: argv.repeat };
-fs.writeFileSync('tools/sim/results/summary.json', JSON.stringify(summary, null, 2));
+fs.writeFileSync('results/summary.json', JSON.stringify(summary, null, 2));
 
 // 결정성 체크: 첫 페어 2회 재평가 동일성 확인
 if (argv.check && pairs.length>0) {

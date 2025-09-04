@@ -16,13 +16,13 @@ const argv = yargs(hideBin(process.argv))
   .option('check', { type:'boolean', default:false })
   .help().argv;
 
-fs.mkdirSync('tools/sim/results', { recursive: true });
-fs.mkdirSync('tools/sim/params', { recursive: true });
-fs.mkdirSync('tools/sim/params/history', { recursive: true });
+fs.mkdirSync('results', { recursive: true });
+fs.mkdirSync('params', { recursive: true });
+fs.mkdirSync('params/history', { recursive: true });
 
 const botKey = argv.bot.replace(/\.js$/,'');
-const out = `tools/sim/results/search_${botKey}.csv`;
-const outDetail = `tools/sim/results/search_detail_${botKey}.csv`;
+const out = `results/search_${botKey}.csv`;
+const outDetail = `results/search_detail_${botKey}.csv`;
 fs.writeFileSync(out, 'trial,score,json\n');
 fs.writeFileSync(outDetail, 'trial,opponent,winA,winB,avgTime\n');
 
@@ -60,7 +60,7 @@ function sampleParams() {
 }
 
 function writeParamsForTrial(key, obj) {
-  const pth = `tools/sim/params/${key}.json`;
+  const pth = `params/${key}.json`;
   fs.writeFileSync(pth, JSON.stringify(obj, null, 2));
 }
 
@@ -111,7 +111,7 @@ for (let trial=1; trial<=argv.budget; trial++) {
 
 // 최종 best 저장 + 스냅샷
 const ts = new Date().toISOString().replace(/[:.]/g,'-');
-const histDir = `tools/sim/params/history/${botKey}`;
+const histDir = `params/history/${botKey}`;
 fs.mkdirSync(histDir, { recursive: true });
 fs.writeFileSync(`${histDir}/${ts}.json`, JSON.stringify(best.params, null, 2));
 writeParamsForTrial(botKey, best.params);
