@@ -12,6 +12,10 @@ const argv = yargs(hideBin(process.argv))
   .option('check',{ type:'boolean', default:false })
   .help().argv;
 
+const SEED = Number(Array.isArray(argv.seed) ? argv.seed[0] : argv.seed);
+const ROUNDS = Number(Array.isArray(argv.rounds) ? argv.rounds[0] : argv.rounds);
+const REPEAT = Number(Array.isArray(argv.repeat) ? argv.repeat[0] : argv.repeat);
+
 fs.mkdirSync('results', { recursive: true });
 
 function listBots() {
@@ -45,22 +49,22 @@ fs.writeFileSync(csvPath, 'pair,winA,winB,avgAliveDiff,avgTime\n');
 for (let i=0;i<bots.length;i++) {
   for (let j=i+1;j<bots.length;j++) {
     const A=bots[i], B=bots[j];
-    const res = evalPair(A.key, B.key, argv.seed, argv.rounds, argv.repeat);
+    const res = evalPair(A.key, B.key, SEED, ROUNDS, REPEAT);
     pairs.push({ pair: `${A.key} vs ${B.key}`, ...res });
     fs.appendFileSync(csvPath, `${A.key}vs${B.key},${res.winA},${res.winB},${res.avgAliveDiff.toFixed(3)},${res.avgTime.toFixed(2)}\n`);
   }
 }
 
-const summary = { pairs, seed: argv.seed, rounds: argv.rounds, repeat: argv.repeat };
+const summary = { pairs, seed: SEED, rounds: ROUNDS, repeat: REPEAT };
 fs.writeFileSync('results/summary.json', JSON.stringify(summary, null, 2));
 
 // 결정성 체크: 첫 페어 2회 재평가 동일성 확인
 if (argv.check && pairs.length>0) {
   const [firstA, firstB] = bots.slice(0,2);
-  const r1 = evalPair(firstA.key, firstB.key, argv.seed, argv.rounds, argv.repeat);
-  const r2 = evalPair(firstA.key, firstB.key, argv.seed, argv.rounds, argv.repeat);
+  const r1 = evalPair(firstA.key, firstB.key, SEED, ROUNDS, REPEAT);
+  const r2 = evalPair(firstA.key, firstB.key, SEED, ROUNDS, REPEAT);
   const ok = (r1.winA===r2.winA && r1.winB===r2.winB && Math.abs(r1.avgTime-r2.avgTime)<1e-12);
   console.log(`rr: deterministic check ${ok? 'OK':'FAIL'}`);
 }
 
-console.log(`rr: rounds=${argv.rounds} repeat=${argv.repeat} seed=${argv.seed} pairs=${pairs.length}`);
+console.log(`rr: rounds=${ROUNDS} repeat=${REPEAT} seed=${SEED} pairs=${pairs.length}`);
