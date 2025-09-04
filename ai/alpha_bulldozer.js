@@ -37,8 +37,8 @@ function update(tank, enemies, allies, bulletInfo) {
   // 목표 선택: 팀 집중사격 — 체력 우선, 거리로 타이브레이크
   let target = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, target.health) + Math.pow(target.distance, 1.1) * 0.005;
-    const s2 = Math.max(0, e.health) + Math.pow(e.distance, 1.1) * 0.005;
+    const s1 = Math.max(0, target.health) * 0.6 + target.distance * 0.25;
+    const s2 = Math.max(0, e.health) * 0.6 + e.distance * 0.25;
     if (s2 < s1) target = e;
   }
 
