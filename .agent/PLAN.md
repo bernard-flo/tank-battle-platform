@@ -3,9 +3,14 @@
 목표: GA 기반으로 강력한 6인 팀 코드를 생성하고, 플랫폼 기본 코드(OMEGA_TEAM_CODES)를 최신 우승팀으로 갱신한다.
 
 단계:
-1) 시뮬레이터 GA 빠른 러닝으로 우승팀 스냅샷 생성
-2) 표준 러닝(가능 시)으로 성능 향상
-3) ai/omega_*.js 및 EXPORT_OMEGA.txt 산출 확인
-4) tank_battle_platform.html의 OMEGA_TEAM_CODES 갱신 자동화 스크립트 작성/실행
-5) README에 사용법/가져오기 안내 보강
-6) 히스토리 기록 및 다음 TODO 업데이트
+진행상태:
+- [완료] 시뮬레이터 GA 빠른 러닝으로 우승팀 스냅샷 생성 (최고 승률≈87.5%)
+- [완료] ai/omega_*.js 및 EXPORT_OMEGA*.txt 산출 확인/커밋
+- [완료] tank_battle_platform.html의 OMEGA_TEAM_CODES 자동 갱신 스크립트 추가 및 실행
+- [완료] README 사용법 보강/커밋
+
+다음 작업(우선순위):
+1) 표준 러닝으로 추가 성능 향상/스냅샷 축적 (시간 여건 시)
+2) 강적 스위트 확장(메타 다양화) 및 Hall of Fame 휴리스틱 보강
+3) 전술 다양성 확보(역할별 파라미터 범위 재조정) 후 재학습
+4) 세션 히스토리 기록 및 정리
