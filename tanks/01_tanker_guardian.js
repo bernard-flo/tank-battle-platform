@@ -1,96 +1,97 @@
-// Tanker Guardian v1 — 선두 방패/팀 중심 유지/보스턴 회피/짧은 리드샷
+// Tanker Guardian — 선두 방패, 팀 중심 유지, 근접 위협 각도 제어
 function name() { return 'Tanker Guardian'; }
-function type() { return Type.TANKER; }
+function type() { try { return Type.TANKER; } catch (e) { return 2; } }
 
 function update(tank, enemies, allies, bulletInfo) {
-  // ===== 유틸 =====
-  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-  function dist(ax, ay, bx, by) { const dx = bx-ax, dy = by-ay; return Math.hypot(dx, dy); }
+  // ---- 유틸 ----
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function dist(a, b) { var dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx, dy); }
   function angleTo(ax, ay, bx, by) { return Math.atan2(by - ay, bx - ax) * 180 / Math.PI; }
-  function normAngle(a){ while(a>180)a-=360; while(a<-180)a+=360; return a; }
+  function normDeg(a){ a%=360; if(a<-180) a+=360; if(a>180) a-=360; return a; }
   function tryMove(angleDeg) {
-    // 실패 시 ±15°씩 보정 재시도 (최대 10회 내)
-    const step = 15;
-    for (let i=0;i<10;i++) {
-      const offs = ((i>>1)+1) * step * (i%2===0?1:-1);
-      const ang = angleDeg + (i===0?0:offs);
-      if (tank.move(ang)) return true;
+    // 실패 시 ±15° 보정 재시도 (최대 10회)
+    var step = 15;
+    for (var i=0;i<10;i++) {
+      var ang = angleDeg + ((i%2===0?1:-1) * Math.ceil(i/2) * step);
+      tank.move(ang);
     }
-    return false;
   }
-  function mostCentralEnemyScore(e){
-    // 중앙 근접 가중(450,300)
-    const dCenter = dist(e.x, e.y, 450, 300);
-    return -dCenter;
-  }
-  function pickTarget() {
-    if (enemies.length===0) return null;
-    let best = enemies[0];
-    function score(e){
-      const d = dist(tank.x, tank.y, e.x, e.y);
-      return -d + (1000 - e.health)*0.001 + mostCentralEnemyScore(e)*0.0005;
+  function nearest(list, from){
+    var best=null, bd=1e9;
+    for(var i=0;i<list.length;i++){
+      var d=dist(list[i], from); if(d<bd){ bd=d; best=list[i]; }
     }
-    for (const e of enemies) if (score(e)>score(best)) best = e;
     return best;
   }
+  function alliesCenter() {
+    if(!allies||allies.length===0) return {x:tank.x,y:tank.y};
+    var sx=0, sy=0; for(var i=0;i<allies.length;i++){ sx+=allies[i].x; sy+=allies[i].y; }
+    return {x:sx/allies.length, y:sy/allies.length};
+  }
   function leadAngle(src, dst, bulletSpeed){
-    // 적 속도 불명 → 짧은 리드: 목표각에 소량 랜덤 오프셋
-    const base = angleTo(src.x, src.y, dst.x, dst.y);
-    const jitter = (Math.random()*2-1)*4; // ±4도
-    return base + jitter;
-  }
-  function evadeFromBullets(){
-    if (!bulletInfo || bulletInfo.length===0) return false;
-    // 위협 점수: 접근속도 * 역거리
-    let best=null, bestScore=-1e9;
-    for (const b of bulletInfo){
-      const rx = tank.x - b.x, ry = tank.y - b.y;
-      const r = Math.hypot(rx, ry)+1e-6;
-      const vdot = (b.vx*rx + b.vy*ry) / r; // >0이면 접근
-      const score = vdot / r;
-      if (score>bestScore){ best=b; bestScore=score; }
+    // 간단한 짧은 리드샷: 상대 속도 평균이 없으므로 vx,vy 기반 추정만 사용
+    var rx = dst.x - src.x, ry = dst.y - src.y;
+    var dvx = dst.vx||0, dvy = dst.vy||0;
+    var a = dvx*dvx + dvy*dvy - bulletSpeed*bulletSpeed;
+    var b = 2*(rx*dvx + ry*dvy);
+    var c = rx*rx + ry*ry;
+    var t; // 충돌 시간 근사
+    if (Math.abs(a) < 1e-6) {
+      t = (c>1e-6) ? (-c/b) : 0;
+    } else {
+      var disc = b*b - 4*a*c; if (disc < 0) disc = 0;
+      var t1 = (-b + Math.sqrt(disc)) / (2*a);
+      var t2 = (-b - Math.sqrt(disc)) / (2*a);
+      t = Math.max(t1, t2);
     }
-    if (!best) return false;
-    // 탄 속도 벡터에 수직(±90°)으로 이동, 더 멀어지는 쪽 선택
-    const bang = Math.atan2(best.vy, best.vx)*180/Math.PI;
-    const a1 = bang + 90, a2 = bang - 90;
-    const d1x = Math.cos(a1*Math.PI/180), d1y = Math.sin(a1*Math.PI/180);
-    const d2x = Math.cos(a2*Math.PI/180), d2y = Math.sin(a2*Math.PI/180);
-    const s1 = d1x*(tank.x-best.x) + d1y*(tank.y-best.y);
-    const s2 = d2x*(tank.x-best.x) + d2y*(tank.y-best.y);
-    const ang = (s1>s2)?a1:a2;
-    return tryMove(ang);
+    if (!isFinite(t) || t < 0) t = 0;
+    var aimX = dst.x + (dst.vx||0)*t; var aimY = dst.y + (dst.vy||0)*t;
+    return angleTo(src.x, src.y, aimX, aimY);
   }
 
-  // ===== 메인 로직 =====
-  // 1) 탄 회피 우선
-  if (evadeFromBullets()) {
-    // 회피 중에도 근접 시 사격
-    const tgt = pickTarget();
-    if (tgt) tank.fire(leadAngle(tank, tgt, 8));
-    return;
+  // ---- 파라미터 ----
+  var PARAMS = (typeof PARAMS !== 'undefined') ? PARAMS : {};
+  var idealRange = PARAMS.ideal_range ?? 200;
+  var bulletSpeed = PARAMS.bulletSpeed ?? 400; // px/s (엔진에서는 per-tick 주입)
+
+  // ---- 위협 탄 분석 ----
+  var mostThreat=null, bestScore=-1e9;
+  for(var i=0;i<(bulletInfo?bulletInfo.length:0);i++){
+    var b = bulletInfo[i];
+    var rx = tank.x - b.x, ry = tank.y - b.y;
+    var d = Math.hypot(rx, ry) + 1e-6;
+    var relSpeed = -(rx*(b.vx||0) + ry*(b.vy||0)) / d; // 접근 속도 성분
+    var score = relSpeed / d; // 접근속도 · 역거리
+    if (score > bestScore) { bestScore=score; mostThreat=b; }
   }
 
-  // 2) 팀 중심 유지(선두 방패)
-  let cx = tank.x, cy = tank.y;
-  if (allies && allies.length>0){
-    cx = allies.reduce((s,a)=>s+a.x, 0)/allies.length;
-    cy = allies.reduce((s,a)=>s+a.y, 0)/allies.length;
-  }
-  // 팀 중심과 필드 중심 사이 근방에 위치하도록 약하게 끌림
-  const gx = (cx*2 + 450)/3, gy = (cy*2 + 300)/3;
-
-  const target = pickTarget();
-  if (target){
-    // 근접 위협 각도 제어: 보스턴/각도 조절(짧은 오프셋)
-    const desired = angleTo(tank.x, tank.y, target.x, target.y);
-    const offset = (Math.random()<0.5? -10: 10);
-    tryMove(desired + offset);
-    tank.fire(leadAngle(tank, target, 8));
+  if (mostThreat && bestScore > 0) {
+    // 탄 궤적에 수직 이동(보스턴 회피)
+    var ang = Math.atan2(mostThreat.vy||0, mostThreat.vx||0) * 180/Math.PI;
+    var evade = ang + 90 * (Math.random()<0.5?1:-1);
+    tryMove(evade);
   } else {
-    // 타겟 없으면 팀 중심 쪽으로 위치 교정
-    const ang = angleTo(tank.x, tank.y, gx, gy);
-    tryMove(ang);
+    // 팀 중심 근처 유지 + 최근접 적 추적
+    var center = alliesCenter();
+    var target = nearest(enemies||[], tank) || null;
+    if (target) {
+      // 거리 유지: idealRange로 수렴
+      var d = dist(target, tank);
+      var baseAng = angleTo(tank.x, tank.y, target.x, target.y);
+      var moveAng = (d>idealRange? baseAng : baseAng+180);
+      // 약간의 난수화로 예측 회피
+      moveAng += (Math.random()*10-5);
+      tryMove(moveAng);
+
+      // 짧은 리드샷
+      var aim = leadAngle(tank, target, bulletSpeed);
+      var jitter = (Math.random()*4-2);
+      tank.fire(aim + jitter);
+    } else {
+      // 타겟이 없으면 팀 중심에 정렬
+      var angToC = angleTo(tank.x, tank.y, center.x, center.y);
+      tryMove(angToC);
+    }
   }
 }
 
