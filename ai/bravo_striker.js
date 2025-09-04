@@ -28,21 +28,21 @@ function update(tank, enemies, allies, bulletInfo) {
     return best;
   }
 
-  // 목표: 팀 집중사격 — 체력 우선
+  // 목표: 팀 집중사격 — 체력 가중 강화
   let nearest = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, nearest.health) * 0.6 + nearest.distance * 0.25;
-    const s2 = Math.max(0, e.health) * 0.6 + e.distance * 0.25;
+    const s1 = Math.max(0, nearest.health) * 0.75 + nearest.distance * 0.2;
+    const s2 = Math.max(0, e.health) * 0.75 + e.distance * 0.2;
     if (s2 < s1) nearest = e;
   }
   const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
 
   // 거리 유지형 카이팅: 160~260 사이 유지 + 원운동
-  const desiredRange = 210;
+  const desiredRange = 220;
   const err = nearest.distance - desiredRange;
   // 각도: 기본은 수직(스트레이프), 거리 오차로 가감
   let strafe = toEnemy + 90 * (Math.random() < 0.5 ? 1 : -1);
-  if (Math.abs(err) > 40) {
+  if (Math.abs(err) > 35) {
     // 너무 가깝다면 반대 방향, 너무 멀다면 접근
     strafe = (err < 0) ? (toEnemy + 180) : toEnemy;
   }
@@ -52,7 +52,7 @@ function update(tank, enemies, allies, bulletInfo) {
   if (threat) {
     const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
     const deg = ang*180/Math.PI;
-    dodged = tryMove([deg, deg+20, deg-20, deg+40, deg-40]);
+    dodged = tryMove([deg, deg+25, deg-25, deg+45, deg-45, deg+160, deg-160]);
   }
 
   if (!dodged) {
@@ -60,6 +60,6 @@ function update(tank, enemies, allies, bulletInfo) {
   }
 
   // 발사: 근거리면 직사, 원거리면 소량 선행(적이 나를 향해 온다고 가정)
-  const lead = Math.min(20, Math.max(-20, (nearest.distance/11))); // 거리 기반 소폭 선행 강화
-  tank.fire(toEnemy + (err>0? (lead*0.25) : 0));
+  const lead = Math.min(22, Math.max(-22, (nearest.distance/10.5))); // 거리 기반 선행 소폭 상향
+  tank.fire(toEnemy + (err>0? (lead*0.3) : 0));
 }
