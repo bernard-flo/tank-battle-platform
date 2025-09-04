@@ -83,6 +83,7 @@ function stepSimulation(world, dt){
 
   // 탄 이동
   for (const b of bullets){
+    b.px = b.x; b.py = b.y;
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     b.life -= dt;
@@ -92,12 +93,20 @@ function stepSimulation(world, dt){
     const b = bullets[i];
     if (b.life<=0 || b.x< -50 || b.y< -50 || b.x>DEFAULTS.WIDTH+50 || b.y>DEFAULTS.HEIGHT+50){ bullets.splice(i,1); }
   }
-  // 충돌(아군/자기탄 무시)
+  // 충돌(아군/자기탄 무시) — 스윕드 선분-원 판정
+  function segDist2(ax,ay,bx,by, px,py){
+    const abx=bx-ax, aby=by-ay; const apx=px-ax, apy=py-ay;
+    const ab2=abx*abx+aby*aby; const t = ab2>0? ((apx*abx+apy*aby)/ab2) : 0;
+    const tt = t<0?0:(t>1?1:t);
+    const cx = ax + abx*tt, cy = ay + aby*tt;
+    const dx = px-cx, dy = py-cy; return dx*dx+dy*dy;
+  }
   for (const b of bullets){
     for (const t of tanks){
       if (t.side === b.side) continue; // friendly ignore
       const rr = (DEFAULTS.TANK_R + DEFAULTS.BULLET_R);
-      if ( (t.x-b.x)*(t.x-b.x) + (t.y-b.y)*(t.y-b.y) <= rr*rr ){
+      const d2 = segDist2(b.px ?? b.x, b.py ?? b.y, b.x, b.y, t.x, t.y);
+      if (d2 <= rr*rr){
         t.hp -= DEFAULTS.DAMAGE;
         b.life = -1; // 소멸
       }
