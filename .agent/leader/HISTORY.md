@@ -77,3 +77,7 @@
 - docs: README에 각도 단위 명시 지시
 - search: GA 모드를 엔진 기반 다상대 점수로 교체 지시(스냅샷/결정성 체크 포함)
 - 실행 배치와 완료 체크 갱신(승부 발생·determinism OK·GA 산출 확인)
+
+2025-09-04 루프 #2-11 워커 지시 반영
+- PROMPT에 루프 #2-11 섹션 추가(엔진 실제화, RR/Search 엔진 통합, 결정성 체크/즉시 실행 배치/커밋 템플릿)
+- 현 상태 점검: tools/sim 엔진/rr/search/cli/README 구현 일치, params/result 아티팩트 경로 일원화 확인
