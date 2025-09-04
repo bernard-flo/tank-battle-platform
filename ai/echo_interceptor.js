@@ -23,7 +23,7 @@ function update(tank, enemies, allies, bulletInfo) {
     const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
     const deg = ang*180/Math.PI;
     if (!tryMove([deg,deg+25,deg-25,deg+45,deg-45])) {
-      tryMove([deg+180, deg+160, deg-160]);
+      tryMove([deg+160, deg-160, deg+180]);
     }
   } else {
     // 위협 없을 때: 적 중심을 향해 좌/우 스트레이프하며 간격 유지
@@ -31,15 +31,15 @@ function update(tank, enemies, allies, bulletInfo) {
     const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
     const toC = Math.atan2(ecy - tank.y, ecx - tank.x) * 180/Math.PI;
     const dist = Math.sqrt((ecx-tank.x)**2 + (ecy-tank.y)**2);
-    let ang = toC + (dist<220 ? 180 : 90)*(Math.random()<0.5?1:-1);
-    tryMove([ang, ang+20, ang-20, toC]);
+    let ang = toC + (dist<230 ? 180 : 90)*(Math.random()<0.5?1:-1);
+    tryMove([ang, ang+25, ang-25, toC]);
   }
 
   // 타깃: 팀 집중사격 — 저체력 우선
   let nearest = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, nearest.health) * 0.6 + nearest.distance * 0.25;
-    const s2 = Math.max(0, e.health) * 0.6 + e.distance * 0.25;
+    const s1 = Math.max(0, nearest.health) * 0.75 + nearest.distance * 0.2;
+    const s2 = Math.max(0, e.health) * 0.75 + e.distance * 0.2;
     if (s2 < s1) nearest = e;
   }
   const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180/Math.PI;
