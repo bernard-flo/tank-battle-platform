@@ -187,3 +187,37 @@ Export 생성 규칙
 - 동일 시드 재실행 시 요약 지표가 바이트 단위로 동일함.
 - search.csv의 상위 trial과 저장된 params/<botKey>.json 값이 일치함.
 - summary.csv에 확장 지표 열이 채워짐.
+
+==============================
+루프 #3 지시(파라미터 자동 탐색 고도화)
+==============================
+
+목표: GA(유전 탐색) + 다상대 평가로 파라미터 자동 최적화 파이프라인을 마련하고, 탐색 성능/재현성을 검증한다.
+
+필수 작업(변경마다 커밋):
+- feat(search): GA 탐색 모드 추가(`--mode ga --gens 20 --pop 30 --elite 4 --mut 0.2`)
+  - 초기개체: 무작위 + 기존 params/<bot>.json 시드 1개 포함
+  - 교배: 단순 균등교차, 변이: 각 파라미터별 독립 가우시안 노이즈/클램프
+  - 세대별 topN 요약을 `results/ga_<bot>.csv` 기록
+- feat(search): 다상대 평가(`--opponents 01_tanker_guardian,06_tanker_bruiser,...`)
+  - 점수: 각 상대 승수 평균 + avgTime 가중(기본 0.05, `--timeW 0.03..0.08` 스윕 지원)
+  - 각 상대별 세부 결과를 `results/search_detail_<bot>.csv`로 저장
+- feat(sim): 실행 시간 로그(1회/10회) 한 줄 요약 추가
+- feat(params): params/history/<bot>/timestamp.json 스냅샷 저장(최종 best 반영 전 백업)
+- chore(sim): deterministic self-check를 rr/search 양쪽에 옵션(`--check`)으로 제공
+
+가이드/제약:
+- 경계/범위: 기존 space를 사용하되 파라미터별 min/max를 README에 표로 집계
+- 파일 접근: params/history 하위 외 경로 금지
+- 출력: 콘솔 10줄 이내 유지, 상세는 CSV/JSON으로만 기록
+
+권장 커밋 메시지 예시:
+- `feat(sim/search): add GA mode with elitism/mutation`
+- `feat(sim/search): multi-opponent scoring + time weight`
+- `feat(params): save param snapshots to params/history`
+- `chore(sim): add perf timing log and deterministic check`
+
+검증 체크(루프 #3):
+- 동일 시드 실행 시 GA best 점수/파라미터가 동일
+- 다상대 점수와 단일상대 점수 간 상관 확인 로그 기록(간단 상관계수)
+- GA 또는 빔탐색으로 얻은 best가 v1 대비 rr 승률 상승 지점 스크린샷/링크 남김
