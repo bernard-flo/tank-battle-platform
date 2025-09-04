@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { makeRng } from './engine.js';
+import { runMatch, makeRng } from './engine.js';
 
 const argv = yargs(hideBin(process.argv))
   .option('bot', { type:'string', demandOption:true, desc:'bot key like 02_dealer_sniper' })
@@ -71,17 +71,11 @@ function writeParamsForTrial(key, obj) {
   fs.writeFileSync(pth, JSON.stringify(obj, null, 2));
 }
 
-function pseudoEvaluate(botA, botB, seed, rounds) {
-  // 엔진이 미구현 상태이므로 결정적 의사 점수 생성
-  const r = makeRng(seed ^ (botA.length*131 + botB.length*17));
-  let winA = 0, winB = 0, tSum = 0;
-  for (let i=0;i<rounds;i++) {
-    const rv = r();
-    if (rv < 0.5) winA++; else winB++;
-    tSum += 50 + Math.floor(r()*40); // 50~90
-  }
-  const avgTime = tSum / rounds;
-  return { winA, winB, avgTime };
+function evalAgainst(botKey, oppKey, seed, rounds) {
+  const aPath = path.resolve(process.cwd(), '../../tanks', `${botKey}.js`);
+  const bPath = path.resolve(process.cwd(), '../../tanks', `${oppKey}.js`);
+  const res = runMatch({ a: aPath, b: bPath, seed, rounds });
+  return { winA: res.summary.winA, winB: res.summary.winB, avgTime: res.summary.avgTime };
 }
 
 const OPP = pickLast(argv.opponents);
@@ -117,7 +111,7 @@ for (let trial=1; trial<=BUDGET; trial++) {
   // 2) 평가(다상대 의사 점수)
   let totalScore = 0;
   for (const opp of opponents) {
-    const { winA, winB, avgTime } = pseudoEvaluate(botKey, opp, SEED + trial, ROUNDS);
+    const { winA, winB, avgTime } = evalAgainst(botKey, opp, SEED + trial, ROUNDS);
     const score = (winA - winB) + (1/avgTime) * TIMEW;
     totalScore += score;
     fs.appendFileSync(outDetail, `${trial},${opp},${winA},${winB},${avgTime.toFixed(2)}\n`);
@@ -146,8 +140,8 @@ writeParamsForTrial(botKey, best.params);
 
 // 결정성 셀프 체크(옵션)
 if (argv.check) {
-  const a = pseudoEvaluate(botKey, opponents[0], SEED+1, ROUNDS);
-  const b = pseudoEvaluate(botKey, opponents[0], SEED+1, ROUNDS);
+  const a = evalAgainst(botKey, opponents[0], SEED+1, ROUNDS);
+  const b = evalAgainst(botKey, opponents[0], SEED+1, ROUNDS);
   const ok = (a.winA===b.winA && a.winB===b.winB && Math.abs(a.avgTime-b.avgTime)<1e-9);
   console.log(`search: deterministic check ${ok? 'OK':'FAIL'}`);
 }
