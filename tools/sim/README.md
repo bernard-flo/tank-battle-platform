@@ -1,16 +1,16 @@
-# SUPER6 Simulator (draft)
+# SUPER6 시뮬레이터(초안)
 
-간단한 Node.js 시뮬레이터 골격입니다. 플랫폼 규칙을 추정 복제하여 로컬에서 전략을 빠르게 비교하기 위한 목적입니다.
+가정 파라미터(엔진):
+- WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=6
+- BULLET_SPEED=400(px/s), FIRE_COOLDOWN=0.5(s)
+- TANK_SPEED: NORMAL=120, TANKER=105, DEALER=130 (px/s)
+- 고정 시간 스텝 dt=0.016(60Hz)
 
-목표
-- 틱 기반 업데이트 루프(고정 dt)
-- 이동/충돌/탄 생성/피해/사망 처리
-- 라운드-로빈 매치 및 점수 집계
+사용법(예시):
+- 단일 매치: `npm run sim`
+- 라운드로빈: `npm run rr`
+- 파라미터 탐색: `npm run search`
 
-사용(초안)
-```
-node tools/sim/index.js
-```
-
-주의: 아직 물리/룰 파라미터와 충돌/벽-슬라이딩/탄속 등은 임시값입니다. 플랫폼 규칙 확인 후 정합화가 필요합니다.
+출력 정책:
+- 콘솔은 요약 10줄 내, 상세는 results/*.csv 및 summary.json 저장.
 
