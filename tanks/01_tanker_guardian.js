@@ -4,27 +4,7 @@ function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function dist(ax, ay, bx, by) { const dx = bx - ax, dy = by - ay; return Math.hypot(dx, dy); }
 function angleTo(ax, ay, bx, by) { return Math.atan2(by - ay, bx - ax); }
 function norm(a){ while(a>Math.PI) a-=2*Math.PI; while(a<-Math.PI) a+=2*Math.PI; return a; }
-function leadAngle(src, dst, bulletSpeed){
-  const rx = dst.x - src.x, ry = dst.y - src.y;
-  const vx = dst.vx||0, vy = dst.vy||0;
-  const a = vx*vx + vy*vy - bulletSpeed*bulletSpeed;
-  const b = 2*(rx*vx + ry*vy);
-  const c = rx*rx + ry*ry;
-  let t;
-  if (Math.abs(a) < 1e-6) {
-    t = -c / b; // linear
-  } else {
-    const disc = b*b - 4*a*c;
-    if (disc < 0) return Math.atan2(ry, rx);
-    const t1 = (-b + Math.sqrt(disc)) / (2*a);
-    const t2 = (-b - Math.sqrt(disc)) / (2*a);
-    t = Math.min(t1, t2) > 0 ? Math.min(t1, t2) : Math.max(t1, t2);
-  }
-  if (!isFinite(t) || t < 0) t = 0;
-  const aimX = dst.x + (dst.vx||0)*t;
-  const aimY = dst.y + (dst.vy||0)*t;
-  return Math.atan2(aimY - src.x2, aimX - src.x1); // fallback guard not used; correct below
-}
+// leadAngle는 안전 계산(safeLead)로 대체
 // 안전한 리드샷 (간단 버전)
 function safeLead(src, dst, bulletSpeed){
   const rx = dst.x - src.x, ry = dst.y - src.y;
@@ -124,4 +104,3 @@ function update(tank, enemies, allies, bulletInfo){
     tank.fire(mix);
   }
 }
-
