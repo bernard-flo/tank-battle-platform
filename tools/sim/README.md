@@ -29,13 +29,19 @@ PARAMS 주입
 - `ga_<bot>.csv`: 세대별 상위 점수 요약
 - 최종 최적 파라미터: `params/<bot>.json`, 스냅샷: `params/history/<bot>/<timestamp>.json`
 
-파라미터 범위(검색 기본값)
-- ideal_range: 120..480
+파라미터 범위(검색 기본값, camelCase)
+- ideal_range: 160..520
 - orbit_deg: 10..120
-- lead_max_deg: 5..20
+- leadMaxDeg: 8..26
 - evade_weight: 0.2..2.0
-- strafe_deg: 8..40
+- strafe_deg: 8..36
+- orbit_radius: 140..320
+- radius_pulse: 40..140
+- orbitFlipRate: 0.001..0.02
 - fire_every_frames: 3..9
+- aimJitterDeg: 0.5..2.5
+- safeMargin: 16..40
+- evadeReactDist: 160..260
 
 스코어 정의(탐색)
 - 점수 = 승수 + (1/avgTime) * timeW (기본 0.05)
