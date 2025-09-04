@@ -1,48 +1,37 @@
-// Dealer Flanker — 측후방 진입, 원운동 오비트, 연속 사격
-function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
-function dist(ax,ay,bx,by){ const dx=bx-ax, dy=by-ay; return Math.hypot(dx,dy); }
-function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax); }
-function safeLead(src, dst, bulletSpeed){
-  const rx=dst.x-src.x, ry=dst.y-src.y; const vx=dst.vx||0, vy=dst.vy||0;
-  const a=vx*vx+vy*vy-bulletSpeed*bulletSpeed, b=2*(rx*vx+ry*vy), c=rx*rx+ry*ry;
-  let t=0; if (Math.abs(a)<1e-6){ if(Math.abs(b)>1e-6) t=-c/b; }
-  else { const disc=b*b-4*a*c; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-b+s)/(2*a), t2=(-b-s)/(2*a); t=Math.min(t1,t2)>0?Math.min(t1,t2):Math.max(t1,t2); if(!isFinite(t)||t<0) t=0; } }
-  const axp=dst.x+vx*t, ayp=dst.y+vy*t; return Math.atan2(ayp-src.y, axp-src.x);
+// Dealer Flanker v1 — 측후방 진입, 원운동 오비트, 틈새 사격
+function name() { return 'Dealer Flanker'; }
+function type() { return Type.DEALER; }
+
+const ST = { frames:0, orbitSign: (Math.random()<0.5?1:-1), radiusPhase:0 };
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function dist(a,b){const dx=a.x-b.x,dy=a.y-b.y;return Math.hypot(dx,dy);} 
+function angleTo(ax,ay,bx,by){return Math.atan2(by-ay,bx-ax);} 
+function norm(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a;}
+function leadAngle(src,dst,vBullet){
+  const dx=dst.x-src.x, dy=dst.y-src.y; const dvx=dst.vx||0,dvy=dst.vy||0;
+  const A=dvx*dvx+dvy*dvy - vBullet*vBullet, B=2*(dx*dvx+dy*dvy), C=dx*dx+dy*dy; let t=0; const D=B*B-4*A*C;
+  if(Math.abs(A)<1e-6) t=-C/(B||-1); else if(D>=0){const t1=(-B+Math.sqrt(D))/(2*A), t2=(-B-Math.sqrt(D))/(2*A); t=Math.max(t1,t2);} if(!isFinite(t)||t<0) t=0;
+  const tx=dst.x+dvx*t, ty=dst.y+dvy*t; return Math.atan2(ty-src.y, tx-src.x);
 }
-function pickTarget(tank,enemies){
-  let best=null,score=1e9; for(const e of enemies||[]){ const d=dist(tank.x,tank.y,e.x,e.y); const s=d*0.6+(e.hp||100)*0.4; if(s<score){score=s;best=e;} } return best;
-}
+function pick(enemies,tank){ if(!enemies||!enemies.length) return null; enemies=enemies.slice(); enemies.sort((a,b)=> dist(tank,a)-dist(tank,b)); return enemies[0]; }
+function threatBullet(tank,bullets){ if(!bullets||!bullets.length) return null; let best=null,score=-1e9; for(const b of bullets){const dx=b.x-tank.x,dy=b.y-tank.y; const d=Math.hypot(dx,dy)+1e-3; const v=Math.hypot(b.vx,b.vy)+1e-3; const s=-(dx*b.vx+dy*b.vy)/(d*v)*(1/d); if(s>score){score=s; best=b;}} return best; }
+function perp(b){ const a=Math.atan2(b.vy,b.vx); return a + (Math.random()<0.5?Math.PI/2:-Math.PI/2); }
+function wall(tank,a){ const W=800,H=600,m=24; let r=a; if(tank.x<m) r=0; else if(tank.x>W-m) r=Math.PI; if(tank.y<m) r=Math.PI/2; else if(tank.y>H-m) r=-Math.PI/2; return r; }
 
-function name(){ return 'Dealer Flanker'; }
-function type(){ return Type.DEALER; }
-
-function update(tank, enemies, allies, bulletInfo){
-  const BULLET_SPEED=400; const ORBIT_DIR = (tank.__orbitDir = tank.__orbitDir || (Math.random()<0.5?1:-1));
-  const IDEAL_R = 220; const MIN_R=160; const MAX_R=280;
-  const jitter=(Math.random()-0.5)*0.08;
-
-  const tgt = pickTarget(tank, enemies||[]);
-  if (!tgt){ tank.move((Math.random()*2-1)*Math.PI); return; }
-  const d = dist(tank.x,tank.y,tgt.x,tgt.y);
-  // 원운동 각도: 타겟 법선(±90°)에 방사 보정
-  let base = angleTo(tank.x,tank.y,tgt.x,tgt.y);
-  let moveAng = base + ORBIT_DIR*Math.PI/2;
-  if (d < MIN_R) moveAng = base + ORBIT_DIR*(Math.PI/2 + 20*Math.PI/180);
-  if (d > MAX_R) moveAng = base + ORBIT_DIR*(Math.PI/2 - 20*Math.PI/180);
-
-  // 주기적 반전으로 예측 회피
-  if (!tank.__flipTimer) tank.__flipTimer = 60 + Math.floor(Math.random()*60);
-  tank.__flipTimer -= 1;
-  if (tank.__flipTimer<=0){ tank.__flipTimer = 60 + Math.floor(Math.random()*60); tank.__orbitDir *= -1; }
-  moveAng += jitter;
-
-  // 벽 회피: 벽 평행 이동으로 보정
-  const M=28; if (tank.x<M) moveAng = 0; else if (tank.x>800-M) moveAng = Math.PI;
-  if (tank.y<M) moveAng = Math.PI/2; else if (tank.y>600-M) moveAng = -Math.PI/2;
-
-  for(let i=0;i<10;i++){ if (tank.move(moveAng)) break; moveAng += ((i%2?1:-1) * 12*Math.PI/180); }
-
-  const fireAng = safeLead(tank,tgt,BULLET_SPEED) + (Math.random()-0.5)*0.02;
-  tank.fire(fireAng);
+function update(tank,enemies,allies,bulletInfo){
+  ST.frames++; const P=(typeof PARAMS!=='undefined'&&PARAMS)||{}; const BULLET_SPEED=P.bulletSpeed??400; const baseR=P.orbit_range??220; const jitterR=P.orbit_jitter??40; const orbitDeg=P.orbit_deg??90; const fireEvery=P.fire_every_frames??4;
+  const tb=threatBullet(tank,bulletInfo); if(tb){ let a=perp(tb); a=wall(tank,a); let ok=tank.move(a); for(let i=1;i<=5 && !ok;i++){ok=tank.move(a+i*Math.PI/16)||tank.move(a-i*Math.PI/16);} }
+  else {
+    const t=pick(enemies,tank); if(t){
+      const d=dist(tank,t); const desiredR = baseR + Math.sin(ST.frames*0.05)*jitterR; // 반경 파형으로 충돌/벽 회피
+      let to=angleTo(tank.x,tank.y,t.x,t.y);
+      let moveA = to + ST.orbitSign * (orbitDeg*Math.PI/180);
+      // 반경 조절
+      if(d>desiredR*1.1) moveA = to; else if(d<desiredR*0.9) moveA = to+Math.PI;
+      moveA = wall(tank, moveA);
+      let ok=tank.move(moveA); if(!ok){for(let i=1;i<=5 && !ok;i++){ok=tank.move(moveA+i*Math.PI/18)||tank.move(moveA-i*Math.PI/18);}}
+    }
+  }
+  if(ST.frames%fireEvery===0){ const t=pick(enemies,tank); if(t){ const base=angleTo(tank.x,tank.y,t.x,t.y); let fa=base; try{ const la=leadAngle({x:tank.x,y:tank.y},t,BULLET_SPEED); const delta=norm(la-base); fa=base+clamp(delta,-Math.PI/10,Math.PI/10);}catch(_){} tank.fire(fa);} }
 }
 
