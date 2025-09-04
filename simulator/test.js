@@ -81,14 +81,17 @@ function mulberry32(a){
 
 async function main(){
   const ourTeam = ourFiles.map(readCode);
-  const N = 50;
+  const argN = parseInt(process.argv[2]||'',10);
+  const N = Number.isFinite(argN) && argN>0 ? argN : 50;
+  const seedBase = parseInt(process.argv[3]||'',10);
+  const base = Number.isFinite(seedBase) ? seedBase : 1234;
   let red=0, blue=0, draw=0;
   for (let i=0;i<N;i++){
     const players = makePlayers(ourTeam);
-    const res = runOne(players, 1234 + i);
+    const res = runOne(players, base + i);
     if (res==='red') red++; else if (res==='blue') blue++; else draw++;
   }
-  const report = { total: N, ourWins: red, sampleWins: blue, draws: draw, winRate: red/N };
+  const report = { total: N, ourWins: red, sampleWins: blue, draws: draw, winRate: red/N, seedBase: base };
   console.log(report);
 
   // 결과 저장
@@ -99,4 +102,3 @@ async function main(){
 }
 
 main();
-
