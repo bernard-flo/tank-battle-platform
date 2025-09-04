@@ -41,9 +41,12 @@ function sampleParams() {
 }
 
 function scoreTrials(params, trialSeed) {
-  // 현재는 단일 상대(브루저)와 5라운드, 점수 = 승수 + 평균시간*0.05
+  // 샘플 파라미터를 실제 평가에 적용하기 위해 파일로 덮어쓰기
+  const paramPath = path.join(paramsDir, `${botKey}.json`);
+  fs.writeFileSync(paramPath, JSON.stringify(params, null, 2));
+
+  // 단일 상대(브루저)와 5라운드, 점수 = 승수 + 평균시간*0.05
   const botA = { ...base };
-  // PARAMS 적용은 엔진에서 파일로 로딩하므로 여기서는 점수 계산만 수행
   const res = runMatch({ botsA: [botA], botsB: [opponent], seed: trialSeed, rounds: 5 });
   const wins = res.reduce((acc, r) => acc + (r.aliveA > r.aliveB ? 1 : 0), 0);
   const avgTime = res.reduce((acc, r) => acc + r.time, 0) / res.length;
