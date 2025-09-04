@@ -1,68 +1,36 @@
-function name() {
-  return 'Normal Interceptor';
-}
+function name() { return 'Normal Interceptor'; }
 
-function type() {
-  return Type.NORMAL;
-}
+function type() { return Type.NORMAL; }
 
-function update(tank, enemies, allies, bulletInfo) {
-  const toDeg = (r) => r * 180 / Math.PI;
-  const norm = (a) => ((a % 360) + 360) % 360;
-  const angleTo = (x1, y1, x2, y2) => toDeg(Math.atan2(y2 - y1, x2 - x1));
+function update(tank, enemies, allies, bulletInfo){
+  'use strict';
 
-  function moveSafe(a) {
-    a = norm(a);
-    if (tank.move(a)) return true;
-    for (let d of [15, -15, 35, -35, 55, -55, 85, -85]) {
-      if (tank.move(norm(a + d))) return true;
+  // ===== Utils =====
+  function angleTo(ax,ay,bx,by){ return Math.atan2(by-ay, bx-ax)*180/Math.PI; }
+  function dist(ax,ay,bx,by){ return Math.hypot(bx-ax, by-ay); }
+  function tryMove(a){ const seq=[0,15,-15,30,-30,45,-45,60,-60,90]; for(const o of seq){ if(tank.move(a+o)) return true; } return false; }
+  function mostThreat(){ let best=null,score=0; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const d=Math.hypot(dx,dy)+1e-6; const approach=(-(b.vx*dx+b.vy*dy)/d); const s=(approach>0?approach:0)/(d); if(s>score){score=s;best=b;} } return {b:best,s:score}; }
+  function evade(b){ const base=Math.atan2(b.vy,b.vx)*180/Math.PI; const l=base+90, r=base-90; const tx=tank.x-b.x, ty=tank.y-b.y; function proj(a){const r=a*Math.PI/180; return Math.cos(r)*tx+Math.sin(r)*ty;} const dir = proj(l)>proj(r)?l:r; return tryMove(dir + (Math.random()*2-1)*8); }
+  function pickNearest(list){ if(!list||!list.length) return null; let best=list[0]; for(const e of list){ if(e.distance<best.distance) best=e; } return best; }
+
+  // ===== Behavior =====
+  const threat = mostThreat();
+  if (threat.b && threat.s>0.002){
+    if(!evade(threat.b)){
+      const away=angleTo(threat.b.x,threat.b.y,tank.x,tank.y);
+      tryMove(away);
     }
-    return false;
+  } else {
+    // proactive intercept positioning: hover midline
+    const midDir = angleTo(tank.x,tank.y,450,300);
+    tryMove(midDir + (Math.random()*2-1)*10);
   }
 
-  function mostThreat() {
-    if (!bulletInfo || bulletInfo.length === 0) return null;
-    let best = null, score = -1e9;
-    for (const b of bulletInfo) {
-      const rx = tank.x - b.x, ry = tank.y - b.y;
-      const r = Math.hypot(rx, ry) || 1e-6;
-      const rv = (-(b.vx * rx + b.vy * ry) / r);
-      if (rv <= 0) continue;
-      const lat = Math.abs(b.vx * ry - b.vy * rx) / r;
-      const s = rv * 1.4 + 220 / (r + 1) - 0.2 * lat;
-      if (s > score) { score = s; best = b; }
-    }
-    return best;
-  }
-
-  function dodge(b) {
-    const ang = toDeg(Math.atan2(b.vy, b.vx));
-    // 수직 회피 + 미세 요동
-    const off = ((Math.floor((tank.x * 5 - tank.y) / 41) % 2) ? 90 : -90);
-    moveSafe(ang + off);
-  }
-
-  let tgt = null;
-  if (enemies && enemies.length > 0) {
-    tgt = enemies[0];
-    for (const e of enemies) if (e.distance < tgt.distance) tgt = e;
-  }
-
-  const th = mostThreat();
-  if (th) {
-    dodge(th);
-  } else if (tgt) {
-    // 약한 전진으로 각 잡기
-    if (tgt.distance > 200) moveSafe(angleTo(tank.x, tank.y, tgt.x, tgt.y));
-    else {
-      const base = angleTo(tank.x, tank.y, tgt.x, tgt.y) + 90;
-      moveSafe(base + (((tank.x + tank.y) & 1) ? 8 : -8));
-    }
-  }
-
-  if (tgt) {
-    const f = angleTo(tank.x, tank.y, tgt.x, tgt.y) + (((tank.x ^ tank.y) & 1) ? 1 : -1);
-    tank.fire(norm(f));
+  // Counter-fire when possible
+  const tgt = pickNearest(enemies);
+  if (tgt){
+    const fireDeg = angleTo(tank.x,tank.y,tgt.x,tgt.y) + (Math.random()*2-1)*3;
+    tank.fire(fireDeg);
   }
 }
 
