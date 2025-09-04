@@ -179,6 +179,37 @@ Export 생성 규칙
 
 엔진-스니펫 각도 단위 정합 및 GA 점수화 보강. 변경마다 커밋.
 
+==============================
+루프 #2-11 지시(엔진 실제화 + RR/Search 통합)
+==============================
+
+목표: 엔진 스텁을 실제 전투 루프로 교체하고, RR/Search가 엔진 결과를 사용하도록 일원화한다. 결정성/성능 로그와 CSV 아티팩트는 기존 규격 유지.
+
+필수 구현/변경(각 항목 완료 즉시 커밋)
+- feat(sim/engine): 이동/탄/충돌/HP/쿨다운/라운드 승패 구현, RNG(seedrandom) 적용. tank.move/fire는 degree 입력을 수용(엔진 내부 deg→rad). BULLET_SPEED=400px/s, FIRE_COOLDOWN=0.5s, BULLET_LIFE=4s.
+- feat(sim/loader): `loadBot` 시 `Type`/`PARAMS` 주입, `Math.random`을 시드 RNG로 대체. `PARAMS.bulletSpeed`는 per-tick 단위로 주입(dt 곱). 필요 시 `size`/`health` 별칭 호환 유지.
+- feat(sim/cli): `runMatch()` 결과를 `results/last_match.csv`에 기록(열: round,winA,winB,aliveDiff,time). 콘솔 요약 1줄.
+- refactor(sim/rr): 의사 평가 제거 → `runMatch` 반복 호출 집계. `pickLast`로 중복 인자 처리. `results/summary.csv/json` 저장 및 `--check`에서 결정성 로그 출력.
+- refactor(sim/search): 엔진 호출 기반 점수화. trial마다 `params/<bot>.json` 덮어쓰기. 다상대 평균 점수, `beam` 유지. `--mode ga`에서는 세대·개체군·엘리트·변이로 진화.
+- docs(sim): README 각도 단위(deg 입력), 파라미터 표/스코어 정의 업데이트.
+
+검증 기준(필수 통과)
+- 동일 시드로 `npm run rr -- --check` 2회 실행 시 summary.csv/json 바이트 동일, 로그 `OK` 출력.
+- summary.csv에서 최소 3개 페어는 승부 발생(winA≠winB), avgTime이 90 고정이 아님.
+- search 최상 결과를 `params/<bot>.json`에 반영 후 재평가 점수 동일.
+
+즉시 실행 배치(엔진 통합 후)
+- cd tools/sim && npm i && npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+- npm run search -- --bot 02_dealer_sniper --budget 60 --beam 5 --opponents 01_tanker_guardian,06_tanker_bruiser --seed 7 --check true
+- npm run sim  (last_match.csv 생성 확인)
+
+권장 커밋 메시지 템플릿
+- feat(sim/engine): implement real loop (move/bullet/collision/HP)
+- feat(sim/cli): write last_match.csv and summary log
+- refactor(sim/rr): use engine.runMatch and add deterministic check
+- refactor(sim/search): engine-based scoring; beam/GA with params overwrite
+- docs(sim): update README (angles/params/score)
+
 1) feat(sim/engine): move/fire 각도 단위 deg→rad 어댑터
 - 현재 엔진 API는 라디안으로 처리 중이나, 스니펫은 플랫폼 규격상 도(degree)를 사용한다.
 - 수정: `engine.js`의 `makeTankApi` 내부에서 `tank.move(angDeg)`/`tank.fire(angDeg)` 입력을 라디안으로 변환해 사용.
