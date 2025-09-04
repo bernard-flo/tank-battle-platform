@@ -49,8 +49,8 @@ function update(tank, enemies, allies, bulletInfo) {
   // 타깃: 팀 집중사격 — 저체력 우선
   let nearest = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, nearest.health)*1.0 + nearest.distance*0.1;
-    const s2 = Math.max(0, e.health)*1.0 + e.distance*0.1;
+    const s1 = Math.max(0, nearest.health) + Math.pow(nearest.distance,1.1)*0.005;
+    const s2 = Math.max(0, e.health) + Math.pow(e.distance,1.1)*0.005;
     if (s2 < s1) nearest = e;
   }
   const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180/Math.PI;

@@ -31,8 +31,8 @@ function update(tank, enemies, allies, bulletInfo) {
   const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
   let target = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, target.health)*1.0 + target.distance*0.1;
-    const s2 = Math.max(0, e.health)*1.0 + e.distance*0.1;
+    const s1 = Math.max(0, target.health) + Math.pow(target.distance,1.1)*0.005;
+    const s2 = Math.max(0, e.health) + Math.pow(e.distance,1.1)*0.005;
     if (s2 < s1) target = e;
   }
   const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
