@@ -57,3 +57,8 @@
 - 워커에 tools/sim 의존성 설치(`npm i`) 후 `npm run rr`, `npm run search` 즉시 실행 및 결과 커밋 요청
 - yargs 미설치 오류 재발 방지: package.json 확인/수정 후 재설치 지시 포함
 - 실행 산출물(results/*.csv, *.json, params/*.json) 전부 버전관리 상태로 유지 지시
+
+2025-09-04 루프 #2-11 지시(엔진 실제화 + 통합)
+- engine.js 스텁 제거하고 실제 이동/탄/충돌/HP/쿨다운/RNG 구현 지시
+- rr/search에서 의사 평가 제거 → runMatch 기반 집계/스코어 산출로 통합 지시
+- 결정성 체크/성능 로그/CSV 규격 유지, 즉시 실행 배치 추가(NPM rr/search/sim)

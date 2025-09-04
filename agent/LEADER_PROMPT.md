@@ -98,6 +98,14 @@ worker 에게 다음과 같은 내용을 가능한한 지키게 해줘:
 - 난수: `seedrandom`으로 시드를 고정하여 재현성 확보. 모든 랜덤은 엔진이 제공하는 RNG를 사용.
 - 출력: 콘솔 요약 10줄 이내, 상세는 CSV/JSON 아티팩트로 저장.
 
+엔진 실제화(스텁 제거) — 필수 구현 범위
+- 이동/회전: 탱크는 목표 각도로 `speed(type)`만큼 이동, 경계 충돌 시 반사 또는 슬라이드 처리.
+- 발사/쿨다운: `tank.fire()` 호출 시 탄 생성(속도=400px/s), side/owner/생성시각/수명(4s) 기록, `FIRE_COOLDOWN=0.5s` 준수.
+- 탄 이동/충돌: 매 틱 `pos += v*dt`, `BULLET_R=7`; 충돌 시 적만 피격(아군/자기탄 무시), `damage=35` 적용, 탄 제거 및 피격 탱크 체력 감소/사망 처리.
+- 라운드/승패: 제한시간(90s) 내 더 많이 생존한 팀이 승. 동률이면 시간 내 누적 피해량으로 타이브레이커(동률 유지 허용, RR에서 집계).
+- RNG 재현성: `seedrandom`으로 엔진/스폰/난수화 일원화. 동일 시드 시 결과 동일.
+- 어댑터: HTML 스니펫 `update(tank,enemies,allies,bulletInfo)`와 시뮬 내 표현 간 매핑 계층 유지.
+
 작업 순서 권장(한 번에 많이, 변경마다 커밋)
 1) `tools/sim/` 스캐폴딩(package.json/README) → 커밋
 2) `engine.js` 최소전투 루프(dt, 이동, 탄 생성/이동, 충돌) → 커밋
@@ -115,3 +123,34 @@ worker 에게 다음과 같은 내용을 가능한한 지키게 해줘:
 안전/품질
 - 외부 네트워크 호출 금지(패키지 설치 제외). 파일 접근은 워크스페이스 한정.
 - 커밋 메시지 형식 유지(`feat(sim): ...`, `feat(params): ...`, `chore(ci): ...`).
+
+==============================
+루프 #2-11 지시(엔진 실제화 + RR/Search 통합)
+==============================
+
+목표: 엔진 스텁을 실제 전투 루프로 교체하고, RR/Search가 엔진 결과를 사용하도록 일원화한다. 결정성/성능 로그와 CSV 아티팩트는 기존 규격 유지.
+
+해야 할 일(변경마다 커밋):
+- feat(sim/engine): 이동/탄/충돌/HP/쿨다운/라운드 승패 구현, RNG(seedrandom) 적용
+- feat(sim/loader): `loadBot` 시 `Type`/`PARAMS` 외에 `rand()`/`dt` 등 읽기전용 util 주입(필요 시)
+- feat(sim/cli): `runMatch()` 호출 결과를 `results/last_match.csv`에 기록(라운드별 `winA,winB,aliveDiff,time`)
+- refactor(sim/rr): 의사 점수 제거 → `runMatch` 반복 호출로 집계(`winA,winB,avgAliveDiff,avgTime` 유지)
+- refactor(sim/search): 평가 함수→엔진 호출로 교체. trial마다 params 파일 덮어쓰기 유지. 다상대 반복 평가 평균 점수 사용
+- chore(sim): `npm run rr -- --check` 결정성 로그 OK 보장, 1회/10회 성능 로그 유지
+
+수행 순서(권장 커밋 메시지):
+1) feat(sim/engine): implement real loop (move/bullet/collision/HP)
+2) feat(sim/cli): write per-round csv, summary log
+3) refactor(sim/rr): use engine.runMatch, remove pseudo eval
+4) refactor(sim/search): score via engine across opponents, keep beam/GA
+5) chore(sim): deterministic/perf checks, README update
+
+검증 기준(필수 통과):
+- 동일 시드로 `npm run rr -- --check` 2회 실행 시 summary.csv/json 바이트 동일, 로그 `OK`
+- summary.csv에서 최소 3개 페어는 승부 발생(winA≠winB), avgTime이 90 고정이 아님
+- search 결과 상위 trial의 params/<bot>.json 반영 후 재평가 점수 동일
+
+즉시 실행 배치(엔진 통합 후):
+- cd tools/sim && npm i && npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+- npm run search -- --bot 02_dealer_sniper --budget 60 --beam 5 --opponents 01_tanker_guardian,06_tanker_bruiser --seed 7 --check true
+- npm run sim  (last_match.csv 생성 확인)

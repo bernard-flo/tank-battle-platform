@@ -300,3 +300,24 @@ Export 생성 규칙
 - 동일 시드 실행 시 GA best 점수/파라미터가 동일
 - 다상대 점수와 단일상대 점수 간 상관 확인 로그 기록(간단 상관계수)
 - GA 또는 빔탐색으로 얻은 best가 v1 대비 rr 승률 상승 지점 스크린샷/링크 남김
+
+==============================
+루프 #2-11 실행 지시(엔진 실제화 + RR/Search 통합)
+==============================
+
+해야 할 일(변경마다 커밋):
+- feat(sim/engine): 스텁 제거 → 이동/탄 생성/이동/충돌/HP/쿨다운/승패, seedrandom RNG 적용
+- feat(sim/cli): `runMatch` 결과를 `results/last_match.csv`에 기록(라운드별 `round,winA,winB,aliveDiff,time`)
+- refactor(sim/rr): 의사 평가 제거, `runMatch` 반복 호출로 `summary.csv/json` 집계
+- refactor(sim/search): 다상대 평가를 엔진 호출로 계산(beam/GA 유지, trial별 params 파일 덮어쓰기 유지)
+- chore(sim): `--check` 결정성 로그 OK, 1회/10회 실행 시간 로그 유지, README 업데이트
+
+검증 기준:
+- `npm run rr -- --check` 동일 시드 2회 실행 시 summary.csv/json 동일, 로그 OK
+- summary.csv에서 최소 3개 페어 승부 발생(winA≠winB), avgTime이 90s 고정 아님
+- search best params 저장 후 재평가 시 동일 점수
+
+즉시 실행(통합 후):
+- cd tools/sim && npm i && npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+- npm run search -- --bot 02_dealer_sniper --budget 60 --beam 5 --opponents 01_tanker_guardian,06_tanker_bruiser --seed 7 --check true
+- npm run sim

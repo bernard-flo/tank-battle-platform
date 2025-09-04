@@ -1,10 +1,11 @@
 # Worker TODO (SUPER6) — 루프 다음 액션
 
 단기(다음 세션 우선)
-- tools/sim 골격 생성: package.json, engine/loader/cli/round_robin/search 스텁
-- results 경로 일원화(`tools/sim/results/*`), CSV/JSON 출력 규격 정의
-- PARAMS 주입 경로 설계 및 `params/*.json` 프리셋 작성(6종)
-- rr 요약 지표: `winA, winB, avgAliveDiff, avgTime` 구현 및 결정성 체크 옵션 추가
+- 엔진 실제화: `engine.js` 스텁 제거 → 이동/탄/충돌/HP/쿨다운/RNG 구현
+- CLI/RR/Search 통합: `runMatch` 기반으로 결과 집계(의사 점수 제거)
+- results 경로 일원화(`tools/sim/results/*`), CSV/JSON 출력 규격 유지
+- PARAMS 주입 경로 유지 및 `params/*.json` 프리셋 검증(6종 모두)
+- rr 요약 지표: `winA, winB, avgAliveDiff, avgTime` + `--check` 결정성 로그 OK 확인
 
 중기(탐색/튜닝)
 - search.js 빔 탐색 + GA 모드 추가, 다상대 평가/스코어(승점+시간 가중)
@@ -20,3 +21,10 @@
 - 스니펫은 PARAMS 미주입 환경에서도 정상 동작하도록 기본값 유지
 - 팀 Export는 `teams/SUPER6.export.txt`에서 `function name()` 토큰으로 플랫폼 Import 호환
 
+체크리스트(커밋 단위)
+- [ ] feat(sim/engine): 실제 전투 루프 구현 및 단위 정합
+- [ ] feat(sim/cli): last_match.csv 기록 + 요약 로그
+- [ ] refactor(sim/rr): 엔진 호출 통합, CSV/JSON 생성
+- [ ] refactor(sim/search): 엔진 평가 통합, beam/GA 유지
+- [ ] chore(sim): deterministic/perf 로그, README 갱신
+- [ ] 실행: npm run rr -- --check, npm run search, npm run sim → 결과 커밋
