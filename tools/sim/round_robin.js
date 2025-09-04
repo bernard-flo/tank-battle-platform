@@ -47,3 +47,8 @@ const outDir = path.join(process.cwd(), 'results');
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'summary.json'), JSON.stringify(summary, null, 2));
 
+// summary.csv (pair,winA,winB)
+const csv = ['pair,winA,winB']
+  .concat(summary.map(row => `${JSON.stringify(`${row.A} vs ${row.B}`)},${row.winA},${row.winB}`))
+  .join('\n');
+fs.writeFileSync(path.join(outDir, 'summary.csv'), csv);
