@@ -1,50 +1,16 @@
-# Worker TODO (SUPER6)
+# Worker TODO (SUPER6 v1 이후 개선)
 
-- 시뮬레이터 초안 작성(tools/sim):
-  - engine.js: 이동/충돌/탄/데미지/승패 모델(60Hz, 속도/쿨 기준 반영)
-  - loader.js: Function 기반 스니펫 샌드박스, name/type/update 추출
-  - cli.js: 단일 매치 실행, 결과 CSV 저장
-  - round_robin.js: 내전 전 조합 실행, summary.json 저장
- - search.js: 파라미터 무작위+톱N 빔 탐색, params/*.json
-  - package.json 스크립트(sim/rr/search)
-- 파라미터 주입: params/<파일명기반>.json → 각 탱크 코드에 병합 주입
-- 재현성: seedrandom 도입 및 RNG 일원화
-- 출력 정책: 콘솔 요약 10줄 내, 상세는 CSV/JSON에 저장
-- 전략 파라미터 공통화: 반경/가중치/오프셋 상수 외부화 + 문서화
-- 안정성: move 실패 시 재시도 로직 공통 유틸로 통일(중복 제거)
-- 방어 로직 보강: 벽 근접 시 각 전략별 별도 우선 이동 각도 테이블
+- 시뮬레이터 골격 추가(tools/sim): engine/loader/cli/round_robin/search, 결과/파라미터 경로 고정
+- PARAMS 주입: params/<botKey>.json → 스니펫에 Object.freeze(PARAMS)로 제공, 기본값 폴백
+- 결과 경로 일원화: tools/sim/results/*, CSV/JSON 저장 정책
+- 라운드로빈: summary.csv(pair,winA,winB,avgAliveDiff,avgTime) + summary.json
+- 탐색: 빔(랜덤+TopN) 및 GA 모드, 다상대 평가, timeW 가중, seed 재현성 체크 옵션
+- 프리셋: 6종 파라미터 템플릿 작성 및 점진 반영(코드 상수는 fallback 유지)
+- README 보강: 파라미터 범위/스코어 정의/실행 예시
+- 실행 로그: 10줄 이내 요약, 세부는 CSV/JSON
 
-2025-09-04 루프 #2 실행 체크리스트(보완 과제)
-- [x] tools/sim 결과 저장 경로를 `tools/sim/results/`로 통일(cli/rr/search)
-- [x] round_robin에서 `summary.csv` 생성(pair,winA,winB)
-- [x] params 프리셋 디렉토리 생성 및 각 탱크별 기본값 작성(params/*.json)
-- [x] engine.js에서 PARAMS 주입(`const PARAMS = Object.freeze(...)`)
-- [x] 탱크 코드에서 상수 일부를 PARAMS 기반으로 치환(호환 fallback 유지)
-- [x] search.js를 무작위+빔 탐색으로 개선하고 최상 해를 params/<key>.json 저장
-- [x] README에 파라미터/범위/스코어 정의/실행 예시 추가
+즉시 액션(다음 루프 목표)
+1) feat(sim): results 디렉토리 통일, rr CSV 확장, search trial에 샘플 PARAMS 적용
+2) feat(params): 6개 탱크 presets 생성(params/*.json)
+3) chore(sim): deterministic self-check 옵션 추가(rr/search)
 
-검증 체크
-- [ ] 동일 시드에서 결과 일관성 유지
-- [ ] rr 1회전/10회전 시간 로그 남김
-- [ ] SUPER6 내전에서 v1 대비 승률 향상 지점 캡처 및 기록
-
-2025-09-04 루프 #2-2 보완 과제
-- [x] search.js: trial별 샘플 PARAMS를 params/<key>.json에 저장 후 평가(최종 best 저장)
-- [x] round_robin.js: avgAliveDiff, avgTime 산출 및 summary.csv 컬럼 확장
-- [x] README: RR 지표 정의와 파라미터 표 갱신, 실행 예시 최신화
-- [x] params: 6종 모두 프리셋 파일 완비(누락 보강)
-- [x] 재현성 로그: 동일 시드 2회 실행 결과 동일성 체크 로그 추가
-
-다음 루프 아이템(제안)
-- rr/cli 실행 시간 측정 및 한 줄 요약(동일 시드 반복 10회 평균)
-- 탐색 scoring 가중치 튜닝(승점:생존시간=1:0.03~0.08 범위 테스트)
-- 위험도 함수 개선: 탄 속도 벡터 기반 충돌 시간 예측(TTC) 가중
-- params 스냅샷 버저닝: params/<bot>.json 변경 시 자동 백업(params/history)
-
-루프 #3 TODO(탐색 고도화)
-- [x] search.js: GA 모드 추가(--mode ga --gens 20 --pop 30 --elite 4 --mut 0.2)
-- [x] search.js: 다상대 평가(--opponents 리스트, --timeW 가중 스윕)
-- [x] search.js: 세대별/상대별 결과 CSV(results/ga_*, search_detail_*) 저장
-- [x] sim: perf 타이밍(1회/10회) 로그 한 줄 출력 옵션 추가 (sim/rr)
-- [x] params: params/history/<bot>/timestamp.json 스냅샷 저장 로직 추가
-- [x] rr/search: --check 옵션으로 결정성 자가 점검 로그
