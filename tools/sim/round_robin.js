@@ -18,6 +18,7 @@ const bots = [
 const pairs = [];
 for(let i=0;i<bots.length;i++) for(let j=i+1;j<bots.length;j++) pairs.push([bots[i], bots[j]]);
 
+const t0 = Date.now();
 const summary = [];
 for(const [a,b] of pairs){
   let all=[]; for(let k=0;k<repeat;k++){ all = all.concat(runMatch({aPath:a,bPath:b,seed:seed+k,rounds:rounds})); }
@@ -42,4 +43,6 @@ if(check){
   console.log(`Deterministic check: ${same?'OK':'MISMATCH'}`);
 }
 
+const t1 = Date.now();
 console.log(`RR done: ${pairs.length} pairs -> summary.csv/json saved`);
+console.log(`perf: ${(t1-t0)}ms for ${pairs.length*repeat} runs`);
