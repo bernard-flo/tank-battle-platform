@@ -1,112 +1,112 @@
 {
+  "pairs": [
+    {
+      "pair": "01_tanker_guardian vs 02_dealer_sniper",
+      "winA": 5,
+      "winB": 10,
+      "avgAliveDiff": 0.2528659749278332,
+      "avgTime": 73.06666666666666
+    },
+    {
+      "pair": "01_tanker_guardian vs 03_dealer_flanker",
+      "winA": 7,
+      "winB": 8,
+      "avgAliveDiff": 0.3420072710161735,
+      "avgTime": 71.53333333333335
+    },
+    {
+      "pair": "01_tanker_guardian vs 04_normal_interceptor",
+      "winA": 9,
+      "winB": 6,
+      "avgAliveDiff": 0.03208801810755894,
+      "avgTime": 71.8
+    },
+    {
+      "pair": "01_tanker_guardian vs 05_normal_support",
+      "winA": 7,
+      "winB": 8,
+      "avgAliveDiff": 0.3420072710161735,
+      "avgTime": 71.53333333333335
+    },
+    {
+      "pair": "01_tanker_guardian vs 06_tanker_bruiser",
+      "winA": 7,
+      "winB": 8,
+      "avgAliveDiff": 0.3420072710161735,
+      "avgTime": 71.53333333333335
+    },
+    {
+      "pair": "02_dealer_sniper vs 03_dealer_flanker",
+      "winA": 8,
+      "winB": 7,
+      "avgAliveDiff": 0.2686276387583063,
+      "avgTime": 74.93333333333332
+    },
+    {
+      "pair": "02_dealer_sniper vs 04_normal_interceptor",
+      "winA": 4,
+      "winB": 11,
+      "avgAliveDiff": -0.11048877901486638,
+      "avgTime": 71.06666666666666
+    },
+    {
+      "pair": "02_dealer_sniper vs 05_normal_support",
+      "winA": 8,
+      "winB": 7,
+      "avgAliveDiff": 0.2686276387583063,
+      "avgTime": 74.93333333333332
+    },
+    {
+      "pair": "02_dealer_sniper vs 06_tanker_bruiser",
+      "winA": 8,
+      "winB": 7,
+      "avgAliveDiff": 0.2686276387583063,
+      "avgTime": 74.93333333333332
+    },
+    {
+      "pair": "03_dealer_flanker vs 04_normal_interceptor",
+      "winA": 7,
+      "winB": 8,
+      "avgAliveDiff": -0.5181259490048497,
+      "avgTime": 72.8
+    },
+    {
+      "pair": "03_dealer_flanker vs 05_normal_support",
+      "winA": 10,
+      "winB": 5,
+      "avgAliveDiff": 0.4015930450369898,
+      "avgTime": 68.33333333333333
+    },
+    {
+      "pair": "03_dealer_flanker vs 06_tanker_bruiser",
+      "winA": 10,
+      "winB": 5,
+      "avgAliveDiff": 0.4015930450369898,
+      "avgTime": 68.33333333333333
+    },
+    {
+      "pair": "04_normal_interceptor vs 05_normal_support",
+      "winA": 7,
+      "winB": 8,
+      "avgAliveDiff": -0.31586735245054604,
+      "avgTime": 67.93333333333334
+    },
+    {
+      "pair": "04_normal_interceptor vs 06_tanker_bruiser",
+      "winA": 7,
+      "winB": 8,
+      "avgAliveDiff": -0.31586735245054604,
+      "avgTime": 67.93333333333334
+    },
+    {
+      "pair": "05_normal_support vs 06_tanker_bruiser",
+      "winA": 10,
+      "winB": 5,
+      "avgAliveDiff": 0.4015930450369898,
+      "avgTime": 68.33333333333333
+    }
+  ],
   "seed": 42,
   "rounds": 5,
-  "repeat": 2,
-  "summary": [
-    {
-      "pair": "01_tanker_guardian.js-02_dealer_sniper.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "01_tanker_guardian.js-03_dealer_flanker.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "01_tanker_guardian.js-04_normal_interceptor.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "01_tanker_guardian.js-05_normal_support.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "01_tanker_guardian.js-06_tanker_bruiser.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "02_dealer_sniper.js-03_dealer_flanker.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "02_dealer_sniper.js-04_normal_interceptor.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "02_dealer_sniper.js-05_normal_support.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "02_dealer_sniper.js-06_tanker_bruiser.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "03_dealer_flanker.js-04_normal_interceptor.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "03_dealer_flanker.js-05_normal_support.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "03_dealer_flanker.js-06_tanker_bruiser.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "04_normal_interceptor.js-05_normal_support.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "04_normal_interceptor.js-06_tanker_bruiser.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    },
-    {
-      "pair": "05_normal_support.js-06_tanker_bruiser.js",
-      "winA": 0,
-      "winB": 0,
-      "avgAliveDiff": 0,
-      "avgTime": 60.016
-    }
-  ]
+  "repeat": 3
 }
