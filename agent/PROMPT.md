@@ -174,6 +174,47 @@ Export 생성 규칙
 - 커밋은 작은 단위로 자주, 실행 로그는 10줄 이내 요약.
 
 ==============================
+루프 #2-12 핫픽스/보강 지시(필수)
+==============================
+
+엔진-스니펫 각도 단위 정합 및 GA 점수화 보강. 변경마다 커밋.
+
+1) feat(sim/engine): move/fire 각도 단위 deg→rad 어댑터
+- 현재 엔진 API는 라디안으로 처리 중이나, 스니펫은 플랫폼 규격상 도(degree)를 사용한다.
+- 수정: `engine.js`의 `makeTankApi` 내부에서 `tank.move(angDeg)`/`tank.fire(angDeg)` 입력을 라디안으로 변환해 사용.
+- 또한 `bulletInfo`/`enemies` 구조는 그대로 유지하되, `enemies`에 `health` 별칭, `tank.size` 게터 노출 유지.
+- 커밋: `fix(sim/engine): accept degrees in move/fire (deg→rad adapter)`
+
+2) docs(sim): README에 각도 단위 명시
+- `tools/sim/README.md`에 “봇 API의 `move`, `fire`는 degree 입력, 엔진 내부에서 rad 변환” 문구 추가.
+- 커밋: `docs(sim): document degree angles for bot API`
+
+3) refactor(sim/search): GA 모드를 엔진 기반 점수화로 교체
+- 현재 GA는 의사 점수이므로 제거하고, beam과 동일하게 `runMatch` 기반 다상대 평균 점수로 평가.
+- 인자: `--gens`, `--pop`, `--elite`, `--mut` 유지. 세대별로 모집단 샘플링→평가→정렬→엘리트 보존→변이/교배(간단: 엘리트+변이 샘플)로 진행.
+- 출력: `results/ga_<bot>.csv`에 `gen,bestScore` 누적 기록, 각 세대 best 파라미터를 `params/history/<bot>/`에 스냅샷 저장. 마지막 best를 `params/<bot>.json`에 저장.
+- 결정성 체크: `--check true` 시 동일 시드·상대에 대해 2회 재평가 동등성 로그(`OK/FAIL`).
+- 커밋: `refactor(sim/search): GA uses engine-based scoring across opponents`
+
+4) chore(sim): 결정성/성능 점검
+- `npm run rr -- --check true` 2회 연속 실행 시 `results/summary.csv`/`summary.json` 바이트 동일 로그 `OK` 확인.
+- 1회/10회 실행 시간(log) 2줄 요약 남기기. 커밋 메시지에 간단 수치 포함 가능.
+- 커밋: `chore(sim): deterministic/perf checks updated`
+
+5) 실행 배치(검증)
+- cd tools/sim && npm i
+- npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+- npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true  # 두 번째 동일 실행(OK 기대)
+- npm run sim  # results/last_match.csv 생성 확인
+- npm run search -- --bot 02_dealer_sniper --budget 60 --beam 5 --opponents 01_tanker_guardian,06_tanker_bruiser --seed 7 --check true
+- npm run search -- --bot 03_dealer_flanker --mode ga --gens 12 --pop 24 --elite 4 --mut 0.25 --seed 11 --opponents 01_tanker_guardian,06_tanker_bruiser --timeW 0.05 --check true
+- 생성물(results/*, params/*) 전부 커밋
+
+완료 체크(필수):
+- 엔진 deg→rad 적용 후, 이전 대비 RR 요약에서 최소 3개 페어 승부 발생(winA≠winB), avgTime이 90 고정이 아님.
+- GA 모드 출력이 results/ga_*.csv로 생성되고, `params/<bot>.json` 최종 best가 재평가 점수와 동일.
+
+==============================
 루프 #2-11 완료 체크 및 후속 지시
 ==============================
 

@@ -75,8 +75,10 @@ export function runMatch(opts) {
         get vx() { return ent.vx; }, get vy() { return ent.vy; },
         get hp() { return ent.hp; },
         get size() { return DEFAULTS.TANK_R; },
-        move(theta) {
+        // 스니펫은 degree 입력을 사용. 내부는 rad로 변환
+        move(thetaDeg) {
           if (ent.moved || !ent.alive) return false;
+          const theta = (thetaDeg ?? 0) * Math.PI / 180;
           const nx = ent.x + Math.cos(theta) * speedPerTick;
           const ny = ent.y + Math.sin(theta) * speedPerTick;
           // 벽 충돌 방지
@@ -87,9 +89,10 @@ export function runMatch(opts) {
           ent.vx = nx - ent.x; ent.vy = ny - ent.y;
           ent.x = nx; ent.y = ny; ent.moved = true; return true;
         },
-        fire(theta) {
+        fire(thetaDeg) {
           if (!ent.alive || ent.fireCd > 0) return false;
           const bx = ent.x, by = ent.y;
+          const theta = (thetaDeg ?? 0) * Math.PI / 180;
           const vx = Math.cos(theta) * bulletStep;
           const vy = Math.sin(theta) * bulletStep;
           bullets.push({ x: bx, y: by, vx, vy, side: ent.side, owner: ent.id, life: bulletLifeTicks });

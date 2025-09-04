@@ -71,3 +71,9 @@
 2025-09-04 루프 #2-11 핫픽스 지시
 - 어댑터 정합 보강: enemies에 health 별칭 추가, 탱크 API에 size 노출 지시(기존 스니펫 호환)
 - rr 인자 파싱 일관화: CLI 중복 인자 시 마지막 값 우선 적용 지시(pickLast)
+
+2025-09-04 루프 #2-12 지시(각도 정합/GA 실점수화)
+- engine: tank.move/fire 입력 각도를 degree로 수용하도록 deg→rad 어댑터 적용 지시
+- docs: README에 각도 단위 명시 지시
+- search: GA 모드를 엔진 기반 다상대 점수로 교체 지시(스냅샷/결정성 체크 포함)
+- 실행 배치와 완료 체크 갱신(승부 발생·determinism OK·GA 산출 확인)
