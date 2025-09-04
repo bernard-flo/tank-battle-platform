@@ -86,5 +86,5 @@ if (firstPairMetrics) {
   const a = runAgg();
   const b = runAgg();
   const same = a.winA === b.winA && a.winB === b.winB && a.avgAliveDiff === b.avgAliveDiff && a.avgTime === b.avgTime;
-  console.log(`[rr-check] deterministic=${same} firstPair=${bots[firstPairMetrics.i].name} vs ${bots[firstPairMetrics.j].name} | A ${a.winA}-${b.winA} B ${a.winB}-${b.winB} avgAliveDiff ${a.avgAliveDiff}-${b.avgAliveDiff} avgTime ${a.avgTime}-${b.avgTime}`);
+  console.log(`[rr-check] seed=${seed} deterministic=${same} firstPair=${bots[firstPairMetrics.i].name} vs ${bots[firstPairMetrics.j].name} | A ${a.winA}-${b.winA} B ${a.winB}-${b.winB} avgAliveDiff ${a.avgAliveDiff}-${b.avgAliveDiff} avgTime ${a.avgTime}-${b.avgTime}`);
 }
