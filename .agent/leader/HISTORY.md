@@ -52,3 +52,8 @@
 - npm 스크립트 경로 수정 지시(`../tanks` → `../../tanks`)로 단일 매치 실행 안정화
 - TIME_LIMIT↑(90s), 총알 수명↑(4s) 등 점진적 밸런스 조정 지시, 필요 시 탄 반경/데미지 중 1개만 추가 조정
 - RR --check로 결정성/승부 발생 확인과 perf 로그 유지 요청
+
+2025-09-04 루프 #2-10 실행 트리거
+- 워커에 tools/sim 의존성 설치(`npm i`) 후 `npm run rr`, `npm run search` 즉시 실행 및 결과 커밋 요청
+- yargs 미설치 오류 재발 방지: package.json 확인/수정 후 재설치 지시 포함
+- 실행 산출물(results/*.csv, *.json, params/*.json) 전부 버전관리 상태로 유지 지시
