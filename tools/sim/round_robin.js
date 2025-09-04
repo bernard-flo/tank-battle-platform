@@ -28,7 +28,7 @@ for(const [a,b] of pairs){
   summary.push({pair: `${path.basename(a)}-${path.basename(b)}`, winA, winB, avgAliveDiff, avgTime});
 }
 
-// 저장
+// 저장 (CSV 컬럼: pair,winA,winB,avgAliveDiff,avgTime)
 fs.writeFileSync(path.join(outDir,'summary.json'), JSON.stringify({ seed, rounds, repeat, summary }, null, 2));
 const csvHdr = 'pair,winA,winB,avgAliveDiff,avgTime';
 const csv = [csvHdr].concat(summary.map(s=>`${s.pair},${s.winA},${s.winB},${s.avgAliveDiff},${s.avgTime}`)).join('\n');
