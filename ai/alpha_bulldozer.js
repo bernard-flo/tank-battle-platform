@@ -24,10 +24,11 @@ function update(tank, enemies, allies, bulletInfo) {
       const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
       const s2=vx*vx+vy*vy; if (s2<=0) continue;
       const t=- (rx*vx+ry*vy)/s2; // 최근접 접근 시간(프레임 단위)
-      if (t<0 || t>35) continue; // 너무 멀거나 이미 지나감
-      const cx=rx+vx*t, cy=ry+vy*t; const d2=cx*cx+cy*cy; const d=Math.sqrt(d2);
-      if (d>170) continue; // 멀면 무시
-      const score = d + t*2; // 시간 여유와 거리 절충
+      if (t<0 || t>24) continue; // 0.5초 내 위협만 반응
+      const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+      const safe = tank.size/2 + 10;
+      if (d>safe+10) continue; // 충분히 빗나감
+      const score = d*0.8 + t*3; // 더 보수적으로 시간 가중
       if (score<bestScore){ bestScore=score; best=b; }
     }
     return best;

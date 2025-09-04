@@ -10,13 +10,14 @@ function update(tank, enemies, allies, bulletInfo) {
   if (!enemies || enemies.length === 0) return;
   function tryMove(angles){ for (let a of angles) if (tank.move(a)) return true; return false; }
 
-  // 위협도 높은 탄환 우선 회피(TTI 기반)
+  // 위협도 높은 탄환 우선 회피(TTI 기반: 근접·단기 위협만)
   let threat = null; let best = 1e9;
   for (let b of bulletInfo){
     const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if (!s2) continue;
-    const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>35) continue;
-    const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy); if (d>165) continue;
-    const score = d + t*2; if (score<best){ best=score; threat=b; }
+    const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>24) continue;
+    const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
+    const safe=tank.size/2+8; if (d>safe+10) continue;
+    const score = d*0.85 + t*3; if (score<best){ best=score; threat=b; }
   }
   if (threat){
     const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;

@@ -16,10 +16,10 @@ function update(tank, enemies, allies, bulletInfo) {
     for (let b of bullets){
       const rx=b.x-tank.x, ry=b.y-tank.y; const vx=b.vx, vy=b.vy;
       const s2=vx*vx+vy*vy; if (!s2) continue;
-      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>35) continue;
+      const t=-(rx*vx+ry*vy)/s2; if (t<0 || t>22) continue;
       const cx=rx+vx*t, cy=ry+vy*t; const d=Math.hypot(cx,cy);
-      if (d>160) continue;
-      const score=d + t*2;
+      const safe=tank.size/2+8; if (d>safe+8) continue;
+      const score=d*0.9 + t*3;
       if (score<bestScore){ bestScore=score; best=b; }
     }
     return best;
