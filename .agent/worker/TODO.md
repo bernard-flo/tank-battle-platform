@@ -20,6 +20,13 @@ Hotfix/backlog:
   - 가설3: 탄 충돌 모델 단순 → BULLET_R 상향 완료(=16). 추가로 히트박스/시간보간 충돌 검토
 - 결정성 검증은 OK. 성능 로그(1회/10회) 요약 추가 예정
 
+Loop #3 plans:
+- 전략 보강으로 무승부 감소: 일부 봇에 정면 교전/정지 사격 페이즈 추가(주기적 멈춤+사격)
+- 리드샷 개선: 엔진이 제공하는 vx,vy 활용 강제(현재 주입 완료). 각 스니펫 리드엔진에서 가중치 보정
+- 충돌 회피 강도 하향 옵션 추가(공격 페이즈)
+- 탐색 공간 확장: `lead_max_deg`, `evade_weight`, `zig_period` 등 추가
+- 성능 최적화: 엔진에서 불필요한 객체 할당 최소화, bullets 풀링(선택)
+
 Immediate hotfix (spec alignment):
 - engine DEFAULTS를 `BULLET_R=7`, `DAMAGE=35`로 조정하고 tools/sim/README.md 표와 동기화
 - engine.runMatch → 봇 `update` 4인자만 호출하도록 수정(PARAMS 5번째 인자 제거; loader 샌드박스 주입 사용)
