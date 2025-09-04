@@ -209,6 +209,29 @@ Export 생성 규칙
 4) 누락 params 템플릿 작성(6종 완비) → 커밋
 5) 시드 재현성 로그 한 줄 추가 → 커밋
 
+즉시 핫픽스(물리/단위 정합 + 킬 발생 보장)
+- fix(sim): 단위 정합 — 봇에 주입되는 `PARAMS.bulletSpeed`를 프레임당 속도로 전달
+  - 엔진 내부는 프레임 단위 이동량을 사용하므로 `bulletSpeed = 400 * dt`로 맞춰 전달
+  - 커밋: `fix(sim): align bulletSpeed units to per-tick`
+- fix(sim): 충돌 시 아군/자기탄 무시 및 소유자 제외
+  - 총알과 같은 side의 탱크는 피격 제외, (가능하면 owner id도 비교하여 자기 자신 제외)
+  - 커밋: `fix(sim): ignore friendly/self bullet collisions`
+- feat(sim): 발사 쿨다운 준수
+  - `tank.fire()` 성공 시 쿨다운을 `FIRE_COOLDOWN`으로 설정하고, 틱마다 감소
+  - 봇들은 이미 `fire_every_frames`로 제한하므로, 이중 제한으로 과발사 방지
+  - 커밋: `feat(sim): enforce FIRE_COOLDOWN in engine`
+- balance(sim): 킬 빈도 확보를 위한 파라미터 조정(중 하나 선택)
+  - 옵션 A) 데미지 25→30~35로 상향
+  - 옵션 B) 타임리밋 60→90초, 또는 탄 수명 3→4초
+  - 옵션 C) BULLET_R 6→7로 약간 상향
+  - 변경 후 RR 재실행으로 승부가 발생하는지 확인 후 최종안 선택
+  - 커밋: `balance(sim): adjust damage/time to reduce ties`
+
+핫픽스 검증 체크리스트
+- `npm run rr -- --check` 실행 시 summary.csv가 모두 0-0이 아닌 페어가 포함됨(킬 발생)
+- 동일 시드 재실행 시 summary.csv/json 바이트 단위 동일
+- `cli.js` 단일 매치에서 avgTime이 60만으로 고정되지 않음(경기 종료 다양성)
+
 검증 체크리스트(보완 후):
 - 동일 시드 재실행 시 요약 지표가 바이트 단위로 동일함.
 - search.csv의 상위 trial과 저장된 params/<botKey>.json 값이 일치함.

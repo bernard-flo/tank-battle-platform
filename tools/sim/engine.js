@@ -31,8 +31,10 @@ export function runMatch({aPath, bPath, seed=42, rounds=1}){
 function simOne(aPath,bPath,rng){
   const paramsA = loadParams(aPath);
   const paramsB = loadParams(bPath);
-  const A = loadBot(aPath, {...paramsA, bulletSpeed: BULLET_SPEED});
-  const B = loadBot(bPath, {...paramsB, bulletSpeed: BULLET_SPEED});
+  // 단위 정합: 엔진 내부 속도는 프레임당 이동량을 사용하므로
+  // 봇에 전달되는 bulletSpeed도 프레임당으로 맞춘다.
+  const A = loadBot(aPath, {...paramsA, bulletSpeed: BULLET_SPEED * DT});
+  const B = loadBot(bPath, {...paramsB, bulletSpeed: BULLET_SPEED * DT});
   const teamA = [{...makeTank(A, 'A', rng)}];
   const teamB = [{...makeTank(B, 'B', rng)}];
   const bullets = [];
@@ -55,9 +57,9 @@ function simOne(aPath,bPath,rng){
 function makeTank(bot, side, rng){
   const x = side==='A'? WIDTH*0.25 : WIDTH*0.75;
   const y = HEIGHT* (0.45 + 0.1*rng());
-  const t = { x, y, vx:0, vy:0, hp:100, cooldown:0, bot, side };
+  const t = { x, y, vx:0, vy:0, hp:100, cooldown:0, bot, side, id: Math.floor(rng()*1e9) };
   t.move = (ang)=>{ const typeMask=bot.type; const sp = SPEEDS[matchType(typeMask)]*DT; t.vx = Math.cos(ang)*sp; t.vy = Math.sin(ang)*sp; return true; };
-  t.fire = (ang)=>{ if(t.cooldown>0) return false; t._fire = (t._fire||[]); t._fire.push(ang); return true; };
+  t.fire = (ang)=>{ if(t.cooldown>0) return false; t._fire = (t._fire||[]); t._fire.push(ang); t.cooldown = FIRE_COOLDOWN; return true; };
   return t;
 }
 function matchType(mask){ if(mask & Type.TANKER) return Type.TANKER; if(mask & Type.DEALER) return Type.DEALER; return Type.NORMAL; }
@@ -73,8 +75,12 @@ function stepTeam(me, opp, bullets, rng){
     const bulletInfo = oppBullets.map(b=>({x:b.x,y:b.y,vx:b.vx,vy:b.vy}));
     try{ t.bot.update(t, enemies, allies, bulletInfo); }catch(e){ /* ignore bot errors */ }
   }
-  // fire -> spawn bullets
-  for(const t of me){ if(t.hp<=0) continue; if(Array.isArray(t._fire)){ for(const ang of t._fire){ bullets.push({ x:t.x, y:t.y, vx:Math.cos(ang)*BULLET_SPEED*DT, vy:Math.sin(ang)*BULLET_SPEED*DT, side:t.side }); } } t._fire=[]; }
+  // fire -> spawn bullets (track owner to avoid friendly/self hits)
+  for(const t of me){ if(t.hp<=0) continue; if(Array.isArray(t._fire)){
+      for(const ang of t._fire){ bullets.push({ x:t.x, y:t.y, vx:Math.cos(ang)*BULLET_SPEED*DT, vy:Math.sin(ang)*BULLET_SPEED*DT, side:t.side, owner:t.id }); }
+    }
+    t._fire=[];
+  }
 }
 
 function moveTanks(units){
@@ -83,11 +89,22 @@ function moveTanks(units){
 function moveBullets(bullets){ for(const b of bullets){ b.x += b.vx; b.y += b.vy; b.life = (b.life||0)+DT; } }
 function handleCollisions(A,B,bullets){
   // bullet hit
-  for(const b of bullets){ for(const t of [...A,...B]){ if(t.hp<=0) continue; const dx=b.x-t.x, dy=b.y-t.y; if(dx*dx+dy*dy <= (TANK_R+BULLET_R)*(TANK_R+BULLET_R)){ t.hp -= 25; b._dead=true; } } }
+  for(const b of bullets){
+    for(const t of [...A,...B]){
+      if(t.hp<=0) continue;
+      // ignore friendly and self bullets
+      if(b.side === t.side) continue;
+      if(b.owner && b.owner === t.id) continue;
+      const dx=b.x-t.x, dy=b.y-t.y;
+      if(dx*dx+dy*dy <= (TANK_R+BULLET_R)*(TANK_R+BULLET_R)){
+        t.hp -= 30; // balance: increase damage to encourage kills
+        b._dead=true;
+      }
+    }
+  }
   // bullet out of bounds/time
   for(const b of bullets){ if(b.life>3 || b.x<0||b.x>WIDTH||b.y<0||b.y>HEIGHT) b._dead=true; }
   let i=bullets.length; while(i--) if(bullets[i]._dead) bullets.splice(i,1);
 }
 
 export function ensureDirs(){ const out=path.join(path.dirname(new URL(import.meta.url).pathname),'results'); if(!fs.existsSync(out)) fs.mkdirSync(out,{recursive:true}); return out; }
-
