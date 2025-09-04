@@ -5,12 +5,12 @@
 - 파라미터 주입: `tools/sim/params/<botKey>.json`을 로드해 각 스니펫의 `PARAMS`로 주입합니다. 없으면 `{}`로 폴백.
 - 결과 경로: `tools/sim/results/` 하위에 단일/라운드로빈/탐색 CSV/JSON 저장
 
-기본 파라미터(가정치/밸런스)
-- WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=12
-- BULLET_SPEED=700px/s, FIRE_COOLDOWN=0.5s, BULLET_LIFE=4s
+기본 파라미터(플랫폼 근사)
+- WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=7
+- BULLET_SPEED=400px/s, FIRE_COOLDOWN=0.5s, BULLET_LIFE=4s
 - TANK_SPEED: NORMAL=120, TANKER=105, DEALER=130
 - dt=0.016(60Hz), TIME_LIMIT=90s
-- DAMAGE=45 (밸런스)
+- DAMAGE=35
 
 명령 예시
 - 설치: `cd tools/sim && npm i`
@@ -28,4 +28,4 @@
 - 동일 인자 2회 실행 시 `rr: deterministic check OK` 출력, `summary.csv/json` 바이트 동일성 확인
 
 메모
-- 현재 휴리스틱 기본 파라미터와 움직임에서는 무승부가 빈번합니다. 탐색/튜닝 단계에서 킬 발생 빈도를 확보하기 위해 BULLET_R/BULLET_SPEED/DAMAGE를 일시 상향했습니다. 전략/파라미터 개선 후 재조정 예정.
+- 시뮬레이터는 스니펫 API에 degree(도) 입력을 받습니다. 엔진 내부에서 rad로 변환 처리합니다.
