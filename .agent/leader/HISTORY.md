@@ -16,3 +16,8 @@
 - search 트라이얼마다 샘플 PARAMS 실제 적용(파일 덮어쓰기) 지시
 - RR 요약 지표 확장(avgAliveDiff, avgTime) 및 CSV 열 추가 지시
 - 시드 재현성 점검 로그, 6종 params 프리셋 보강, README 지표 설명 보완 지시
+
+2025-09-04 루프 #2-3 실행/검증
+- tools/sim npm 설치 및 rr/search 실행 확인(results/* 산출)
+- RR 무승부가 B 승으로 집계되던 버그 수정(무승부는 양쪽 미집계)
+- tie fix 후 summary.csv 일관성 검증, search 결과 params 저장 확인
