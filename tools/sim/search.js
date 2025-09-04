@@ -5,18 +5,20 @@ import seedrandom from 'seedrandom';
 import { runMatch, ensureDirs } from './engine.js';
 
 const argv = minimist(process.argv.slice(2));
-const botKey = argv.bot; // e.g., 02_dealer_sniper
+function pickArg(x){ return Array.isArray(x) ? x[x.length-1] : x; }
+const botKey = pickArg(argv.bot); // e.g., 02_dealer_sniper
 const budget = +argv.budget || 100;
 const beam = +argv.beam || 5;
-const seed = argv.seed ?? 7;
-const opponents = (argv.opponents||'').split(',').filter(Boolean);
-const check = argv.check === true || argv.check === 'true';
-const timeW = argv.timeW ? +argv.timeW : 0.05;
-const mode = argv.mode || 'beam';
-const gens = +argv.gens || 10;
-const pop = +argv.pop || 16;
-const elite = +argv.elite || 3;
-const mut = +argv.mut || 0.25;
+const seed = pickArg(argv.seed) ?? 7;
+const oppArg = pickArg(argv.opponents) || '';
+const opponents = (oppArg||'').split(',').filter(Boolean);
+const check = pickArg(argv.check) === true || pickArg(argv.check) === 'true';
+const timeW = pickArg(argv.timeW) ? +pickArg(argv.timeW) : 0.05;
+const mode = pickArg(argv.mode) || 'beam';
+const gens = +pickArg(argv.gens) || 10;
+const pop = +pickArg(argv.pop) || 16;
+const elite = +pickArg(argv.elite) || 3;
+const mut = +pickArg(argv.mut) || 0.25;
 
 if(!botKey){ console.log('Usage: node search.js --bot 02_dealer_sniper --budget 100 [--beam 5]'); process.exit(1); }
 
