@@ -1,30 +1,10 @@
-# Worker TODO (SUPER6) — 루프 다음 액션
+# Worker TODO (SUPER6) — 다음 루프 액션 아이템
 
-단기(다음 세션 우선)
-- 엔진 실제화: `engine.js` 스텁 제거 → 이동/탄/충돌/HP/쿨다운/RNG 구현
-- CLI/RR/Search 통합: `runMatch` 기반으로 결과 집계(의사 점수 제거)
-- results 경로 일원화(`tools/sim/results/*`), CSV/JSON 출력 규격 유지
-- PARAMS 주입 경로 유지 및 `params/*.json` 프리셋 검증(6종 모두)
-- rr 요약 지표: `winA, winB, avgAliveDiff, avgTime` + `--check` 결정성 로그 OK 확인
+- tanks: PARAMS 주입 지원 훅 추가(기본값 fallback 유지) → 점진 치환.
+- tools/sim: rr/search 출력 경로 통일(results/), summary.csv 확장 컬럼 추가.
+- tools/sim: search 시 trial별 params/<bot>.json 덮어쓰기 적용(결정성 확보).
+- tools/sim: GA 모드 점수 산정 엔진 호출 기반으로 교체, timeW 가중 도입.
+- tools/sim: 시드 결정성 체크(--check)와 1회/10회 실행 시간 로그.
+- params: 6개 탱크 기본 프리셋 작성 및 history 스냅샷 저장.
+- docs(sim): README 파라미터 범위/스코어 정의/실행 예시 업데이트.
 
-중기(탐색/튜닝)
-- search.js 빔 탐색 + GA 모드 추가, 다상대 평가/스코어(승점+시간 가중)
-- params/history 스냅샷 저장 및 best 반영 워크플로우
-- 시드 고정(seedrandom), perf 로그(1회/10회) 한 줄 요약
-
-장기(정밀화/플랫폼 호환)
-- 엔진 단위 정합(탄속 per-tick), 아군/자기탄 충돌 무시, 쿨다운 강제
-- 밸런스: TIME_LIMIT/탄 수명/데미지/반경 등 타이율 감소 방향으로 소폭 조정
-- README: 파라미터 범위 표, 스코어 정의, 실행 예시 보강
-
-메모
-- 스니펫은 PARAMS 미주입 환경에서도 정상 동작하도록 기본값 유지
-- 팀 Export는 `teams/SUPER6.export.txt`에서 `function name()` 토큰으로 플랫폼 Import 호환
-
-체크리스트(커밋 단위)
-- [ ] feat(sim/engine): 실제 전투 루프 구현 및 단위 정합
-- [ ] feat(sim/cli): last_match.csv 기록 + 요약 로그
-- [ ] refactor(sim/rr): 엔진 호출 통합, CSV/JSON 생성
-- [ ] refactor(sim/search): 엔진 평가 통합, beam/GA 유지
-- [ ] chore(sim): deterministic/perf 로그, README 갱신
-- [ ] 실행: npm run rr -- --check, npm run search, npm run sim → 결과 커밋
