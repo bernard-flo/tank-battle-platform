@@ -142,6 +142,14 @@ Export 생성 규칙
 - npm run rr   → tools/sim/results/summary.csv, summary.json
 - npm run search -- --bot 02_dealer_sniper --budget 100
 
+즉시 실행 배치(이번 세션)
+- cd tools/sim && npm i
+- npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true
+- npm run search -- --bot 02_dealer_sniper --budget 150 --beam 5 --seed 7 --opponents 01_tanker_guardian,06_tanker_bruiser --check true
+- npm run search -- --bot 04_normal_interceptor --budget 150 --beam 5 --seed 7 --opponents 01_tanker_guardian,06_tanker_bruiser --check true
+- node search.js --bot 03_dealer_flanker --mode ga --gens 15 --pop 24 --elite 4 --mut 0.25 --seed 11 --opponents 01_tanker_guardian,06_tanker_bruiser --timeW 0.05 --check true
+- 실행 후 생성물(`tools/sim/results/*`, `tools/sim/params/*.json`)을 커밋
+
 주의
 - 스니펫에 `PARAMS`가 없을 플랫폼 환경도 고려하여 기본 상수는 항상 남긴다.
 - 엔진의 `new Function` 샌드박스에서 `console`은 무효화, 외부 접근 금지.
