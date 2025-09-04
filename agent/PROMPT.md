@@ -69,7 +69,7 @@ Export 생성 규칙
 
 시뮬레이터 상세 지침(이번 루프에서 진행)
 - 기본 파라미터(가정치, README에 표기):
-  - WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=6
+  - WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=7
   - BULLET_SPEED=400, FIRE_COOLDOWN=0.5
   - TANK_SPEED: NORMAL=120, TANKER=105, DEALER=130
   - 고정 시간 스텝 dt=0.016(60Hz)
@@ -179,6 +179,11 @@ Export 생성 규칙
 
 엔진-스니펫 각도 단위 정합 및 GA 점수화 보강. 변경마다 커밋.
 
+추가 핫픽스(명세 값 정합):
+- engine DEFAULTS: `BULLET_R=7`, `DAMAGE=35`로 조정하고 README를 동일하게 갱신.
+- runMatch → 봇 `update` 호출은 4인자만(`tank,enemies,allies,bulletInfo`) 전달. PARAMS는 loader 샌드박스 주입으로 일원화.
+- RR 재검증: `npm run rr -- --seed 42 --rounds 5 --repeat 3 --check true` 두 번 실행해서 summary.csv/json 바이트 동일성 및 승부 페어≥3 확인. 결과 커밋.
+
 ==============================
 루프 #2-11 지시(엔진 실제화 + RR/Search 통합)
 ==============================
@@ -192,6 +197,11 @@ Export 생성 규칙
 - refactor(sim/rr): 의사 평가 제거 → `runMatch` 반복 호출 집계. `pickLast`로 중복 인자 처리. `results/summary.csv/json` 저장 및 `--check`에서 결정성 로그 출력.
 - refactor(sim/search): 엔진 호출 기반 점수화. trial마다 `params/<bot>.json` 덮어쓰기. 다상대 평균 점수, `beam` 유지. `--mode ga`에서는 세대·개체군·엘리트·변이로 진화.
 - docs(sim): README 각도 단위(deg 입력), 파라미터 표/스코어 정의 업데이트.
+
+보강 지시(스펙 동기화):
+- fix(sim/engine): DEFAULTS에서 `BULLET_R=7`, `DAMAGE=35`로 교체.
+- refactor(sim/engine): `update(...)` 4인자만 호출하도록 수정(엔진에서 5번째 PARAMS 전달 제거).
+- docs(sim): README 파라미터 표를 위 값으로 동기화.
 
 검증 기준(필수 통과)
 - 동일 시드로 `npm run rr -- --check` 2회 실행 시 summary.csv/json 바이트 동일, 로그 `OK` 출력.
