@@ -47,8 +47,8 @@ export function runMatch(opts) {
   const rng = makeRng(seed);
   const APath = path.resolve(process.cwd(), a);
   const BPath = path.resolve(process.cwd(), b);
-  const botA = loadBot(APath);
-  const botB = loadBot(BPath);
+  const botA = loadBot(APath, { rng });
+  const botB = loadBot(BPath, { rng });
 
   const perRound = [];
   let sumTime = 0, sumAliveDiff = 0, winA = 0, winB = 0;

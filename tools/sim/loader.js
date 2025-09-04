@@ -25,8 +25,10 @@ export function loadBot(filePath, sandboxVars = {}) {
   const code = fs.readFileSync(filePath, 'utf8');
   const Type = { NORMAL: 1, TANKER: 2, DEALER: 4 };
   const PARAMS = loadParamsFor(filePath, sandboxVars.PARAMS || {});
-  // 최소한의 샌드박싱: console 제거
-  const fn = new Function('Type','PARAMS', `${code}; return { name, type, update };`);
-  const api = fn(Type, PARAMS);
+  // 최소한의 샌드박싱: console 제거, Math.random 시드 주입
+  const mathShim = Object.create(Math);
+  mathShim.random = typeof sandboxVars.rng === 'function' ? sandboxVars.rng : Math.random;
+  const fn = new Function('Type','PARAMS','Math', `${code}; return { name, type, update };`);
+  const api = fn(Type, PARAMS, mathShim);
   return api;
 }
