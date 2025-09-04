@@ -1,1 +1,12 @@
-null
+{
+  "orbit_radius": 260,
+  "orbit_deg": 90,
+  "radius_pulse": 80,
+  "orbitFlipRate": 0.01,
+  "ideal_range": 320,
+  "leadMaxDeg": 18,
+  "aimJitterDeg": 1.5,
+  "fire_every_frames": 5,
+  "safeMargin": 24,
+  "evadeReactDist": 200
+}
