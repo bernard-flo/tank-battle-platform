@@ -8,7 +8,8 @@ const seed = argv.seed ?? 42; const rounds = argv.rounds ?? 5; const repeat = ar
 const outDir = ensureDirs();
 
 // 6개 탱크 대상
-const root = path.resolve(path.join(process.cwd(), '..', 'tanks'));
+const here = path.dirname(new URL(import.meta.url).pathname);
+const root = path.resolve(path.join(here, '..', '..', 'tanks'));
 const bots = [
   '01_tanker_guardian.js','02_dealer_sniper.js','03_dealer_flanker.js',
   '04_normal_interceptor.js','05_normal_support.js','06_tanker_bruiser.js'
@@ -42,4 +43,3 @@ if(check){
 }
 
 console.log(`RR done: ${pairs.length} pairs -> summary.csv/json saved`);
-

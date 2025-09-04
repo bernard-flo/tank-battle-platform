@@ -40,8 +40,10 @@ function readParams(key){ try{ return JSON.parse(fs.readFileSync(paramsPath(key)
 function scoreResult(arr){ const win = arr.filter(r=>r.winA).length; const time = arr.reduce((s,r)=>s+r.time,0)/arr.length; return win + (1/time)*timeW; }
 
 function runAgainst(key, opp){
-  const aPath = path.resolve(path.join(process.cwd(),'..','tanks', `${key}.js`));
-  const bPath = path.resolve(path.join(process.cwd(),'..','tanks', `${opp}.js`));
+  const here = path.dirname(new URL(import.meta.url).pathname);
+  const tanksRoot = path.resolve(path.join(here,'..','..','tanks'));
+  const aPath = path.join(tanksRoot, `${key}.js`);
+  const bPath = path.join(tanksRoot, `${opp}.js`);
   return runMatch({aPath,bPath,seed,rounds:5});
 }
 
@@ -72,4 +74,3 @@ if(check){
   console.log(`Search best score recheck: ${(Math.abs(best.score - s2)<1e-6)?'OK':'DRIFT'}`);
 }
 console.log(`Search done: ${botKey}, best saved to params/${botKey}.json`);
-
