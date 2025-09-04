@@ -1,5 +1,7 @@
 // 간단한 2D 전투 엔진(60Hz 고정), Function 샌드박스 기반
 import seedrandom from 'seedrandom';
+import fs from 'fs';
+import path from 'path';
 
 export const CONST = {
   WIDTH: 800,
@@ -49,7 +51,8 @@ function initState(botsA, botsB, rng) {
     id, side, name: bot.name, type: bot.type, code: bot.code,
     x: pos.x, y: pos.y, angle: 0, alive: true, lastFire: -Infinity,
     size: CONST.TANK_R * 2, damage: dmgByType(bot.type),
-    speed: speedByType(bot.type), health: hpByType(bot.type), energy: hpByType(bot.type)
+    speed: speedByType(bot.type), health: hpByType(bot.type), energy: hpByType(bot.type),
+    key: bot.key, params: loadParams(bot.key)
   });
 
   botsA.forEach((b, i) => tanks.push(mkTank(`A${i+1}`, 'A', b, posA[i])));
@@ -103,10 +106,10 @@ function stepAI(state) {
     });
 
     try {
-      const secureFunc = new Function('tank', 'enemies', 'allies', 'bulletInfo',
-        `"use strict"; const Type={NORMAL:0,TANKER:1,DEALER:2}; const console=Object.freeze({log:()=>{},warn:()=>{},error:()=>{}}); ${t.code}\nupdate(tank,enemies,allies,bulletInfo);`
+      const secureFunc = new Function('tank', 'enemies', 'allies', 'bulletInfo', 'PARAMS',
+        `"use strict"; const Type={NORMAL:0,TANKER:1,DEALER:2}; const console=Object.freeze({log:()=>{},warn:()=>{},error:()=>{}}); const PARAMS=Object.freeze(arguments[4]||{}); ${t.code}\nupdate(tank,enemies,allies,bulletInfo);`
       );
-      secureFunc(tankAPI, Object.freeze(enemies), Object.freeze(allies), Object.freeze(bulletInfo));
+      secureFunc(tankAPI, Object.freeze(enemies), Object.freeze(allies), Object.freeze(bulletInfo), Object.freeze(t.params||{}));
     } catch (e) {
       // 무시: 해당 프레임 AI 동작 스킵
     }
@@ -181,3 +184,15 @@ function isEnded(state) {
   return !(aAlive && bAlive);
 }
 
+function loadParams(key) {
+  try {
+    const p = path.join(process.cwd(), 'params', `${key}.json`);
+    if (!fs.existsSync(p)) return {};
+    const raw = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    // 구버전(search 결과 배열) 방지: 객체만 허용
+    if (Array.isArray(raw)) return {};
+    return raw || {};
+  } catch {
+    return {};
+  }
+}
