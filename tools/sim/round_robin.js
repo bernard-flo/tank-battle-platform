@@ -14,6 +14,7 @@ const argv = parseArgs();
 const seed = Number(argv.seed || 42);
 const rounds = Number(argv.rounds || 5);
 const repeat = Number(argv.repeat || 3);
+const check = argv.check === 'true' || argv.check === '1';
 
 const tankDir = path.resolve('../../tanks');
 const files = [
@@ -31,6 +32,7 @@ for (let i = 0; i < bots.length; i++) {
   for (let j = i + 1; j < bots.length; j++) pairs.push([i, j]);
 }
 
+const t0 = Date.now();
 const summary = [];
 let firstPairMetrics = null;
 for (const [i, j] of pairs) {
@@ -66,8 +68,8 @@ const csv = ['pair,winA,winB,avgAliveDiff,avgTime']
   .join('\n');
 fs.writeFileSync(path.join(outDir, 'summary.csv'), csv);
 
-// 결정적 재현성 체크: 첫 페어를 동일 시드로 2회 실행하여 동일성 확인
-if (firstPairMetrics) {
+// 결정적 재현성 체크(--check가 있을 때): 첫 페어 동일 시드로 2회 실행
+if (check && firstPairMetrics) {
   const { i, j } = firstPairMetrics;
   const runAgg = () => {
     let winA = 0, winB = 0, sumAliveDiff = 0, sumTime = 0, totalRounds = 0;
@@ -89,3 +91,7 @@ if (firstPairMetrics) {
   const same = a.winA === b.winA && a.winB === b.winB && a.avgAliveDiff === b.avgAliveDiff && a.avgTime === b.avgTime;
   console.log(`[rr-check] seed=${seed} deterministic=${same} firstPair=${bots[firstPairMetrics.i].name} vs ${bots[firstPairMetrics.j].name} | A ${a.winA}-${b.winA} B ${a.winB}-${b.winB} avgAliveDiff ${a.avgAliveDiff}-${b.avgAliveDiff} avgTime ${a.avgTime}-${b.avgTime}`);
 }
+
+// perf 로그
+const ms = Date.now() - t0;
+console.log(`[rr-perf] pairs=${pairs.length} rounds=${rounds} repeat=${repeat} perf=${ms}ms`);
