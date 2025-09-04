@@ -14,8 +14,11 @@ const argv = yargs(hideBin(process.argv))
   .help().argv;
 
 fs.mkdirSync(path.dirname(argv.out), { recursive: true });
-const res = runMatch({ a: argv.a, b: argv.b, rounds: argv.rounds, seed: argv.seed, out: argv.out });
+const res = runMatch({ a: argv.a, b: argv.b, rounds: argv.rounds, seed: argv.seed });
 // 간결 로그
 console.log(`sim: ${path.basename(argv.a)} vs ${path.basename(argv.b)} | rounds=${argv.rounds} seed=${argv.seed}`);
-// CSV 스텁
+// CSV 기록
 fs.writeFileSync(argv.out, 'round,winA,winB,aliveDiff,time\n');
+for (const r of res.rounds) {
+  fs.appendFileSync(argv.out, `${r.round},${r.winA},${r.winB},${r.aliveDiff},${r.time.toFixed(3)}\n`);
+}
