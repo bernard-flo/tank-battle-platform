@@ -27,3 +27,13 @@ PARAMS 주입
 - `ga_<bot>.csv`: 세대별 상위 점수 요약
 - 최종 최적 파라미터: `params/<bot>.json`, 스냅샷: `params/history/<bot>/<timestamp>.json`
 
+파라미터 범위(검색 기본값)
+- ideal_range: 120..480
+- orbit_deg: 10..120
+- lead_max_deg: 5..20
+- evade_weight: 0.2..2.0
+- strafe_deg: 8..40
+- fire_every_frames: 3..9
+
+스코어 정의(탐색)
+- 점수 = 승수 + (1/avgTime) * timeW (기본 0.05)
