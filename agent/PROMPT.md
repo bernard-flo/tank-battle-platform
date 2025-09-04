@@ -67,6 +67,34 @@ Export 생성 규칙
 - `tools/sim/`에 Node 시뮬레이터 초안을 작성(전투 규칙: 이동/충돌/탄/피해 모델 복제).
 - 라운드-로빈 스코어러 추가, 파라미터(반경/가중치) JSON 로드/저장 구조 설계.
 
+시뮬레이터 상세 지침(이번 루프에서 진행)
+- 기본 파라미터(가정치, README에 표기):
+  - WIDTH=800, HEIGHT=600, TANK_R=16, BULLET_R=6
+  - BULLET_SPEED=400, FIRE_COOLDOWN=0.5
+  - TANK_SPEED: NORMAL=120, TANKER=105, DEALER=130
+  - 고정 시간 스텝 dt=0.016(60Hz)
+- 파일 구성과 스크립트:
+  - `tools/sim/package.json` 스크립트
+    - `sim`: `node cli.js --a tanks/01_tanker_guardian.js --b tanks/02_dealer_sniper.js --seed 42 --rounds 5`
+    - `rr`: `node round_robin.js --seed 42 --rounds 5 --repeat 3`
+    - `search`: `node search.js --bot 02_dealer_sniper --budget 200 --seed 7`
+  - `tools/sim/engine.js`: 이동/탄/충돌/데미지/승패 판정
+  - `tools/sim/loader.js`: 스니펫 샌드박스 로더(Function 기반), name/type/update 추출
+  - `tools/sim/cli.js`: 단일 매치 실행, 결과 요약 + CSV(`tools/sim/results/*.csv`)
+  - `tools/sim/round_robin.js`: 6개 내전 전 조합 수행, summary.json 저장
+  - `tools/sim/search.js`: 파라미터 무작위+톱N 빔 탐색, `params/*.json` 저장
+- 파라미터 주입: `params/<파일명기반>.json`이 있으면 로드하여 탱크 코드에 전달(없으면 기본값).
+- 재현성: `seedrandom`으로 시드 고정. 모든 난수는 엔진에서 제공한 RNG 사용.
+- 출력 정책: 콘솔 요약은 10줄 내, 상세는 CSV/JSON에 저장.
+
+보안/샌드박스
+- `Function`/`vm`으로 스니펫을 격리 로드. 전역 오염 금지.
+- 외부 네트워크 호출 금지(패키지 설치 제외). 파일 접근은 워크스페이스 내로 제한.
+
+커밋 체크리스트
+- 작업 단위마다 `git add -A && git commit -m "feat(sim): ..."`
+- README/사용법/파라미터 표 추가 시 `docs:` 접두사 사용.
+
 실행 순서(이번 세션)
 1) 디렉토리 점검/정리(`tanks/`, `teams/`, `docs/`, `.agent/worker/`).
 2) 6개 전략 파일을 구현(각각 커밋).
