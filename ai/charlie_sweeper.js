@@ -30,11 +30,11 @@ function update(tank, enemies, allies, bulletInfo) {
   const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
   const toCenter = Math.atan2(ecy - tank.y, ecx - tank.x) * 180/Math.PI;
 
-  // 팀 집중사격: 저체력 가중 상향, 거리 보조
+  // 팀 집중사격: 저체력 우선, 거리 보조
   let target = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, target.health) * 0.75 + target.distance * 0.2;
-    const s2 = Math.max(0, e.health) * 0.75 + e.distance * 0.2;
+    const s1 = Math.max(0, target.health) * 0.6 + target.distance * 0.25;
+    const s2 = Math.max(0, e.health) * 0.6 + e.distance * 0.25;
     if (s2 < s1) target = e;
   }
   const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
@@ -49,15 +49,15 @@ function update(tank, enemies, allies, bulletInfo) {
   }
 
   if (!avoided) {
-    // 200~290 거리에서 원운동, 너무 가깝다면 이탈
+    // 200~280 거리에서 원운동, 너무 가깝다면 이탈
     const d = Math.sqrt((ecx-tank.x)**2 + (ecy-tank.y)**2);
     let orbit = toCenter + 90;
-    if (d < 190) orbit = toCenter + 180;
+    if (d < 180) orbit = toCenter + 180;
     tryMove([orbit, orbit+20, orbit-20, toTarget, toTarget+180]);
   }
 
   // 발사: 산포 폭을 거리로 조절
   const base = toTarget;
-  const offsets = target.distance>200 ? [-6, -2, 2, 6] : [-4, 0, 4];
+  const offsets = target.distance>200 ? [-6, 0, 6] : [-4, 0, 4];
   tank.fire(base + offsets[Math.floor(Math.random()*offsets.length)]);
 }

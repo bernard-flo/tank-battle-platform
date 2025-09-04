@@ -34,11 +34,11 @@ function update(tank, enemies, allies, bulletInfo) {
     return best;
   }
 
-  // 목표 선택: 팀 집중사격 — 체력 가중 증가, 거리 타이브레이크
+  // 목표 선택: 팀 집중사격 — 체력 우선, 거리로 타이브레이크
   let target = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, target.health) * 0.75 + target.distance * 0.2;
-    const s2 = Math.max(0, e.health) * 0.75 + e.distance * 0.2;
+    const s1 = Math.max(0, target.health) * 0.6 + target.distance * 0.25;
+    const s2 = Math.max(0, e.health) * 0.6 + e.distance * 0.25;
     if (s2 < s1) target = e;
   }
 
@@ -52,31 +52,27 @@ function update(tank, enemies, allies, bulletInfo) {
   const toEnemyCenter = Math.atan2(ecy - tank.y, ecx - tank.x) * 180 / Math.PI;
   const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
 
-  // 총알 회피: 접근 중인 탄환이 근접하면 직교 회피(각도 다양화)
+  // 총알 회피: 접근 중인 탄환이 120 내 근접하면 직교 회피
   let dodged = false;
   const threat = bestThreat(bulletInfo);
   if (threat) {
     const ang = Math.atan2(threat.vy, threat.vx) + Math.PI/2;
     const deg = ang * 180 / Math.PI;
-    dodged = tryMove([deg, deg+25, deg-25, deg+45, deg-45, deg+160, deg-160]);
+    dodged = tryMove([deg, deg+20, deg-20, deg+40, deg-40]);
   }
 
-  // 탱커 행동: 전면 돌파, 적 중심과 타깃 사이 압박 + 가장자리 복구
+  // 탱커 행동: 전면 돌파, 적 중심과 타깃 사이를 압박
   if (!dodged) {
     // 벽/가두기 방지: 필드 중심으로 약한 인력
     const cx = 450, cy = 300;
     const toCenter = Math.atan2(cy - tank.y, cx - tank.x) * 180 / Math.PI;
     const desired = (target.distance > 120) ? toEnemyCenter : toTarget;
-    // 가장자리에 가까우면 우선 중심 복귀
-    const nearEdge = (tank.x<80||tank.x>820||tank.y<70||tank.y>530);
-    const moveAngles = nearEdge
-      ? [toCenter, toCenter+20, toCenter-20, desired]
-      : [desired, desired+15, desired-15, toCenter, desired+35, desired-35];
+    const moveAngles = [desired, desired+15, desired-15, toCenter, desired+35, desired-35];
     tryMove(moveAngles);
   }
 
   // 발사: 타깃 조준 + 소량 산포, 근거리 더 정밀
-  const spread = target.distance > 160 ? 9 : 5;
+  const spread = target.distance > 160 ? 10 : 6;
   const jitter = (Math.random() - 0.5) * spread; // ±스프레드/2
   tank.fire(toTarget + jitter);
 }

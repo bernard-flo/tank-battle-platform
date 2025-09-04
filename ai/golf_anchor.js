@@ -28,29 +28,29 @@ function update(tank, enemies, allies, bulletInfo) {
   const acx = allies.length ? allies.reduce((s,a)=>s+a.x,0)/allies.length : tank.x;
   const acy = allies.length ? allies.reduce((s,a)=>s+a.y,0)/allies.length : tank.y;
 
-  const frontX = (acx*1.8 + ecx*1.2)/3; // 아군 비중을 약간 낮춰 라인 전진성 강화
-  const frontY = (acy*1.8 + ecy*1.2)/3;
+  const frontX = (acx*2 + ecx)/3; // 아군쪽에 더 가까운 전방선
+  const frontY = (acy*2 + ecy)/3;
   const toFront = Math.atan2(frontY - tank.y, frontX - tank.x) * 180/Math.PI;
 
   // 라인 유지: 너무 뒤면 전진, 너무 앞이면 측면
   const df = Math.sqrt((frontX-tank.x)**2 + (frontY-tank.y)**2);
   let ang = toFront;
-  if (df < 130) ang = toFront + 95; // 충분히 전진 -> 측면 유지
+  if (df < 120) ang = toFront + 90; // 충분히 전진 -> 측면 유지
 
   // 탄환 회피(무거운 탱커이므로 보수적 범위)
   let avoided = false;
   const threat = bestThreat(bulletInfo);
   if (threat){
     const deg = (Math.atan2(threat.vy,threat.vx)+Math.PI/2)*180/Math.PI;
-    avoided = tryMove([deg,deg+25,deg-25,deg+40,deg-40,deg+160,deg-160]);
+    avoided = tryMove([deg,deg+20,deg-20,deg+35,deg-35]);
   }
   if (!avoided) tryMove([ang, ang+15, ang-15, toFront]);
 
   // 타깃: 팀 집중사격 — 저체력 우선
   let nearest = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, nearest.health) * 0.75 + nearest.distance * 0.2;
-    const s2 = Math.max(0, e.health) * 0.75 + e.distance * 0.2;
+    const s1 = Math.max(0, nearest.health) * 0.6 + nearest.distance * 0.25;
+    const s2 = Math.max(0, e.health) * 0.6 + e.distance * 0.25;
     if (s2 < s1) nearest = e;
   }
   const toEnemy = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180/Math.PI;

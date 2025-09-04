@@ -31,8 +31,8 @@ function update(tank, enemies, allies, bulletInfo) {
   const ecy = enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
   let target = enemies[0];
   for (let e of enemies) {
-    const s1 = Math.max(0, target.health) * 0.75 + target.distance * 0.2;
-    const s2 = Math.max(0, e.health) * 0.75 + e.distance * 0.2;
+    const s1 = Math.max(0, target.health) * 0.6 + target.distance * 0.25;
+    const s2 = Math.max(0, e.health) * 0.6 + e.distance * 0.25;
     if (s2 < s1) target = e;
   }
   const toTarget = Math.atan2(target.y - tank.y, target.x - tank.x) * 180/Math.PI;
@@ -50,7 +50,7 @@ function update(tank, enemies, allies, bulletInfo) {
   if (threat){
     const ang = Math.atan2(threat.vy,threat.vx)+Math.PI/2;
     const deg = ang*180/Math.PI;
-    dodged = tryMove([deg, deg+25, deg-25, deg+40, deg-40, deg+160, deg-160]);
+    dodged = tryMove([deg, deg+20, deg-20, deg+35, deg-35]);
   }
 
   if (!dodged) {
@@ -58,6 +58,6 @@ function update(tank, enemies, allies, bulletInfo) {
   }
 
   // 사격: 타깃 고정, 근거리 가산점
-  const jitter = (Math.random()-0.5)*5;
+  const jitter = (Math.random()-0.5)*6;
   tank.fire(toTarget + jitter);
 }
