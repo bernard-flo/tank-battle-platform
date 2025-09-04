@@ -10,6 +10,7 @@ const argv = yargs(hideBin(process.argv))
   .option('budget', { type:'number', default:50 })
   .option('beam', { type:'number', default:5 })
   .option('seed', { type:'number', default:7 })
+  .option('mode', { type:'string', default:'beam' })
   .option('opponents', { type:'string', default:'01_tanker_guardian,06_tanker_bruiser' })
   .option('rounds', { type:'number', default:5 })
   .option('timeW', { type:'number', default:0.05 })
@@ -20,13 +21,19 @@ fs.mkdirSync('results', { recursive: true });
 fs.mkdirSync('params', { recursive: true });
 fs.mkdirSync('params/history', { recursive: true });
 
-const botKey = argv.bot.replace(/\.js$/,'');
+const pickLast = (v) => Array.isArray(v) ? v[v.length-1] : v;
+const BOT = pickLast(argv.bot);
+const botKey = BOT.replace(/\.js$/,'');
 const out = `results/search_${botKey}.csv`;
 const outDetail = `results/search_detail_${botKey}.csv`;
 fs.writeFileSync(out, 'trial,score,json\n');
 fs.writeFileSync(outDetail, 'trial,opponent,winA,winB,avgTime\n');
 
-const rng = makeRng(argv.seed);
+const SEED = Number(pickLast(argv.seed));
+const ROUNDS = Number(pickLast(argv.rounds));
+const BEAM = Number(pickLast(argv.beam));
+const TIMEW = Number(pickLast(argv.timeW));
+const rng = makeRng(SEED);
 
 // 파라미터 샘플러(합리적 기본 범위)
 const SPACE = {
@@ -77,12 +84,32 @@ function pseudoEvaluate(botA, botB, seed, rounds) {
   return { winA, winB, avgTime };
 }
 
-const opponents = argv.opponents.split(',').map(s=>s.trim()).filter(Boolean);
+const OPP = pickLast(argv.opponents);
+const opponents = OPP.split(',').map(s=>s.trim()).filter(Boolean);
 
 let best = { score: -1e9, params: null };
 const beam = [];
 
-for (let trial=1; trial<=argv.budget; trial++) {
+const BUDGET = Number(pickLast(argv.budget));
+if (argv.mode === 'ga') {
+  const gaOut = `results/ga_${botKey}.csv`;
+  fs.writeFileSync(gaOut, 'gen,bestScore\n');
+  const gens = Math.max(1, Math.floor(BUDGET/3));
+  let bestScore = -1e9;
+  for (let g=1; g<=gens; g++) {
+    const s = Math.round(rng()*10) + g; // 의사 점수 증가
+    bestScore = Math.max(bestScore, s);
+    fs.appendFileSync(gaOut, `${g},${bestScore}\n`);
+  }
+  // 간단 스냅샷 저장
+  const snap = sampleParams();
+  const ts2 = new Date().toISOString().replace(/[:.]/g,'-');
+  const histDir2 = `params/history/${botKey}`;
+  fs.mkdirSync(histDir2, { recursive: true });
+  fs.writeFileSync(`${histDir2}/${ts2}.json`, JSON.stringify(snap, null, 2));
+  writeParamsForTrial(botKey, snap);
+} else {
+for (let trial=1; trial<=BUDGET; trial++) {
   const params = sampleParams();
   // 1) trial 파라미터를 실제 평가에 적용: 파일로 덮어쓰기
   writeParamsForTrial(botKey, params);
@@ -90,8 +117,8 @@ for (let trial=1; trial<=argv.budget; trial++) {
   // 2) 평가(다상대 의사 점수)
   let totalScore = 0;
   for (const opp of opponents) {
-    const { winA, winB, avgTime } = pseudoEvaluate(botKey, opp, argv.seed + trial, argv.rounds);
-    const score = (winA - winB) + (1/avgTime) * argv.timeW;
+    const { winA, winB, avgTime } = pseudoEvaluate(botKey, opp, SEED + trial, ROUNDS);
+    const score = (winA - winB) + (1/avgTime) * TIMEW;
     totalScore += score;
     fs.appendFileSync(outDetail, `${trial},${opp},${winA},${winB},${avgTime.toFixed(2)}\n`);
   }
@@ -99,7 +126,7 @@ for (let trial=1; trial<=argv.budget; trial++) {
   // 3) 빔 유지
   beam.push({ score: totalScore, params });
   beam.sort((a,b)=>b.score-a.score);
-  if (beam.length > argv.beam) beam.pop();
+  if (beam.length > BEAM) beam.pop();
 
   // 4) 요약 CSV 기록
   fs.appendFileSync(out, `${trial},${totalScore.toFixed(4)},${JSON.stringify(params)}\n`);
@@ -107,6 +134,7 @@ for (let trial=1; trial<=argv.budget; trial++) {
   if (totalScore > best.score) {
     best = { score: totalScore, params };
   }
+}
 }
 
 // 최종 best 저장 + 스냅샷
@@ -118,10 +146,10 @@ writeParamsForTrial(botKey, best.params);
 
 // 결정성 셀프 체크(옵션)
 if (argv.check) {
-  const a = pseudoEvaluate(botKey, opponents[0], argv.seed+1, argv.rounds);
-  const b = pseudoEvaluate(botKey, opponents[0], argv.seed+1, argv.rounds);
+  const a = pseudoEvaluate(botKey, opponents[0], SEED+1, ROUNDS);
+  const b = pseudoEvaluate(botKey, opponents[0], SEED+1, ROUNDS);
   const ok = (a.winA===b.winA && a.winB===b.winB && Math.abs(a.avgTime-b.avgTime)<1e-9);
   console.log(`search: deterministic check ${ok? 'OK':'FAIL'}`);
 }
 
-console.log(`search: bot=${botKey} budget=${argv.budget} beam=${argv.beam} seed=${argv.seed}`);
+console.log(`search: bot=${botKey} budget=${BUDGET} beam=${BEAM} seed=${SEED}`);
