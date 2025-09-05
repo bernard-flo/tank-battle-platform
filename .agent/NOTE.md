@@ -37,3 +37,11 @@
   - 회피 벡터는 적 탄의 진행방향에 수직 성분을 사용해 근접 위협 회피 가중.
   - 벽 회피는 여백 60px을 기준으로 선형 가중, 노말화 후 융합.
   - 모든 의사결정은 MLP 출력 4개 가중(Evade/Attack/Orbit/Wall)의 소프트맥스 정규화로 혼합.
+
+## 학습 파이프라인 메모 업데이트 (train2)
+- 입력 16, 은닉 6, 출력 5(회피/공격/공전/벽/리드샷) MLP 구조 유지.
+- 6개 탱크 역할: [TANKER, TANKER, DEALER, DEALER, DEALER, NORMAL].
+- 학습 실행: `GENS=16 node scripts/train2.js`로 유전탐색, 상위 엘리트 유지.
+- 산출물: `result/ai.txt` (플랫폼 import 호환), 로그: `.agent/log/*train2*` 및 `*selfplay-summary.json`.
+- 검증: `node scripts/sim/run.js` (baseline 상대로 50전 성능 요약).
+- 다음 개선: 시드 다양화, 상대 풀 확장(미러전/랜덤 정책), 세대 수 증가, 은닉차원 증대 실험.

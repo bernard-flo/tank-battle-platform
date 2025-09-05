@@ -54,3 +54,8 @@
 - 검증: scripts/sim/run.js 기준선 50전 -> 49승 1무, avgEndTick≈252.6 (학습 세트와는 평가세트가 다름).
 - 로그 추가: .agent/log/*train2-gen-*.json, *train2-final.json
 - 다음: 세대 수 확대 및 상대 풀 다양화(미러전/랜덤 상대로 혼합) 예정.
+
+## 2025-09-05T05-09-24Z
+- train2 유전탐색 16세대 실행, 최고 점수 10(10승 0무), avgTick≈240.7.
+- result/ai.txt 갱신 및 baseline 상대로 50전 전승, avgEndTick≈.
+- 메모/로그 추가: NOTE.md 파이프라인 업데이트, .agent/log/2025-09-05T05-09-24Z-train2-run-summary.md 요약 생성.
