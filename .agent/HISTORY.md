@@ -175,3 +175,6 @@
 - train_roles.js 역할+정책 동시 최적화(GENS=8) 수행 → /result/ai.txt 재갱신
 - 성능: 12/12 승 (baseline 대비), 평균 종료 tick 개선 (~291)
 - 최적 역할 시퀀스: [DEALER, NORMAL, TANKER, DEALER, TANKER, DEALER]
+### 2025-09-05T08-18-08Z
+- NOTE.md 업데이트 (학습 전략).
+- train_roles 기반 장기 학습 예정.

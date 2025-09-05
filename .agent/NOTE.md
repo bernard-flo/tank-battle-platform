@@ -181,3 +181,10 @@
 - 탱크 역할: NORMAL/TANKER/DEALER 별 모델 공유. 번들 생성 시 고정된 6개 이름/역할 조합.
 - 성능 검증: `simulateMatch`로 베이스라인 상대로 시드 다변 평가. 로그는 `.agent/log/*train2*`에 기록.
 - 플랫폼 사용법: `tank_battle_platform.html`의 Import 버튼 → `result/ai.txt` 내용을 모두 붙여넣기 → 각 칸 자동 분할.
+## 2025-09-05T08-18-08Z - 학습 전략 메모
+- train_roles.js 기반 진화학습 사용 (역할 조합 탐색 포함).
+- 입력 16차원, 은닉 6, 출력 5 (가중치로 이동/조준).
+- 평가 seeds 확대, 세대 수 증가로 성능 개선 시도.
+- 결과물은 result/ai.txt, 로그는 .agent/log/*.json.
+- tank_battle_platform.html 변경 금지 준수.
+
