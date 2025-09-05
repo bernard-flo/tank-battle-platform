@@ -1,46 +1,8 @@
-2025-09-05T03:59:58+00:00
+작업 이력
 
-- repo 스캔 및 import 포맷 확인
-- .agent/log/README 추가 (로그 규칙)
-- .agent/NOTE 업데이트 (AI 인터페이스/NN 설계 가이드)
-- 6번째 DEALER 봇 추가 예정 (result/ai.txt)
+## 2025-09-05T04-31-56Z
+- 초기 6종 탱크 AI 구현(MPL 기반 의사결정) 및 result/ai.txt 생성.
+- 역할 조합: 탱커 3 (Ares, Bulwark, Guardian), 딜러 3 (Viper, Falcon, Raptor), 노말 1 (Sage) 중 중복 제거하여 최종 6종 구성.
+- .agent/NOTE.md에 플랫폼 제약/설계 방침/향후 계획 문서화.
+- 다음 과제: 오프라인 시뮬레이터 및 가중치 탐색 파이프라인 설계.
 
-2025-09-05T04:04:51Z
-
-- result/ai.txt: 6번째 탱크(Falcon-Dealer) 추가로 6개 완성
-- NN 기반 설계 유지(48→5, tanh/sigmoid), 역할별 가중치 차별화
-- Import 포맷 유지(블록 구분 주석 포함)
-
-2025-09-05T04:06:50Z
-
-- result/ai.txt: Overseer-Normal, Viper-Dealer 추가로 최종 6개 구성 확정
-- .agent/NOTE.md: 실제 배포된 봇 이름 목록 반영
-- 다음 과제: 시뮬레이터 분리 및 유전/강화학습 파이프라인 초안
-
-'
-2025-09-05T04-18-38Z
-
-- result/ai.txt 상태 점검: 6개 탱크 확인(Vanguard-Tanker, Bulwark-Tanker, Sentinel-Normal, Overseer-Normal, Phantom-Dealer, Falcon-Dealer)
-- Import 포맷 재검증: platform은 'function name()' 기준 분할 → ai.txt 적합
-- 다음 단계 계획: RL/자가전 시뮬레이터 분리 초안(.scratchpad/rl_todo.md)
-
-## ${TS}
-- result/ai.txt: AI Pack v7 (6개 탱크: Shield/Anchor/Coordinator/Skirmisher/Reaper/Hawk) 추가.
-- 각 탱크는 48차원 피처와 5차원 출력을 갖는 단층 신경망으로 구현, 역할별 가중치 튜닝.
-- .scratchpad에 이전 ai.txt 백업 생성.
-
-2025-09-05T04:23:14Z
-
-- HISTORY/NOTE 정정: 이전 항목의 "2025-09-05T04:23:14Z" 리터럴 치환 오류 보정
-- 위 시각 기준 AI Pack v7 반영 완료
-
-## 2025-09-05T04:25:09Z
-- Update: AI Pack v7.1 in result/ai.txt (added move(fire) fallback to improve unstick and flanking)
-- Note: 6 NN-based tanks: Shield/Anchor/Coordinator/Skirmisher/Reaper/Hawk.
-- Next: explore RL self-play harness and weight tuning.
-
-2025-09-05T04:28:45Z
-- sim 엔진 추가: scripts/sim/engine.js (HTML 규칙 반영, tick 쿨다운)
-- 배치 실행기 추가: scripts/sim/run.js (결과 요약을 .agent/log에 저장)
-- NOTE 업데이트: 시뮬레이터 사용법
-- scratchpad 작성: .scratchpad/rl_todo.md (훈련 파이프라인 계획)
