@@ -1,162 +1,135 @@
-// ===== Neuro-Tank Pack v1 (6 AIs) =====
-// tank_battle_platform.html Import/Export 형식 호환
-
-// --- [1] Aegis (Front Tank) ---
-function name(){ return 'Aegis'; }
-function type(){ return Type.TANKER; }
+function name(){return 'Atlas';}
+function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
-  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
   function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
   const W=900,H=600;
-  let nearest=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nearest=e;} ex+=e.x; ey+=e.y; }
+  let nx=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nx=e;} ex+=e.x; ey+=e.y; }
   const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
   let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.06*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
+  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
   let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
-  const t0=(tank.type===0?1:0), t1=(tank.type===1?1:0), t2=(tank.type===2?1:0);
-  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/200), t0,t1,t2, Math.tanh(nd/450), (nearest?((nearest.x-tank.x)/Math.max(1,nd)):0), (nearest?((nearest.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
-  const W1=[[0.62,0.14,0.18,0.25,0.33,0.41,-0.55,0.85,0.32,0.24,-0.31,0.54,0.19,0.22,0.35,0.12],[-0.42,0.31,0.07,-0.18,-0.66,0.11,0.92,0.27,0.41,0.63,-0.74,0.35,0.15,-0.22,-0.42,-0.56],[0.21,0.44,-0.28,0.33,-0.17,-0.59,-0.41,-0.18,0.09,0.38,-0.47,-0.17,0.28,-0.14,-0.16,-0.09],[0.11,0.22,0.18,-0.06,0.36,0.42,-0.06,0.15,0.69,0.31,-0.44,0.79,0.05,0.88,-0.07,-0.36],[0.28,-0.11,0.02,0.91,0.24,-0.66,-0.21,-0.12,0.13,0.72,0.41,0.08,0.11,0.53,0.04,-0.07],[-0.11,0.22,0.14,0.41,-0.38,0.27,0.33,0.92,0.21,-0.27,-0.19,0.42,-0.41,-0.83,-0.09,0.31]]; const b1=[0.25,0.42,0.18,-0.02,0.09,0.22];
-  const W2=[[0.18,0.52,0.09,0.28,-0.37,-0.75],[-0.33,0.21,0.41,0.72,0.03,0.55],[0.49,-0.09,0.31,0.63,-0.22,-0.88],[-0.18,-1.02,0.55,-0.41,-0.62,-0.91],[0.71,0.44,0.19,0.16,1.02,0.41]]; const b2=[-0.18,0.35,0.53,-0.12,-0.11];
-  const o=mlp(inVec,W1,b1,W2,b2);
-  let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOrb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOrb+wWall+1e-6; wEv/=s; wAt/=s; wOrb/=s; wWall/=s;
-  const aimOff=o[4];
-  const atx=(nearest?((nearest.x-tank.x)/Math.max(1e-6,nd)):(ecx/ecd)), aty=(nearest?((nearest.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd));
-  const obx=-aty, oby=atx; // orbit basis
-  const mvx=evx*wEv + atx*wAt + obx*wOrb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOrb + wy*wWall; const mvAng=deg(mvx,mvy);
-  if(nearest){ const aim=deg(nearest.x-tank.x,nearest.y-tank.y); const lead=Math.max(-10,Math.min(14,aimOff)); tank.fire(ang(aim+lead)); }
+  const t0 = tank.type===0?1:0, t1=tank.type===1?1:0, t2=tank.type===2?1:0;
+  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/150), t0,t1,t2, Math.tanh(nd/400), (nx?((nx.x-tank.x)/Math.max(1,nd)):0), (nx?((nx.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
+  const W1=[[-1.943528279665471,-0.7871729028949837,0.2136352651665665,-0.45085312112691345,-0.43218549964207204,-0.3626476128535957,-0.30182665064502084,-0.1632598712926242,-0.5812170327607513,0.04451862586143819,-1.2784486337004486,0.6478856405289559,-0.23447963435087849,-0.13744871427722521,-0.5116890269699245,0.8827901317629463],[-0.692811386293694,-0.820679282944659,-0.3451463949869983,0.05766356918446992,-0.6180770287680464,-0.023710270693669905,-0.37084992397282646,0.1998431609458467,-0.4395743369535426,-0.3137396792061722,0.1747108814937003,0.11115432196775625,-0.7424759980817912,0.862356262749419,-0.21300529347579622,-0.7599428788715991],[0.20308315994984721,-0.4547640380416849,0.4476755662584853,-0.2675604689783935,-0.09338901779159456,0.5187564986417316,-0.03335837629076191,0.3094089339353637,0.49111141415417836,0.05212759101815817,0.4115844535316157,-0.19608343177296242,-0.0008421479410198954,0.15284852067575116,0.04849236964997111,-0.5095742286597765],[-0.32490071293956096,-0.07888920096736085,-0.34115616936354887,0.3847244155312124,-1.0732899449906645,-0.0015310053082046027,-0.3852378591968852,0.6466939489233727,-0.5127044591707652,-0.2785213934487993,-0.1622254928072262,0.7267366192373523,0.21671926996618296,0.19960161366613552,-0.7848612374723039,0.02497956503741472],[0.8263243835395151,-0.18280545375206086,-0.3241270870524696,0.445436699077173,-0.6085160599593847,-0.2936944272152925,-0.23083376066491465,-1.0644600774693596,-0.47991128130257865,-0.7037624809132232,-0.02915587755672462,-0.3197851317839522,0.18748482757108348,-0.32633685266191537,0.651724221079524,0.3842417473840215],[0.16144569177012277,0.5543095383905317,-0.9215186452963011,0.3597169777304391,1.1933382591386559,1.0842467285842445,0.06475940370979172,0.003304562873851835,-0.07100378802076804,0.6070196566503278,-0.4233349449742537,0.8481451296070611,0.6285797261570674,0.23783848478241368,0.6112078587286119,-1.2599677835449807]]; const b1=[-0.07725374337778612,0.45364382622503713,-0.4421488821018002,-0.5686208514034361,0.14243655834677071,-0.4264292989204861]; const W2=[[0.5512356718981094,-0.39436243410138105,0.04611380911889354,0.35003001269749223,-0.7537053116102113,0.2537810467013236],[-0.3571111007418469,-0.6508310437098881,-0.19064965979854928,0.4028244508141179,-0.042512364072601325,0.6702597521766456],[-0.6486915211686471,0.19651474622750942,-0.14234323850292877,-0.3620938877034563,-0.985936760661286,-0.11070076409766492],[0.20414332678224467,-0.23572506226310797,-0.06396219973356326,-0.2523508401613659,0.15626177168870894,0.019087408660711472],[0.1393867865432524,-0.7812915260315692,0.15414520015047578,-0.7484777593166545,0.5213386197032596,-0.7720772320866712]]; const b2=[0.2612010956302729,-0.05570429009714081,-0.42637694936465875,0.1455761282563191,0.7481486764620552];
+  const o=mlp(inVec,W1,b1,W2,b2); let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOb+wWall+1e-6; wEv/=s; wAt/=s; wOb/=s; wWall/=s; const aimLead=o[4];
+  const atx = (nx?((nx.x-tank.x)/Math.max(1e-6,nd)): (ecx/ecd)), aty=(nx?((nx.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
+  const mvx=evx*wEv + atx*wAt + obx*wOb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOb + wy*wWall; const mvAng=deg(mvx,mvy);
+  if(nx){ const aim=deg(nx.x-tank.x, nx.y-tank.y); const lead=Math.max(-12,Math.min(16,aimLead)); tank.fire(ang(aim+lead)); }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-// --- [2] Valkyrie (Kite Dealer) ---
-function name(){ return 'Valkyrie'; }
-function type(){ return Type.DEALER; }
+function name(){return 'Bulwark';}
+function type(){return Type.NORMAL;}
 function update(tank,enemies,allies,bulletInfo){
-  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
   function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
   const W=900,H=600;
-  let nearest=null, nd=1e9, low=null, lw=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nearest=e;} if(e.health<lw){lw=e.health; low=e;} ex+=e.x; ey+=e.y; }
-  const target=low||nearest; const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
-  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.05*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
-  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
-  const t0=(tank.type===0?1:0), t1=(tank.type===1?1:0), t2=(tank.type===2?1:0);
-  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/120), t0,t1,t2, Math.tanh(nd/400), (target?((target.x-tank.x)/Math.max(1,nd)):0), (target?((target.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
-  const W1=[[0.21,-0.17,-0.32,0.44,0.35,-0.28,-0.62,0.41,0.58,0.12,-0.66,0.83,0.08,1.02,0.22,-0.11],[-0.31,-0.14,0.18,-0.09,-0.71,0.09,-0.22,0.72,0.66,0.09,0.04,0.16,-0.96,0.12,-0.55,-0.09],[-0.01,-0.52,0.24,0.19,0.31,0.45,-0.04,0.41,-0.19,0.91,-0.32,-0.51,-0.09,0.07,0.12,-0.73],[0.52,0.41,-0.23,0.01,-0.83,0.02,0.06,0.33,-0.26,0.08,0.22,0.01,0.74,0.03,-0.17,0.41],[0.18,0.28,-0.31,0.44,-0.41,-0.61,-0.28,-0.52,-0.41,0.04,-0.21,-0.43,-0.12,0.35,-0.55,-0.14],[-0.22,0.14,-0.22,-0.04,0.55,0.58,-0.25,0.18,-0.66,0.01,-0.62,-0.02,0.82,0.91,0.26,-0.59]]; const b1=[-0.22,0.06,-0.21,0.61,0.38,0.02];
-  const W2=[[0.51,-0.81,0.31,0.52,-0.73,-0.02],[0.72,-0.19,-0.41,0.39,-0.51,0.26],[-0.41,0.22,-0.43,0.05,-0.09,0.21],[0.21,0.02,0.11,-0.91,-0.08,-0.21],[0.88,-0.22,0.31,0.41,0.62,-0.17]]; const b2=[0.62,-0.42,-0.11,-0.09,-0.36];
-  const o=mlp(inVec,W1,b1,W2,b2);
-  let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOrb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOrb+wWall+1e-6; wEv/=s; wAt/=s; wOrb/=s; wWall/=s; const aimOff=o[4];
-  const atx=(target?((target.x-tank.x)/Math.max(1e-6,nd)):(ecx/ecd)), aty=(target?((target.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
-  let mvx=evx*wEv + (-atx)*0.5 + atx*wAt + obx*wOrb + wx*wWall; let mvy=evy*wEv + (-aty)*0.5 + aty*wAt + oby*wOrb + wy*wWall; // dealer는 기본적으로 거리유지
-  const mvAng=deg(mvx,mvy);
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const lead=Math.max(-12,Math.min(16,aimOff)); tank.fire(ang(aim+lead)); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+80))){ if(!tank.move(ang(mvAng-80))){ tank.move(Math.random()*360); }}}
-}
-
-// ===== 다음 로봇 =====
-
-// --- [3] Orion (Flanker Normal) ---
-function name(){ return 'Orion'; }
-function type(){ return Type.NORMAL; }
-function update(tank,enemies,allies,bulletInfo){
-  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
-  const W=900,H=600;
-  let nearest=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nearest=e;} ex+=e.x; ey+=e.y; }
+  let nx=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nx=e;} ex+=e.x; ey+=e.y; }
   const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
   let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.06*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
+  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
   let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
-  const t0=(tank.type===0?1:0), t1=(tank.type===1?1:0), t2=(tank.type===2?1:0);
-  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/160), t0,t1,t2, Math.tanh(nd/430), (nearest?((nearest.x-tank.x)/Math.max(1,nd)):0), (nearest?((nearest.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
-  const W1=[[0.32,0.05,0.11,0.21,0.19,0.36,-0.47,0.91,0.41,-0.42,-0.18,0.62,0.48,0.12,0.49,0.33],[0.39,0.22,0.15,-0.12,-0.91,-0.43,0.88,0.12,0.29,0.47,-0.99,0.18,0.16,-0.41,-0.51,-0.82],[-0.52,0.29,-0.22,0.18,-0.07,-0.82,-0.61,-0.19,0.01,0.36,-0.49,-0.11,0.19,-0.02,-0.21,-0.14],[0.21,0.24,0.11,-0.05,0.29,0.35,-0.05,0.12,0.58,0.27,-0.51,0.79,0.04,0.91,-0.06,-0.31],[-0.22,0.18,-0.01,0.92,0.29,-0.72,-0.23,-0.15,0.11,0.79,0.46,0.07,0.09,0.49,0.03,-0.09],[0.55,-0.52,0.11,0.44,-0.51,0.38,0.41,0.93,0.28,-0.41,-0.33,0.47,-0.49,-0.83,-0.08,0.44]]; const b1=[0.11,0.39,0.15,-0.07,0.12,0.19];
-  const W2=[[0.12,0.41,0.05,0.22,-0.33,-0.62],[-0.38,0.18,0.36,0.61,0.04,0.49],[0.45,-0.07,0.28,0.57,-0.19,-0.79],[-0.21,-0.92,0.49,-0.39,-0.55,-0.82],[0.63,0.39,0.17,0.14,0.91,0.35]]; const b2=[-0.15,0.31,0.47,-0.1,-0.1];
-  const o=mlp(inVec,W1,b1,W2,b2);
-  let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOrb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOrb+wWall+1e-6; wEv/=s; wAt/=s; wOrb/=s; wWall/=s; const aimOff=o[4];
-  const atx=(nearest?((nearest.x-tank.x)/Math.max(1e-6,nd)):(ecx/ecd)), aty=(nearest?((nearest.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
-  const mvx=evx*wEv + atx*wAt + obx*wOrb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOrb + wy*wWall; const mvAng=deg(mvx,mvy);
-  if(nearest){ const aim=deg(nearest.x-tank.x,nearest.y-tank.y); const lead=Math.max(-12,Math.min(16,aimOff)); tank.fire(ang(aim+lead)); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+75))){ if(!tank.move(ang(mvAng-75))){ tank.move(Math.random()*360); }}}
+  const t0 = tank.type===0?1:0, t1=tank.type===1?1:0, t2=tank.type===2?1:0;
+  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/150), t0,t1,t2, Math.tanh(nd/400), (nx?((nx.x-tank.x)/Math.max(1,nd)):0), (nx?((nx.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
+  const W1=[[0.1368710860757983,-0.47280779402320944,0.8153932266703439,0.6946445615056468,-0.09962803363219373,0.1600777049545926,-0.4029761038363086,0.45021682963256515,0.7477450700793837,-0.11623777538364907,-0.3463225878066263,0.8513945058666638,-0.8035961141970791,0.11495955681322709,0.23551819085279702,-0.5835406033656027],[-0.26846229550937606,-0.7732915811270104,-0.5883920695588825,0.032753551739739886,0.47001664452040814,-0.39975868998657965,-0.7562972933155279,0.5546745359453099,0.8620485639225094,0.053811852974889565,0.03487782151513927,0.278131363847985,0.8258034482561982,0.6388899369013851,0.39297463433694163,0.40394917271699254],[0.1916168721618944,-0.0972481040366036,0.4731780628739755,0.6183748525419565,-0.19821906204038997,-0.6247481507409092,-0.17628381077755567,0.6846241805010335,0.3994084512764424,-0.8107715134981099,-0.9794712812385014,0.3072817200319682,-0.6320900277246043,0.2838030311709169,-0.8124992050196402,-0.8155688899124921],[0.07145706376726801,0.9645347765495069,0.42220698897406433,-0.18704095984759073,-0.7540028438232309,0.13224461816505606,1.1311109100817571,0.23925480485923578,0.2627227537857155,1.6381652728081444,-0.4094254121744471,-0.0999911171344546,0.45981491502029115,-0.23992866439846564,0.5617824812240477,-0.5262788552922777],[-1.404633657524153,0.12006793809910665,-0.24642545807166932,-0.05387300811485064,0.38105100652128776,0.20978240784537205,-0.20874355609824097,0.5191647834451157,0.7166553902378434,-1.1456199534312572,-0.6079982364427196,0.07158183917343698,-0.24494247907329714,0.6703740743700923,0.00016330331923133934,0.13001971252445937],[-0.9540169323399414,-0.2710755619313487,0.1913024600909668,0.11535293151082068,-0.9965741892130783,0.20936795654732016,0.18316458574093591,0.44868981611046754,0.23318418871078392,-0.3665660291468504,-0.20328377252152163,-0.21351766218734797,-0.7980217307355019,-0.20223250699308493,0.07711722945538052,-0.0002398950083363771]]; const b1=[0.1549629305977611,-0.18051705426207065,0.8597671413751382,-0.0370190871239775,-0.3841774309688012,-0.1918781618483877]; const W2=[[-0.44361249741679565,0.22274866834845347,0.03716081717723424,-0.6263685398276213,-0.7944447703317636,0.5831317072469917],[0.6666125626211357,0.5974518291441685,0.3822060882929085,0.10141963417907268,-0.40215980519142536,-0.3735604389571683],[0.862092186823751,0.21873190241395185,-0.39065001565131374,0.236383483794186,-1.2077491299990573,0.2494726924431627],[-0.2151345741322289,0.5265693389184842,0.11146555374451814,0.6906027212362552,0.34742714279098263,0.5814395218820464],[0.9590337657561365,-0.022396234998402986,-0.651171648130006,1.188437326481467,-0.4672885191676752,-1.079456799028002]]; const b2=[-0.6125719591884592,0.28729394181183293,-0.5907708458398595,-0.35017416765375864,-0.19785085394825822];
+  const o=mlp(inVec,W1,b1,W2,b2); let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOb+wWall+1e-6; wEv/=s; wAt/=s; wOb/=s; wWall/=s; const aimLead=o[4];
+  const atx = (nx?((nx.x-tank.x)/Math.max(1e-6,nd)): (ecx/ecd)), aty=(nx?((nx.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
+  const mvx=evx*wEv + atx*wAt + obx*wOb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOb + wy*wWall; const mvAng=deg(mvx,mvy);
+  if(nx){ const aim=deg(nx.x-tank.x, nx.y-tank.y); const lead=Math.max(-12,Math.min(16,aimLead)); tank.fire(ang(aim+lead)); }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-// --- [4] Bishop (Backline Dealer) ---
-function name(){ return 'Bishop'; }
-function type(){ return Type.DEALER; }
+function name(){return 'Viper';}
+function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
-  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
   function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
   const W=900,H=600;
-  let nearest=null, nd=1e9, low=null, lw=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nearest=e;} if(e.health<lw){lw=e.health; low=e;} ex+=e.x; ey+=e.y; }
-  const target=low||nearest; const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
-  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.045*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
-  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
-  const t0=(tank.type===0?1:0), t1=(tank.type===1?1:0), t2=(tank.type===2?1:0);
-  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/100), t0,t1,t2, Math.tanh(nd/420), (target?((target.x-tank.x)/Math.max(1,nd)):0), (target?((target.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
-  const W1=[[0.18,-0.21,-0.37,0.51,0.29,-0.32,-0.68,0.36,0.62,0.09,-0.71,0.91,0.06,1.08,0.19,-0.14],[-0.36,-0.19,0.15,-0.12,-0.77,0.06,-0.19,0.78,0.71,0.07,0.06,0.11,-1.05,0.09,-0.61,-0.12],[-0.05,-0.61,0.22,0.23,0.36,0.52,-0.06,0.47,-0.22,1.02,-0.39,-0.58,-0.1,0.05,0.1,-0.82],[0.61,0.47,-0.27,0.02,-0.91,0.02,0.08,0.38,-0.31,0.09,0.28,0.01,0.83,0.02,-0.21,0.47],[0.22,0.31,-0.36,0.51,-0.49,-0.68,-0.33,-0.61,-0.46,0.05,-0.26,-0.49,-0.14,0.41,-0.61,-0.18],[-0.26,0.18,-0.26,-0.05,0.62,0.65,-0.28,0.21,-0.72,0.01,-0.68,-0.02,0.89,0.98,0.22,-0.63]]; const b1=[-0.25,0.04,-0.24,0.68,0.42,0.03];
-  const W2=[[0.56,-0.92,0.33,0.56,-0.79,-0.02],[0.78,-0.22,-0.45,0.43,-0.57,0.28],[-0.48,0.25,-0.49,0.05,-0.11,0.23],[0.24,0.02,0.12,-1.01,-0.07,-0.23],[0.93,-0.24,0.33,0.43,0.68,-0.19]]; const b2=[0.71,-0.49,-0.12,-0.1,-0.38];
-  const o=mlp(inVec,W1,b1,W2,b2);
-  let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOrb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOrb+wWall+1e-6; wEv/=s; wAt/=s; wOrb/=s; wWall/=s; const aimOff=o[4];
-  const atx=(target?((target.x-tank.x)/Math.max(1e-6,nd)):(ecx/ecd)), aty=(target?((target.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
-  const mvx=evx*wEv + (-atx)*0.65 + atx*wAt*0.35 + obx*wOrb + wx*wWall; const mvy=evy*wEv + (-aty)*0.65 + aty*wAt*0.35 + oby*wOrb + wy*wWall;
-  const mvAng=deg(mvx,mvy);
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const lead=Math.max(-14,Math.min(18,aimOff)); tank.fire(ang(aim+lead)); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+85))){ if(!tank.move(ang(mvAng-85))){ tank.move(Math.random()*360); }}}
-}
-
-// ===== 다음 로봇 =====
-
-// --- [5] Phalanx (Control Tank) ---
-function name(){ return 'Phalanx'; }
-function type(){ return Type.TANKER; }
-function update(tank,enemies,allies,bulletInfo){
-  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
-  const W=900,H=600;
-  let nearest=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nearest=e;} ex+=e.x; ey+=e.y; }
+  let nx=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nx=e;} ex+=e.x; ey+=e.y; }
   const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
   let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.055*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
-  let wx=0,wy=0; const m=80; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
-  const t0=(tank.type===0?1:0), t1=(tank.type===1?1:0), t2=(tank.type===2?1:0);
-  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/200), t0,t1,t2, Math.tanh(nd/480), (nearest?((nearest.x-tank.x)/Math.max(1,nd)):0), (nearest?((nearest.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
-  const W1=[[0.58,0.12,0.16,0.22,0.31,0.39,-0.51,0.82,0.3,0.22,-0.29,0.51,0.18,0.21,0.33,0.11],[-0.39,0.29,0.06,-0.16,-0.61,0.1,0.86,0.25,0.39,0.59,-0.7,0.33,0.14,-0.2,-0.39,-0.53],[0.18,0.42,-0.26,0.3,-0.16,-0.56,-0.39,-0.17,0.08,0.36,-0.45,-0.15,0.26,-0.13,-0.15,-0.08],[0.1,0.2,0.16,-0.05,0.34,0.4,-0.06,0.14,0.67,0.3,-0.42,0.76,0.05,0.84,-0.06,-0.34],[0.26,-0.1,0.02,0.88,0.23,-0.63,-0.2,-0.11,0.12,0.69,0.39,0.07,0.1,0.51,0.04,-0.07],[-0.1,0.21,0.13,0.39,-0.36,0.26,0.32,0.89,0.2,-0.26,-0.18,0.4,-0.39,-0.8,-0.08,0.3]]; const b1=[0.23,0.4,0.17,-0.02,0.09,0.21];
-  const W2=[[0.17,0.5,0.08,0.26,-0.35,-0.72],[-0.31,0.2,0.4,0.69,0.03,0.52],[0.47,-0.09,0.3,0.6,-0.21,-0.84],[-0.17,-0.96,0.52,-0.39,-0.58,-0.87],[0.68,0.43,0.18,0.15,0.99,0.39]]; const b2=[-0.17,0.33,0.49,-0.11,-0.1];
-  const o=mlp(inVec,W1,b1,W2,b2);
-  let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOrb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOrb+wWall+1e-6; wEv/=s; wAt/=s; wOrb/=s; wWall/=s; const aimOff=o[4];
-  const atx=(nearest?((nearest.x-tank.x)/Math.max(1e-6,nd)):(ecx/ecd)), aty=(nearest?((nearest.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
-  const mvx=evx*wEv + atx*(0.6*wAt) + obx*wOrb + wx*(0.4+wWall); const mvy=evy*wEv + aty*(0.6*wAt) + oby*wOrb + wy*(0.4+wWall);
-  const mvAng=deg(mvx,mvy);
-  if(nearest){ const aim=deg(nearest.x-tank.x,nearest.y-tank.y); const lead=Math.max(-9,Math.min(12,aimOff)); tank.fire(ang(aim+lead)); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+65))){ if(!tank.move(ang(mvAng-65))){ tank.move(Math.random()*360); }}}
+  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
+  const t0 = tank.type===0?1:0, t1=tank.type===1?1:0, t2=tank.type===2?1:0;
+  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/150), t0,t1,t2, Math.tanh(nd/400), (nx?((nx.x-tank.x)/Math.max(1,nd)):0), (nx?((nx.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
+  const W1=[[-0.3754219315077487,0.7863561614066539,-0.2449200028281564,-0.22621283633788436,-0.34439709943988717,0.3219618864785309,0.60668113226585,0.6544940173118359,-0.6266914605319601,-0.14730942591275978,0.6383868163040585,0.9305975132026638,-0.3584350521113247,0.8218460653460934,0.6381057943919933,0.7389266593168183],[0.12255876820241712,-0.12071390872691243,0.22791392684911405,-0.4738565972998643,-0.21830188887388488,-0.04660294790449615,0.6706875730202431,-0.11842238105703091,-0.18883372512608868,0.4782842695988657,-0.8338536935728703,0.43823258827331274,0.7500512128012257,0.08045106744610564,-0.6507199549426984,0.06832115984080472],[0.12259494988921252,0.1607025726718445,-0.18631852556126705,-0.8282910323589516,0.4329276178048028,-0.958762600268567,-0.5832266048459614,-0.210026646074888,0.4295638718173126,0.6267658543082799,-0.12291243146082748,-0.1828983301894043,-0.21469918497638235,0.030314840096673512,-0.19990777957440578,0.8736275069778247],[-0.024127639644411003,0.40084131125165867,0.15753041108637494,0.4925399662859242,0.46196669498831905,0.1381730984265969,-1.0727095135311477,-0.4579252497327328,1.079237052638721,-0.5041672670690579,-0.9912505206905164,0.469229827770442,0.05268867090735632,0.9909662112722077,0.49305611332767324,-0.47539122283311397],[0.3338691294631428,0.057409895511515596,-0.5051833402586898,0.8116429082981352,1.3857994856433673,-0.8857666795388015,-0.34755055700712084,-0.42415832074675097,0.586407065604929,0.20722422164267795,0.2555373142790038,0.18852269867798796,0.2500196040699573,0.09127098232959618,0.388749331065807,0.37262786714452867],[-0.3957589438570554,-0.7793537806155565,0.1767254642947934,0.12261271533777802,0.1392822000743048,0.05646703701748499,0.5242848992311726,0.9153699252218083,-0.2969653568293216,-0.3181942423770878,0.512232414369012,0.11310522019643146,-0.12312296003385483,0.3064277671944352,0.2470743323547319,1.3632784283373625]]; const b1=[-0.17123507924363673,-0.0025430306529752086,0.4310780753660447,0.14397867124612396,0.24235039621965393,-0.11359223216257504]; const W2=[[0.09577917057506338,-0.549615622163095,0.38275418525813487,0.402496392962286,-0.29361314351633266,0.10200585258385891],[-0.1013143283932551,-0.025867448377476454,1.3366734897566288,-0.007302092077804717,-0.8072624845748175,0.20809054703225005],[0.8134240717724744,1.0413203448379504,0.1333286759225329,0.7775005106967239,-0.39933618881053773,-0.27641821156921664],[-0.2987777229929207,-0.24614386747545525,0.6364463439755884,-0.45590035656156924,-0.35311386092562347,-0.9587630575592508],[-0.10897023519755195,0.3186595942867848,-0.3342107940062887,0.41231538755476227,1.0390676581622051,0.5925153791641689]]; const b2=[0.046652730994358516,0.12414012675420748,0.7573949039095239,-0.09043727676549188,0.13995455653699662];
+  const o=mlp(inVec,W1,b1,W2,b2); let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOb+wWall+1e-6; wEv/=s; wAt/=s; wOb/=s; wWall/=s; const aimLead=o[4];
+  const atx = (nx?((nx.x-tank.x)/Math.max(1e-6,nd)): (ecx/ecd)), aty=(nx?((nx.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
+  const mvx=evx*wEv + atx*wAt + obx*wOb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOb + wy*wWall; const mvAng=deg(mvx,mvy);
+  if(nx){ const aim=deg(nx.x-tank.x, nx.y-tank.y); const lead=Math.max(-12,Math.min(16,aimLead)); tank.fire(ang(aim+lead)); }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-// --- [6] Nova (Opportunist Normal) ---
-function name(){ return 'Nova'; }
-function type(){ return Type.NORMAL; }
+function name(){return 'Falcon';}
+function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
-  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
   function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
   const W=900,H=600;
-  let nearest=null, nd=1e9, iso=null, id2=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nearest=e;} let d2=0; for(const f of enemies){ if(f===e) continue; const dx=f.x-e.x, dy=f.y-e.y; d2+=Math.hypot(dx,dy);} if(d2<id2){id2=d2; iso=e;} ex+=e.x; ey+=e.y; }
-  const target=iso||nearest; const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
+  let nx=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nx=e;} ex+=e.x; ey+=e.y; }
+  const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
   let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.06*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
+  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
   let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
-  const t0=(tank.type===0?1:0), t1=(tank.type===1?1:0), t2=(tank.type===2?1:0);
-  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/150), t0,t1,t2, Math.tanh(nd/420), (target?((target.x-tank.x)/Math.max(1,nd)):0), (target?((target.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
-  const W1=[[0.29,0.07,0.13,0.23,0.2,0.34,-0.45,0.88,0.39,-0.39,-0.17,0.6,0.46,0.11,0.46,0.31],[0.36,0.21,0.14,-0.11,-0.86,-0.41,0.85,0.11,0.28,0.46,-0.95,0.17,0.15,-0.4,-0.49,-0.78],[-0.49,0.27,-0.21,0.17,-0.06,-0.78,-0.59,-0.18,0.01,0.35,-0.47,-0.1,0.18,-0.02,-0.2,-0.13],[0.2,0.23,0.1,-0.04,0.28,0.33,-0.05,0.12,0.56,0.26,-0.49,0.77,0.04,0.88,-0.05,-0.3],[-0.21,0.17,-0.01,0.89,0.28,-0.69,-0.22,-0.14,0.11,0.76,0.44,0.07,0.09,0.48,0.03,-0.08],[0.53,-0.5,0.1,0.42,-0.49,0.37,0.39,0.91,0.27,-0.39,-0.32,0.45,-0.47,-0.8,-0.08,0.42]]; const b1=[0.1,0.37,0.14,-0.06,0.11,0.18];
-  const W2=[[0.11,0.39,0.04,0.21,-0.32,-0.59],[-0.36,0.17,0.34,0.58,0.04,0.46],[0.43,-0.06,0.27,0.54,-0.18,-0.76],[-0.2,-0.88,0.47,-0.37,-0.53,-0.79],[0.6,0.37,0.16,0.13,0.88,0.34]]; const b2=[-0.14,0.3,0.45,-0.09,-0.09];
-  const o=mlp(inVec,W1,b1,W2,b2);
-  let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOrb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOrb+wWall+1e-6; wEv/=s; wAt/=s; wOrb/=s; wWall/=s; const aimOff=o[4];
-  const atx=(target?((target.x-tank.x)/Math.max(1e-6,nd)):(ecx/ecd)), aty=(target?((target.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
-  const mvx=evx*wEv + atx*wAt + obx*wOrb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOrb + wy*wWall; const mvAng=deg(mvx,mvy);
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const lead=Math.max(-12,Math.min(16,aimOff)); tank.fire(ang(aim+lead)); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+78))){ if(!tank.move(ang(mvAng-78))){ tank.move(Math.random()*360); }}}
+  const t0 = tank.type===0?1:0, t1=tank.type===1?1:0, t2=tank.type===2?1:0;
+  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/150), t0,t1,t2, Math.tanh(nd/400), (nx?((nx.x-tank.x)/Math.max(1,nd)):0), (nx?((nx.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
+  const W1=[[-1.943528279665471,-0.7871729028949837,0.2136352651665665,-0.45085312112691345,-0.43218549964207204,-0.3626476128535957,-0.30182665064502084,-0.1632598712926242,-0.5812170327607513,0.04451862586143819,-1.2784486337004486,0.6478856405289559,-0.23447963435087849,-0.13744871427722521,-0.5116890269699245,0.8827901317629463],[-0.692811386293694,-0.820679282944659,-0.3451463949869983,0.05766356918446992,-0.6180770287680464,-0.023710270693669905,-0.37084992397282646,0.1998431609458467,-0.4395743369535426,-0.3137396792061722,0.1747108814937003,0.11115432196775625,-0.7424759980817912,0.862356262749419,-0.21300529347579622,-0.7599428788715991],[0.20308315994984721,-0.4547640380416849,0.4476755662584853,-0.2675604689783935,-0.09338901779159456,0.5187564986417316,-0.03335837629076191,0.3094089339353637,0.49111141415417836,0.05212759101815817,0.4115844535316157,-0.19608343177296242,-0.0008421479410198954,0.15284852067575116,0.04849236964997111,-0.5095742286597765],[-0.32490071293956096,-0.07888920096736085,-0.34115616936354887,0.3847244155312124,-1.0732899449906645,-0.0015310053082046027,-0.3852378591968852,0.6466939489233727,-0.5127044591707652,-0.2785213934487993,-0.1622254928072262,0.7267366192373523,0.21671926996618296,0.19960161366613552,-0.7848612374723039,0.02497956503741472],[0.8263243835395151,-0.18280545375206086,-0.3241270870524696,0.445436699077173,-0.6085160599593847,-0.2936944272152925,-0.23083376066491465,-1.0644600774693596,-0.47991128130257865,-0.7037624809132232,-0.02915587755672462,-0.3197851317839522,0.18748482757108348,-0.32633685266191537,0.651724221079524,0.3842417473840215],[0.16144569177012277,0.5543095383905317,-0.9215186452963011,0.3597169777304391,1.1933382591386559,1.0842467285842445,0.06475940370979172,0.003304562873851835,-0.07100378802076804,0.6070196566503278,-0.4233349449742537,0.8481451296070611,0.6285797261570674,0.23783848478241368,0.6112078587286119,-1.2599677835449807]]; const b1=[-0.07725374337778612,0.45364382622503713,-0.4421488821018002,-0.5686208514034361,0.14243655834677071,-0.4264292989204861]; const W2=[[0.5512356718981094,-0.39436243410138105,0.04611380911889354,0.35003001269749223,-0.7537053116102113,0.2537810467013236],[-0.3571111007418469,-0.6508310437098881,-0.19064965979854928,0.4028244508141179,-0.042512364072601325,0.6702597521766456],[-0.6486915211686471,0.19651474622750942,-0.14234323850292877,-0.3620938877034563,-0.985936760661286,-0.11070076409766492],[0.20414332678224467,-0.23572506226310797,-0.06396219973356326,-0.2523508401613659,0.15626177168870894,0.019087408660711472],[0.1393867865432524,-0.7812915260315692,0.15414520015047578,-0.7484777593166545,0.5213386197032596,-0.7720772320866712]]; const b2=[0.2612010956302729,-0.05570429009714081,-0.42637694936465875,0.1455761282563191,0.7481486764620552];
+  const o=mlp(inVec,W1,b1,W2,b2); let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOb+wWall+1e-6; wEv/=s; wAt/=s; wOb/=s; wWall/=s; const aimLead=o[4];
+  const atx = (nx?((nx.x-tank.x)/Math.max(1e-6,nd)): (ecx/ecd)), aty=(nx?((nx.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
+  const mvx=evx*wEv + atx*wAt + obx*wOb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOb + wy*wWall; const mvAng=deg(mvx,mvy);
+  if(nx){ const aim=deg(nx.x-tank.x, nx.y-tank.y); const lead=Math.max(-12,Math.min(16,aimLead)); tank.fire(ang(aim+lead)); }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
+// ===== 다음 로봇 =====
+
+function name(){return 'Raptor';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
+  const W=900,H=600;
+  let nx=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nx=e;} ex+=e.x; ey+=e.y; }
+  const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
+  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
+  const t0 = tank.type===0?1:0, t1=tank.type===1?1:0, t2=tank.type===2?1:0;
+  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/150), t0,t1,t2, Math.tanh(nd/400), (nx?((nx.x-tank.x)/Math.max(1,nd)):0), (nx?((nx.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
+  const W1=[[-1.943528279665471,-0.7871729028949837,0.2136352651665665,-0.45085312112691345,-0.43218549964207204,-0.3626476128535957,-0.30182665064502084,-0.1632598712926242,-0.5812170327607513,0.04451862586143819,-1.2784486337004486,0.6478856405289559,-0.23447963435087849,-0.13744871427722521,-0.5116890269699245,0.8827901317629463],[-0.692811386293694,-0.820679282944659,-0.3451463949869983,0.05766356918446992,-0.6180770287680464,-0.023710270693669905,-0.37084992397282646,0.1998431609458467,-0.4395743369535426,-0.3137396792061722,0.1747108814937003,0.11115432196775625,-0.7424759980817912,0.862356262749419,-0.21300529347579622,-0.7599428788715991],[0.20308315994984721,-0.4547640380416849,0.4476755662584853,-0.2675604689783935,-0.09338901779159456,0.5187564986417316,-0.03335837629076191,0.3094089339353637,0.49111141415417836,0.05212759101815817,0.4115844535316157,-0.19608343177296242,-0.0008421479410198954,0.15284852067575116,0.04849236964997111,-0.5095742286597765],[-0.32490071293956096,-0.07888920096736085,-0.34115616936354887,0.3847244155312124,-1.0732899449906645,-0.0015310053082046027,-0.3852378591968852,0.6466939489233727,-0.5127044591707652,-0.2785213934487993,-0.1622254928072262,0.7267366192373523,0.21671926996618296,0.19960161366613552,-0.7848612374723039,0.02497956503741472],[0.8263243835395151,-0.18280545375206086,-0.3241270870524696,0.445436699077173,-0.6085160599593847,-0.2936944272152925,-0.23083376066491465,-1.0644600774693596,-0.47991128130257865,-0.7037624809132232,-0.02915587755672462,-0.3197851317839522,0.18748482757108348,-0.32633685266191537,0.651724221079524,0.3842417473840215],[0.16144569177012277,0.5543095383905317,-0.9215186452963011,0.3597169777304391,1.1933382591386559,1.0842467285842445,0.06475940370979172,0.003304562873851835,-0.07100378802076804,0.6070196566503278,-0.4233349449742537,0.8481451296070611,0.6285797261570674,0.23783848478241368,0.6112078587286119,-1.2599677835449807]]; const b1=[-0.07725374337778612,0.45364382622503713,-0.4421488821018002,-0.5686208514034361,0.14243655834677071,-0.4264292989204861]; const W2=[[0.5512356718981094,-0.39436243410138105,0.04611380911889354,0.35003001269749223,-0.7537053116102113,0.2537810467013236],[-0.3571111007418469,-0.6508310437098881,-0.19064965979854928,0.4028244508141179,-0.042512364072601325,0.6702597521766456],[-0.6486915211686471,0.19651474622750942,-0.14234323850292877,-0.3620938877034563,-0.985936760661286,-0.11070076409766492],[0.20414332678224467,-0.23572506226310797,-0.06396219973356326,-0.2523508401613659,0.15626177168870894,0.019087408660711472],[0.1393867865432524,-0.7812915260315692,0.15414520015047578,-0.7484777593166545,0.5213386197032596,-0.7720772320866712]]; const b2=[0.2612010956302729,-0.05570429009714081,-0.42637694936465875,0.1455761282563191,0.7481486764620552];
+  const o=mlp(inVec,W1,b1,W2,b2); let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOb+wWall+1e-6; wEv/=s; wAt/=s; wOb/=s; wWall/=s; const aimLead=o[4];
+  const atx = (nx?((nx.x-tank.x)/Math.max(1e-6,nd)): (ecx/ecd)), aty=(nx?((nx.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
+  const mvx=evx*wEv + atx*wAt + obx*wOb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOb + wy*wWall; const mvAng=deg(mvx,mvy);
+  if(nx){ const aim=deg(nx.x-tank.x, nx.y-tank.y); const lead=Math.max(-12,Math.min(16,aimLead)); tank.fire(ang(aim+lead)); }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return 'Sage';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
+  const W=900,H=600;
+  let nx=null, nd=1e9, ex=0,ey=0; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nx=e;} ex+=e.x; ey+=e.y; }
+  const ecx=(ex/Math.max(1,enemies.length)||tank.x)-tank.x, ecy=(ey/Math.max(1,enemies.length)||tank.y)-tank.y; const ecd=Math.hypot(ecx,ecy)+1e-6;
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} ax/=Math.max(1,allies.length); ay/=Math.max(1,allies.length); const acx=(ax||tank.x)-tank.x, acy=(ay||tank.y)-tank.y; const acd=Math.hypot(acx,acy)+1e-6;
+  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
+  const t0 = tank.type===0?1:0, t1=tank.type===1?1:0, t2=tank.type===2?1:0;
+  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/150), t0,t1,t2, Math.tanh(nd/400), (nx?((nx.x-tank.x)/Math.max(1,nd)):0), (nx?((nx.y-tank.y)/Math.max(1,nd)):0), ecx/ecd, ecy/ecd, acx/acd, acy/acd, Math.tanh(th), wx, wy ];
+  const W1=[[-1.943528279665471,-0.7871729028949837,0.2136352651665665,-0.45085312112691345,-0.43218549964207204,-0.3626476128535957,-0.30182665064502084,-0.1632598712926242,-0.5812170327607513,0.04451862586143819,-1.2784486337004486,0.6478856405289559,-0.23447963435087849,-0.13744871427722521,-0.5116890269699245,0.8827901317629463],[-0.692811386293694,-0.820679282944659,-0.3451463949869983,0.05766356918446992,-0.6180770287680464,-0.023710270693669905,-0.37084992397282646,0.1998431609458467,-0.4395743369535426,-0.3137396792061722,0.1747108814937003,0.11115432196775625,-0.7424759980817912,0.862356262749419,-0.21300529347579622,-0.7599428788715991],[0.20308315994984721,-0.4547640380416849,0.4476755662584853,-0.2675604689783935,-0.09338901779159456,0.5187564986417316,-0.03335837629076191,0.3094089339353637,0.49111141415417836,0.05212759101815817,0.4115844535316157,-0.19608343177296242,-0.0008421479410198954,0.15284852067575116,0.04849236964997111,-0.5095742286597765],[-0.32490071293956096,-0.07888920096736085,-0.34115616936354887,0.3847244155312124,-1.0732899449906645,-0.0015310053082046027,-0.3852378591968852,0.6466939489233727,-0.5127044591707652,-0.2785213934487993,-0.1622254928072262,0.7267366192373523,0.21671926996618296,0.19960161366613552,-0.7848612374723039,0.02497956503741472],[0.8263243835395151,-0.18280545375206086,-0.3241270870524696,0.445436699077173,-0.6085160599593847,-0.2936944272152925,-0.23083376066491465,-1.0644600774693596,-0.47991128130257865,-0.7037624809132232,-0.02915587755672462,-0.3197851317839522,0.18748482757108348,-0.32633685266191537,0.651724221079524,0.3842417473840215],[0.16144569177012277,0.5543095383905317,-0.9215186452963011,0.3597169777304391,1.1933382591386559,1.0842467285842445,0.06475940370979172,0.003304562873851835,-0.07100378802076804,0.6070196566503278,-0.4233349449742537,0.8481451296070611,0.6285797261570674,0.23783848478241368,0.6112078587286119,-1.2599677835449807]]; const b1=[-0.07725374337778612,0.45364382622503713,-0.4421488821018002,-0.5686208514034361,0.14243655834677071,-0.4264292989204861]; const W2=[[0.5512356718981094,-0.39436243410138105,0.04611380911889354,0.35003001269749223,-0.7537053116102113,0.2537810467013236],[-0.3571111007418469,-0.6508310437098881,-0.19064965979854928,0.4028244508141179,-0.042512364072601325,0.6702597521766456],[-0.6486915211686471,0.19651474622750942,-0.14234323850292877,-0.3620938877034563,-0.985936760661286,-0.11070076409766492],[0.20414332678224467,-0.23572506226310797,-0.06396219973356326,-0.2523508401613659,0.15626177168870894,0.019087408660711472],[0.1393867865432524,-0.7812915260315692,0.15414520015047578,-0.7484777593166545,0.5213386197032596,-0.7720772320866712]]; const b2=[0.2612010956302729,-0.05570429009714081,-0.42637694936465875,0.1455761282563191,0.7481486764620552];
+  const o=mlp(inVec,W1,b1,W2,b2); let wEv=Math.max(0,o[0]), wAt=Math.max(0,o[1]), wOb=Math.max(0,o[2]), wWall=Math.max(0,o[3]); const s=wEv+wAt+wOb+wWall+1e-6; wEv/=s; wAt/=s; wOb/=s; wWall/=s; const aimLead=o[4];
+  const atx = (nx?((nx.x-tank.x)/Math.max(1e-6,nd)): (ecx/ecd)), aty=(nx?((nx.y-tank.y)/Math.max(1e-6,nd)):(ecy/ecd)); const obx=-aty, oby=atx;
+  const mvx=evx*wEv + atx*wAt + obx*wOb + wx*wWall, mvy=evy*wEv + aty*wAt + oby*wOb + wy*wWall; const mvAng=deg(mvx,mvy);
+  if(nx){ const aim=deg(nx.x-tank.x, nx.y-tank.y); const lead=Math.max(-12,Math.min(16,aimLead)); tank.fire(ang(aim+lead)); }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
+}
