@@ -178,3 +178,9 @@
 ### 2025-09-05T08-18-08Z
 - NOTE.md 업데이트 (학습 전략).
 - train_roles 기반 장기 학습 예정.
+## 2025-09-05T08:27Z
+- 실행: `GENS=8 node scripts/train_roles.js`
+- 결과: baseline 상대로 12전 12승 0무, avgEndTick≈254.1
+- 최종 역할: [NORMAL, TANKER, NORMAL, DEALER, DEALER, DEALER] (내부값: [0,1,0,2,2,2])
+- 산출물: result/ai.txt 갱신(6개 탱크 NN 정책, Import 구분자 포함)
+- 로그: `.agent/log/*train_roles-gen-*.json`, `*train_roles-final.json`

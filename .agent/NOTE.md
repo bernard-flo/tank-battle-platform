@@ -16,8 +16,9 @@
   - 검증: `node scripts/sim/run.js` 실행 시 `.agent/log/*selfplay-summary.json` 생성
   - 팁: 더 강한 탐색을 위해 `GENS=24` 이상 실행 후 상위 엘리트만 이어붙여도 됨.
   - 평가 다양화: baseline 외 미러전(bundleA vs bundleA)과 랜덤 시드 확장을 섞어 과적합 방지.
-  - 역할 조합 탐색: `scripts/train_roles.js` 추가 (모델 파라미터 + 6슬롯 역할(Type) 배열을 함께 진화). 실행 예: `GENS=16 node scripts/train_roles.js`
+- 역할 조합 탐색: `scripts/train_roles.js` 추가 (모델 파라미터 + 6슬롯 역할(Type) 배열을 함께 진화). 실행 예: `GENS=16 node scripts/train_roles.js`
     - 결과는 동일하게 `result/ai.txt`에 저장, 로그는 `.agent/log/*train_roles*.json` 생성
+    - 빠른 검증: baseline 상대로 12전, 시드 다양화로 평균 종료 틱 확인. 장시간은 `GENS>=24` 권장.
 - 경로 주의
   - 절대경로/상대경로 혼동 방지: `process.cwd()` 기준으로 `result/ai.txt`를 해석 (train2는 이미 반영)
   - Docker/CI에서도 동일 동작. 로컬과 경로 차이 없음.
@@ -60,6 +61,13 @@
 - 결과: baseline 상대로 80/80 승, avgEndTick≈243.1, 역할 조합은 자동 탐색 결과값 사용
 - 산출물: `result/ai.txt`(6개 탱크, Import 구분자 포함) 갱신, 플랫폼 임포트 즉시 가능
 - 검증/로그: `.agent/log/*selfplay-summary.json`, 제너레이션 요약 `.agent/log/*train_roles*`
+
+### 이번 실행 스냅샷 (2025-09-05T08:27Z)
+- 사용 스크립트: `scripts/train_roles.js`
+- 파라미터: `GENS=8`
+- 결과: baseline 12전 12승, avgEndTick≈254.1
+- 역할: [NORMAL, TANKER, NORMAL, DEALER, DEALER, DEALER]
+- 산출물: `result/ai.txt` 갱신(6개 탱크 NN 정책), Import 구분자 포함
 
 ### 이번 실행 스냅샷 (2025-09-05T07:11Z)
 - 사용 스크립트: `scripts/train_roles.js` (역할+가중치 동시 진화)
@@ -187,4 +195,3 @@
 - 평가 seeds 확대, 세대 수 증가로 성능 개선 시도.
 - 결과물은 result/ai.txt, 로그는 .agent/log/*.json.
 - tank_battle_platform.html 변경 금지 준수.
-
