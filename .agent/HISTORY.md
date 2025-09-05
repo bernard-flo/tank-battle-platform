@@ -231,3 +231,9 @@
 - 로그: `.agent/log/*train_roles-run.out`, `*selfplay-summary.json`, `*ai-pack-summary.md` 업데이트.
 [2025-09-05T09-53-25+00-00] 초기 6개 신경망 기반 탱크 코드 생성 및 result/ai.txt 추가. 탱커 2, 딜러 2, 노말 2 조합. 상태 저장 없이 관측 기반 정책.
 [2025-09-05T09-56-18+00-00] 진화 탐색(train_roles)으로 result/ai.txt 갱신. 셀프플레이 50전: 50승 0패 0무, 평균 종료틱 267.5.
+
+## ${ts}
+- train2.js로 진화형 자가플레이 학습 수행 (GENS=10, POP=12, SEEDS=10)
+- result/ai.txt 갱신: 6개 로봇 코드(Atlas, Bulwark, Viper, Falcon, Raptor, Sage)
+- .agent/log 에 세대별 요약 JSON 및 콘솔 로그 저장
+- .scratchpad 에 현재 ai 번들 백업 저장
