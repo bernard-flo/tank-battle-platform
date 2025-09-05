@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-09-05T11:01:44Z",
+  "script": "scripts/train_roles.js",
+  "params": { "GENS": 16, "POP": 20, "ELITE": 5, "seeds": 12 },
+  "result": {
+    "wins": 12,
+    "draws": 0,
+    "avgTick": 260.2,
+    "roles_internal": [2,1,1,2,0,2],
+    "roles_named": ["DEALER","TANKER","TANKER","DEALER","NORMAL","DEALER"]
+  },
+  "artifact": "result/ai.txt",
+  "notes": "ai.txt는 tank_battle_platform.html의 Import 모달에 그대로 붙여넣어 6봇 자동 분할됨"
+}
