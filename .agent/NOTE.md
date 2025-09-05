@@ -1,63 +1,28 @@
-개발 메모 (지속 참고)
+프로젝트 운영 메모 (지속 참고)
 
-- AI 코드 인터페이스
-  - 반드시 `function name()`, `function type()`, `function update(tank, enemies, allies, bulletInfo)`를 포함.
-  - `type()`은 `Type.NORMAL | Type.TANKER | Type.DEALER` 중 반환.
-  - Import는 `function name()`으로 블록을 분할하므로 각 로봇은 해당 함수로 시작.
+1) 플랫폼 제약 정리
+- tank_battle_platform.html은 절대 수정 금지. 코드 주입은 텍스트에어리어를 통해서만.
+- 매 프레임마다 사용자 코드(tank.code)가 new Function으로 재구성/실행됨.
+  → 전역/정적 상태는 프레임 간 유지되지 않음. 학습/메모리는 런타임 내 누적 불가.
+- update(tank, enemies, allies, bulletInfo)에서 제공되는 API만 사용 가능.
+  - tank: {move(angleDeg), fire(angleDeg), x, y, health, energy, type, size} (Object.freeze)
+  - enemies/allies: 위치/거리/체력 등만 제공. 적/아군 속도는 없음.
+  - bulletInfo: 적 탄의 x,y,vx,vy 포함. 회피는 가능.
 
-- 입력/출력 포맷(현재 NN 설계)
-  - 입력(48차원): self(4) + 원핫 타입(3) + 적 3명 x 6특징 + 아군 2명 x 4특징 + 총알 3개 x 5특징
-  - 출력(5차원): [move_cos, move_sin, fire_cos, fire_sin, fire_prob]
-  - 활성화: 0..3 tanh, 4 sigmoid
-  - 이동/사격 각도는 `atan2(sin, cos)` 후 degree 변환
-  - 이동 실패시 보정 각도로 재시도(장애물/경계 대응)
+2) AI 설계 방침
+- 온라인 학습 불가 → 오프라인에서 가중치 산출 후 고정 탑재.
+- 의사결정은 소형 MLP(1~2층)로 특징→가중치→계수 산출, 계수로 회피/전진/공전 등 벡터 합성.
+- 역할 분담: 2 탱커(전진·차단), 3 딜러(원거리·공전·카이팅), 1 서포트(아군 뒤에서 화력 지원).
+- 회피 로직: 탄의 진행 방향과 상대 위치 기반 수직 회피 벡터를 가중합.
+- 사격: 최근접/저체력 우선, 약한 선두 보정(탄속=8, 상대 이동 불명 → 보정 각도 제한).
 
-- 안전 샌드박스 제약
-  - 사용할 수 있는 API: `tank.move(angle)`, `tank.fire(angle)`, `tank.{x,y,health,energy,type,size}`
-  - `enemies/allies`는 `{x,y,distance,health}`(enemy는 angle 포함)만 사용 가능
-  - `bulletInfo`는 `{x,y,vx,vy,distance}`
+3) 향후 고도화 계획
+- 오프라인 셀프플레이 시뮬레이터 제작 → 유전/강화학습(PBT, NES 등)로 가중치 탐색.
+- 시뮬레이터는 현재 물리/충돌/탄속 규칙을 최대한 동일 구현 권장.
+- 타입 조합 자동 탐색(탱커/딜러 비율, 역할별 가중치 세트 동시 최적화).
+- 결과물은 result/ai.txt로 내보내고, 버전과 seed, 점수 메타데이터를 함께 기록.
 
-- 탱크 타입 구성 가이드 (AI Pack v7.1)
-  - 2x TANKER: Shield-Tanker, Anchor-Tanker
-  - 2x NORMAL: Coordinator-Normal, Skirmisher-Normal
-  - 2x DEALER: Reaper-Dealer, Hawk-Dealer
-  - 각 봇은 동일한 입력 스키마를 사용하되 역할별 가중치/발사 임계치가 상이
-  - v7.1: 이동 실패 시 `move(fire)` 최종 보정을 추가해 막힘 해소율 개선
+4) 사용법 메모
+- tank_battle_platform.html 실행 → Import 버튼에서 result/ai.txt 전체 내용 붙여넣기 → 팀별 적용.
+- 코드 구분은 function name() 경계로 자동 분할됨.
 
-- 향후 개선 아이디어
-  - 시뮬레이터를 Node 환경에서 재현해 자가전 학습(RL) 루프 구현
-  - 진화전략/베이지안 최적화로 가중치 자동 탐색
-  - LSTM 계층을 추가해 예측 이동 강화(총알/적 이동 예측)
-  - import/export 포맷 그대로 유지하여 역호환성 유지
-
-AI Pack 사용법 (요약)
-- 경로: `result/ai.txt`
-- 플랫폼에서 "Import" 버튼 클릭 → `ai.txt` 전체 내용을 붙여넣기
-- 블록 구분 주석 `// ===== 다음 로봇 =====`는 가독성용이며, Import는 `function name()` 기준으로 자동 분할됨
-
-버전 표기
-- 현재 배포: AI Pack v7.1 (6 tanks, NN-based)
-
-[현재 배포 탱크 목록]
-- Shield-Tanker (TANKER)
-- Anchor-Tanker (TANKER)
-- Coordinator-Normal (NORMAL)
-- Skirmisher-Normal (NORMAL)
-- Reaper-Dealer (DEALER)
-- Hawk-Dealer (DEALER)
-
-[Import 가이드 재확인]
-- Import는 `function name()` 기준으로 코드 블록을 자동 분할함
-- `// ===== 다음 로봇 =====` 구분 주석은 가독성용 (있어도/없어도 동작 동일)
-- 각 블록은 최소 `name()`, `type()`, `update(...)` 세 함수를 포함해야 함
-
-[다음 실행을 위한 TODO]
-- .scratchpad/rl_todo.md 진행 (시뮬레이터 분리, 파라미터 검색 루프)
-- 유전/랜덤 탐색으로 가중치 튠 스크립트 초안 작성
-- tank_battle_platform.html은 수정 금지. Import는 function name() 경계로 분할됨.
-v7: 6개 NN 에이전트, 역할 조합: 2 TANKER, 2 NORMAL, 2 DEALER
-
-시뮬레이터 사용법
-- 실행: `node scripts/sim/run.js` 또는 `MATCHES=200 node scripts/sim/run.js`
-- 출력: 콘솔 및 `.agent/log/*-selfplay-summary.json`
-- 엔진: tick 기반 쿨다운(10틱=500ms), 경계/충돌 체크는 HTML과 동일 로직 유지
