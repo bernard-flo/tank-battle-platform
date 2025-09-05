@@ -68,3 +68,28 @@
   3) `result/ai.txt` 자동 갱신 파이프라인과 성능 로그 `.agent/log/*-selfplay-summary.json` 연동
   4) 프레임 비영속성 극복용 특성: 벽/탄/군집 기반 반응형 정책 고도화
 - 주의: HTML은 수정 불가, Import 형식만 준수해 갱신.
+### Tank AI 번들 구조 (tank_battle_platform.html 호환)
+- 각 로봇은 `function name()`, `function type()`, `function update(tank,enemies,allies,bulletInfo)` 3개 함수로 구성됨.
+- 여러 로봇 코드는 `function name()`을 기준으로 분리되며, 중간 구분 주석은 없어도 됨.
+- `Type` 상수: `Type.NORMAL`, `Type.TANKER`, `Type.DEALER`.
+
+### 학습/평가 스크립트 개요
+- `scripts/sim/engine.js`: HTML 규칙을 근사한 노드용 시뮬레이터. self-play 평가에 사용.
+- `scripts/train.js`, `scripts/train2.js`: 3개 역할별(탱커/딜러/노말) 공유 모델을 진화적 탐색으로 최적화.
+- `scripts/train_roles.js`: 역할(6슬롯의 탱크 타입 배열)까지 함께 탐색. 성능이 우수함.
+
+### 실행 방법 요약
+- 빠른 학습(예: 8세대): `GENS=8 node scripts/train_roles.js`
+- 더 강한 정책을 위해 세대를 늘릴 수 있음: `GENS=24` 이상 권장. 수행시간 증가 주의.
+- 출력: `result/ai.txt`로 내보내며, HTML Import 모달에 그대로 붙여넣어 사용.
+
+### 신경망/피처링
+- MLP(D=16 → H=6 → O=5): 출력은 [회피, 공격, 공전, 벽압] 가중치 + 사격 리드각.
+- 입력 피처: 위치/체력/타입 원핫/최근접 적 벡터/적 센트로이드/아군 센트로이드/탄 회피장/벽 압력.
+- `update` 내에서 한 번의 전진계산으로 이동 벡터와 사격각 결정. 이동 실패 시 보조 각도로 재시도(최대 10회 제약 대응).
+
+### 향후 개선 메모
+- 평가 다양화: 랜덤 시드/초기 배치 변이/상대 AI 풀 확장.
+- 다목표 적합도: 생존 수, 에너지 합, 평균 종결틱을 조합해 학습 안정화.
+- 모델 확대: H 증대 또는 2층 MLP, 혹은 역할별 전용 헤드 추가.
+- 온라인/하이브리드 파인튜닝: 브라우저 리플레이로 수집한 전투 로그를 오프라인 적합도에 반영.

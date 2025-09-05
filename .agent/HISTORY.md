@@ -69,3 +69,8 @@
 - Neuro-Tank Pack v1 작성 및 배포:  6개 로봇(Aegis, Valkyrie, Orion, Bishop, Phalanx, Nova)
 - 각 로봇은 16→6→5 MLP 기반 정책으로 탄 회피/돌진/공전/벽 회피 혼합 이동 + 사격 오프셋 출력
 - 에 설계와 Import 규격, 향후 학습 계획 기록
+## 2025-09-05T05-41-37Z
+- scripts/train_roles.js를 GENS=8로 실행하여 역할 조합을 포함한 진화학습 수행
+- result/ai.txt를 최신 6탱크 신경망 번들로 갱신 (Atlas, Bulwark, Viper, Falcon, Raptor, Sage)
+- .agent/log에 학습 제너레이션 로그 자동 기록됨
+- 변경사항 커밋 완료
