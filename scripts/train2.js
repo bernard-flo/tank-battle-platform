@@ -51,7 +51,9 @@ function train(){
   }
   // write outputs
   const outPath=path.resolve(__dirname,'../..','result/ai.txt'); fs.writeFileSync(outPath, best.bundle);
-  fs.writeFileSync(path.join(logDir, `${nowISO()}-train2-final.json`), JSON.stringify({score:best.score,wins:best.wins,draws:best.draws,avgTick:Number(best.avgTick.toFixed(1))},null,2));
+  const final = {score:best.score,wins:best.wins,draws:best.draws,avgTick:Number(best.avgTick.toFixed(1))};
+  fs.writeFileSync(path.join(logDir, `${nowISO()}-train2-final.json`), JSON.stringify(final,null,2));
+  console.log('[train] write-done', { outPath, ...final });
 }
 
 if(require.main===module){ train(); }
