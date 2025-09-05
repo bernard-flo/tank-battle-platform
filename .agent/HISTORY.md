@@ -102,3 +102,9 @@
 - 성능: baseline 12전 12승, avgTick≈287.8
 - 로그: .agent/log/2025-09*-ai-pack-rl-gen18-summary.md 
 ## 2025-09-05T06:28:11Z\n- train_roles(12세대) 실행 → result/ai.txt 갱신\n- 성능: baseline 12전 12승, avgTick≈263.5\n- 역할: [NORMAL, DEALER, TANKER, DEALER, DEALER, DEALER]\n
+
+## ${NOW}
+- train_roles 16세대 추가 수행 및 최적 번들 업데이트
+- 최종 역할: [TANKER, DEALER, TANKER, DEALER, DEALER, NORMAL] (내부: [1,2,1,2,2,0])
+- 성능: baseline 12전 12승, 자가평가 50전 50승 0패 0무, avgEndTick≈260.4
+- 산출물: result/ai.txt 갱신, 로그: .agent/log/*train_roles* 및 *selfplay-summary.json 생성
