@@ -1,7 +1,10 @@
-다음 실행 제안
+# Next Steps (Training & Evaluation)
 
-- 장시간 역할 동시학습: GENS=32~48로 확장, SIGMA schedule 완만화
-- 상대 풀 다양화: baseline 외에 현재 최적 번들의 미러전, 과거 챔프 번들 아카이브 상대로 평가
-- 구조 탐색: 은닉 H=8~12 확대 실험, 출력에 strafe/stop 신호 추가 실험 분기
-- 파라미터 고정/공유 실험: 리드샷 범위 클램프(-12~16)는 유지, 벽 회피 여백(m) 조정(50~80)
-- CI: 매 실행마다 .agent/log에 요약 파일 생성, result/ai.txt 무결성 체크(6블록 존재 여부)
+- Increase GENS to 24~48 for `train_roles.js` when time allows.
+- Expand evaluation seeds: use 1000~1099 for more robust averaging.
+- Opponent pool: add mirror matches (bundle vs bundle) and random role shuffles.
+- Multi-objective: combine win rate with average remaining team energy.
+- Try wider hidden layer (h=8~10) and slight L2 regularization on weights.
+- Persist top-3 elites and rotate into self-play pool.
+- Add quick smoke test script to ensure `result/ai.txt` parses into 6 robots.
+
