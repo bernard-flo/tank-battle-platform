@@ -15,3 +15,8 @@ sim:
 train2:
 	GENS?=6
 	GENS=$(GENS) node scripts/train2.js
+
+.PHONY: train_roles
+train_roles:
+	GENS?=8
+	GENS=$(GENS) node scripts/train_roles.js
