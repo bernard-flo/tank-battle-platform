@@ -1,6 +1,11 @@
-# Next Steps
-- train2.js 경로 정리: outPath를 프로젝트 `result/ai.txt`로 확정 (`process.cwd()` 기반) 수정
-- 더 다양한 상대(RL curriculum): baseline 이외 mirror/self-play, 랜덤 가중치 패키지, 과거 최적 상대로 평가
-- MLP 확장: 출력에 fire decision 확률/threshold 추가, 팀 전술 신호(feature) 도입
-- GPU 사용 시 배치 시뮬 확장 (현재는 CPU로도 충분)
-- HTML 플랫폼에 import 시 문서화된 구분자와 포맷 유지하도록 체크
+# Next Steps (Alpha-MLP Pack v0.1)
+- 목표: 시뮬레이터 기반 셀프플레이 → 진화탐색으로 MLP 가중 최적화
+- 해야 할 일
+  1) 브라우저 엔진을 축약한 Node 시뮬레이터(`scripts/sim/*`) 작성
+  2) 평가 함수(생존수/남은 체력/딜량/라운드시간) 설계
+  3) 유전탐색 루프(`scripts/train.js`): 변이/선택, 다중 시드
+  4) 최상 개체 번들 `result/ai.txt`에 저장, 로그는 `.agent/log/*`
+- 구현 팁
+  - 플랫폼 입력/출력 스펙 동일 유지: `name/type/update` 3함수 번들
+  - 안전을 위해 Node 시뮬에서 sandbox된 `Type`/`tankAPI`만 노출
+  - 회피/공격/응집/벽 벡터 계산 일치시켜 온라인/오프라인 동작 차이를 최소화
