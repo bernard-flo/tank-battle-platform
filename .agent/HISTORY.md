@@ -64,3 +64,8 @@
 - 역할(type) 조합까지 함께 최적화하는 학습 스크립트 추가: `scripts/train_roles.js`
 - NOTE 업데이트: train_roles 사용법/로그 경로 명시, 역할 조합 탐색 항목 추가
 - 다음 단계: `GENS=16 node scripts/train_roles.js`로 역할+가중치 동시 진화 수행 후 성능 검증 및 `result/ai.txt` 갱신 계획
+
+## 2025-09-05T05-35-50Z
+- Neuro-Tank Pack v1 작성 및 배포:  6개 로봇(Aegis, Valkyrie, Orion, Bishop, Phalanx, Nova)
+- 각 로봇은 16→6→5 MLP 기반 정책으로 탄 회피/돌진/공전/벽 회피 혼합 이동 + 사격 오프셋 출력
+- 에 설계와 Import 규격, 향후 학습 계획 기록
