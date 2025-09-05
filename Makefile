@@ -6,3 +6,7 @@ docker-compose-down:
 
 docker-compose-up-build:
 	docker compose -f ./docker/docker-compose.yml up --build
+
+.PHONY: sim
+sim:
+	node scripts/sim/run.js

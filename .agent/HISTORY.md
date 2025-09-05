@@ -38,3 +38,9 @@
 - Update: AI Pack v7.1 in result/ai.txt (added move(fire) fallback to improve unstick and flanking)
 - Note: 6 NN-based tanks: Shield/Anchor/Coordinator/Skirmisher/Reaper/Hawk.
 - Next: explore RL self-play harness and weight tuning.
+
+2025-09-05T04:28:45Z
+- sim 엔진 추가: scripts/sim/engine.js (HTML 규칙 반영, tick 쿨다운)
+- 배치 실행기 추가: scripts/sim/run.js (결과 요약을 .agent/log에 저장)
+- NOTE 업데이트: 시뮬레이터 사용법
+- scratchpad 작성: .scratchpad/rl_todo.md (훈련 파이프라인 계획)

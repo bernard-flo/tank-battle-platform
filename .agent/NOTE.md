@@ -56,3 +56,8 @@ AI Pack 사용법 (요약)
 - 유전/랜덤 탐색으로 가중치 튠 스크립트 초안 작성
 - tank_battle_platform.html은 수정 금지. Import는 function name() 경계로 분할됨.
 v7: 6개 NN 에이전트, 역할 조합: 2 TANKER, 2 NORMAL, 2 DEALER
+
+시뮬레이터 사용법
+- 실행: `node scripts/sim/run.js` 또는 `MATCHES=200 node scripts/sim/run.js`
+- 출력: 콘솔 및 `.agent/log/*-selfplay-summary.json`
+- 엔진: tick 기반 쿨다운(10틱=500ms), 경계/충돌 체크는 HTML과 동일 로직 유지
