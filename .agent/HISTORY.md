@@ -40,3 +40,10 @@
 - 이전 항목 내 백틱(`)이 쉘에서 명령 치환되어 일부 텍스트 유실됨. 아래는 정정:
   - 산출물 경로: `result/ai.txt`
   - 발사 보정 산출: `aimLead`, `aimBias`
+
+## ${NOW}
+- train2(8세대) 수행: baseline 상대로 10전 10승, avgTick≈234.2
+- 자가대전 검증(50전): 50승 0패 0무, avgEndTick≈239.2
+- 산출물: result/ai.txt (6개 탱크, MLP 기반), import 구분자 포함
+- 로그: .agent/log/*train2* 및 *selfplay-summary.json 추가
+- 다음 실행 과제: 상대 풀 다양화, GENS 확대, 리그전 평가 추가
