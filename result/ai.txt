@@ -128,22 +128,3 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return 'Seraph';}
-function type(){return Type.NORMAL;}
-function update(tank,enemies,allies,bulletInfo){
-  function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-  function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
-  const W=900,H=600;
-  let nx=null, nd=1e9; for(const e of enemies){ if(e.distance<nd){nd=e.distance; nx=e;} }
-  let ax=0,ay=0,cnt=0; for(const a of allies){ax+=a.x; ay+=a.y; cnt++;} if(cnt>0){ax/=cnt; ay/=cnt;}
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; th+=w; }} const en=Math.hypot(evx,evy)+1e-6; evx/=en; evy/=en;
-  let wx=0,wy=0; const m=65; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; const wn=Math.hypot(wx,wy)+1e-6; wx/=wn; wy/=wn;
-  const t0 = tank.type===0?1:0, t1=tank.type===1?1:0, t2=tank.type===2?1:0;
-  const inVec=[ tank.x/W*2-1, tank.y/H*2-1, Math.tanh(tank.health/120), t0,t1,t2, Math.tanh(nd/340), ((ax||tank.x)-tank.x)/450, ((ay||tank.y)-tank.y)/300, Math.tanh(th), wx, wy ];
-  const W1=[[0.26,0.06,0.10,-0.40,-0.40,-0.06,0.34,-0.08,0.08,-0.09,-0.42,0.24],[0.10,0.03,-0.06,-0.44,-0.12,0.20,0.26,-0.02,-0.12,-0.52,-0.30,-0.18],[0.40,-0.10,-0.16,-0.20,-0.60,0.62,0.10,-0.34,0.08,-0.30,0.24,0.05],[-0.20,0.24,-0.32,-0.22,-0.18,0.16,-0.18,-0.34,-0.56,0.34,-0.20,0.20],[0.48,-0.64,0.12,0.22,0.34,0.52,0.06,0.32,0.08,0.32,0.34,-0.02],[0.28,-0.42,-0.40,-0.08,0.46,0.32,0.84,0.12,0.28,-0.32,0.12,-0.02]]; const b1=[0.50,-0.10,-0.12,-0.20,0.04,-0.02]; const W2=[[-0.56,0.12,-0.38,-0.44,-0.40,0.40],[-0.12,0.50,0.90,0.18,0.44,-0.06],[0.52,-0.38,1.10,0.26,0.28,1.00],[0.60,0.90,0.14,0.44,0.18,0.03],[-0.12,0.90,-0.34,0.16,-0.50,0.22]]; const b2=[0.40,0.18,-0.04,-0.30,0.08];
-  const o=mlp(inVec,W1,b1,W2,b2); let wEv=Math.max(0,o[0]), wCoh=Math.max(0,o[1]), wWall=Math.max(0,o[2]); const s=wEv+wCoh+wWall+1e-6; wEv/=s; wCoh/=s; wWall/=s; const aimBias=o[3];
-  const cx=((ax||tank.x)-tank.x), cy=((ay||tank.y)-tank.y); const cn=Math.hypot(cx,cy)+1e-6; const cohx=cx/cn, cohy=cy/cn;
-  const mvx=evx*wEv + cohx*wCoh + wx*wWall, mvy=evy*wEv + cohy*wCoh + wy*wWall; const mvAng=deg(mvx,mvy);
-  if(nx){ const aim=deg(nx.x-tank.x, nx.y-tank.y); tank.fire(ang(aim+clamp(aimBias,-6,6))); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+60))){ if(!tank.move(ang(mvAng-60))){ tank.move(Math.random()*360); }}}
-}
