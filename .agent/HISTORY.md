@@ -95,3 +95,9 @@
 - 성능: baseline 상대로 12전 12승(무승부 0), 평균 종료 tick ≈ 286.2
 - 최종 역할 배열: [DEALER, TANKER, TANKER, DEALER, NORMAL, DEALER] (내부 값: [2,1,1,2,0,2])
 - 관련 로그는 `.agent/log/*train_roles*` 및 요약 파일에 기록
+
+## 2025-09-05T06:20:05Z
+- train_roles(GENS=18) 실행 → result/ai.txt 신경망 6팩 갱신
+- 최종 역할: [DEALER, DEALER, NORMAL, DEALER, TANKER, DEALER]
+- 성능: baseline 12전 12승, avgTick≈287.8
+- 로그: .agent/log/2025-09*-ai-pack-rl-gen18-summary.md 
