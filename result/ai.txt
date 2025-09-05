@@ -24,7 +24,7 @@ function update(tank,enemies,allies,bulletInfo){
 // ===== 다음 로봇 =====
 
 function name(){return 'Bulwark';}
-function type(){return Type.DEALER;}
+function type(){return Type.NORMAL;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){return (a+360)%360;} function deg(x,y){return Math.atan2(y,x)*180/Math.PI;} function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
   function mlp(x,W1,b1,W2,b2){const h=b1.map((bi,j)=>Math.tanh(bi+x.reduce((s,xi,i)=>s+xi*W1[j][i],0)));return b2.map((bo,k)=>bo+h.reduce((s,hj,j)=>s+hj*W2[k][j],0));}
