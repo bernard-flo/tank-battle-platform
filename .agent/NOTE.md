@@ -53,6 +53,13 @@
 - 파라미터: `GENS=10`
 - 결과: baseline 상대로 12/12 승, avgTick≈286.2, 역할 = [DEALER, TANKER, TANKER, DEALER, NORMAL, DEALER]
 - 산출물/로그: `result/ai.txt` 갱신, `.agent/log/*train_roles*` 요약 생성
+
+### 이번 실행 스냅샷 (2025-09-05T06:59Z)
+- 사용 스크립트: `scripts/train_roles.js` (역할+가중치 동시 진화)
+- 파라미터: `GENS=16`
+- 결과: baseline 상대로 80/80 승, avgEndTick≈243.1, 역할 조합은 자동 탐색 결과값 사용
+- 산출물: `result/ai.txt`(6개 탱크, Import 구분자 포함) 갱신, 플랫폼 임포트 즉시 가능
+- 검증/로그: `.agent/log/*selfplay-summary.json`, 제너레이션 요약 `.agent/log/*train_roles*`
 # Neuro-Tank Pack v1 — 개발 노트
 
 - 실행 환경: `tank_battle_platform.html`은 매 틱마다 `new Function(code)`로 AI 코드를 재평가합니다.
