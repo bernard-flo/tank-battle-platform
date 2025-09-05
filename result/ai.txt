@@ -1,254 +1,9 @@
-function name() {
-  return 'Alpha-Tanker';
-}
-function type() {
-  return Type.TANKER;
-}
+// === AI Pack v2 (6 tanks, NN-based) ===
+
+function name() { return 'Alpha-Tanker'; }
+function type() { return Type.TANKER; }
 function update(tank, enemies, allies, bulletInfo) {
-  // Feature extraction (48-dim)
-  function buildFeatures() {
-    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-    const norm = (v,max)=> (max>0? v/max : 0);
-    const sx = norm(tank.x, 900);
-    const sy = norm(tank.y, 600);
-    const shealth = norm(tank.health, 150);
-    const ssize = norm(tank.size, 50);
-    const tonehot = [tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
-    const byDist = (a,b)=> a.distance - b.distance;
-    const es = enemies.slice().sort(byDist);
-    const as = allies.slice().sort(byDist);
-    const bs = bulletInfo.slice().sort(byDist);
-    function enemyFeat(e){
-      if(!e) return [0,0,0,0,0,0];
-      const dx = (e.x - tank.x)/900;
-      const dy = (e.y - tank.y)/600;
-      const dn = clamp(e.distance/1000,0,1);
-      const ang = (e.angle||Math.atan2(dy,dx)*180/Math.PI) * Math.PI/180;
-      const sn = Math.sin(ang), cs = Math.cos(ang);
-      const hn = clamp(e.health/150,0,1);
-      return [dx,dy,dn,sn,cs,hn];
-    }
-    function allyFeat(a){
-      if(!a) return [0,0,0,0];
-      const dx = (a.x - tank.x)/900;
-      const dy = (a.y - tank.y)/600;
-      const dn = clamp(Math.sqrt(dx*dx+dy*dy),0,1);
-      const hn = clamp(a.health/150,0,1);
-      return [dx,dy,dn,hn];
-    }
-    function bulletFeat(b){
-      if(!b) return [0,0,0,0,0];
-      const dx = (b.x - tank.x)/900;
-      const dy = (b.y - tank.y)/600;
-      const dn = clamp(Math.sqrt(dx*dx+dy*dy),0,1);
-      const vx = clamp(b.vx/8, -1, 1);
-      const vy = clamp(b.vy/8, -1, 1);
-      return [dx,dy,dn,vx,vy];
-    }
-    const f = [];
-    f.push(sx,sy,shealth,ssize, ...tonehot);
-    const e1=enemyFeat(es[0]), e2=enemyFeat(es[1]), e3=enemyFeat(es[2]);
-    f.push(...e1, ...e2, ...e3);
-    const a1=allyFeat(as[0]), a2=allyFeat(as[1]);
-    f.push(...a1, ...a2);
-    const b1=bulletFeat(bs[0]), b2=bulletFeat(bs[1]), b3=bulletFeat(bs[2]);
-    f.push(...b1, ...b2, ...b3);
-    return f;
-  }
-  function actFromFeatures(x) {
-    // Single-layer tanh network with hand-crafted weights geared for a tanker
-    // Outputs: [move_cos, move_sin, fire_cos, fire_sin, fire_prob]
-    const W = new Array(5).fill(0).map(()=>new Array(48).fill(0));
-    const b = [0,0,0,0,0];
-    // Indices helper according to buildFeatures layout
-    const idx = {
-      self: {sx:0, sy:1, h:2, size:3, t0:4, t1:5, t2:6},
-      e1: 7,  // [dx,dy,dn,sn,cs,hn]
-      e2: 13,
-      e3: 19,
-      a1: 25, // [dx,dy,dn,hn]
-      a2: 29,
-      b1: 33, // [dx,dy,dn,vx,vy]
-      b2: 38,
-      b3: 43
-    };
-    function add(o, k, w){ W[o][k]+=w; }
-    // Drive toward nearest enemy (tanker behavior)
-    add(0, idx.e1+0, +1.6); // move_cos += e1.dx
-    add(1, idx.e1+1, +1.6); // move_sin += e1.dy
-    // Secondary enemy as tie-breaker
-    add(0, idx.e2+0, +0.8);
-    add(1, idx.e2+1, +0.8);
-    // Avoid bullets slightly
-    add(0, idx.b1+0, -1.2);
-    add(1, idx.b1+1, -1.2);
-    add(0, idx.b2+0, -0.6);
-    add(1, idx.b2+1, -0.6);
-    // Keep inside arena center bias
-    add(0, idx.self.sx, -0.2); // push left when too right
-    add(1, idx.self.sy, -0.2); // push up when too low
-    b[0]+=0.1; b[1]+=0.1;
-    // Fire toward nearest enemy strongly
-    add(2, idx.e1+0, +3.0);
-    add(3, idx.e1+1, +3.0);
-    // Fire probability: closer enemy -> higher, bullets near -> lower
-    add(4, idx.e1+2, -3.0); // -dist
-    add(4, idx.b1+2, -1.0); // -bullet proximity
-    b[4] += 1.0;
-    // Forward pass
-    const y = [0,0,0,0,0];
-    for (let o=0;o<5;o++){
-      let s=b[o];
-      for (let i=0;i<48;i++) s += W[o][i]*x[i];
-      if (o<4) y[o] = Math.tanh(s); else y[o] = 1/(1+Math.exp(-s));
-    }
-    return y;
-  }
-  const x = buildFeatures();
-  const y = actFromFeatures(x);
-  const moveAngle = Math.atan2(y[1], y[0]) * 180/Math.PI;
-  const fireAngle = Math.atan2(y[3], y[2]) * 180/Math.PI;
-  if (!tank.move(moveAngle)) {
-    // fallback try slight variations
-    tank.move(moveAngle + 30) || tank.move(moveAngle - 30) || tank.move(fireAngle);
-  }
-  if (y[4] > 0.35) {
-    tank.fire(fireAngle);
-  }
-}
-
-// ===== 다음 로봇 =====
-
-function name() {
-  return 'Bravo-Tanker';
-}
-function type() {
-  return Type.TANKER;
-}
-function update(tank, enemies, allies, bulletInfo) {
-  function buildFeatures() {
-    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-    const norm = (v,max)=> (max>0? v/max : 0);
-    const sx = norm(tank.x, 900);
-    const sy = norm(tank.y, 600);
-    const shealth = norm(tank.health, 150);
-    const ssize = norm(tank.size, 50);
-    const tonehot = [tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
-    const es = enemies.slice().sort((a,b)=>a.distance-b.distance);
-    const as = allies.slice().sort((a,b)=>a.distance-b.distance);
-    const bs = bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
-    function enemyFeat(e){
-      if(!e) return [0,0,0,0,0,0];
-      const dx = (e.x - tank.x)/900;
-      const dy = (e.y - tank.y)/600;
-      const dn = clamp(e.distance/1000,0,1);
-      const ang = (e.angle||Math.atan2(dy,dx)*180/Math.PI) * Math.PI/180;
-      const sn = Math.sin(ang), cs = Math.cos(ang);
-      const hn = clamp(e.health/150,0,1);
-      return [dx,dy,dn,sn,cs,hn];
-    }
-    function allyFeat(a){ if(!a) return [0,0,0,0];
-      const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600;
-      const dn=Math.min(1,Math.hypot(dx,dy)); const hn=Math.min(1,a.health/150);
-      return [dx,dy,dn,hn]; }
-    function bulletFeat(b){ if(!b) return [0,0,0,0,0];
-      const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; const dn=Math.min(1,Math.hypot(dx,dy));
-      const vx=Math.max(-1,Math.min(1,b.vx/8)), vy=Math.max(-1,Math.min(1,b.vy/8));
-      return [dx,dy,dn,vx,vy]; }
-    const f=[]; f.push(sx,sy,shealth,ssize, ...tonehot);
-    const e1=enemies.length>1? enemies.slice().sort((a,b)=>a.health-b.health)[0] : es[0];
-    const e2=es[0];
-    const e3=es[1];
-    const ef1=enemyFeat(e1), ef2=enemyFeat(e2), ef3=enemyFeat(e3);
-    f.push(...ef1, ...ef2, ...ef3);
-    const a1=allyFeat(as[0]), a2=allyFeat(as[1]); f.push(...a1, ...a2);
-    const b1=bulletFeat(bs[0]), b2=bulletFeat(bs[1]), b3=bulletFeat(bs[2]); f.push(...b1, ...b2, ...b3);
-    return f;
-  }
-  function actFromFeatures(x){
-    const W = new Array(5).fill(0).map(()=>new Array(48).fill(0));
-    const b = [0,0,0,0,0];
-    const idx = {self:{sx:0,sy:1}, e1:7, e2:13, e3:19, b1:33, b2:38};
-    function add(o,k,w){W[o][k]+=w;}
-    // Move toward lowest-health target, with stronger bullet avoidance
-    add(0, idx.e1+0, +1.2); add(1, idx.e1+1, +1.2);
-    add(0, idx.e2+0, +0.5); add(1, idx.e2+1, +0.5);
-    add(0, idx.b1+0, -1.6); add(1, idx.b1+1, -1.6);
-    add(0, idx.b2+0, -0.8); add(1, idx.b2+1, -0.8);
-    // Fire toward e2 (often nearest)
-    add(2, idx.e2+0, +3.0); add(3, idx.e2+1, +3.0);
-    // Fire probability
-    add(4, idx.e2+2, -3.0); b[4]+=1.2;
-    const y=[0,0,0,0,0];
-    for(let o=0;o<5;o++){ let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]= o<4? Math.tanh(s) : 1/(1+Math.exp(-s)); }
-    return y;
-  }
-  const y=actFromFeatures(buildFeatures());
-  const moveAngle = Math.atan2(y[1], y[0]) * 180/Math.PI;
-  const fireAngle = Math.atan2(y[3], y[2]) * 180/Math.PI;
-  if(!tank.move(moveAngle)) { tank.move(moveAngle+20) || tank.move(moveAngle-20) || tank.move(fireAngle); }
-  if(y[4]>0.3) tank.fire(fireAngle);
-}
-
-// ===== 다음 로봇 =====
-
-function name() {
-  return 'Charlie-Dealer';
-}
-function type() {
-  return Type.DEALER;
-}
-function update(tank, enemies, allies, bulletInfo) {
-  function buildFeatures(){
-    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-    const norm=(v,m)=> (m>0? v/m : 0);
-    const sx=norm(tank.x,900), sy=norm(tank.y,600), shealth=norm(tank.health,150), ssize=norm(tank.size,50);
-    const tonehot=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
-    const es=enemies.slice().sort((a,b)=>a.distance-b.distance);
-    const as=allies.slice().sort((a,b)=>a.distance-b.distance);
-    const bs=bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
-    function enemyFeat(e){ if(!e) return [0,0,0,0,0,0];
-      const dx=(e.x-tank.x)/900, dy=(e.y-tank.y)/600, dn=clamp(e.distance/1000,0,1);
-      const ang=(e.angle||Math.atan2(dy,dx)*180/Math.PI)*Math.PI/180; return [dx,dy,dn,Math.sin(ang),Math.cos(ang),Math.min(1,e.health/150)];}
-    function allyFeat(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.min(1,a.health/150)]; }
-    function bulletFeat(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.max(-1,Math.min(1,b.vx/8)),Math.max(-1,Math.min(1,b.vy/8))]; }
-    const f=[sx,sy,shealth,ssize,...tonehot];
-    const e1=enemyFeat(es[0]), e2=enemyFeat(es[1]), e3=enemyFeat(es[2]); f.push(...e1,...e2,...e3);
-    const a1=allyFeat(as[0]), a2=allyFeat(as[1]); f.push(...a1,...a2);
-    const b1=bulletFeat(bs[0]), b2=bulletFeat(bs[1]), b3=bulletFeat(bs[2]); f.push(...b1,...b2,...b3);
-    return f;
-  }
-  function act(x){
-    const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
-    const I={e1:7,e2:13,e3:19,b1:33,b2:38,b3:43}; const add=(o,k,w)=>W[o][k]+=w;
-    // Dealer: strong bullet avoidance, kite enemies (move opposite enemy vector)
-    add(0,I.b1+0,-2.0); add(1,I.b1+1,-2.0);
-    add(0,I.b2+0,-1.2); add(1,I.b2+1,-1.2);
-    add(0,I.e1+0,-0.8); add(1,I.e1+1,-0.8);
-    // Lateral strafe using perpendicular component from e2
-    add(0,I.e2+1,+0.6); add(1,I.e2+0,-0.6);
-    // Fire to nearest enemy strongly
-    add(2,I.e1+0,+3.5); add(3,I.e1+1,+3.5);
-    // Fire prob: prefer closer and when bullets not too near
-    add(4,I.e1+2,-3.2); add(4,I.b1+2,-1.8); b[4]+=0.8;
-    const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));} return y;
-  }
-  const y=act(buildFeatures());
-  const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI; const fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(moveAngle)) { tank.move(moveAngle+35) || tank.move(moveAngle-35) || tank.move(fireAngle+180); }
-  if(y[4]>0.25) tank.fire(fireAngle);
-}
-
-// ===== 다음 로봇 =====
-
-function name() {
-  return 'Delta-Dealer';
-}
-function type() {
-  return Type.DEALER;
-}
-function update(tank, enemies, allies, bulletInfo) {
-  function build(){
+  function build() {
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
     const sx=tank.x/900, sy=tank.y/600, shealth=Math.min(1,tank.health/150), ssize=Math.min(1,tank.size/50);
     const tonehot=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
@@ -265,79 +20,27 @@ function update(tank, enemies, allies, bulletInfo) {
     return f;
   }
   function act(x){
+    // Tanker: push frontline; modest bullet avoidance; strong aim at nearest
     const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
-    const I={e1:7,e2:13,b1:33,b2:38,self_sx:0,self_sy:1}; const add=(o,k,w)=>W[o][k]+=w;
-    // Strafe around nearest enemy (perpendicular movement), strong bullet avoidance
-    add(0,I.e1+1,+1.2); add(1,I.e1+0,-1.2);
-    add(0,I.b1+0,-1.6); add(1,I.b1+1,-1.6);
-    add(0,I.b2+0,-0.8); add(1,I.b2+1,-0.8);
-    // Center bias
-    add(0,I.self_sx,-0.1); add(1,I.self_sy,-0.1);
-    // Fire toward e1
-    add(2,I.e1+0,+3.2); add(3,I.e1+1,+3.2);
-    // Probability
-    add(4,I.e1+2,-3.0); add(4,I.b1+2,-2.0); b[4]+=0.9;
-    const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));} return y;
-  }
-  const y=act(build());
-  const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI, fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(moveAngle)) { tank.move(moveAngle+40) || tank.move(moveAngle-40) || tank.move(fireAngle+150); }
-  if(y[4]>0.28) tank.fire(fireAngle);
-}
-
-// ===== 다음 로봇 =====
-
-function name() {
-  return 'Echo-Normal';
-}
-function type() {
-  return Type.NORMAL;
-}
-function update(tank, enemies, allies, bulletInfo) {
-  function build(){
-    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-    const sx=tank.x/900, sy=tank.y/600, shealth=Math.min(1,tank.health/150), ssize=Math.min(1,tank.size/50);
-    const tonehot=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
-    const es=enemies.slice().sort((a,b)=>a.distance-b.distance);
-    const as=allies.slice().sort((a,b)=>a.distance-b.distance);
-    const bs=bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
-    function eF(e){ if(!e) return [0,0,0,0,0,0]; const dx=(e.x-tank.x)/900, dy=(e.y-tank.y)/600; const dn=clamp(e.distance/1000,0,1); const ang=(e.angle||Math.atan2(dy,dx)*180/Math.PI)*Math.PI/180; return [dx,dy,dn,Math.sin(ang),Math.cos(ang),Math.min(1,e.health/150)]; }
-    function aF(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.min(1,a.health/150)]; }
-    function bF(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.max(-1,Math.min(1,b.vx/8)),Math.max(-1,Math.min(1,b.vy/8))]; }
-    const f=[sx,sy,shealth,ssize,...tonehot];
-    const e1=eF(es[0]), e2=eF(es[1]), e3=eF(es[2]); f.push(...e1,...e2,...e3);
-    const a1=aF(as[0]), a2=aF(as[1]); f.push(...a1,...a2);
-    const b1=bF(bs[0]), b2=bF(bs[1]), b3=bF(bs[2]); f.push(...b1,...b2,...b3);
-    return f;
-  }
-  function act(x){
-    const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
-    const I={e1:7,e2:13,b1:33,self_sx:0,self_sy:1}; const add=(o,k,w)=>W[o][k]+=w;
-    // Balanced: mix approach and avoidance
-    add(0,I.e1+0,+1.0); add(1,I.e1+1,+1.0);
+    const I={self_sx:0,self_sy:1,e1:7,e2:13,b1:33,b2:38}; const add=(o,k,w)=>W[o][k]+=w;
+    add(0,I.e1+0,+1.5); add(1,I.e1+1,+1.5);
+    add(0,I.e2+0,+0.7); add(1,I.e2+1,+0.7);
     add(0,I.b1+0,-1.0); add(1,I.b1+1,-1.0);
-    // slight circular motion
-    add(0,I.e2+1,+0.4); add(1,I.e2+0,-0.4);
-    // center bias
-    add(0,I.self_sx,-0.1); add(1,I.self_sy,-0.1);
-    // Fire at nearest
-    add(2,I.e1+0,+3.0); add(3,I.e1+1,+3.0);
-    add(4,I.e1+2,-3.0); b[4]+=1.0;
+    add(0,I.b2+0,-0.6); add(1,I.b2+1,-0.6);
+    add(0,I.self_sx,-0.2); add(1,I.self_sy,-0.2);
+    add(2,I.e1+0,+3.2); add(3,I.e1+1,+3.2);
+    add(4,I.e1+2,-3.1); add(4,I.b1+2,-0.8); b[4]+=1.0;
     const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));} return y;
   }
   const y=act(build()); const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI; const fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(moveAngle)) { tank.move(moveAngle+25) || tank.move(moveAngle-25) || tank.move(fireAngle); }
-  if(y[4]>0.32) tank.fire(fireAngle);
+  if(!tank.move(moveAngle)) { tank.move(moveAngle+30) || tank.move(moveAngle-30) || tank.move(fireAngle); }
+  if(y[4]>0.34) tank.fire(fireAngle);
 }
 
 // ===== 다음 로봇 =====
 
-function name() {
-  return 'Foxtrot-Normal';
-}
-function type() {
-  return Type.NORMAL;
-}
+function name() { return 'Bravo-Tanker'; }
+function type() { return Type.TANKER; }
 function update(tank, enemies, allies, bulletInfo) {
   function build(){
     const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -350,7 +53,7 @@ function update(tank, enemies, allies, bulletInfo) {
     function aF(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.min(1,a.health/150)]; }
     function bF(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.max(-1,Math.min(1,b.vx/8)),Math.max(-1,Math.min(1,b.vy/8))]; }
     const f=[sx,sy,shealth,ssize,...tonehot];
-    // focus on weakest then nearest
+    // prioritize weakest enemy as target1, nearest as target2
     const targetWeak = enemies.length>0 ? enemies.slice().sort((a,b)=>a.health-b.health)[0] : null;
     const e1=eF(targetWeak||es[0]), e2=eF(es[0]), e3=eF(es[1]); f.push(...e1,...e2,...e3);
     const a1=aF(as[0]), a2=aF(as[1]); f.push(...a1,...a2);
@@ -358,15 +61,173 @@ function update(tank, enemies, allies, bulletInfo) {
     return f;
   }
   function act(x){
+    // Tanker variant: hunts weakest to secure kills; stronger bullet avoidance
     const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
     const I={e1:7,e2:13,b1:33,b2:38}; const add=(o,k,w)=>W[o][k]+=w;
-    // Support: approach low-health target but avoid bullets more
-    add(0,I.e1+0,+0.9); add(1,I.e1+1,+0.9);
+    add(0,I.e1+0,+1.2); add(1,I.e1+1,+1.2);
+    add(0,I.e2+0,+0.6); add(1,I.e2+1,+0.6);
+    add(0,I.b1+0,-1.5); add(1,I.b1+1,-1.5);
+    add(0,I.b2+0,-0.9); add(1,I.b2+1,-0.9);
+    add(2,I.e2+0,+3.1); add(3,I.e2+1,+3.1);
+    add(4,I.e2+2,-3.2); b[4]+=1.1;
+    const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));} return y;
+  }
+  const y=act(build()); const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI; const fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
+  if(!tank.move(moveAngle)) { tank.move(moveAngle+22) || tank.move(moveAngle-22) || tank.move(fireAngle); }
+  if(y[4]>0.30) tank.fire(fireAngle);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return 'Charlie-Dealer'; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function build(){
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const sx=tank.x/900, sy=tank.y/600, shealth=Math.min(1,tank.health/150), ssize=Math.min(1,tank.size/50);
+    const tonehot=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
+    const es=enemies.slice().sort((a,b)=>a.distance-b.distance);
+    const as=allies.slice().sort((a,b)=>a.distance-b.distance);
+    const bs=bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
+    function eF(e){ if(!e) return [0,0,0,0,0,0]; const dx=(e.x-tank.x)/900, dy=(e.y-tank.y)/600; const dn=clamp(e.distance/1000,0,1); const ang=(e.angle||Math.atan2(dy,dx)*180/Math.PI)*Math.PI/180; return [dx,dy,dn,Math.sin(ang),Math.cos(ang),Math.min(1,e.health/150)]; }
+    function aF(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.min(1,a.health/150)]; }
+    function bF(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.max(-1,Math.min(1,b.vx/8)),Math.max(-1,Math.min(1,b.vy/8))]; }
+    const f=[sx,sy,shealth,ssize,...tonehot];
+    const e1=eF(es[0]), e2=eF(es[1]), e3=eF(es[2]); f.push(...e1,...e2,...e3);
+    const a1=aF(as[0]), a2=aF(as[1]); f.push(...a1,...a2);
+    const b1=bF(bs[0]), b2=bF(bs[1]), b3=bF(bs[2]); f.push(...b1,...b2,...b3);
+    return f;
+  }
+  function act(x){
+    // Dealer: kite + strong avoidance + strafe
+    const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
+    const I={e1:7,e2:13,b1:33,b2:38}; const add=(o,k,w)=>W[o][k]+=w;
+    add(0,I.b1+0,-2.0); add(1,I.b1+1,-2.0);
+    add(0,I.b2+0,-1.4); add(1,I.b2+1,-1.4);
+    add(0,I.e1+0,-0.9); add(1,I.e1+1,-0.9);
+    add(0,I.e2+1,+0.7); add(1,I.e2+0,-0.7);
+    add(2,I.e1+0,+3.6); add(3,I.e1+1,+3.6);
+    add(4,I.e1+2,-3.3); add(4,I.b1+2,-2.0); b[4]+=0.9;
+    const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));} return y;
+  }
+  const y=act(build()); const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI; const fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
+  if(!tank.move(moveAngle)) { tank.move(moveAngle+35) || tank.move(moveAngle-35) || tank.move(fireAngle+180); }
+  if(y[4]>0.25) tank.fire(fireAngle);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return 'Delta-Dealer'; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function build(){
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const sx=tank.x/900, sy=tank.y/600, shealth=Math.min(1,tank.health/150), ssize=Math.min(1,tank.size/50);
+    const tonehot=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
+    const es=enemies.slice().sort((a,b)=>a.distance-b.distance);
+    const as=allies.slice().sort((a,b)=>a.distance-b.distance);
+    const bs=bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
+    function eF(e){ if(!e) return [0,0,0,0,0,0]; const dx=(e.x-tank.x)/900, dy=(e.y-tank.y)/600; const dn=clamp(e.distance/1000,0,1); const ang=(e.angle||Math.atan2(dy,dx)*180/Math.PI)*Math.PI/180; return [dx,dy,dn,Math.sin(ang),Math.cos(ang),Math.min(1,e.health/150)]; }
+    function aF(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.min(1,a.health/150)]; }
+    function bF(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.max(-1,Math.min(1,b.vx/8)),Math.max(-1,Math.min(1,b.vy/8))]; }
+    const f=[sx,sy,shealth,ssize,...tonehot];
+    const e1=eF(es[0]), e2=eF(es[1]), e3=eF(es[2]); f.push(...e1,...e2,...e3);
+    const a1=aF(as[0]), a2=aF(as[1]); f.push(...a1,...a2);
+    const b1=bF(bs[0]), b2=bF(bs[1]), b3=bF(bs[2]); f.push(...b1,...b2,...b3);
+    return f;
+  }
+  function act(x){
+    // Dealer variant: strafe around target; very strong bullet avoidance
+    const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
+    const I={e1:7,e2:13,b1:33,b2:38,self_sx:0,self_sy:1}; const add=(o,k,w)=>W[o][k]+=w;
+    add(0,I.e1+1,+1.25); add(1,I.e1+0,-1.25);
+    add(0,I.b1+0,-1.8); add(1,I.b1+1,-1.8);
+    add(0,I.b2+0,-1.0); add(1,I.b2+1,-1.0);
+    add(0,I.self_sx,-0.12); add(1,I.self_sy,-0.12);
+    add(2,I.e1+0,+3.3); add(3,I.e1+1,+3.3);
+    add(4,I.e1+2,-3.2); add(4,I.b1+2,-2.2); b[4]+=0.95;
+    const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));} return y;
+  }
+  const y=act(build()); const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI; const fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
+  if(!tank.move(moveAngle)) { tank.move(moveAngle+28) || tank.move(moveAngle-28) || tank.move(fireAngle); }
+  if(y[4]>0.28) tank.fire(fireAngle);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return 'Echo-Normal'; }
+function type() { return Type.NORMAL; }
+function update(tank, enemies, allies, bulletInfo) {
+  function build(){
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const sx=tank.x/900, sy=tank.y/600, shealth=Math.min(1,tank.health/150), ssize=Math.min(1,tank.size/50);
+    const tonehot=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
+    const es=enemies.slice().sort((a,b)=>a.distance-b.distance);
+    const as=allies.slice().sort((a,b)=>a.distance-b.distance);
+    const bs=bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
+    function eF(e){ if(!e) return [0,0,0,0,0,0]; const dx=(e.x-tank.x)/900, dy=(e.y-tank.y)/600; const dn=clamp(e.distance/1000,0,1); const ang=(e.angle||Math.atan2(dy,dx)*180/Math.PI)*Math.PI/180; return [dx,dy,dn,Math.sin(ang),Math.cos(ang),Math.min(1,e.health/150)]; }
+    function aF(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.min(1,a.health/150)]; }
+    function bF(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.max(-1,Math.min(1,b.vx/8)),Math.max(-1,Math.min(1,b.vy/8))]; }
+    const f=[sx,sy,shealth,ssize,...tonehot];
+    // blend: nearest and weakest
+    const targetWeak = enemies.length>0 ? enemies.slice().sort((a,b)=>a.health-b.health)[0] : null;
+    const e1=eF(es[0]), e2=eF(targetWeak||es[1]), e3=eF(es[2]); f.push(...e1,...e2,...e3);
+    const a1=aF(as[0]), a2=aF(as[1]); f.push(...a1,...a2);
+    const b1=bF(bs[0]), b2=bF(bs[1]), b3=bF(bs[2]); f.push(...b1,...b2,...b3);
+    return f;
+  }
+  function act(x){
+    // Normal: balanced approach; assist allies if low health
+    const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
+    const I={self_h:2,a1:25,e1:7,e2:13,b1:33,b2:38}; const add=(o,k,w)=>W[o][k]+=w;
+    add(0,I.e1+0,+1.0); add(1,I.e1+1,+1.0);
+    add(0,I.e2+0,+0.5); add(1,I.e2+1,+0.5);
+    add(0,I.b1+0,-1.2); add(1,I.b1+1,-1.2);
+    add(0,I.b2+0,-0.6); add(1,I.b2+1,-0.6);
+    // when low health, gravitate a bit to ally a1
+    add(0,I.a1+0,+0.8); add(1,I.a1+1,+0.8); // scaled by health later via bias
+    b[0]+= -0.3; b[1]+= -0.3; // mild center bias via negative offset
+    add(2,I.e1+0,+3.0); add(3,I.e1+1,+3.0);
+    add(4,I.e1+2,-3.0); add(4,I.b1+2,-1.2); b[4]+=1.0;
+    const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));}
+    return y;
+  }
+  const y=act(build()); const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI; const fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
+  if(!tank.move(moveAngle)) { tank.move(moveAngle+27) || tank.move(moveAngle-27) || tank.move(fireAngle); }
+  if(y[4]>0.31) tank.fire(fireAngle);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return 'Foxtrot-Normal'; }
+function type() { return Type.NORMAL; }
+function update(tank, enemies, allies, bulletInfo) {
+  function build(){
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const sx=tank.x/900, sy=tank.y/600, shealth=Math.min(1,tank.health/150), ssize=Math.min(1,tank.size/50);
+    const tonehot=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
+    const es=enemies.slice().sort((a,b)=>a.distance-b.distance);
+    const as=allies.slice().sort((a,b)=>a.distance-b.distance);
+    const bs=bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
+    function eF(e){ if(!e) return [0,0,0,0,0,0]; const dx=(e.x-tank.x)/900, dy=(e.y-tank.y)/600; const dn=clamp(e.distance/1000,0,1); const ang=(e.angle||Math.atan2(dy,dx)*180/Math.PI)*Math.PI/180; return [dx,dy,dn,Math.sin(ang),Math.cos(ang),Math.min(1,e.health/150)]; }
+    function aF(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.min(1,a.health/150)]; }
+    function bF(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; return [dx,dy,Math.min(1,Math.hypot(dx,dy)),Math.max(-1,Math.min(1,b.vx/8)),Math.max(-1,Math.min(1,b.vy/8))]; }
+    const f=[sx,sy,shealth,ssize,...tonehot];
+    const e1=eF(es[0]), e2=eF(es[1]), e3=eF(es[2]); f.push(...e1,...e2,...e3);
+    const a1=aF(as[0]), a2=aF(as[1]); f.push(...a1,...a2);
+    const b1=bF(bs[0]), b2=bF(bs[1]), b3=bF(bs[2]); f.push(...b1,...b2,...b3);
+    return f;
+  }
+  function act(x){
+    // Normal variant: focus low-health target; balanced avoidance
+    const W=new Array(5).fill(0).map(()=>new Array(48).fill(0)); const b=[0,0,0,0,0];
+    const I={e1:7,e2:13,b1:33,b2:38}; const add=(o,k,w)=>W[o][k]+=w;
+    add(0,I.e1+0,+1.0); add(1,I.e1+1,+1.0);
+    add(0,I.e2+0,+0.4); add(1,I.e2+1,+0.4);
     add(0,I.b1+0,-1.3); add(1,I.b1+1,-1.3);
     add(0,I.b2+0,-0.7); add(1,I.b2+1,-0.7);
-    // Fire favors weakest(target e1), fallback to e2 contribution implicitly low
     add(2,I.e1+0,+3.0); add(3,I.e1+1,+3.0);
-    add(4,I.e1+2,-3.0); b[4]+=1.1;
+    add(4,I.e1+2,-3.0); b[4]+=1.05;
     const y=[0,0,0,0,0]; for(let o=0;o<5;o++){let s=b[o]; for(let i=0;i<48;i++) s+=W[o][i]*x[i]; y[o]=o<4?Math.tanh(s):1/(1+Math.exp(-s));} return y;
   }
   const y=act(build()); const moveAngle=Math.atan2(y[1],y[0])*180/Math.PI; const fireAngle=Math.atan2(y[3],y[2])*180/Math.PI;
