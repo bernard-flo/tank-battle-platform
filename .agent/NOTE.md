@@ -25,3 +25,10 @@
 - 베스트: 12승/0무, avgEndTick≈268.3
 - 역할: [2,2,2,2,1,2] → [DEALER, DEALER, DEALER, DEALER, TANKER, DEALER]
 - 산출물: result/ai.txt 갱신(Import 호환)
+# Tank AI 개발 노트 (추가)
+- 실행 환경 격리로 `tank`는 Object.freeze된 API만 허용 → 가변 상태/학습 불가. 정책은 사전 학습(오프라인) 또는 고정 가중치만 가능.
+- 신경망 스펙: 16 입력(위치/체력/타입 원-핫/최근접·무게중심/아군중심/탄막압력/벽벡터), 6 은닉(tanh), 5 출력(회피/공격/공전/벽회피/리드샷).
+- 의사결정: 4개 가중치 soft-normalize → 이동 벡터 혼합, 리드샷은 제한 범위 클램프.
+- 역할별 차등: Tanker는 벽회피 가중 상향·리드샷 축소, Dealer는 공격·리드샷 증대, Normal은 중립.
+- Import 포맷: 각 로봇 블록은 `function name()`, `function type()`, `function update(...)` 포함. 구분자로 `// ===== 다음 로봇 =====` 유지.
+- 향후: Node 시뮬레이터로 규칙 복제 → CMA-ES/NEAT 진화 학습 후 가중치 교체 자동화 스크립트화.
