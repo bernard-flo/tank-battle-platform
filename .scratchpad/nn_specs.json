@@ -1,0 +1,11 @@
+{
+  "inputs": [
+    "tank.x_norm", "tank.y_norm",
+    "nearest_enemy_dist_norm", "enemy_centroid_dir_cos", "enemy_centroid_dir_sin",
+    "ally_centroid_dist_norm", "bullet_threat", "health_norm", "bias"
+  ],
+  "hidden": 3,
+  "outputs": ["w_evasion", "w_attract", "w_orbit"],
+  "notes": "각 역할별로 가중치 행렬만 다르게 설정하여 성향을 조절."
+}
+
