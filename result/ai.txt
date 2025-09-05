@@ -1,4 +1,4 @@
-// === AI Pack v7 (6 tanks, NN-based, tuned) ===
+// === AI Pack v7.1 (6 tanks, NN-based, tuned) ===
 // Import 안내: 아래 6개 블록을 통째로 복사하여
 // 게임 화면의 Import 기능(가져오기)에 붙여넣으세요.
 
@@ -51,7 +51,7 @@ function update(tank, enemies, allies, bulletInfo) {
   }
   const x=F(); const y=NN(x);
   const move=Math.atan2(y[1],y[0])*180/Math.PI; const fire=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(move)) { tank.move(move+22) || tank.move(move-22) || tank.move(move+55) || tank.move(move-55) || tank.move(move+180); }
+  if(!tank.move(move)) { tank.move(move+22) || tank.move(move-22) || tank.move(move+55) || tank.move(move-55) || tank.move(move+180) || tank.move(fire); }
   if(y[4]>0.31) tank.fire(fire);
 }
 
@@ -187,7 +187,7 @@ function update(tank, enemies, allies, bulletInfo) {
   }
   const x=F(); const y=NN(x);
   const move=Math.atan2(y[1],y[0])*180/Math.PI; const fire=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(move)) { tank.move(move+24) || tank.move(move-24) || tank.move(move+60) || tank.move(move-60) || tank.move(move+180); }
+  if(!tank.move(move)) { tank.move(move+24) || tank.move(move-24) || tank.move(move+60) || tank.move(move-60) || tank.move(move+180) || tank.move(fire); }
   if(y[4]>0.28) tank.fire(fire);
 }
 
@@ -232,7 +232,7 @@ function update(tank, enemies, allies, bulletInfo) {
   }
   const x=F(); const y=NN(x);
   const move=Math.atan2(y[1],y[0])*180/Math.PI; const fire=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(move)) { tank.move(move+32) || tank.move(move-32) || tank.move(move+72) || tank.move(move-72) || tank.move(move+180); }
+  if(!tank.move(move)) { tank.move(move+32) || tank.move(move-32) || tank.move(move+72) || tank.move(move-72) || tank.move(move+180) || tank.move(fire); }
   if(y[4]>0.27) tank.fire(fire);
 }
 
@@ -281,7 +281,6 @@ function update(tank, enemies, allies, bulletInfo) {
   }
   const x=F(); const y=NN(x);
   const move=Math.atan2(y[1],y[0])*180/Math.PI; const fire=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(move)) { tank.move(move+28) || tank.move(move-28) || tank.move(move+64) || tank.move(move-64) || tank.move(move+180); }
+  if(!tank.move(move)) { tank.move(move+28) || tank.move(move-28) || tank.move(move+64) || tank.move(move-64) || tank.move(move+180) || tank.move(fire); }
   if(y[4]>0.29) tank.fire(fire);
 }
-
