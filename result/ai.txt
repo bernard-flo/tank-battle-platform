@@ -276,24 +276,4 @@ function update(tank, enemies, allies, bulletInfo) {
 
 // ===== 다음 로봇 =====
 
-function name() {
-  return 'Guardian-Tanker';
-}
-function type() {
-  return Type.TANKER;
-}
-function update(tank, enemies, allies, bulletInfo) {
-  function toDeg(x,y){return Math.atan2(y,x)*180/Math.PI;} function ang(a){return (a+360)%360;}
-  // 아군 보호: 아군 중심과 적 중심 사이를 차단, 회피 우선, 전진 유지
-  let ax=0,ay=0; for(let a of allies){ax+=a.x; ay+=a.y;} const aCnt=Math.max(1,allies.length); ax/=aCnt; ay/=aCnt;
-  let ex=0,ey=0; for(let e of enemies){ex+=e.x; ey+=e.y;} const eCnt=Math.max(1,enemies.length); ex/=eCnt; ey/=eCnt;
-  const midx=(ax+ex)/2, midy=(ay+ey)/2; const mx=midx-tank.x, my=midy-tank.y; const md=Math.hypot(mx,my)+1e-6; const fwdx=mx/md, fwdy=my/md;
-  let evx=0, evy=0, threat=0; for(let b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const dist=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/dist; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*dist); evx+=px*w; evy+=py*w; threat+=w; } }
-  const evn=Math.hypot(evx,evy)+1e-6; evx/=evn; evy/=evn;
-  const mvx = evx*0.45 + fwdx*0.55, mvy = evy*0.45 + fwdy*0.55; const mvAng=toDeg(mvx,mvy);
-  // 사격: 가장 가까운 적
-  let near=null, nd=1e9; for(let e of enemies){ if(e.distance<nd){nd=e.distance; near=e;} }
-  if(near){ const aim=toDeg(near.x-tank.x, near.y-tank.y); tank.fire(aim); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+65))){ if(!tank.move(ang(mvAng-65))){ tank.move(Math.random()*360); }}}
-}
-
+ 
