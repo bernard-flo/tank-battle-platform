@@ -59,3 +59,8 @@
 - train2 유전탐색 16세대 실행, 최고 점수 10(10승 0무), avgTick≈240.7.
 - result/ai.txt 갱신 및 baseline 상대로 50전 전승, avgEndTick≈.
 - 메모/로그 추가: NOTE.md 파이프라인 업데이트, .agent/log/2025-09-05T05-09-24Z-train2-run-summary.md 요약 생성.
+
+## 2025-09-05T05-15-45Z
+- 역할(type) 조합까지 함께 최적화하는 학습 스크립트 추가: `scripts/train_roles.js`
+- NOTE 업데이트: train_roles 사용법/로그 경로 명시, 역할 조합 탐색 항목 추가
+- 다음 단계: `GENS=16 node scripts/train_roles.js`로 역할+가중치 동시 진화 수행 후 성능 검증 및 `result/ai.txt` 갱신 계획
