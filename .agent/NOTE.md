@@ -114,3 +114,10 @@
 - 산출물: `result/ai.txt` (6로봇, Import 구분자 포함)
 - 주의: HTML 엔진의 move 10회 제한/총알속성/사이즈 반영됨(엔진 동기화 OK)
 \n## 실행 스냅샷 2025-09-05T06:28:11Z\n- train_roles: GENS=12, POP=20, ELITE=5\n- 결과: 12/12 승, 평균 종료틱≈263.5, 역할=[NORMAL, DEALER, TANKER, DEALER, DEALER, DEALER]\n- 산출물: result/ai.txt 갱신, Import 모달 호환\n
+\n## 2025-09-05T06-36-58Z
+- train_roles 16세대 추가 실행 → `result/ai.txt` 최적 번들 갱신
+- 최종 역할: [TANKER, DEALER, TANKER, DEALER, DEALER, NORMAL] (내부 값: [1,2,1,2,2,0])
+- 성능: baseline 12전 12승, 자가평가 50전 50승 0패 0무, avgEndTick≈260.4
+- 산출물/로그: `result/ai.txt` 덮어씀, ,  추가
+- 다음: GENS 확대(>=24) 및 상대 풀 다양화(미러전 포함)로 일반화 향상
+
