@@ -19,3 +19,9 @@
    - 상대 풀 다양화(랜덤/기준/과거 체크포인트 혼합)
    - 플랫폼 실제 페이지 import 검증(분할/Type 반환 확인)
    - train_roles gen/final 로그 파일 생성 누락 원인 점검
+[2025-09-05T05:50Z] Next steps after train_roles (GENS=16)
+- Increase GENS to 32~48, widen seeds (>=32) to reduce variance
+- Add mirror-match and role-perturbed opponents to evaluation pool
+- Try H=8 or 2-layer MLP for richer policy (keep output 5)
+- Multi-objective fitness: (wins, energy diff, avgTick) with weighted sum
+- Log best genome roles and weights snapshot for reproducibility
