@@ -267,3 +267,11 @@
 - 산출물 교체: result/ai.txt (6개 탱크, 입력16-은닉6-출력5 MLP, 리드샷 포함).
 - 검증: scripts/sim/run.js → baseline 상대로 50전 50승 0무, avgEndTick≈276.8.
 - 로그 생성: .agent/log/*train_roles* 및 *selfplay-summary.json* 자동 기록.
+
+## 2025-09-05T11-01-44Z
+- 실행: scripts/train_roles.js (GENS=16, POP=20, ELITE=5, seeds=12)
+- 결과: baseline 평가 12전 12승, avgEndTick≈260.2
+- 최종 역할: [DEALER, TANKER, TANKER, DEALER, NORMAL, DEALER] (내부값: [2,1,1,2,0,2])
+- 산출물: result/ai.txt 생성/갱신(6개 탱크, 16→6→5 MLP 정책, Import 구분자 포함)
+- 로그: .agent/log/*train_roles* 최종 요약 JSON 자동 생성
+- 다음: 세대/상대 풀 확대, 미러전 및 다양한 시드 추가 평가
