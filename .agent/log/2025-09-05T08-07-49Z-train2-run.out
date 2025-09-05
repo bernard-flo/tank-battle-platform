@@ -1,0 +1,127 @@
+[train] {
+  gen: 0,
+  sigma: 0.25,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 588.9 }
+}
+[train] {
+  gen: 1,
+  sigma: 0.237,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 451.4 }
+}
+[train] {
+  gen: 2,
+  sigma: 0.225,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 375.3 }
+}
+[train] {
+  gen: 3,
+  sigma: 0.212,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 656.2 }
+}
+[train] {
+  gen: 4,
+  sigma: 0.2,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 632.2 }
+}
+[train] {
+  gen: 5,
+  sigma: 0.188,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 637.1 }
+}
+[train] {
+  gen: 6,
+  sigma: 0.175,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 793.2 }
+}
+[train] {
+  gen: 7,
+  sigma: 0.163,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 346.9 }
+}
+[train] {
+  gen: 8,
+  sigma: 0.15,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 379.4 }
+}
+[train] {
+  gen: 9,
+  sigma: 0.138,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 393.8 }
+}
+[train] {
+  gen: 10,
+  sigma: 0.125,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 417.3 }
+}
+[train] {
+  gen: 11,
+  sigma: 0.112,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 437 }
+}
+[train] {
+  gen: 12,
+  sigma: 0.1,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 380.5 }
+}
+[train] {
+  gen: 13,
+  sigma: 0.087,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 438.5 }
+}
+[train] {
+  gen: 14,
+  sigma: 0.075,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 459 }
+}
+[train] {
+  gen: 15,
+  sigma: 0.063,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 364.1 }
+}
+[train] {
+  gen: 16,
+  sigma: 0.05,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 486.2 }
+}
+[train] {
+  gen: 17,
+  sigma: 0.05,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 663.2 }
+}
+[train] {
+  gen: 18,
+  sigma: 0.05,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 643.3 }
+}
+[train] {
+  gen: 19,
+  sigma: 0.05,
+  bestScore: 10,
+  topGen: { score: 10, wins: 10, draws: 0, avgTick: 485.4 }
+}
+[train] write-done {
+  outPath: '/project/result/ai.txt',
+  score: 10,
+  wins: 10,
+  draws: 0,
+  avgTick: 373.6
+}
