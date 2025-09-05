@@ -125,3 +125,11 @@
 - 성능 검증: baseline 상대로 80전 80승 0패 0무, avgEndTick≈243.1.
 - 로그 추가: `.agent/log/2025-09-05T06-59-28.554Z-selfplay-summary.json` 등 제너레이션 요약 다수.
 - 다음 실행 제안: GENS 확장(≥24), 시드 다양화 및 미러전 추가, 다목표(생존+종료틱) 적합도.
+
+## 2025-09-05T07-11Z
+- train_roles(GENS=24) 확장 실행 → 역할+가중치 동시 진화 완료.
+- 최종 역할 배열: [DEALER, DEALER, TANKER, NORMAL, DEALER, NORMAL] (내부값: [2,2,1,0,2,0]).
+- 학습 세트 성능: baseline 상대로 12전 12승, avgTick≈256.5.
+- 검증(자가 평가) 100전: 100승 0패 0무, avgEndTick≈262.9.
+- 산출물 갱신: result/ai.txt (6개 탱크 코드, 16→6→5 MLP 정책, 리드샷 포함).
+- 로그: .agent/log/*train_roles-gen-*.json, 2025-09-05T07-11-24.975Z-selfplay-summary.json 추가.
