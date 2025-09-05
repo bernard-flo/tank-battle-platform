@@ -74,3 +74,10 @@
 - result/ai.txt를 최신 6탱크 신경망 번들로 갱신 (Atlas, Bulwark, Viper, Falcon, Raptor, Sage)
 - .agent/log에 학습 제너레이션 로그 자동 기록됨
 - 변경사항 커밋 완료
+
+## ${NOW}
+- train_roles(16세대) 수행: baseline 상대로 50전 49승 1패 0무, avgEndTick≈212.5
+- 최종 역할 조합: [DEALER, NORMAL, NORMAL, DEALER, TANKER, DEALER] (ids: [2,0,0,2,1,2])
+- 산출물: result/ai.txt (6개 탱크, 16→6→5 MLP 정책), Import 구분자 포함
+- 로그: .agent/log/*selfplay-summary.json 및 세션 요약 추가
+- 다음: GENS 확대(>=24), 상대 풀 다양화(미러전 포함), 다목표 적합도 실험
