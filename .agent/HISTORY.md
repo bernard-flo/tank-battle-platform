@@ -5,3 +5,9 @@
 - .agent/NOTE 업데이트 (AI 인터페이스/NN 설계 가이드)
 - 6번째 DEALER 봇 추가 예정 (result/ai.txt)
 
+2025-09-05T04:04:51Z
+
+- result/ai.txt: 6번째 탱크(Falcon-Dealer) 추가로 6개 완성
+- NN 기반 설계 유지(48→5, tanh/sigmoid), 역할별 가중치 차별화
+- Import 포맷 유지(블록 구분 주석 포함)
+
