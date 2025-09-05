@@ -1,41 +1,23 @@
-- tank_battle_platform.html 내 실행 샌드박스는 매 프레임 새 Function으로 코드 실행. 상태 저장 불가(Object.freeze). 정책은 관측 기반으로 설계 필요.
-- Import 포맷: function name(), function type(), function update(...) 세트 6개 연속. 분할은 function name() 경계로 수행. 구분 주석은 선택 사항.
-- 입력 특징: 자기 위치/체력/에너지, 최근접 적/아군, 최근접 탄환 및 속도, 적 집결 중심 등으로 12차원 구성. MLP(12->8->3)로 moveDir/fireDir/fireGate 산출.
-- 타입 조합: TANKER 2, DEALER 2, NORMAL 2.
-- 다음 회차에서 성능 개선: 가중치 튜닝, 피처 집합 확장(벽/가장자리, 동적 회피), 역할간 각도 분산.
-[AI 코드 생성 파이프라인]
-- 스크립트: scripts/train2.js (Node, 무의존)
-- 모델: 입력 16, 은닉 6, 출력 5 MLP. 업데이트 함수는 환경 파라미터로부터 특징을 구성하고 mlp 결과로 회피/공격/장애물/벽 가중 및 발사 리드각을 산출.
-- 학습: 진화전략(엘리트 보존)으로 3개 역할(Type별) 파라미터 동시 최적화. 평가상대는 엔진 내 Baseline AI.
-- 산출물: result/ai.txt (HTML Import 호환. 각 로봇은 function name()으로 구분)
+# 개발 메모 (AI 탱크 팩)
 
-[사용법]
-- tank_battle_platform.html → 팀 Import 클릭 → result/ai.txt 내용 전체 붙여넣기 → 확인.
-- 내보내기/가져오기는 HTML에 내장된 분리 로직(splitRobotCodes)을 사용.
+- 목적: tank_battle_platform.html의 Import 기능으로 붙여넣을 수 있는 6개 탱크 코드 세트(`/result/ai.txt`) 유지/개선.
+- 제약: HTML은 수정 금지. 사용자 코드 샌드박스에서는 `window/document` 미노출, `Type` 상수만 제공. 표준 `Math`는 사용 가능.
+- 인터페이스:
+  - `function name()`: 표시명.
+  - `function type()`: `Type.NORMAL | Type.TANKER | Type.DEALER` 반환.
+  - `function update(tank, enemies, allies, bulletInfo)`:
+    - `tank`: 제한 API `{move(angle), fire(angle), x,y,health,energy,type,size}`.
+    - `enemies/allies`: 불변 스냅샷. 각 원소에 `x,y,distance,angle?,health` 등.
+    - `bulletInfo`: 적 총알 `{x,y,vx,vy,distance}`.
+- 현재 구조: 각 탱크는 동일한 MLP 전방향 패스를 사용(입력 16, 은닉 6, 출력 5). 출력 의미:
+  - [0..3] = 이동 벡터 가중치(회피/추적/공전/벽회피)를 softmax-정규화 비율로 사용.
+  - [4] = 사격 리드 각도(도 단위, [-14, 18] 클램프).
+- 특징량: 자기 위치정규화, 체력, 타입 one-hot, 최근접 적 정보, 적/아군 중심, 총알 위협, 벽 회피 벡터 등.
+- 역할별 편향: `DEALER`는 추적/공전, `TANKER`는 벽/안정, `NORMAL`은 균형. 이는 `W2/b2` 스케일링으로 주입.
+- 개선 아이디어:
+  - 리드각을 적 속도 추정으로 보정(현재는 MLP 출력 기반).
+  - 타깃 선택: 체력/거리/집중포화 점수로 스코어링.
+  - GA/ES로 가중치 탐색(셀프플레이), 최적 세트 자동 갱신 파이프라인.
+  - 타입 조합 최적화: 2 Tanker + 3 Dealer + 1 Normal 등 변이 탐색.
 
-[향후 개선 아이디어]
-- 상대 풀 다양화: 과거 엘리트 및 랜덤 상대로 리그전(Co-evolution) 평가.
-- 커리큘럼: 맵 랜덤 시드/스폰 교란, 탄속/쿨다운 약간 변조하여 과적합 방지.
-- 모델 확장: 은닉 크기↑, skip 연결, 출력에 rollouts 기반 발사/이동 이득 보강.
-- 앙상블: 역할별 2~3개 후보를 셔플 배치 후 셀프플레이 선택압 강화.
-- 로그: .agent/log 하위에 세대별 요약 + 최종 평가를 JSON/MD로 추가.
-
-[최신 러닝 결과 요약 2025-09-05T10:12Z]
-- 설정: train_roles.js, GENS=24, POP=20, SEEDS=12
-- 베스트: 12승/0무, avgEndTick≈268.3
-- 역할: [2,2,2,2,1,2] → [DEALER, DEALER, DEALER, DEALER, TANKER, DEALER]
-- 산출물: result/ai.txt 갱신(Import 호환)
-# Tank AI 개발 노트 (추가)
-- 실행 환경 격리로 `tank`는 Object.freeze된 API만 허용 → 가변 상태/학습 불가. 정책은 사전 학습(오프라인) 또는 고정 가중치만 가능.
-- 신경망 스펙: 16 입력(위치/체력/타입 원-핫/최근접·무게중심/아군중심/탄막압력/벽벡터), 6 은닉(tanh), 5 출력(회피/공격/공전/벽회피/리드샷).
-- 의사결정: 4개 가중치 soft-normalize → 이동 벡터 혼합, 리드샷은 제한 범위 클램프.
-- 역할별 차등: Tanker는 벽회피 가중 상향·리드샷 축소, Dealer는 공격·리드샷 증대, Normal은 중립.
-- Import 포맷: 각 로봇 블록은 `function name()`, `function type()`, `function update(...)` 포함. 구분자로 `// ===== 다음 로봇 =====` 유지.
-- 향후: Node 시뮬레이터로 규칙 복제 → CMA-ES/NEAT 진화 학습 후 가중치 교체 자동화 스크립트화.
-
-[2025-09-05] 세션 메모
-- 현재 ai.txt는 train_roles.js(GENS=12, POP=20, seeds=12)로 학습한 결과.
-- 엔진은 HTML 규칙을 모사하며 발사 쿨다운/이동충돌/벽 경계 동일.
-- Import 포맷: function name/type/update 6개 블록, 구분자 "// ===== 다음 로봇 =====" 유지.
-- 개선 계획: 상대 풀 다양화(자기 앙상블+과거 엘리트), 학습 세대↑, 입력 특징 확장(적 발사 예측 가중 보강), 역할 셔플 강화.
-- 실행: `make train_roles GENS=24` → `make sim`으로 빠른 검증.
+파일: `result/ai.txt`를 계속 최신 최적 세트로 유지.
