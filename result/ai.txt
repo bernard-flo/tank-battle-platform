@@ -106,49 +106,6 @@ function update(tank, enemies, allies, bulletInfo) {
 
 // ===== 다음 로봇 =====
 
-function name() { return 'Viper-Dealer'; }
-function type() { return Type.DEALER; }
-function update(tank, enemies, allies, bulletInfo) {
-  function F(){
-    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-    const sx=tank.x/900, sy=tank.y/600, sh=Math.min(1,tank.health/150), ss=Math.min(1,tank.size/50);
-    const to=[tank.type===0?1:0, tank.type===1?1:0, tank.type===2?1:0];
-    const es=enemies.slice().sort((a,b)=>a.distance-b.distance);
-    const as=allies.slice().sort((a,b)=>a.distance-b.distance);
-    const bs=bulletInfo.slice().sort((a,b)=>a.distance-b.distance);
-    function eF(e){ if(!e) return [0,0,0,0,0,0]; const dx=(e.x-tank.x)/900, dy=(e.y-tank.y)/600; const dn=clamp(Math.hypot(dx,dy),0,1); const ang=Math.atan2(dy,dx); return [dx,dy,dn,Math.sin(ang),Math.cos(ang),Math.min(1,(e.health||100)/150)]; }
-    function aF(a){ if(!a) return [0,0,0,0]; const dx=(a.x-tank.x)/900, dy=(a.y-tank.y)/600; return [dx,dy,clamp(Math.hypot(dx,dy),0,1),Math.min(1,(a.health||100)/150)]; }
-    function bF(b){ if(!b) return [0,0,0,0,0]; const dx=(b.x-tank.x)/900, dy=(b.y-tank.y)/600; const dn=clamp(Math.hypot(dx,dy),0,1); const vx=clamp(b.vx/8,-1,1), vy=clamp(b.vy/8,-1,1); return [dx,dy,dn,vx,vy]; }
-    const f=[sx,sy,sh,ss,...to];
-    const e1=eF(es[0]), e2=eF(es[1]), e3=eF(es[2]); f.push(...e1,...e2,...e3);
-    const a1=aF(as[0]), a2=aF(as[1]); f.push(...a1,...a2);
-    const b1=bF(bs[0]), b2=bF(bs[1]), b3=bF(bs[2]); f.push(...b1,...b2,...b3);
-    return f;
-  }
-  function NN(x){
-    const D=48; const O=5; const W=new Array(O); const b=[0,0,0,0,0]; for(let o=0;o<O;o++){W[o]=new Array(D).fill(0);} const add=(o,k,w)=>{if(k>=0&&k<D)W[o][k]+=w;};
-    const I={sx:0,sy:1, e1:7, b1:33, b2:38};
-    // 이동: 원거리 포지셔닝(목표와 일정 거리 유지) + 탄 우선 회피
-    add(0,I.e1+0,-0.80); add(1,I.e1+1,-0.80); // 멀어지기 경향
-    add(0,I.b1+0,-1.85); add(1,I.b1+1,-1.85);
-    add(0,I.b2+0,-1.10); add(1,I.b2+1,-1.10);
-    add(0,I.sx,-0.08);   add(1,I.sy,-0.08);
-    // 조준: e1에 강하게 고정
-    add(2,I.e1+0,+3.50); add(3,I.e1+1,+3.50);
-    // 발사: 멀수록 낮게, 탄 적으면 높게
-    add(4,I.e1+2,-2.60); add(4,I.b1+2,-1.80); b[4]+=0.85;
-    const y=[0,0,0,0,0];
-    for(let o=0;o<4;o++){let s=0; for(let i=0;i<D;i++) s+=W[o][i]*x[i]; y[o]=Math.tanh(s);} {let s=b[4]; for(let i=0;i<D;i++) s+=W[4][i]*x[i]; y[4]=1/(1+Math.exp(-s));}
-    return y;
-  }
-  const x=F(); const y=NN(x);
-  const move=Math.atan2(y[1],y[0])*180/Math.PI; const fire=Math.atan2(y[3],y[2])*180/Math.PI;
-  if(!tank.move(move)) { tank.move(move+30) || tank.move(move-30) || tank.move(move+70) || tank.move(move-70) || tank.move(move+180); }
-  if(y[4]>0.30) tank.fire(fire);
-}
-
-// ===== 다음 로봇 =====
-
 function name() { return 'Ranger-Normal'; }
 function type() { return Type.NORMAL; }
 function update(tank, enemies, allies, bulletInfo) {
