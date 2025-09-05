@@ -248,3 +248,11 @@
 ### 2025-09-05T09:16:17+00:00 메모
 - 학습 스크립트(train_roles.js)로 6개 탱크 코드 자동 생성 예정.
 - 산출물: result/ai.txt (플랫폼 Import 호환).
+
+### 2025-09-05T09-22-59Z 업데이트
+- 학습 스크립트 선택: train_roles.js 권장 (train.js는 clamp 주입 누락 위험)
+- 출력 경로: result/ai.txt (플랫폼 Import 호환 텍스트 번들)
+- 검증: scripts/sim/engine.js로 baseline/미러전 시뮬레이션, .agent/log/*summary 기록
+- 탐색 설정 제안: POP≈20, ELITE≈5, GENS≥16, 시드 다양화(12+)
+- 모델 구조: in16-h6-out5, 출력 의미(Evade/Attack/Orbit/Wall/AimLead)
+- 역할 탐색: 6슬롯 Type 배열도 진화, 과적합 방지 위해 시드/상대 다양화
