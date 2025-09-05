@@ -50,7 +50,8 @@ function train(){
     fs.writeFileSync(path.join(logDir, `${nowISO()}-train2-gen-${gen}.json`), JSON.stringify(summary,null,2));
   }
   // write outputs
-  const outPath=path.resolve(__dirname,'../..','result/ai.txt'); fs.writeFileSync(outPath, best.bundle);
+  const outPath=path.resolve(process.cwd(),'result/ai.txt');
+  fs.writeFileSync(outPath, best.bundle);
   const final = {score:best.score,wins:best.wins,draws:best.draws,avgTick:Number(best.avgTick.toFixed(1))};
   fs.writeFileSync(path.join(logDir, `${nowISO()}-train2-final.json`), JSON.stringify(final,null,2));
   console.log('[train] write-done', { outPath, ...final });
