@@ -54,3 +54,5 @@ AI Pack 사용법 (요약)
 [다음 실행을 위한 TODO]
 - .scratchpad/rl_todo.md 진행 (시뮬레이터 분리, 파라미터 검색 루프)
 - 유전/랜덤 탐색으로 가중치 튠 스크립트 초안 작성
+- tank_battle_platform.html은 수정 금지. Import는 function name() 경계로 분할됨.
+v7: 6개 NN 에이전트, 역할 조합: 2 TANKER, 2 NORMAL, 2 DEALER

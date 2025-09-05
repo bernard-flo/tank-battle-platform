@@ -23,3 +23,8 @@
 - result/ai.txt 상태 점검: 6개 탱크 확인(Vanguard-Tanker, Bulwark-Tanker, Sentinel-Normal, Overseer-Normal, Phantom-Dealer, Falcon-Dealer)
 - Import 포맷 재검증: platform은 'function name()' 기준 분할 → ai.txt 적합
 - 다음 단계 계획: RL/자가전 시뮬레이터 분리 초안(.scratchpad/rl_todo.md)
+
+## ${TS}
+- result/ai.txt: AI Pack v7 (6개 탱크: Shield/Anchor/Coordinator/Skirmisher/Reaper/Hawk) 추가.
+- 각 탱크는 48차원 피처와 5차원 출력을 갖는 단층 신경망으로 구현, 역할별 가중치 튜닝.
+- .scratchpad에 이전 ai.txt 백업 생성.
