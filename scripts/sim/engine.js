@@ -4,10 +4,11 @@
 const Type = { NORMAL: 0, TANKER: 1, DEALER: 2 };
 
 // Mirror of TANK_CONFIGS in HTML
+// Match tank_battle_platform.html TANK_CONFIGS exactly
 const TANK_CONFIGS = {
-  [Type.NORMAL]: { energy: 100, speed: 6, size: 35, damage: 10 },
-  [Type.TANKER]: { energy: 150, speed: 4, size: 45, damage: 9 },
-  [Type.DEALER]: { energy: 80, speed: 8, size: 30, damage: 12 }
+  [Type.NORMAL]: { energy: 100, size: 35, speed: 5, damage: 5 },
+  [Type.TANKER]: { energy: 150, size: 45, speed: 3, damage: 4.5 },
+  [Type.DEALER]: { energy: 80,  size: 33, speed: 6, damage: 6.5 }
 };
 
 class Tank {
