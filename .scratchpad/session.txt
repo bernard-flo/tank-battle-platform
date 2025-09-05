@@ -3,3 +3,9 @@ Session 2025-09-05T07-39-08Z
 - 오늘 성과: train_roles 24세대, baseline 100전 전승
 - 메모: 리드각 출력 범위 [-12,16] 유지가 사격 정확도 안정적.
 - 다음: seeds 확대, 상대 풀 다변화, H=8 실험 분기 추가 예정.
+[2025-09-05T09-36-39Z]
+- train_roles.js GENS=20 실행 완료
+- result/ai.txt 갱신됨 (6개 로봇, Import 호환)
+- selfplay 50전 vs baseline: 50승/0무/0패, avgEndTick≈271.5
+- 다음: 시드 확대/미러전/상대풀 다양화, GENS↑
+
