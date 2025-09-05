@@ -171,3 +171,7 @@
 - 로그 생성: .agent/log/*-train2-run.out, 세대별 성능 기록 JSON 동반 저장
 - 현재 번들: 6개 탱크(Atlas, Bulwark, Viper, Falcon, Raptor, Sage) MLP 기반 정책
 - 평균 종료 tick 및 승/무 기록은 로그 참고 (bestScore=10/10)
+## 2025-09-05T08:16Z
+- train_roles.js 역할+정책 동시 최적화(GENS=8) 수행 → /result/ai.txt 재갱신
+- 성능: 12/12 승 (baseline 대비), 평균 종료 tick 개선 (~291)
+- 최적 역할 시퀀스: [DEALER, NORMAL, TANKER, DEALER, TANKER, DEALER]
