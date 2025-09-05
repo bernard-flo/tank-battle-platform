@@ -1,0 +1,8 @@
+Goal: 강화학습/진화탐색으로 6개 탱크 코드 생성
+Run: scripts/train_roles.js with GENS=24, seeds=12, POP=20, ELITE=5
+Outcome: result/ai.txt updated; baseline 80/80 wins (avgTick≈290)
+Next ideas:
+- Expand eval opponents (mirror, random roles, noise bots)
+- Increase hidden size to 8/10; widen outputs to include swirl/orbit factor
+- Add self-play coevolution: A vs A variants
+- GPU not used (Node.js); could offload to Python torch to train weights then emit JS
