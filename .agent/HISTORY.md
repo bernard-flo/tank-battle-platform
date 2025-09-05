@@ -256,3 +256,7 @@
 - selfplay 100매치 vs baseline: 100승 0무 0패, avgEndTick≈240.2
 - 역할 최적화 결과: [DEALER, DEALER, NORMAL, DEALER, TANKER, DEALER]
 - 로그: .agent/log/*selfplay-summary.json
+[2025-09-05T10-31-38Z] 6개 신경망 기반 탱크 코드 생성: Atlas, Bulwark, Viper, Aegis, Orion, Nova.
+- Import 포맷 준수(function name() 분할).
+- 역할별 W2/b2 스케일링으로 행동 편향.
+- 향후 GA/ES로 가중치 자동최적화 계획.
