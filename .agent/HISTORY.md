@@ -33,3 +33,8 @@
 
 - HISTORY/NOTE 정정: 이전 항목의 "2025-09-05T04:23:14Z" 리터럴 치환 오류 보정
 - 위 시각 기준 AI Pack v7 반영 완료
+
+## 2025-09-05T04:25:09Z
+- Update: AI Pack v7.1 in result/ai.txt (added move(fire) fallback to improve unstick and flanking)
+- Note: 6 NN-based tanks: Shield/Anchor/Coordinator/Skirmisher/Reaper/Hawk.
+- Next: explore RL self-play harness and weight tuning.
