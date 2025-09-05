@@ -142,3 +142,10 @@
 - 타입 조합: 2 TANKER, 2 DEALER, 2 NORMAL 목표. 기존 팩(Atlas~Sage)은 2-3-1이었으므로 Raptor를 NORMAL로 스위치.
 - 성능 개선 계획: self-play로 리플레이 생성 → 간단한 에볼루션/ES로 `b2`(바이어스) 우선 튜닝 → 필요 시 `W2` 소폭 변이. UI 기반 수동 임포트/익스포트 한계로, 결과물은 항상 `/result/ai.txt` 한 파일로 유지.
 - 안전/성능: update 내 루프 제한, `move` 실패 시 3방향(기본/±70°) 재시도 뒤 랜덤 폴백. 연산 가벼운 `tanh`/선형만 사용.
+
+### 이번 실행 스냅샷 (2025-09-05T07-27-15Z)
+- 사용 스크립트: `scripts/train_roles.js`
+- 파라미터: `GENS=16`
+- 결과: baseline 50전 50승 0패 0무, avgEndTick≈255.1, 최종 역할 = [DEALER, NORMAL, TANKER, DEALER, DEALER, DEALER]
+- 산출물: `result/ai.txt` 최신화, Import 구분자 포함 유지
+- 참고: 브라우저 샌드박스 구조상 프레임 간 상태는 보존되지 않으므로, 모든 정책은 순수 반응형 구현을 유지함

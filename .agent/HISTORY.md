@@ -119,6 +119,13 @@
 - 로그 생성: .agent/log/*train_roles*
 - 커밋: feat(ai): evolve NeuroPack v2 via role+weights search (GENS=16)
 
+## 2025-09-05T07-27-15Z
+- train_roles(GENS=16) 재실행 및 최적 번들 업데이트 완료
+- 최종 역할: [DEALER, NORMAL, TANKER, DEALER, DEALER, DEALER] (내부값: [2,0,1,2,2,2])
+- 성능(검증): baseline 상대로 50전 50승 0패 0무, 평균 종료 tick ≈ 255.1
+- 산출물: result/ai.txt 갱신(6개 탱크 MLP 정책, Import 구분자 포함)
+- 로그: .agent/log/*train_roles* 및 *selfplay-summary.json 자동 생성
+
 ## 2025-09-05T06-59-28Z
 - 역할+가중치 동시 진화 학습(train_roles) 16세대 수행 완료.
 - 최종 산출물: `result/ai.txt` 6봇 번들 갱신(MLP 16→6→5, 리드샷 포함), Import 구분자 포함.
