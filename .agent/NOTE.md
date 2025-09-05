@@ -156,3 +156,8 @@
 - 산출물: result/ai.txt (Import 가능 포맷, 6 로봇 블록과 구분 주석 포함).
 - 검증: scripts/sim/run.js 로 100전 자가 검증(red=우리, blue=baseline).
 - 향후 계획: 상대 풀 다양화(미러전/랜랜/크로스플레이), 다목표(생존률/팀 에너지) 적합도, H 확장(6→8/10) 실험.
+### 이번 실행 스냅샷 (2025-09-05T07-48Z)
+- 사용 스크립트: `scripts/train_roles.js`
+- 파라미터: `GENS=16`
+- 결과: baseline 50전 50승 0패 0무, avgEndTick≈263, 최종 역할 = [TANKER, DEALER, DEALER, DEALER, NORMAL, DEALER]
+- 산출물: `result/ai.txt` 최신화, Import 구분자 유지

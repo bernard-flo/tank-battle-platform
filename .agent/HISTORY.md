@@ -146,3 +146,9 @@
 - 최종 역할: [NORMAL, TANKER, DEALER, DEALER, DEALER, DEALER] (내부값: [0,1,2,2,2,2])
 - 성능: baseline 100전 100승 0패 0무, avgEndTick≈259.9
 - 로그: .agent/log/*train_roles* 및 *selfplay-summary.json 생성
+## 2025-09-05T07:48Z
+- train_roles.js로 6탱크 신경망 정책 학습 실행(GENS=16)
+- result/ai.txt 갱신(Import 호환 6개 로봇 번들)
+- scripts/sim/run.js로 baseline 상대로 50전 검증: 50W/0L/0D, avgEndTick≈263
+- 역할 조합: [TANKER, DEALER, DEALER, DEALER, NORMAL, DEALER]
+- 로그 생성: .agent/log/*train_roles* 및 *selfplay-summary.json*, 요약 md 추가

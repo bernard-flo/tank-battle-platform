@@ -1,0 +1,8 @@
+{
+  "script": "scripts/train_roles.js",
+  "gens": 16,
+  "pop": 20,
+  "elite": 5,
+  "seeds": "2000..2011",
+  "notes": "Roles co-evolution + weight mutation; wrote result/ai.txt; verified 50/50 vs baseline"
+}
