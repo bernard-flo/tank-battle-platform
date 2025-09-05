@@ -47,3 +47,24 @@
 - 산출물: `result/ai.txt` (플랫폼 import 호환), 로그: `.agent/log/*train2*` 및 `*selfplay-summary.json`.
 - 검증: `node scripts/sim/run.js` (baseline 상대로 50전 성능 요약).
 - 다음 개선: 시드 다양화, 상대 풀 확장(미러전/랜덤 정책), 세대 수 증가, 은닉차원 증대 실험.
+# Neuro-Tank Pack v1 — 개발 노트
+
+- 실행 환경: `tank_battle_platform.html`은 매 틱마다 `new Function(code)`로 AI 코드를 재평가합니다.
+  - 따라서 탱크 AI는 프레임 간 영속 상태를 보존할 수 없습니다(전역/정적 변수 사용 불가).
+  - 허용 API: `update(tank, enemies, allies, bulletInfo)` 내 `tank.move(angle)`, `tank.fire(angle)`과 읽기 전용 `tank.x/y/health/type/size`.
+  - 입력: `enemies`(위치/거리/각도/체력), `allies`(위치/거리/체력), `bulletInfo`(적 탄 위치/속도 벡터/거리).
+- 결과물 규격: Import 시 `function name(){...} function type(){...} function update(...) { ... }` 블록 6개를 순차 배치.
+- v1 구조: 16→6→5 MLP(활성함수 tanh), 출력 5개
+  - [0..3]: 이동 벡터 기저(탄 회피, 타겟 돌진, 공전(직교), 벽 회피)의 혼합 가중치
+  - [4]: 사격 각도 오프셋(리드 보정, -~+ 약간 제한)
+- 특징량(16):
+  - 탱크 좌표 정규화(2), 체력(1), 타입 원핫(3), 최근접/타겟 상대벡터/거리(3), 적/아군 중심 상대단위벡터(4), 탄 위협량(1), 벽 밀어내기 벡터(2)
+- 제약 최적화:
+  - 프레임리스 학습 제약으로 온라인 학습 대신, 고정 MLP 가중치와 역할별(탱커/딜러/노멀) 편향을 사용.
+  - 딜러는 거리 유지 항(-target)을 추가 가중해 카이팅, 탱커는 돌진/벽압 가중 강화.
+- 향후 계획:
+  1) Node/Python 시뮬레이터로 환경 근사 후 자가대전(PSRO/NE)으로 가중치 진화
+  2) 역할별 파라미터 공유(헤드 분기) + CMA-ES/ES/PG로 오프라인 튜닝
+  3) `result/ai.txt` 자동 갱신 파이프라인과 성능 로그 `.agent/log/*-selfplay-summary.json` 연동
+  4) 프레임 비영속성 극복용 특성: 벽/탄/군집 기반 반응형 정책 고도화
+- 주의: HTML은 수정 불가, Import 형식만 준수해 갱신.
