@@ -17,8 +17,10 @@
   - `enemies/allies`는 `{x,y,distance,health}`(enemy는 angle 포함)만 사용 가능
   - `bulletInfo`는 `{x,y,vx,vy,distance}`
 
-- 탱크 타입 구성 가이드
-  - 2x TANKER(진입/보호), 2x NORMAL(밸런스/링크), 2x DEALER(원거리 DPS)
+- 탱크 타입 구성 가이드 (AI Pack v6)
+  - 2x TANKER(Vanguard, Bulwark)
+  - 2x NORMAL(Ranger, Sentinel)
+  - 2x DEALER(Phantom, Falcon)
   - 내부 가중치로 역할별 의사결정을 차별화
 
 - 향후 개선 아이디어
@@ -26,3 +28,11 @@
   - 진화전략/베이지안 최적화로 가중치 자동 탐색
   - LSTM 계층을 추가해 예측 이동 강화(총알/적 이동 예측)
   - import/export 포맷 그대로 유지하여 역호환성 유지
+
+AI Pack 사용법 (요약)
+- 경로: `result/ai.txt`
+- 플랫폼에서 "Import" 버튼 클릭 → `ai.txt` 전체 내용을 붙여넣기
+- 블록 구분 주석 `// ===== 다음 로봇 =====`는 가독성용이며, Import는 `function name()` 기준으로 자동 분할됨
+
+버전 표기
+- 현재 배포: AI Pack v6 (6 tanks, NN-based)
