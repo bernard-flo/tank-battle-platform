@@ -256,3 +256,8 @@
 - 탐색 설정 제안: POP≈20, ELITE≈5, GENS≥16, 시드 다양화(12+)
 - 모델 구조: in16-h6-out5, 출력 의미(Evade/Attack/Orbit/Wall/AimLead)
 - 역할 탐색: 6슬롯 Type 배열도 진화, 과적합 방지 위해 시드/상대 다양화
+
+### 운영 메모 ($(date -u +%F %T UTC))
+- 현재 `result/ai.txt`는 baseline 상대로 50/50 승, avgEndTick≈272.
+- 다음 단계: `GENS=24 node scripts/train_roles.js`로 역할/가중치 재탐색해 종료 틱 단축과 안정성 향상 목표.
+- 완료 후 `node scripts/sim/run.js`로 50전 요약 검증, 결과를 `.agent/log/AI-PACK-SUMMARY.md`에 기록.
