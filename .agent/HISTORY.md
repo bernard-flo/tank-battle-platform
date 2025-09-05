@@ -245,3 +245,8 @@
 - 산출물 갱신: `result/ai.txt` (6개 탱크 신경망 번들, Import 구분자 포함)
 - 로그 추가: `.agent/log/*train_roles-gen-*.json`, `*train_roles-final.json`
 - 커밋: feat(ai): evolve 6-tank MLP policies via train_roles (GENS=24)
+
+## 2025-09-05 10:20:18Z
+- result/ai.txt: 6개 NN 탱크 코드(Atlas, Bulwark, Orion, Viper, Aegis, Nova) 구성 업데이트.
+- 각 탱크는 16->6->5 MLP로 의사결정(회피/공격/공전/벽회피/리드샷).
+- 타입 조합: Dealer 2, Tanker 2, Normal 2.
