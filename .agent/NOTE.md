@@ -26,3 +26,11 @@
 - 결과 번들 성능(대 baseline): 50전 50승 0패 0무, 평균 종료 tick ≈ 276.8.
 - 역할 시퀀스(내부값): [1,2,1,2,0,1] → [TANKER, DEALER, TANKER, DEALER, NORMAL, TANKER].
 - 산출물: result/ai.txt 갱신(6개 탱크, MLP 16→6→5, 리드샷 포함), tank_battle_platform.html Import 호환 유지.
+ 
+## 2025-09-05T11-01-44Z
+- train_roles 재실행(GENS=16) → role+[W1,b1,W2,b2] 동시 진화, 최종 역할 [2,1,1,2,0,2].
+- 성능 요약: baseline 12전 12승, avgEndTick≈260.2.
+- 산출물: result/ai.txt 갱신 완료. Import 방법:
+  1) result/ai.txt 전체 복사
+  2) tank_battle_platform.html → 각 팀 Import 버튼 → 모달에 붙여넣기 → 가져오기
+  3) 6개 로봇이 function name() 블록 기준으로 자동 분할됨
