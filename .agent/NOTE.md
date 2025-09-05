@@ -213,3 +213,27 @@
 - 현재 구조: 입력16-은닉6-출력5 MLP, 역할(TANKER/DEALER/NORMAL)별 단일 모델 공유 + 슬롯 역할배열 동시진화
 - 개선 여지: 상대 다양화(미러전/랜덤전략) 포함해 과적합 방지, seeds 확대, POP/ELITE 상향, selfplay 섞기
 - 호환성: tank_battle_platform.html Import 그대로 가능, 함수 3종 정의 보장
+# Tank Battle AI 개발 노트 (장기 참고)
+
+- 코드 포맷: `result/ai.txt` 안에는 6개의 로봇 코드가 `function name()` 블록 기준으로 구분되며, 각 블록은 `function name()`, `function type()`, `function update(tank, enemies, allies, bulletInfo)` 3개 함수를 포함.
+- 타입 상수: `Type = { NORMAL:0, TANKER:1, DEALER:2 }` (플랫폼과 sim 엔진 동일).
+- 시뮬레이션 엔진: `scripts/sim/engine.js` – 브라우저 규칙과 최대한 동형. 무작위 시드/틱 기반 자율전투 가능.
+- 기본 학습 스크립트:
+  - `scripts/train_roles.js`: 3개 롤(NORMAL/TANKER/DEALER)별 단일 모델 + 6슬롯 역할 조합을 공동 최적화. 진화형 탐색(mu+lambda) 기반.
+  - `scripts/train2.js`/`scripts/train.js`: 롤별 모델만 최적화(고정 롤 구성), 보다 단순.
+- 하이퍼파라미터:
+  - 입력 차원 D=16, 은닉 H=6, 출력 O=5. 출력 해석: [회피 가중치, 공격 가중치, 공전 가중치, 벽압 가중치, 사격 리드각]. Softmax 유사 정규화로 혼합 벡터 방향 결정 + 실패 시 대체 이동 각도 시도(최대 10회/틱).
+  - 기본 세대 수(GENS)는 환경변수로 조절. 예: `GENS=24 node scripts/train_roles.js`.
+- 평가: `scripts/sim/run.js`는 `result/ai.txt` vs baseline 6봇 미러/기본 상대 다회전 결과를 요약(JSON)으로 `.agent/log`에 저장.
+- 로그/산출물:
+  - 학습/자기대전 요약은 `.agent/log/*json`에 타임스탬프 파일로 축적.
+  - 최종 번들은 `result/ai.txt`에 저장되며, 플랫폼 `tank_battle_platform.html`의 Import 모달에 그대로 붙여넣어 사용 가능.
+- 역할 조합: 기본적으로 탱커 2, 딜러 3, 노말 1 조합에서 시작하되, `train_roles.js`는 슬롯 스왑과 확률적 타입 변경으로 조합을 탐색.
+- 주의:
+  - HTML 파일은 수정하지 않는다. 규칙 변경은 sim 엔진/학습 코드 측에서 맞춘다.
+  - 파일 변경 시마다 커밋한다. 대용량 로그는 필요 시 정리하되, 현재는 보존.
+- 다음 개선 후보:
+  - seeds 수/세대 수 증가로 일반화 향상.
+  - 출력에 쿨다운-어웨어 사격율 조절 스칼라 추가.
+  - 탄도 리드각 근사 개선(적 속도 추정치 도입) 및 팀 전개 포메이션 피처 추가.
+  - `scripts/sim/engine.js`에 명중/피격 이펙트는 생략되어 있으므로, 브라우저 룰과의 불일치 요소 정교화 검토.
