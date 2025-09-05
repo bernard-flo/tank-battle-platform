@@ -119,3 +119,9 @@
 - 로그 생성: .agent/log/*train_roles*
 - 커밋: feat(ai): evolve NeuroPack v2 via role+weights search (GENS=16)
 
+## 2025-09-05T06-59-28Z
+- 역할+가중치 동시 진화 학습(train_roles) 16세대 수행 완료.
+- 최종 산출물: `result/ai.txt` 6봇 번들 갱신(MLP 16→6→5, 리드샷 포함), Import 구분자 포함.
+- 성능 검증: baseline 상대로 80전 80승 0패 0무, avgEndTick≈243.1.
+- 로그 추가: `.agent/log/2025-09-05T06-59-28.554Z-selfplay-summary.json` 등 제너레이션 요약 다수.
+- 다음 실행 제안: GENS 확장(≥24), 시드 다양화 및 미러전 추가, 다목표(생존+종료틱) 적합도.
