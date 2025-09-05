@@ -6,6 +6,7 @@
 4) 6개 로봇 코드가 각 칸에 자동 분할됩니다.
 5) 전투 시작!
 
-참고: `result/ai.txt`는 `scripts/train2.js` 학습으로 자동 갱신됩니다.
-- 빠른 재학습: `GENS=8 node scripts/train2.js`
-- 더 강한 모델: `GENS=40` 등으로 늘리되, 시간/자원 제약 고려
+참고: `result/ai.txt`는 학습 스크립트로 자동 갱신됩니다.
+- 역할 동시 탐색: `GENS=16 node scripts/train_roles.js`
+- 간단 탐색: `GENS=8 node scripts/train2.js`
+- 더 강한 모델: `GENS=24~40` 이상으로 늘리되, 시간/자원 제약 고려
