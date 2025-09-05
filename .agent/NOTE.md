@@ -237,3 +237,9 @@
   - 출력에 쿨다운-어웨어 사격율 조절 스칼라 추가.
   - 탄도 리드각 근사 개선(적 속도 추정치 도입) 및 팀 전개 포메이션 피처 추가.
   - `scripts/sim/engine.js`에 명중/피격 이펙트는 생략되어 있으므로, 브라우저 룰과의 불일치 요소 정교화 검토.
+### 2025-09-05T09-12Z – 빠른 진화 러닝/검증 가이드
+- 러닝: `GENS=6 node scripts/train_roles.js` (시드 12개, POP=20/ELITE=5)
+- 산출물: `result/ai.txt` (6개 탱크 코드 블록, Import 구분자 포함)
+- 검증: `MATCHES=60 node scripts/sim/run.js` → baseline 상대로 60/60 승, avgEndTick≈312
+- 커밋 규칙: 파일 변경 단위로 즉시 `git add` + `git commit` 수행(결과물/로그/문서 각각)
+- 주의: `tank_battle_platform.html`는 절대 수정하지 않음. 엔진과 포맷은 `scripts/sim/engine.js`/`result/ai.txt` 기준 유지
