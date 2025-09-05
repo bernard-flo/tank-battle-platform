@@ -89,3 +89,9 @@
 - 산출물 갱신: result/ai.txt (6개 탱크, MLP 정책, Import 구분자 포함).
 - 로그 생성: .agent/log/*train2* 및 *selfplay-summary.json.
 - 다음 계획: 역할 동시학습(train_roles) 장시간 실행, 상대 풀 다양화(미러전/랜덤).
+
+## 2025-09-05T06-12Z
+- train_roles.js 실행(GENS=10)로 `result/ai.txt` 갱신 완료
+- 성능: baseline 상대로 12전 12승(무승부 0), 평균 종료 tick ≈ 286.2
+- 최종 역할 배열: [DEALER, TANKER, TANKER, DEALER, NORMAL, DEALER] (내부 값: [2,1,1,2,0,2])
+- 관련 로그는 `.agent/log/*train_roles*` 및 요약 파일에 기록
