@@ -47,6 +47,12 @@
 - 산출물: `result/ai.txt` (플랫폼 import 호환), 로그: `.agent/log/*train2*` 및 `*selfplay-summary.json`.
 - 검증: `node scripts/sim/run.js` (baseline 상대로 50전 성능 요약).
 - 다음 개선: 시드 다양화, 상대 풀 확장(미러전/랜덤 정책), 세대 수 증가, 은닉차원 증대 실험.
+
+### 이번 실행 스냅샷 (2025-09-05T06:12Z)
+- 사용 스크립트: `scripts/train_roles.js` (역할+가중치 동시 진화)
+- 파라미터: `GENS=10`
+- 결과: baseline 상대로 12/12 승, avgTick≈286.2, 역할 = [DEALER, TANKER, TANKER, DEALER, NORMAL, DEALER]
+- 산출물/로그: `result/ai.txt` 갱신, `.agent/log/*train_roles*` 요약 생성
 # Neuro-Tank Pack v1 — 개발 노트
 
 - 실행 환경: `tank_battle_platform.html`은 매 틱마다 `new Function(code)`로 AI 코드를 재평가합니다.
