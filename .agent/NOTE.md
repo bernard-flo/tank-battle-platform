@@ -243,3 +243,8 @@
 - 검증: `MATCHES=60 node scripts/sim/run.js` → baseline 상대로 60/60 승, avgEndTick≈312
 - 커밋 규칙: 파일 변경 단위로 즉시 `git add` + `git commit` 수행(결과물/로그/문서 각각)
 - 주의: `tank_battle_platform.html`는 절대 수정하지 않음. 엔진과 포맷은 `scripts/sim/engine.js`/`result/ai.txt` 기준 유지
+
+
+### 2025-09-05T09:16:17+00:00 메모
+- 학습 스크립트(train_roles.js)로 6개 탱크 코드 자동 생성 예정.
+- 산출물: result/ai.txt (플랫폼 Import 호환).

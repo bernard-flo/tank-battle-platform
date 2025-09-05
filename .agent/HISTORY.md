@@ -213,3 +213,7 @@
 - 성능(자가 검증): baseline 60전 60승 0무, avgEndTick≈311.9
 - 산출물 갱신: result/ai.txt (6개 탱크 MLP 정책 번들, Import 구분자 포함)
 - 로그: .agent/log/2025-09-05T09-12-29.878Z-selfplay-summary.json
+
+
+## 2025-09-05T09:16:17+00:00 작업 시작
+- 준비: 디렉토리 확인 및 계획 수립
