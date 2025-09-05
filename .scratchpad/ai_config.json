@@ -1,0 +1,11 @@
+{
+  "bots": [
+    {"name": "Atlas",   "type": "Type.DEALER", "seed": 1001, "bias": {"ev": 0.7,  "at": 1.3,  "ob": 1.15, "wall": 0.8,  "lead": 1.0}},
+    {"name": "Bulwark", "type": "Type.TANKER", "seed": 1002, "bias": {"ev": 0.9,  "at": 1.1,  "ob": 0.9,  "wall": 1.2,  "lead": 0.6}},
+    {"name": "Viper",   "type": "Type.DEALER", "seed": 1003, "bias": {"ev": 0.8,  "at": 1.25, "ob": 1.25, "wall": 0.8,  "lead": 1.2}},
+    {"name": "Aegis",   "type": "Type.TANKER", "seed": 1004, "bias": {"ev": 1.1,  "at": 1.0,  "ob": 0.85, "wall": 1.3,  "lead": 0.5}},
+    {"name": "Orion",   "type": "Type.NORMAL", "seed": 1005, "bias": {"ev": 1.0,  "at": 1.0,  "ob": 1.0,  "wall": 1.0,  "lead": 0.8}},
+    {"name": "Nova",    "type": "Type.DEALER", "seed": 1006, "bias": {"ev": 0.75, "at": 1.35, "ob": 1.05, "wall": 0.85, "lead": 1.1}}
+  ]
+}
+
