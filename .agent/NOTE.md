@@ -172,3 +172,12 @@
 - 역할 배열: [DEALER, DEALER, NORMAL, NORMAL, DEALER, DEALER] (내부값: [2,2,0,0,2,2])
 - 산출물: `result/ai.txt` 최신화 (플랫폼 Import 호환)
 - 다음: GENS 확장 및 상대 풀 다양화(미러전 포함), 은닉차원 6→8 실험 예정
+### AI 번들 관리 메모 (2025-09-05)
+- 학습/생성 스크립트: `scripts/train2.js` (진화전략 기반, 내부 시뮬레이터 사용)
+- 출력물: `result/ai.txt` (플랫폼 Import 모달에 그대로 붙여넣기 가능)
+- 환경 파라미터: `GENS` 환경변수로 세대 수 제어, 기본 6. 타임아웃 고려 시 6~10 권장.
+- 시뮬레이터: `scripts/sim/engine.js` — HTML 룰셋의 안전 API/물리 로직을 근사.
+- 정책 구조: 16→6→5 MLP, 입력은 탱크 상태/근접 적/아군/탄환/벽 회피 지표. 출력은 네 방향 가중합(회피/추격/직교/벽)과 조준 보정 값.
+- 탱크 역할: NORMAL/TANKER/DEALER 별 모델 공유. 번들 생성 시 고정된 6개 이름/역할 조합.
+- 성능 검증: `simulateMatch`로 베이스라인 상대로 시드 다변 평가. 로그는 `.agent/log/*train2*`에 기록.
+- 플랫폼 사용법: `tank_battle_platform.html`의 Import 버튼 → `result/ai.txt` 내용을 모두 붙여넣기 → 각 칸 자동 분할.
