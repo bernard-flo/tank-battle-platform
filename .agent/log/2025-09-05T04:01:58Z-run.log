@@ -1,0 +1,9 @@
+2025-09-05T04:01:58Z 작업 로그
+
+- result/ai.txt: AI Pack v5로 갱신, 6개 봇 완성
+  - Tanker: Vanguard, Bulwark
+  - Normal: Ranger, Sentinel
+  - Dealer: Viper, Phantom(신규)
+- 각 봇은 48차원 입력 → 5차원 출력의 단층 NN 사용
+- Import 포맷 호환: function name()/type()/update() 블록 6개, 구분자 포함
+- 향후: 시뮬레이터 재현 후 가중치 자동 탐색/튜닝 계획

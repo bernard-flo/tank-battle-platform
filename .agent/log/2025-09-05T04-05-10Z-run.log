@@ -1,0 +1,18 @@
+AI Pack v6 빌드 로그
+
+- 산출물: result/ai.txt (6개 NN 탱크)
+- 구성: TANKER x2 (Vanguard, Bulwark), NORMAL x2 (Ranger, Sentinel), DEALER x2 (Phantom, Falcon)
+- 의사결정: 48입력 → 5출력 단층 NN(tanh/sigmoid), 역할별 가중치 프리튜닝
+- 이동 로직: 최근접 적 추격/카이팅, 강한 탄 회피, 중앙 복귀, 이동 실패 시 보정 각도 재시도
+- 사격 로직: 표적 각도 기반, 근접/탄밀도/체력 반영 확률 사격
+
+사용 방법
+1) tank_battle_platform.html 실행
+2) 각 팀의 Import 버튼 클릭
+3) result/ai.txt 전체 복사-붙여넣기
+4) 필요 시 팀명/배치 조정 후 START
+
+주의
+- 플랫폼 샌드박스 제약으로 외부 라이브러리 사용 없이 순수 JS로 NN 구현
+- 상태 보존 불가 환경이므로(코드 재평가) NN은 무상태 정책으로 작동
+- 향후 학습 루프/진화탐색 추가 시 `ai.txt` 가중치 자동 갱신 파이프라인 고려
