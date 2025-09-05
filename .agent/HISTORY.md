@@ -112,3 +112,10 @@
 - result/ai.txt 상단에 NeuroPack v2 메타 주석 추가 (MLP 기반 6봇 패키지)
 - 팀 조합 밸런싱: Raptor 타입을 DEALER -> NORMAL로 조정해 2-2-2 구성(두 탱커, 두 딜러, 두 노말)
 - 다음 단계: 자가 대전 로그 기반 weight 미세 조정 계획 정리 및 세션 로그 작성
+## 2025-09-05T06-50-38Z
+- train_roles(GENS=16) 실행: baseline 12전 12승, avgTick≈279.1
+- 최종 역할 배열: [DEALER, TANKER, TANKER, DEALER, NORMAL, DEALER] (내부값: [2,1,1,2,0,2])
+- 산출물 갱신: result/ai.txt (NeuroPack v2)
+- 로그 생성: .agent/log/*train_roles*
+- 커밋: feat(ai): evolve NeuroPack v2 via role+weights search (GENS=16)
+
