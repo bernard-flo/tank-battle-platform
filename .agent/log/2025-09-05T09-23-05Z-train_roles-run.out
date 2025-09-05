@@ -1,0 +1,148 @@
+[train_roles] {
+  gen: 0,
+  sigma: 0.25,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 316.3 },
+  roles: [ 2, 1, 1, 2, 0, 2 ]
+}
+[train_roles] {
+  gen: 1,
+  sigma: 0.237,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 357.8 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 2,
+  sigma: 0.225,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 333.6 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 3,
+  sigma: 0.212,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 322.2 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 4,
+  sigma: 0.2,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 327.6 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 5,
+  sigma: 0.188,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 313.5 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 6,
+  sigma: 0.175,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 326.8 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 7,
+  sigma: 0.163,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 293.2 },
+  roles: [ 2, 0, 1, 0, 2, 2 ]
+}
+[train_roles] {
+  gen: 8,
+  sigma: 0.15,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 273.7 },
+  roles: [ 2, 0, 1, 0, 2, 2 ]
+}
+[train_roles] {
+  gen: 9,
+  sigma: 0.138,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 270 },
+  roles: [ 2, 0, 1, 0, 2, 2 ]
+}
+[train_roles] {
+  gen: 10,
+  sigma: 0.125,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 259.3 },
+  roles: [ 2, 0, 1, 0, 2, 2 ]
+}
+[train_roles] {
+  gen: 11,
+  sigma: 0.112,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 262.8 },
+  roles: [ 2, 2, 1, 0, 2, 0 ]
+}
+[train_roles] {
+  gen: 12,
+  sigma: 0.1,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 267.3 },
+  roles: [ 2, 2, 1, 0, 2, 0 ]
+}
+[train_roles] {
+  gen: 13,
+  sigma: 0.087,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 265.7 },
+  roles: [ 2, 2, 1, 0, 2, 0 ]
+}
+[train_roles] {
+  gen: 14,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 266.5 },
+  roles: [ 2, 2, 1, 0, 0, 2 ]
+}
+[train_roles] {
+  gen: 15,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 262.7 },
+  roles: [ 2, 2, 1, 0, 0, 2 ]
+}
+[train_roles] {
+  gen: 16,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 268.8 },
+  roles: [ 2, 2, 1, 0, 0, 2 ]
+}
+[train_roles] {
+  gen: 17,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 269.5 },
+  roles: [ 2, 2, 1, 0, 0, 2 ]
+}
+[train_roles] {
+  gen: 18,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 271.8 },
+  roles: [ 2, 2, 1, 0, 2, 0 ]
+}
+[train_roles] {
+  gen: 19,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 258.2 },
+  roles: [ 2, 2, 1, 2, 0, 0 ]
+}
+[train_roles] write-done {
+  outPath: '/project/result/ai.txt',
+  score: 12,
+  wins: 12,
+  draws: 0,
+  avgTick: 258.2,
+  roles: [ 2, 2, 1, 2, 0, 0 ]
+}
