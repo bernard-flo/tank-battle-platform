@@ -1,0 +1,176 @@
+[train_roles] {
+  gen: 0,
+  sigma: 0.25,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 544.5 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 1,
+  sigma: 0.24,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 331.3 },
+  roles: [ 1, 0, 2, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 2,
+  sigma: 0.229,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 309.2 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 3,
+  sigma: 0.219,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 333.3 },
+  roles: [ 1, 0, 2, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 4,
+  sigma: 0.208,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 298.2 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 5,
+  sigma: 0.198,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 297.5 },
+  roles: [ 2, 0, 1, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 6,
+  sigma: 0.188,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 305.5 },
+  roles: [ 2, 0, 2, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 7,
+  sigma: 0.177,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 277.2 },
+  roles: [ 2, 0, 2, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 8,
+  sigma: 0.167,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 286.4 },
+  roles: [ 2, 2, 2, 0, 1, 2 ]
+}
+[train_roles] {
+  gen: 9,
+  sigma: 0.156,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 296.8 },
+  roles: [ 2, 0, 2, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 10,
+  sigma: 0.146,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 267.1 },
+  roles: [ 2, 0, 2, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 11,
+  sigma: 0.135,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 290.4 },
+  roles: [ 2, 0, 2, 1, 2, 2 ]
+}
+[train_roles] {
+  gen: 12,
+  sigma: 0.125,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 299.3 },
+  roles: [ 2, 0, 2, 1, 2, 2 ]
+}
+[train_roles] {
+  gen: 13,
+  sigma: 0.115,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 292.8 },
+  roles: [ 2, 0, 2, 1, 2, 2 ]
+}
+[train_roles] {
+  gen: 14,
+  sigma: 0.104,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 260.5 },
+  roles: [ 2, 2, 2, 2, 1, 0 ]
+}
+[train_roles] {
+  gen: 15,
+  sigma: 0.094,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 259.5 },
+  roles: [ 2, 2, 2, 2, 1, 0 ]
+}
+[train_roles] {
+  gen: 16,
+  sigma: 0.083,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 251.1 },
+  roles: [ 2, 2, 2, 2, 1, 0 ]
+}
+[train_roles] {
+  gen: 17,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 253.3 },
+  roles: [ 0, 2, 2, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 18,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 247.8 },
+  roles: [ 0, 2, 2, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 19,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 245.4 },
+  roles: [ 2, 2, 1, 2, 0, 2 ]
+}
+[train_roles] {
+  gen: 20,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 236 },
+  roles: [ 2, 2, 1, 2, 0, 2 ]
+}
+[train_roles] {
+  gen: 21,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 240.4 },
+  roles: [ 2, 2, 1, 2, 0, 2 ]
+}
+[train_roles] {
+  gen: 22,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 245.4 },
+  roles: [ 2, 2, 2, 2, 0, 1 ]
+}
+[train_roles] {
+  gen: 23,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 249.7 },
+  roles: [ 2, 2, 2, 2, 0, 1 ]
+}
+[train_roles] write-done {
+  outPath: '/project/result/ai.txt',
+  score: 12,
+  wins: 12,
+  draws: 0,
+  avgTick: 236,
+  roles: [ 2, 2, 1, 2, 0, 2 ]
+}

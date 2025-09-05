@@ -229,3 +229,4 @@
 - 계획: roles+weights 동시 진화 24세대 → selfplay 검증 → 요약 저장
 - 결과: `scripts/train_roles.js` 16세대 완료, `result/ai.txt` 갱신. baseline 50/50 전승, avgEndTick≈274.
 - 로그: `.agent/log/*train_roles-run.out`, `*selfplay-summary.json`, `*ai-pack-summary.md` 업데이트.
+[2025-09-05T09-53-25+00-00] 초기 6개 신경망 기반 탱크 코드 생성 및 result/ai.txt 추가. 탱커 2, 딜러 2, 노말 2 조합. 상태 저장 없이 관측 기반 정책.
