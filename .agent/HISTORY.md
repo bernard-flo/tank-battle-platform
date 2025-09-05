@@ -108,3 +108,7 @@
 - 최종 역할: [TANKER, DEALER, TANKER, DEALER, DEALER, NORMAL] (내부: [1,2,1,2,2,0])
 - 성능: baseline 12전 12승, 자가평가 50전 50승 0패 0무, avgEndTick≈260.4
 - 산출물: result/ai.txt 갱신, 로그: .agent/log/*train_roles* 및 *selfplay-summary.json 생성
+## 2025-09-05T06:41:22Z
+- result/ai.txt 상단에 NeuroPack v2 메타 주석 추가 (MLP 기반 6봇 패키지)
+- 팀 조합 밸런싱: Raptor 타입을 DEALER -> NORMAL로 조정해 2-2-2 구성(두 탱커, 두 딜러, 두 노말)
+- 다음 단계: 자가 대전 로그 기반 weight 미세 조정 계획 정리 및 세션 로그 작성
