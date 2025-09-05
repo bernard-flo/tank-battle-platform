@@ -1,0 +1,64 @@
+[train_roles] {
+  gen: 0,
+  sigma: 0.25,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 533.3 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 1,
+  sigma: 0.219,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 320.9 },
+  roles: [ 1, 0, 2, 2, 2, 2 ]
+}
+[train_roles] {
+  gen: 2,
+  sigma: 0.188,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 332.3 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 3,
+  sigma: 0.156,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 308.5 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 4,
+  sigma: 0.125,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 297.8 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 5,
+  sigma: 0.094,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 292.3 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 6,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 306 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] {
+  gen: 7,
+  sigma: 0.08,
+  bestScore: 12,
+  topGen: { score: 12, wins: 12, draws: 0, avgTick: 291.1 },
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
+[train_roles] write-done {
+  outPath: '/project/result/ai.txt',
+  score: 12,
+  wins: 12,
+  draws: 0,
+  avgTick: 291.1,
+  roles: [ 2, 0, 1, 2, 1, 2 ]
+}
