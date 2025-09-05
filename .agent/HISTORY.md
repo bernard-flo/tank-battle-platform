@@ -237,3 +237,11 @@
 - result/ai.txt 갱신: 6개 로봇 코드(Atlas, Bulwark, Viper, Falcon, Raptor, Sage)
 - .agent/log 에 세대별 요약 JSON 및 콘솔 로그 저장
 - .scratchpad 에 현재 ai 번들 백업 저장
+
+## 2025-09-05T10:12:00Z
+- 실행: `GENS=24 node scripts/train_roles.js`
+- 최종 스코어: 12W/0D, avgEndTick≈268.3
+- 최종 역할: [DEALER, DEALER, DEALER, DEALER, TANKER, DEALER] (내부값: [2,2,2,2,1,2])
+- 산출물 갱신: `result/ai.txt` (6개 탱크 신경망 번들, Import 구분자 포함)
+- 로그 추가: `.agent/log/*train_roles-gen-*.json`, `*train_roles-final.json`
+- 커밋: feat(ai): evolve 6-tank MLP policies via train_roles (GENS=24)

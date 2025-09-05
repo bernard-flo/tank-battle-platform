@@ -19,3 +19,9 @@
 - 모델 확장: 은닉 크기↑, skip 연결, 출력에 rollouts 기반 발사/이동 이득 보강.
 - 앙상블: 역할별 2~3개 후보를 셔플 배치 후 셀프플레이 선택압 강화.
 - 로그: .agent/log 하위에 세대별 요약 + 최종 평가를 JSON/MD로 추가.
+
+[최신 러닝 결과 요약 2025-09-05T10:12Z]
+- 설정: train_roles.js, GENS=24, POP=20, SEEDS=12
+- 베스트: 12승/0무, avgEndTick≈268.3
+- 역할: [2,2,2,2,1,2] → [DEALER, DEALER, DEALER, DEALER, TANKER, DEALER]
+- 산출물: result/ai.txt 갱신(Import 호환)
