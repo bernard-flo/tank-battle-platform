@@ -44,7 +44,8 @@ function train(){
     while(pop.length<POP){ const p=elites[Math.min(elites.length-1,Math.floor(rng()*elites.length))]; const c={}; for(const role of [Type.TANKER,Type.DEALER,Type.NORMAL]){ c[role]=unflatten(mutate(flatten(p[role]),rng,sigma)); } pop.push(c); }
     const scored=pop.map(m=>({m,ev:evaluate(m,seeds)})).sort((a,b)=>b.ev.score-a.ev.score);
     elites=scored.slice(0,ELITE).map(s=>s.m); if(scored[0].ev.score>best.score) best=scored[0].ev;
-    const summary={ gen, sigma:Number(sigma.toFixed(3)), bestScore:best.score, topGen: scored[0].ev };
+    const ev = scored[0].ev;
+    const summary={ gen, sigma:Number(sigma.toFixed(3)), bestScore:best.score, topGen:{score:ev.score,wins:ev.wins,draws:ev.draws,avgTick:Number(ev.avgTick.toFixed(1))} };
     console.log('[train]', summary);
     fs.writeFileSync(path.join(logDir, `${nowISO()}-train2-gen-${gen}.json`), JSON.stringify(summary,null,2));
   }
@@ -54,4 +55,3 @@ function train(){
 }
 
 if(require.main===module){ train(); }
-
