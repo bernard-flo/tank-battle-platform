@@ -140,3 +140,9 @@
 - 검증(자가 평가) 100전: 100승 0패 0무, avgEndTick≈262.9.
 - 산출물 갱신: result/ai.txt (6개 탱크 코드, 16→6→5 MLP 정책, 리드샷 포함).
 - 로그: .agent/log/*train_roles-gen-*.json, 2025-09-05T07-11-24.975Z-selfplay-summary.json 추가.
+
+## 2025-09-05T07-38-46Z
+- train_roles(GENS=24) 실행 완료. result/ai.txt 갱신.
+- 최종 역할: [NORMAL, TANKER, DEALER, DEALER, DEALER, DEALER] (내부값: [0,1,2,2,2,2])
+- 성능: baseline 100전 100승 0패 0무, avgEndTick≈259.9
+- 로그: .agent/log/*train_roles* 및 *selfplay-summary.json 생성
