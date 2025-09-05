@@ -207,3 +207,9 @@
 - 룰 엔진: scripts/sim/engine.js 기반, 역할 조합 탐색 포함
 - 성능 요약: baseline 상대로 12/12 승, 평균 종료 tick ~231 근처
 - 로그 아카이브: `.agent/log/*-train_roles-*.json` 자동 저장
+## 2025-09-05T09-12-30Z
+- 실행: train_roles.js (GENS=6) – 역할+가중치 동시 진화
+- 최종 역할: [DEALER, NORMAL, TANKER, DEALER, TANKER, DEALER] (내부값: [2,0,1,2,1,2])
+- 성능(자가 검증): baseline 60전 60승 0무, avgEndTick≈311.9
+- 산출물 갱신: result/ai.txt (6개 탱크 MLP 정책 번들, Import 구분자 포함)
+- 로그: .agent/log/2025-09-05T09-12-29.878Z-selfplay-summary.json
