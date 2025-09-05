@@ -166,3 +166,8 @@
 - 자가 검증(50전 baseline): 50승 0패 0무, avgEndTick≈286
 - 산출물: result/ai.txt 갱신(6개 탱크 MLP 정책, Import 구분자 포함)
 - 로그: .agent/log/2025-09-05T08-05-45Z-train_roles-summary.json, selfplay-summary.json 추가
+## 2025-09-05T08:13Z
+- train2.js 진화 학습(GENS=8) 실행하여 /result/ai.txt 갱신
+- 로그 생성: .agent/log/*-train2-run.out, 세대별 성능 기록 JSON 동반 저장
+- 현재 번들: 6개 탱크(Atlas, Bulwark, Viper, Falcon, Raptor, Sage) MLP 기반 정책
+- 평균 종료 tick 및 승/무 기록은 로그 참고 (bestScore=10/10)
