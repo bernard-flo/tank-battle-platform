@@ -165,3 +165,10 @@
 ## ${NOW}
 - 업데이트: train_roles 16세대로 번들 갱신. 역할 [2,0,2,2,1,2]. baseline 100전 전승.
 - 다음 제안: 세대수 확대(≥32), 시드다양화(≥24), 상대풀에 미러전/랜덤 추가.
+
+## 2025-09-05T08:05Z 스냅샷
+- 실행: `GENS=12 node scripts/train_roles.js`
+- 결과: 학습평가 12/12 승, avgTick≈283.1; baseline 50전 50승 0패 0무, avgEndTick≈286
+- 역할 배열: [DEALER, DEALER, NORMAL, NORMAL, DEALER, DEALER] (내부값: [2,2,0,0,2,2])
+- 산출물: `result/ai.txt` 최신화 (플랫폼 Import 호환)
+- 다음: GENS 확장 및 상대 풀 다양화(미러전 포함), 은닉차원 6→8 실험 예정

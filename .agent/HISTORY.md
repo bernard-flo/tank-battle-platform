@@ -158,3 +158,11 @@
 - 결과: baseline 상대로 100전 100승 0패 0무, avgEndTick≈291.4
 - 산출물: result/ai.txt 갱신(6개 탱크 MLP 정책)
 - 로그: .agent/log/*train_roles* 및 *selfplay-summary.json 생성
+
+## 2025-09-05T08-05-45Z
+- train_roles(GENS=12) 추가 실행으로 역할+가중치 동시 진화
+- 최종 역할 배열: [DEALER, DEALER, NORMAL, NORMAL, DEALER, DEALER] (내부값: [2,2,0,0,2,2])
+- 학습 평가(12시드): 12/12 승, avgTick≈283.1
+- 자가 검증(50전 baseline): 50승 0패 0무, avgEndTick≈286
+- 산출물: result/ai.txt 갱신(6개 탱크 MLP 정책, Import 구분자 포함)
+- 로그: .agent/log/2025-09-05T08-05-45Z-train_roles-summary.json, selfplay-summary.json 추가

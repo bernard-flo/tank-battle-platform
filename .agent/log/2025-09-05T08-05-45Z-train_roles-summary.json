@@ -1,0 +1,12 @@
+{
+  "genTotal": 12,
+  "best": {
+    "score": 12,
+    "wins": 12,
+    "draws": 0,
+    "avgTick": 283.1,
+    "roles": [2,2,0,0,2,2],
+    "rolesHuman": ["DEALER","DEALER","NORMAL","NORMAL","DEALER","DEALER"]
+  },
+  "outPath": "result/ai.txt"
+}
