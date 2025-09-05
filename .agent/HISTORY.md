@@ -200,3 +200,10 @@
 - result/ai.txt 갱신: 6개 MLP 기반 탱크 (역할 동시 탐색)
 - baseline 검증: 80전 전승, avgEndTick≈290
 - 로그: .agent/log/*train_roles* 및 selfplay-summary.json 추가
+## 2025-09-05T08:59:00Z
+
+- train_roles.js 실행(GENS=24)로 6탱크 신경망 팩 학습 완료
+- 결과물 `result/ai.txt` 갱신 (6개 봇: Atlas/Bulwark/Viper/Falcon/Raptor/Sage)
+- 룰 엔진: scripts/sim/engine.js 기반, 역할 조합 탐색 포함
+- 성능 요약: baseline 상대로 12/12 승, 평균 종료 tick ~231 근처
+- 로그 아카이브: `.agent/log/*-train_roles-*.json` 자동 저장
