@@ -1,3 +1,5 @@
+// NeuroPack v2 (MLP-based), updated: 2025-09-05
+// 6 bots using small MLPs; import this whole file.
 function name(){return 'Atlas';}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
