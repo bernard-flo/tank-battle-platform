@@ -101,7 +101,8 @@ function step(state, codes) {
       }));
       secureRun(codes[tank.id], tank, enemies, allies, bulletInfo, state);
     } catch (e) {
-      // disable on error
+      // disable on error, and log for diagnosis
+      console.error(`[engine] AI error for ${tank.id}: ${e && e.message ? e.message : e}`);
       tank.alive = false;
     }
   }
