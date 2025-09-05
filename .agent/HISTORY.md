@@ -230,3 +230,4 @@
 - 결과: `scripts/train_roles.js` 16세대 완료, `result/ai.txt` 갱신. baseline 50/50 전승, avgEndTick≈274.
 - 로그: `.agent/log/*train_roles-run.out`, `*selfplay-summary.json`, `*ai-pack-summary.md` 업데이트.
 [2025-09-05T09-53-25+00-00] 초기 6개 신경망 기반 탱크 코드 생성 및 result/ai.txt 추가. 탱커 2, 딜러 2, 노말 2 조합. 상태 저장 없이 관측 기반 정책.
+[2025-09-05T09-56-18+00-00] 진화 탐색(train_roles)으로 result/ai.txt 갱신. 셀프플레이 50전: 50승 0패 0무, 평균 종료틱 267.5.
