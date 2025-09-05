@@ -198,12 +198,11 @@ function getBaselineCode() {
 function simulateMatch(bundleA, bundleB, opts = {}) {
   const { seed = 1, maxTicks = 1200 } = opts;
   const rng = seedRandom(seed);
-  const teamA = splitRobotCodes(bundleA).slice(0,6);
+  let teamA = splitRobotCodes(bundleA).slice(0,6);
   let teamB = splitRobotCodes(bundleB).slice(0,6);
-  if (teamB.length < 6) {
-    const base = getBaselineCode();
-    while (teamB.length < 6) teamB.push({ code: base, type: Type.NORMAL });
-  }
+  const base = getBaselineCode();
+  while (teamA.length < 6) teamA.push({ code: base, type: Type.NORMAL });
+  while (teamB.length < 6) teamB.push({ code: base, type: Type.NORMAL });
   const state = initMatch(teamA, teamB, rng);
   while (true) {
     step(state, Object.fromEntries(state.tanks.map(t => [t.id, (t.team==='red'?teamA:teamB)[parseInt(t.id.slice(1))-1].code])));
@@ -213,4 +212,3 @@ function simulateMatch(bundleA, bundleB, opts = {}) {
 }
 
 module.exports = { Type, TANK_CONFIGS, splitRobotCodes, simulateMatch };
-
