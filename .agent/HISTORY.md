@@ -16,3 +16,10 @@
 - result/ai.txt: Overseer-Normal, Viper-Dealer 추가로 최종 6개 구성 확정
 - .agent/NOTE.md: 실제 배포된 봇 이름 목록 반영
 - 다음 과제: 시뮬레이터 분리 및 유전/강화학습 파이프라인 초안
+
+'
+2025-09-05T04-18-38Z
+
+- result/ai.txt 상태 점검: 6개 탱크 확인(Vanguard-Tanker, Bulwark-Tanker, Sentinel-Normal, Overseer-Normal, Phantom-Dealer, Falcon-Dealer)
+- Import 포맷 재검증: platform은 'function name()' 기준 분할 → ai.txt 적합
+- 다음 단계 계획: RL/자가전 시뮬레이터 분리 초안(.scratchpad/rl_todo.md)
