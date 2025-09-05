@@ -1,50 +1,21 @@
-프로젝트 운영 메모 (지속 참고)
+# 개발 노트 (지속 참고)
 
-1) 플랫폼 제약 정리
-- tank_battle_platform.html은 절대 수정 금지. 코드 주입은 텍스트에어리어를 통해서만.
-- 매 프레임마다 사용자 코드(tank.code)가 new Function으로 재구성/실행됨.
-  → 전역/정적 상태는 프레임 간 유지되지 않음. 학습/메모리는 런타임 내 누적 불가.
-- update(tank, enemies, allies, bulletInfo)에서 제공되는 API만 사용 가능.
-  - tank: {move(angleDeg), fire(angleDeg), x, y, health, energy, type, size} (Object.freeze)
-  - enemies/allies: 위치/거리/체력 등만 제공. 적/아군 속도는 없음.
-  - bulletInfo: 적 탄의 x,y,vx,vy 포함. 회피는 가능.
+- AI 코드 포맷
+  - 각 로봇은 아래 3개 함수를 포함해야 함: `function name() {}`, `function type() { return Type.NORMAL|TANKER|DEALER; }`, `function update(tank, enemies, allies, bulletInfo) {}`
+  - 여러 로봇은 `// ===== 다음 로봇 =====` 로 구분하면 플랫폼 import 모달에서 잘 분리됨.
+- 시뮬레이션
+  - 경량 엔진: `scripts/sim/engine.js` (`simulateMatch(bundleA, bundleB, {seed, maxTicks})`)
+  - 배치 실행: `node scripts/sim/run.js` (환경변수 `MATCHES` 지원)
+- 학습(진화 탐색)
+  - 스크립트: `scripts/train2.js` (간단 유전탐색)
+  - 구조: 입력 16 → 은닉 6 → 출력 5 (Evade/Attack/Orbit/Wall/Lead)
+  - 팀 조합: [TANKER, TANKER, DEALER, DEALER, DEALER, NORMAL]
+  - 실행: `node scripts/train2.js` (환경변수 `GENS`로 세대 수 조절)
+  - 출력: `result/ai.txt`에 최신 번들 저장, 로그는 `.agent/log/*train2*.json`
+- 경로 주의
+  - Node `__dirname` 기준 상대 경로가 컨테이너 루트(`/`)로 풀리는 경우가 있었음 → 항상 `path.resolve(process.cwd(),'result/ai.txt')` 혹은 프로젝트 기준 상대 경로 사용 권장.
+- 성능 팁
+  - `rg`로 코드 탐색, 파일 출력은 250줄 단위 확인 규칙 준수.
+  - 진화 탐색 중 stdout 대용량(코드 전체) 출력 금지: 요약만 출력.
 
-2) AI 설계 방침
-- 온라인 학습 불가 → 오프라인에서 가중치 산출 후 고정 탑재.
-- 의사결정은 소형 MLP(1~2층)로 특징→가중치→계수 산출, 계수로 회피/전진/공전 등 벡터 합성.
-- 역할 분담: 2 탱커(전진·차단), 3 딜러(원거리·공전·카이팅), 1 서포트(아군 뒤에서 화력 지원).
-- 회피 로직: 탄의 진행 방향과 상대 위치 기반 수직 회피 벡터를 가중합.
-- 사격: 최근접/저체력 우선, 약한 선두 보정(탄속=8, 상대 이동 불명 → 보정 각도 제한).
-
-3) 향후 고도화 계획
-- 오프라인 셀프플레이 시뮬레이터 제작 → 유전/강화학습(PBT, NES 등)로 가중치 탐색.
-- 시뮬레이터는 현재 물리/충돌/탄속 규칙을 최대한 동일 구현 권장.
-- 타입 조합 자동 탐색(탱커/딜러 비율, 역할별 가중치 세트 동시 최적화).
-- 결과물은 result/ai.txt로 내보내고, 버전과 seed, 점수 메타데이터를 함께 기록.
-
-4) 사용법 메모
-- tank_battle_platform.html 실행 → Import 버튼에서 result/ai.txt 전체 내용 붙여넣기 → 팀별 적용.
-- 코드 구분은 function name() 경계로 자동 분할됨.
-
-
-# AlphaRL-v1 메모
-- 정책 구현: 외부 라이브러리 없이 경량 MLP(1 hidden layer)로 weight 적용.
-- 입력 특징: 위치(정규화), 적/아군 중심 방향, 최근접 적 거리, 탄 위협량, 체력, 벽 회피 벡터.
-- 출력: 회피/전진/공전(또는 유지) 가중치 → 벡터 합성으로 이동각 산출.
-- 제약: 플랫폼이 매 tick마다 코드 재평가하므로 상태 메모리 불가 → 순수 반응형 정책 채택.
-- 다음 단계 아이디어:
-  - 셀프플레이 시뮬레이터(jsdom or headless 캔버스 대체)로 오프라인 학습 및 weight 업데이트.
-  - 타입 조합 탐색(2T/3D/1N vs 2T/2D/2N) 자동화.
-  - 경계 상황(좁은 공간)에서 회피 가중 동적 조정.
-- 주의: tank_battle_platform.html 수정 금지. Import는 페이지 내 모달에서 result/ai.txt 전체를 붙여넣기.
-
-# AlphaRL-v1 메모
-- 정책 구현: 외부 라이브러리 없이 경량 MLP(1 hidden layer)로 weight 적용.
-- 입력 특징: 위치(정규화), 적/아군 중심 방향, 최근접 적 거리, 탄 위협량, 체력, 벽 회피 벡터.
-- 출력: 회피/전진/공전(또는 유지) 가중치 → 벡터 합성으로 이동각 산출.
-- 제약: 플랫폼이 매 tick마다 코드 재평가하므로 상태 메모리 불가 → 순수 반응형 정책 채택.
-- 다음 단계 아이디어:
-  - 셀프플레이 시뮬레이터(jsdom or headless 캔버스 대체)로 오프라인 학습 및 weight 업데이트.
-  - 타입 조합 탐색(2T/3D/1N vs 2T/2D/2N) 자동화.
-  - 경계 상황(좁은 공간)에서 회피 가중 동적 조정.
-- 주의: tank_battle_platform.html 수정 금지. Import는 페이지 내 모달에서 result/ai.txt 전체를 붙여넣기.
+(이전 내용)

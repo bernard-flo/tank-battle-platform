@@ -22,3 +22,9 @@
 - 공통: 탄 회피(수직 기동), 벽 회피(가중), 목표 선택(근접/체력 낮음), 리드샷
 - 역할: Tanker(Atlas, Bulwark), Dealer(Viper, Falcon, Raptor), Normal(Sage)
 - 개선점: 가장자리 탈출 강화, 공전/유지거리 가중 신경망으로 결정
+
+## ${NOW}
+- 구현: evolutionary trainer(`scripts/train2.js`)로 6개 뉴럴 정책 공동 최적화
+- 산출물: `result/ai.txt` 갱신 (6개 모두 MLP 기반, Type 조합: 2 TANKER, 3 DEALER, 1 NORMAL)
+- 검증: `node scripts/sim/run.js` -> vs baseline 50전 50승, avgEndTick ≈ 245
+- 주의: 절대경로 `/result/ai.txt`와 프로젝트 경로 `result/ai.txt` 혼동 이슈 발견 → 프로젝트 경로 사용 고정 필요
