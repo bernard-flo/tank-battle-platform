@@ -7,3 +7,7 @@
 - 역할별(탱커2/딜러2/노말2) 가중치/바이어스 튜닝
 - .agent/NOTE.md에 학습 방안/검증 계획 메모 추가 예정
 
+2025-09-05T03:47Z
+- 누락된 6번째 탱크 추가: Charlie-Dealer (카이팅/강회피)
+- result/ai.txt 총 6개 블록 확인: Alpha-Tanker, Bravo-Tanker, Delta-Dealer, Echo-Normal, Foxtrot-Normal, Charlie-Dealer
+- Import 포맷 검증: function name() 기준 분할 가능
