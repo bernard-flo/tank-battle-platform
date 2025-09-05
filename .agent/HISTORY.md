@@ -28,3 +28,8 @@
 - result/ai.txt: AI Pack v7 (6개 탱크: Shield/Anchor/Coordinator/Skirmisher/Reaper/Hawk) 추가.
 - 각 탱크는 48차원 피처와 5차원 출력을 갖는 단층 신경망으로 구현, 역할별 가중치 튜닝.
 - .scratchpad에 이전 ai.txt 백업 생성.
+
+2025-09-05T04:23:14Z
+
+- HISTORY/NOTE 정정: 이전 항목의 "2025-09-05T04:23:14Z" 리터럴 치환 오류 보정
+- 위 시각 기준 AI Pack v7 반영 완료
