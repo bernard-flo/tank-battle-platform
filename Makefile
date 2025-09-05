@@ -20,3 +20,8 @@ train2:
 train_roles:
 	GENS?=8
 	GENS=$(GENS) node scripts/train_roles.js
+
+.PHONY: gen-ai
+gen-ai:
+	node scripts/generate_ai_pack.js .scratchpad/ai_config.json
+	@echo "AI pack generated at result/ai.txt"
