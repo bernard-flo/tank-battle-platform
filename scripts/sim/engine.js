@@ -181,11 +181,11 @@ function splitRobotCodes(bundle) {
     if (!trimmed) continue;
     if (!/function\s+name\s*\(/.test(trimmed)) continue;
     const clean = trimmed.replace(/\/\/\s*=+.*?=+/g, '').trim();
-    // extract type synchronously
+    // extract type synchronously with Type injected
     let type = Type.NORMAL;
     try {
-      const f = new Function(clean + '\nreturn { n: name(), t: type() };');
-      const r = f(); type = r.t;
+      const f = new Function('Type', clean + '\nreturn { n: name(), t: type() };');
+      const r = f(Type); type = r.t;
     } catch(_) {}
     robots.push({ code: clean, type });
   }
