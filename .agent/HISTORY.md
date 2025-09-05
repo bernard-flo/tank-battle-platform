@@ -184,3 +184,13 @@
 - 최종 역할: [NORMAL, TANKER, NORMAL, DEALER, DEALER, DEALER] (내부값: [0,1,0,2,2,2])
 - 산출물: result/ai.txt 갱신(6개 탱크 NN 정책, Import 구분자 포함)
 - 로그: `.agent/log/*train_roles-gen-*.json`, `*train_roles-final.json`
+## ${ts}
+- result/ai.txt 교체: NeuroPack v3(6개 탱크) 업데이트
+  - Ares(TANKER): 근접 압박/어그로/회피 혼합 MLP
+  - Athena(DEALER): 집중사격/탄 회피 가중치
+  - Hermes(DEALER): 측면 기동/리드샷 강화
+  - Titan(TANKER): 전선 유지/엄폐 유지
+  - Viper(DEALER): 최약체 집중/공격적 리드샷
+  - Zephyr(NORMAL): 균형형 가중 혼합
+- 각 탱크 update는 입력 특징 => 2층 MLP => 행동 가중 혼합 구조 사용
+- tank_battle_platform.html 수정 없이 Import 호환 포맷 유지
