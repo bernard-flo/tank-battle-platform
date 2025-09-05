@@ -101,3 +101,4 @@
 - 최종 역할: [DEALER, DEALER, NORMAL, DEALER, TANKER, DEALER]
 - 성능: baseline 12전 12승, avgTick≈287.8
 - 로그: .agent/log/2025-09*-ai-pack-rl-gen18-summary.md 
+## 2025-09-05T06:28:11Z\n- train_roles(12세대) 실행 → result/ai.txt 갱신\n- 성능: baseline 12전 12승, avgTick≈263.5\n- 역할: [NORMAL, DEALER, TANKER, DEALER, DEALER, DEALER]\n

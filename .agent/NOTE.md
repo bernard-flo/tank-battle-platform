@@ -113,3 +113,4 @@
 - 성능: baseline 상대로 12전 12승, 평균 종료 tick ≈ 287.8
 - 산출물: `result/ai.txt` (6로봇, Import 구분자 포함)
 - 주의: HTML 엔진의 move 10회 제한/총알속성/사이즈 반영됨(엔진 동기화 OK)
+\n## 실행 스냅샷 2025-09-05T06:28:11Z\n- train_roles: GENS=12, POP=20, ELITE=5\n- 결과: 12/12 승, 평균 종료틱≈263.5, 역할=[NORMAL, DEALER, TANKER, DEALER, DEALER, DEALER]\n- 산출물: result/ai.txt 갱신, Import 모달 호환\n
