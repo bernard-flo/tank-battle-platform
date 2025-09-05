@@ -105,3 +105,11 @@
 - 현재 번들 생성 명령: GENS=12 node scripts/train2.js
 - 검증 명령: node scripts/sim/run.js (MATCHES 환경변수 지원).
 - 주의: train_roles는 시간이 다소 오래 걸리므로 세대 수를 단계적으로 확장.
+
+## RL 번들 업데이트 (GENS=18)
+- 스크립트: `node scripts/train_roles.js` (POP=20, ELITE=5, seeds=2000..2011)
+- 모델: 16→6→5 MLP, 활성 tanh, 출력[회피/추격/공전/벽회피 가중, 조준 리드]
+- 최종 역할: [DEALER, DEALER, NORMAL, DEALER, TANKER, DEALER]
+- 성능: baseline 상대로 12전 12승, 평균 종료 tick ≈ 287.8
+- 산출물: `result/ai.txt` (6로봇, Import 구분자 포함)
+- 주의: HTML 엔진의 move 10회 제한/총알속성/사이즈 반영됨(엔진 동기화 OK)
