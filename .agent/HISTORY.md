@@ -275,3 +275,9 @@
 - 산출물: result/ai.txt 생성/갱신(6개 탱크, 16→6→5 MLP 정책, Import 구분자 포함)
 - 로그: .agent/log/*train_roles* 최종 요약 JSON 자동 생성
 - 다음: 세대/상대 풀 확대, 미러전 및 다양한 시드 추가 평가
+
+## 2025-09-05T11-04-37Z
+- train_roles 추가 학습 시작(GENS=24). 역할+가중치 동시 최적화, 산출물 result/ai.txt 갱신 예정.
+
+## 2025-09-05T11-04-41Z
+- train_roles 추가 학습 시작(GENS=24). 역할+가중치 동시 최적화, 산출물 result/ai.txt 갱신 예정.
