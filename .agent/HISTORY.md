@@ -11,3 +11,8 @@
 - NN 기반 설계 유지(48→5, tanh/sigmoid), 역할별 가중치 차별화
 - Import 포맷 유지(블록 구분 주석 포함)
 
+2025-09-05T04:06:50Z
+
+- result/ai.txt: Overseer-Normal, Viper-Dealer 추가로 최종 6개 구성 확정
+- .agent/NOTE.md: 실제 배포된 봇 이름 목록 반영
+- 다음 과제: 시뮬레이터 분리 및 유전/강화학습 파이프라인 초안

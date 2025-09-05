@@ -18,9 +18,10 @@
   - `bulletInfo`는 `{x,y,vx,vy,distance}`
 
 - 탱크 타입 구성 가이드 (AI Pack v6)
-  - 2x TANKER(Vanguard, Bulwark)
-  - 2x NORMAL(Ranger, Sentinel)
-  - 2x DEALER(Phantom, Falcon)
+  - 2x TANKER: Vanguard-Tanker, Bulwark-Tanker
+  - 2x NORMAL: Sentinel-Normal, Overseer-Normal
+  - 2x DEALER: Phantom-Dealer, Falcon-Dealer
+  - 각 봇은 동일한 입력 스키마를 사용하되 역할별 가중치/발사 임계치가 상이
   - 내부 가중치로 역할별 의사결정을 차별화
 
 - 향후 개선 아이디어
