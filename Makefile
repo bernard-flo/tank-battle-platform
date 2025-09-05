@@ -10,3 +10,8 @@ docker-compose-up-build:
 .PHONY: sim
 sim:
 	node scripts/sim/run.js
+
+.PHONY: train2
+train2:
+	GENS?=6
+	GENS=$(GENS) node scripts/train2.js
