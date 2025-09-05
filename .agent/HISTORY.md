@@ -81,3 +81,11 @@
 - 산출물: result/ai.txt (6개 탱크, 16→6→5 MLP 정책), Import 구분자 포함
 - 로그: .agent/log/*selfplay-summary.json 및 세션 요약 추가
 - 다음: GENS 확대(>=24), 상대 풀 다양화(미러전 포함), 다목표 적합도 실험
+
+## 2025-09-05T06-01-27Z
+- sim 엔진 설정을 HTML과 동기화(에너지/크기/속도/데미지).
+- train2(12세대) 실행 → baseline 상대로 10전 10승.
+- 자가 검증 50전: 50승 0패 0무, avgEndTick≈505.8.
+- 산출물 갱신: result/ai.txt (6개 탱크, MLP 정책, Import 구분자 포함).
+- 로그 생성: .agent/log/*train2* 및 *selfplay-summary.json.
+- 다음 계획: 역할 동시학습(train_roles) 장시간 실행, 상대 풀 다양화(미러전/랜덤).
