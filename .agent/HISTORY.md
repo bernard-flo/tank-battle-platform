@@ -47,3 +47,10 @@
 - 산출물: result/ai.txt (6개 탱크, MLP 기반), import 구분자 포함
 - 로그: .agent/log/*train2* 및 *selfplay-summary.json 추가
 - 다음 실행 과제: 상대 풀 다양화, GENS 확대, 리그전 평가 추가
+
+## 2025-09-05T05:05:34Z
+- 유전탐색 학습(train2) 12세대 추가 수행. 상수 시드(1000~1009) 기준 평가에서 10전 10승, avgTick≈227.9로 최적 번들 갱신.
+- 산출물 업데이트: result/ai.txt (6개 탱크 코드, MLP 정책) 덮어씀.
+- 검증: scripts/sim/run.js 기준선 50전 -> 49승 1무, avgEndTick≈252.6 (학습 세트와는 평가세트가 다름).
+- 로그 추가: .agent/log/*train2-gen-*.json, *train2-final.json
+- 다음: 세대 수 확대 및 상대 풀 다양화(미러전/랜덤 상대로 혼합) 예정.
