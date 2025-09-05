@@ -194,3 +194,9 @@
   - Zephyr(NORMAL): 균형형 가중 혼합
 - 각 탱크 update는 입력 특징 => 2층 MLP => 행동 가중 혼합 구조 사용
 - tank_battle_platform.html 수정 없이 Import 호환 포맷 유지
+
+## 2025-09-05T08:51:24+00:00
+- train_roles: GENS=24, seeds=12, POP=20/ELITE=5
+- result/ai.txt 갱신: 6개 MLP 기반 탱크 (역할 동시 탐색)
+- baseline 검증: 80전 전승, avgEndTick≈290
+- 로그: .agent/log/*train_roles* 및 selfplay-summary.json 추가
