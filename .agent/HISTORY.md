@@ -227,3 +227,5 @@
 ## $(date -u +%F %T UTC)
 - 세션 시작: 진화형 신경망 탱크 팩 강화
 - 계획: roles+weights 동시 진화 24세대 → selfplay 검증 → 요약 저장
+- 결과: `scripts/train_roles.js` 16세대 완료, `result/ai.txt` 갱신. baseline 50/50 전승, avgEndTick≈274.
+- 로그: `.agent/log/*train_roles-run.out`, `*selfplay-summary.json`, `*ai-pack-summary.md` 업데이트.
