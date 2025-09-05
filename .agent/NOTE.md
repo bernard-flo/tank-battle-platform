@@ -37,3 +37,20 @@ AI Pack 사용법 (요약)
 
 버전 표기
 - 현재 배포: AI Pack v6 (6 tanks, NN-based)
+
+[현재 배포 탱크 목록]
+- Vanguard-Tanker (TANKER)
+- Bulwark-Tanker (TANKER)
+- Sentinel-Normal (NORMAL)
+- Overseer-Normal (NORMAL)
+- Phantom-Dealer (DEALER)
+- Falcon-Dealer (DEALER)
+
+[Import 가이드 재확인]
+- Import는 `function name()` 기준으로 코드 블록을 자동 분할함
+- `// ===== 다음 로봇 =====` 구분 주석은 가독성용 (있어도/없어도 동작 동일)
+- 각 블록은 최소 `name()`, `type()`, `update(...)` 세 함수를 포함해야 함
+
+[다음 실행을 위한 TODO]
+- .scratchpad/rl_todo.md 진행 (시뮬레이터 분리, 파라미터 검색 루프)
+- 유전/랜덤 탐색으로 가중치 튠 스크립트 초안 작성
