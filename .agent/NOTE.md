@@ -32,3 +32,10 @@
 - 역할별 차등: Tanker는 벽회피 가중 상향·리드샷 축소, Dealer는 공격·리드샷 증대, Normal은 중립.
 - Import 포맷: 각 로봇 블록은 `function name()`, `function type()`, `function update(...)` 포함. 구분자로 `// ===== 다음 로봇 =====` 유지.
 - 향후: Node 시뮬레이터로 규칙 복제 → CMA-ES/NEAT 진화 학습 후 가중치 교체 자동화 스크립트화.
+
+[2025-09-05] 세션 메모
+- 현재 ai.txt는 train_roles.js(GENS=12, POP=20, seeds=12)로 학습한 결과.
+- 엔진은 HTML 규칙을 모사하며 발사 쿨다운/이동충돌/벽 경계 동일.
+- Import 포맷: function name/type/update 6개 블록, 구분자 "// ===== 다음 로봇 =====" 유지.
+- 개선 계획: 상대 풀 다양화(자기 앙상블+과거 엘리트), 학습 세대↑, 입력 특징 확장(적 발사 예측 가중 보강), 역할 셔플 강화.
+- 실행: `make train_roles GENS=24` → `make sim`으로 빠른 검증.

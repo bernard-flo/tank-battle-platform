@@ -250,3 +250,9 @@
 - result/ai.txt: 6개 NN 탱크 코드(Atlas, Bulwark, Orion, Viper, Aegis, Nova) 구성 업데이트.
 - 각 탱크는 16->6->5 MLP로 의사결정(회피/공격/공전/벽회피/리드샷).
 - 타입 조합: Dealer 2, Tanker 2, Normal 2.
+
+## 2025-09-05T10:28:31Z
+- train_roles.js GENS=12 실행 → result/ai.txt 갱신
+- selfplay 100매치 vs baseline: 100승 0무 0패, avgEndTick≈240.2
+- 역할 최적화 결과: [DEALER, DEALER, NORMAL, DEALER, TANKER, DEALER]
+- 로그: .agent/log/*selfplay-summary.json
