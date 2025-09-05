@@ -152,3 +152,9 @@
 - scripts/sim/run.js로 baseline 상대로 50전 검증: 50W/0L/0D, avgEndTick≈263
 - 역할 조합: [TANKER, DEALER, DEALER, DEALER, NORMAL, DEALER]
 - 로그 생성: .agent/log/*train_roles* 및 *selfplay-summary.json*, 요약 md 추가
+## ${NOW}
+- 실행: train_roles.js (GENS=16)
+- 최종 역할: [DEALER, NORMAL, DEALER, DEALER, TANKER, DEALER] (내부값: [2,0,2,2,1,2])
+- 결과: baseline 상대로 100전 100승 0패 0무, avgEndTick≈291.4
+- 산출물: result/ai.txt 갱신(6개 탱크 MLP 정책)
+- 로그: .agent/log/*train_roles* 및 *selfplay-summary.json 생성

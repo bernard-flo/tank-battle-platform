@@ -161,3 +161,7 @@
 - 파라미터: `GENS=16`
 - 결과: baseline 50전 50승 0패 0무, avgEndTick≈263, 최종 역할 = [TANKER, DEALER, DEALER, DEALER, NORMAL, DEALER]
 - 산출물: `result/ai.txt` 최신화, Import 구분자 유지
+
+## ${NOW}
+- 업데이트: train_roles 16세대로 번들 갱신. 역할 [2,0,2,2,1,2]. baseline 100전 전승.
+- 다음 제안: 세대수 확대(≥32), 시드다양화(≥24), 상대풀에 미러전/랜덤 추가.
