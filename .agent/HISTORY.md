@@ -217,3 +217,9 @@
 
 ## 2025-09-05T09:16:17+00:00 작업 시작
 - 준비: 디렉토리 확인 및 계획 수립
+## 2025-09-05T09-22-49Z
+- 작업: 신경망 기반 6탱크 AI 학습 및 결과물 출력(result/ai.txt)
+- 스크립트: scripts/train_roles.js (역할 동시 진화)
+- 계획: GENS=20 내외 학습 → ai.txt 갱신 → 자체 시뮬 검증 로그 기록 → Import 가이드 남김
+- 주의: tank_battle_platform.html 미수정, Import 포맷 준수(function name/type/update, 구분자 포함)
+
