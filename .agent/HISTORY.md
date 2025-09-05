@@ -261,3 +261,9 @@
 - 역할별 W2/b2 스케일링으로 행동 편향.
 - 향후 GA/ES로 가중치 자동최적화 계획.
 [2025-09-05T10-43-33Z] 진화학습(train_roles) 14세대 수행 – baseline 상대로 80/80 승, ai.txt 갱신 완료.
+\n## 2025-09-05T10-51-57Z
+- train_roles.js 실행(GENS=16)로 6 탱크 신경망 정책 재학습.
+- 최종 역할 배열: [1,2,1,2,0,1] (TANKER, DEALER, TANKER, DEALER, NORMAL, TANKER).
+- 산출물 교체: result/ai.txt (6개 탱크, 입력16-은닉6-출력5 MLP, 리드샷 포함).
+- 검증: scripts/sim/run.js → baseline 상대로 50전 50승 0무, avgEndTick≈276.8.
+- 로그 생성: .agent/log/*train_roles* 및 *selfplay-summary.json* 자동 기록.

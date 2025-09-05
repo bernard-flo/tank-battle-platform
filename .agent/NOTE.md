@@ -21,3 +21,8 @@
   - 타입 조합 최적화: 2 Tanker + 3 Dealer + 1 Normal 등 변이 탐색.
 
 파일: `result/ai.txt`를 계속 최신 최적 세트로 유지.
+\n## 2025-09-05T10-51-57Z
+- train_roles(GENS=16) 재학습 실행, 역할+가중치 동시 최적화 진행.
+- 결과 번들 성능(대 baseline): 50전 50승 0패 0무, 평균 종료 tick ≈ 276.8.
+- 역할 시퀀스(내부값): [1,2,1,2,0,1] → [TANKER, DEALER, TANKER, DEALER, NORMAL, TANKER].
+- 산출물: result/ai.txt 갱신(6개 탱크, MLP 16→6→5, 리드샷 포함), tank_battle_platform.html Import 호환 유지.
