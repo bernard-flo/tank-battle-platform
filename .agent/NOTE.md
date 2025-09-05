@@ -118,6 +118,5 @@
 - train_roles 16세대 추가 실행 → `result/ai.txt` 최적 번들 갱신
 - 최종 역할: [TANKER, DEALER, TANKER, DEALER, DEALER, NORMAL] (내부 값: [1,2,1,2,2,0])
 - 성능: baseline 12전 12승, 자가평가 50전 50승 0패 0무, avgEndTick≈260.4
-- 산출물/로그: `result/ai.txt` 덮어씀, ,  추가
+- 산출물/로그: `result/ai.txt` 덮어씀, `.agent/log/*train_roles*`, `.agent/log/*selfplay-summary.json` 추가
 - 다음: GENS 확대(>=24) 및 상대 풀 다양화(미러전 포함)로 일반화 향상
-
