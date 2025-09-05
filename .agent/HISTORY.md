@@ -260,3 +260,4 @@
 - Import 포맷 준수(function name() 분할).
 - 역할별 W2/b2 스케일링으로 행동 편향.
 - 향후 GA/ES로 가중치 자동최적화 계획.
+[2025-09-05T10-43-33Z] 진화학습(train_roles) 14세대 수행 – baseline 상대로 80/80 승, ai.txt 갱신 완료.
