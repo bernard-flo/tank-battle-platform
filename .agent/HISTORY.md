@@ -28,3 +28,10 @@
 - 산출물: `result/ai.txt` 갱신 (6개 모두 MLP 기반, Type 조합: 2 TANKER, 3 DEALER, 1 NORMAL)
 - 검증: `node scripts/sim/run.js` -> vs baseline 50전 50승, avgEndTick ≈ 245
 - 주의: 절대경로 `/result/ai.txt`와 프로젝트 경로 `result/ai.txt` 혼동 이슈 발견 → 프로젝트 경로 사용 고정 필요
+
+## 2025-09-05 13:47:27 KST
+- 6개 탱크 AI(Atlas, Helios, Nova, Aegis, Viper, Orion, Seraph) MLP 기반 전략으로  갱신.
+- 역할 배치: TANKER 2(Atlas, Aegis), DEALER 2(Helios, Viper), NORMAL 2(Nova, Orion/Seraph 중 전장 균형형).
+- 공통 로직: 탄 회피(수직 기동), 벽 회피 벡터, 근접/중심/아군 응집 벡터 융합 → 신경망이 가중.
+- 발사: 신경망이 산출한 /로 리드샷 보정.
+- 다음 단계: 시뮬레이터/자가대전 스크립트 추가 및 유전탐색으로 가중치 고도화.
