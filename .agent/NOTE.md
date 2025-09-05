@@ -12,6 +12,7 @@
   - 팀 조합: [TANKER, TANKER, DEALER, DEALER, DEALER, NORMAL]
   - 실행: `node scripts/train2.js` (환경변수 `GENS`로 세대 수 조절)
   - 출력: `result/ai.txt`에 최신 번들 저장, 로그는 `.agent/log/*train2*.json`
+  - 참고: `scripts/train.js`는 업데이트 코드 문자열 내 `clamp` 함수 정의가 누락되어 샌드박스에서 `clamp is not defined` 오류가 발생함. 실제 학습은 `train2.js` 사용 권장.
 - 경로 주의
   - Node `__dirname` 기준 상대 경로가 컨테이너 루트(`/`)로 풀리는 경우가 있었음 → 항상 `path.resolve(process.cwd(),'result/ai.txt')` 혹은 프로젝트 기준 상대 경로 사용 권장.
 - 성능 팁
