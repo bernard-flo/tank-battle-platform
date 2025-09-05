@@ -11,3 +11,6 @@
 - 누락된 6번째 탱크 추가: Charlie-Dealer (카이팅/강회피)
 - result/ai.txt 총 6개 블록 확인: Alpha-Tanker, Bravo-Tanker, Delta-Dealer, Echo-Normal, Foxtrot-Normal, Charlie-Dealer
 - Import 포맷 검증: function name() 기준 분할 가능
+2025-09-05T03:51:23Z
+- result/ai.txt AI Pack v3로 정리: 6개 고유 탱크(탱커2/딜러2/노멀2), 중복/순서 오류 제거
+- 임계치/회피/재시도 각도 미세 조정
