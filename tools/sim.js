@@ -306,12 +306,12 @@ function genTeamCode(params) {
   // Roles: 2 Tankers (front), 3 Dealers (flank), 1 Normal (anchor)
   const bots = [];
   const roles = [
-    { name: 'Aegis', type: 'Type.TANKER', p: { wEv:1.0, wWall:0.9, wAt:0.95, wOb:0.35, wC:0.1, wS:0.25, lowHp:35, wRt:0.6, jitter:4.0 } },
-    { name: 'Bulwark', type: 'Type.TANKER', p: { wEv:1.05,wWall:0.85,wAt:0.9,  wOb:0.4,  wC:0.08,wS:0.28, lowHp:38, wRt:0.65,jitter:3.5 } },
-    { name: 'Valkyrie', type: 'Type.DEALER', p:{ wEv:1.35,wWall:0.9, wAt:0.7,  wOb:0.8,  wC:0.15,wS:0.38, lowHp:28, wRt:0.9, jitter:6.5 } },
-    { name: 'Raptor',   type: 'Type.DEALER', p:{ wEv:1.4, wWall:0.95,wAt:0.68, wOb:0.82, wC:0.12,wS:0.4,  lowHp:26, wRt:0.95,jitter:6.8 } },
-    { name: 'Spectre',  type: 'Type.DEALER', p:{ wEv:1.32,wWall:0.9, wAt:0.72, wOb:0.78, wC:0.16,wS:0.36, lowHp:30, wRt:0.9, jitter:6.0 } },
-    { name: 'Sentinel', type: 'Type.NORMAL', p:{ wEv:1.2, wWall:1.0, wAt:0.8,  wOb:0.55, wC:0.2, wS:0.35, lowHp:32, wRt:0.8, jitter:5.0 } },
+    { name: 'Aegis', type: 1, p: { wEv:1.0, wWall:0.9, wAt:0.95, wOb:0.35, wC:0.1, wS:0.25, lowHp:35, wRt:0.6, jitter:4.0 } },
+    { name: 'Bulwark', type: 1, p: { wEv:1.05,wWall:0.85,wAt:0.9,  wOb:0.4,  wC:0.08,wS:0.28, lowHp:38, wRt:0.65,jitter:3.5 } },
+    { name: 'Valkyrie', type: 2, p:{ wEv:1.35,wWall:0.9, wAt:0.7,  wOb:0.8,  wC:0.15,wS:0.38, lowHp:28, wRt:0.9, jitter:6.5 } },
+    { name: 'Raptor',   type: 2, p:{ wEv:1.4,  wWall:0.95,wAt:0.68, wOb:0.82, wC:0.12,wS:0.4,  lowHp:26, wRt:0.95,jitter:6.8 } },
+    { name: 'Spectre',  type: 2, p:{ wEv:1.32,wWall:0.9, wAt:0.72, wOb:0.78, wC:0.16,wS:0.36, lowHp:30, wRt:0.9, jitter:6.0 } },
+    { name: 'Sentinel', type: 0, p:{ wEv:1.2, wWall:1.0, wAt:0.8,  wOb:0.55, wC:0.2, wS:0.35, lowHp:32, wRt:0.8, jitter:5.0 } },
   ];
   // Mildly perturb with params (random search will set these)
   const outBlocks = roles.map((role, idx) => genBotCode(role.name, role.type, { ...role.p, ...(params[idx]||{}) }));
