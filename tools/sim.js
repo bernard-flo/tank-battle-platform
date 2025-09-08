@@ -366,15 +366,24 @@ function main() {
   const oppBlocksList = oppFiles.map(f => ({ file:f, blocks: loadTeamFromFile(f) }));
   // Base team
   let baseParams = [{},{},{},{},{},{}];
+  // Allow warm-start from previous summary
+  try {
+    const prev = JSON.parse(fs.readFileSync(path.join(workdir, 'summary.json'), 'utf8'));
+    if (prev && Array.isArray(prev.params) && prev.params.length === 6) {
+      baseParams = prev.params;
+    }
+  } catch {}
   let best = { params: baseParams, score: -Infinity, details: {} };
-  const candidateCount = 24; // search iterations
+  const candidateCount = Number(process.env.SIM_ITERS || 24); // search iterations
+  const gamesPerOpp = Number(process.env.SIM_GAMES || 2);
+  const maxTicks = Number(process.env.SIM_TICKS || 1000);
   for (let i=0; i<candidateCount; i++) {
     const params = i===0 ? baseParams : neighborParams(best.params);
     const teamCode = genTeamCode(params);
     const teamBlocks = splitRobotCodes(teamCode);
     let total = 0; const det = {};
     for (const opp of oppBlocksList) {
-      const s = evaluateTeam(teamBlocks, opp.blocks, 2, 1000);
+      const s = evaluateTeam(teamBlocks, opp.blocks, gamesPerOpp, maxTicks);
       det[path.basename(opp.file)] = s;
       total += s;
     }
