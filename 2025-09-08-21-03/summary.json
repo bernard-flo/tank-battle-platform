@@ -1,539 +1,80 @@
 {
-  "ts": "2025-09-08-21-03",
-  "bestKey": "phalanx",
-  "wins": 24,
-  "games": 24,
-  "leaderboard": [
-    [
-      "phalanx",
-      {
-        "wins": 24,
-        "games": 24,
-        "detail": [
-          {
-            "vs": "2025-09-08-09-26.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-09-26.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-10-47.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-10-47.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-14-04.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-14-04.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-16-01.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-16-01.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-17-51.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-17-51.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-19-04.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          },
-          {
-            "vs": "2025-09-08-19-04.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 640,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 640
-            }
-          }
-        ]
-      }
-    ],
-    [
-      "bulwark",
-      {
-        "wins": 24,
-        "games": 24,
-        "detail": [
-          {
-            "vs": "2025-09-08-09-26.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-09-26.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-10-47.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-10-47.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-14-04.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-14-04.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-16-01.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-16-01.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-17-51.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-17-51.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-19-04.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          },
-          {
-            "vs": "2025-09-08-19-04.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "red",
-              "redSum": 690,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "blue",
-              "redSum": 600,
-              "blueSum": 690
-            }
-          }
-        ]
-      }
-    ],
-    [
-      "skirmish",
-      {
-        "wins": 0,
-        "games": 24,
-        "detail": [
-          {
-            "vs": "2025-09-08-09-26.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-09-26.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-10-47.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-10-47.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-14-04.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-14-04.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-16-01.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-16-01.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-17-51.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-17-51.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-19-04.txt",
-            "seed": 1,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          },
-          {
-            "vs": "2025-09-08-19-04.txt",
-            "seed": 2,
-            "r1": {
-              "winner": "blue",
-              "redSum": 550,
-              "blueSum": 600
-            },
-            "r2": {
-              "winner": "red",
-              "redSum": 600,
-              "blueSum": 550
-            }
-          }
-        ]
-      }
-    ]
+  "workdir": "2025-09-08-21-03",
+  "score": 865.5,
+  "details": {
+    "2025-09-08-09-26.txt": 821.5,
+    "2025-09-08-10-34.txt": 945.5,
+    "2025-09-08-12-04.txt": 744,
+    "2025-09-08-14-26.txt": -759,
+    "2025-09-08-16-01.txt": -1090,
+    "2025-09-08-17-21.txt": -558.5,
+    "2025-09-08-18-29.txt": 773,
+    "2025-09-08-19-23.txt": -11
+  },
+  "params": [
+    {
+      "wEv": 0.005386969348382918,
+      "wAt": 0.09741362962513302,
+      "wOb": -0.04108124134941644,
+      "wC": 0.022250825321259854,
+      "lowHp": 19.99523086852597,
+      "wS": 0.061696769077717865,
+      "wRt": 0.027892003971241936,
+      "wWall": -0.0024884712393470794
+    },
+    {
+      "wEv": -0.0006016795067946418,
+      "wWall": 0.02932418687116586,
+      "wAt": 0.03821559552497146,
+      "wOb": -0.07946593952385991,
+      "lowHp": 18.968050298406546,
+      "jitter": 0,
+      "wS": -0.005613712929384011,
+      "wRt": 0.10076746748590924,
+      "wC": -0.05326559253339872
+    },
+    {
+      "wEv": -0.028282131396831993,
+      "wWall": 0.0961916771903488,
+      "wOb": 0.0219408920925781,
+      "wS": 0.04464881102580877,
+      "lowHp": 18,
+      "jitter": 0,
+      "wAt": -0.0314380720493764,
+      "wC": 0.020747896902831266,
+      "wRt": -0.01488174266959051
+    },
+    {
+      "wAt": 0.037512528362349716,
+      "wOb": 0.04686771791702846,
+      "wC": 0.058963195528914276,
+      "wS": 0.005985174649253373,
+      "wRt": 0.07279226723984367,
+      "wWall": 0.025964744915411654,
+      "lowHp": 18,
+      "jitter": 0.055685293024300496,
+      "wEv": 0.06770574347219546
+    },
+    {
+      "wEv": -0.06706596271593283,
+      "wWall": 0.023771275793860777,
+      "wAt": -0.055946345682582554,
+      "wOb": 0.026196449752960718,
+      "wC": 0.059691057516935944,
+      "wS": -0.037896034265272105,
+      "jitter": 0.30609109815627594,
+      "wRt": 0.03417494668134362
+    },
+    {
+      "wEv": 0.07148681595362563,
+      "wWall": -0.004270842776701379,
+      "wS": 0.029775505926822775,
+      "lowHp": 18,
+      "jitter": 0.01567846941278883,
+      "wAt": 0.08863796933620284,
+      "wOb": 0.003636684448083011,
+      "wC": 0.07813148261648525,
+      "wRt": 0.04271903298947431
+    }
   ]
 }
