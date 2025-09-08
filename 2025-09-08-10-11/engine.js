@@ -147,7 +147,9 @@ function parseCodeBlocks(bigCode) {
 }
 
 function compileBot(block) {
-  const wrapper = `(function(){\n${block}\nreturn { name: name(), type: type(), update: update };\n})()`;
+  // 결과물에 드물게 등장하는 "--10" 형태를 "- -10"으로 보정
+  const safeBlock = String(block).replace(/--/g, '- -');
+  const wrapper = `(function(){\n${safeBlock}\nreturn { name: name(), type: type(), update: update };\n})()`;
   const script = new vm.Script(wrapper);
   const context = vm.createContext({ Type });
   const res = script.runInContext(context, { timeout: 50 });
