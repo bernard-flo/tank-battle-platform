@@ -33,7 +33,8 @@ async function main() {
   }
 
   // 탐색 전략: 더 많은 시드 + 샘플 재현성 강화
-  const seeds = Array.from({ length: 72 }, (_, i) => 17 + i * 73);
+  // 시간 제한 고려: 적당한 시드 수로 탐색 (36개)
+  const seeds = Array.from({ length: 36 }, (_, i) => 17 + i * 73);
   let best = { score: -Infinity, seed: null, team: null };
 
   const perSeedLog = [];
@@ -47,8 +48,8 @@ async function main() {
       games += 1;
     } else {
       for (const opp of opponents) {
-        const r1 = simulateMatch(myTeam, opp.blocks, { durationMs: 14000, seed: seed + 1 });
-        const r2 = simulateMatch(opp.blocks, myTeam, { durationMs: 14000, seed: seed + 2 });
+        const r1 = simulateMatch(myTeam, opp.blocks, { durationMs: 12000, seed: seed + 1 });
+        const r2 = simulateMatch(opp.blocks, myTeam, { durationMs: 12000, seed: seed + 2 });
         total += (r1.scoreRed - r1.scoreBlue);
         total += (r2.scoreBlue - r2.scoreRed);
         games += 2;
@@ -77,4 +78,3 @@ async function main() {
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
-
