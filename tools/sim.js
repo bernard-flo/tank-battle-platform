@@ -424,6 +424,11 @@ function main() {
   const summary = { workdir, score: best.score, details: best.details, params: best.params };
   fs.writeFileSync(path.join(workdir, 'summary.json'), JSON.stringify(summary, null, 2));
   console.log('Wrote', outPath, 'score', best.score);
+  // 커밋: 최종 코드 및 요약 저장
+  try {
+    require('child_process').execSync('git add -A');
+    require('child_process').execSync(`git commit -m "feat(result): write optimized team ${workdir}"`);
+  } catch (e) {}
 }
 
 if (require.main === module) {
