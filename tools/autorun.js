@@ -46,22 +46,34 @@ function main() {
     sh(`git commit -m "chore: build_and_compete outputs for ${ts}"`);
   } catch {}
 
-  // 2) 로컬 최적화 (탐색 횟수/게임수 조절 가능)
-  console.log('[2/3] 파라미터 탐색(로컬 시뮬레이터) 진행');
-  const env = { ...process.env,
-    SIM_ITERS: process.env.SIM_ITERS || '24',
-    SIM_GAMES: process.env.SIM_GAMES || '2',
-    SIM_TICKS: process.env.SIM_TICKS || '800',
-    SIM_MAX_OPP: process.env.SIM_MAX_OPP || '8',
-    BNC_MAX_OPP: process.env.BNC_MAX_OPP || '8',
-    BNC_SEEDS: process.env.BNC_SEEDS || '1,2',
-  };
-  cp.execSync(`node tools/sim.js ${ts}`, { env, stdio: 'inherit' });
-  // 커밋: 최적화 결과물(result/<ts>.txt, summary.json)
-  try {
-    sh('git add -A');
-    sh(`git commit -m "feat(result): optimized team ${ts}"`);
-  } catch {}
+  // 2) 로컬 시뮬레이션(선택 사항): 새 결과물 vs 일부 상대를 간단히 검증
+  //    기본은 건너뜀. 실행하려면 ENABLE_LOCAL_SIM=1 환경변수를 설정하세요.
+  if (process.env.ENABLE_LOCAL_SIM === '1') {
+    console.log('[2/3] 로컬 시뮬레이션 검증 실행');
+    try {
+      const resultFile = path.join(cwd, 'result', `${ts}.txt`);
+      const resultDir = path.join(cwd, 'result');
+      const opps = (fs.existsSync(resultDir) ? fs.readdirSync(resultDir) : [])
+        .filter(f => f.endsWith('.txt') && f !== `${ts}.txt`)
+        .slice(0, 3);
+      if (opps.length === 0) {
+        console.log(' - 상대 결과물이 없어 기본 상대와만 테스트합니다.');
+        const basic = path.join(resultDir, 'default-basic.txt');
+        if (fs.existsSync(basic)) {
+          cp.execSync(`node tools/sim.js ${resultFile} ${basic} 5`, { stdio: 'inherit' });
+        }
+      } else {
+        for (const f of opps) {
+          const oppPath = path.join(resultDir, f);
+          cp.execSync(`node tools/sim.js ${resultFile} ${oppPath} 5`, { stdio: 'inherit' });
+        }
+      }
+    } catch (e) {
+      console.warn('로컬 시뮬레이션 중 오류가 발생했습니다(무시):', e.message);
+    }
+  } else {
+    console.log('[2/3] 로컬 시뮬레이션 검증은 건너뜁니다(ENABLE_LOCAL_SIM=1로 활성화 가능).');
+  }
 
   // 3) 요약 로그 남기기
   console.log('[3/3] 완료: 결과/요약 파일 확인');
