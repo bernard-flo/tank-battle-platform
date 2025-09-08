@@ -1,5 +1,5 @@
 function name(){return "Aegis";}
-function type(){return Type.TANKER;}
+function type(){return 1;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
@@ -18,20 +18,20 @@ function update(tank,enemies,allies,bulletInfo){
   let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
   // 5) 타겟 접근/측면 + 저체력 이탈
   let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
-  if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  if(tank.health<20.306576271586255){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   // 합성 벡터
-  const mvx=evx*-0.09329959899442263 + wx*-0.2153406377815707 + atx*0.1331851155101094 + obx*-0.05562259041235916 + cx*-0.0005359009071413748 + sx*-0.0409971753287917 + rtx*0.16763121557836436;
-  const mvy=evy*-0.09329959899442263 + wy*-0.2153406377815707 + aty*0.1331851155101094 + oby*-0.05562259041235916 + cy*-0.0005359009071413748 + sy*-0.0409971753287917 + rty*0.16763121557836436;
+  const mvx=evx*0.04779568263751126 + wx*-0.11664303989492046 + atx*0.03799131381553888 + obx*-0.059564876842251396 + cx*-0.13603565915199764 + sx*0.07191655982652038 + rtx*-0.12478090549162804;
+  const mvy=evy*0.04779568263751126 + wy*-0.11664303989492046 + aty*0.03799131381553888 + oby*-0.059564876842251396 + cy*-0.13603565915199764 + sy*0.07191655982652038 + rty*-0.12478090549162804;
   const mvAng=deg(mvx,mvy);
   // 사격: 기본 조준 + 소량 지터 스윕
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=1.5561337375550548*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
+  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
 function name(){return "Bulwark";}
-function type(){return Type.TANKER;}
+function type(){return 1;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
@@ -52,18 +52,18 @@ function update(tank,enemies,allies,bulletInfo){
   let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   // 합성 벡터
-  const mvx=evx*0.17304900959420533 + wx*0.08418018363639394 + atx*0.01648600353072559 + obx*-0.18137412221409585 + cx*0.10245440342841103 + sx*0.11773716670497283 + rtx*0.1861071140160087;
-  const mvy=evy*0.17304900959420533 + wy*0.08418018363639394 + aty*0.01648600353072559 + oby*-0.18137412221409585 + cy*0.10245440342841103 + sy*0.11773716670497283 + rty*0.1861071140160087;
+  const mvx=evx*-0.1793379434035003 + wx*-0.14155043404812423 + atx*0.17844909414871868 + obx*0.1372739772835896 + cx*-0.08217188618455608 + sx*-0.0437478869359941 + rtx*-0.03698862278490055;
+  const mvy=evy*-0.1793379434035003 + wy*-0.14155043404812423 + aty*0.17844909414871868 + oby*0.1372739772835896 + cy*-0.08217188618455608 + sy*-0.0437478869359941 + rty*-0.03698862278490055;
   const mvAng=deg(mvx,mvy);
   // 사격: 기본 조준 + 소량 지터 스윕
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
+  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.5682171147403449*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
 function name(){return "Valkyrie";}
-function type(){return Type.DEALER;}
+function type(){return 2;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
@@ -82,10 +82,42 @@ function update(tank,enemies,allies,bulletInfo){
   let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
   // 5) 타겟 접근/측면 + 저체력 이탈
   let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
-  if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  if(tank.health<23.762615915319625){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   // 합성 벡터
-  const mvx=evx*-0.1643048507631353 + wx*-0.054666350452942866 + atx*-0.036487414277147204 + obx*-0.07912866646263987 + cx*0.06563709070588788 + sx*-0.002395505148806591 + rtx*-0.031238209660751914;
-  const mvy=evy*-0.1643048507631353 + wy*-0.054666350452942866 + aty*-0.036487414277147204 + oby*-0.07912866646263987 + cy*0.06563709070588788 + sy*-0.002395505148806591 + rty*-0.031238209660751914;
+  const mvx=evx*0.10201011779280024 + wx*-0.031140201131311836 + atx*-0.13904036431770658 + obx*0.09455997941185262 + cx*0.11422021541372279 + sx*-0.022840555387478777 + rtx*0.0615848335777749;
+  const mvy=evy*0.10201011779280024 + wy*-0.031140201131311836 + aty*-0.13904036431770658 + oby*0.09455997941185262 + cy*0.11422021541372279 + sy*-0.022840555387478777 + rty*0.0615848335777749;
+  const mvAng=deg(mvx,mvy);
+  // 사격: 기본 조준 + 소량 지터 스윕
+  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.4869105856956479*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Raptor";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600;
+  // 1) 타겟: 거리+체력 가중
+  let target=null, best=1e9;
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.4; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피
+  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.065*d); evx+=px*w; evy+=py*w; th+=w; } }
+  ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+  // 4) 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+  // 5) 타겟 접근/측면 + 저체력 이탈
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  if(tank.health<18.86948128681853){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  // 합성 벡터
+  const mvx=evx*-0.06665018382032406 + wx*-0.08676189560142286 + atx*0.0555191393646765 + obx*0.07546318260579934 + cx*-0.12888248551286643 + sx*-0.10956325994397098 + rtx*0.02008134288876729;
+  const mvy=evy*-0.06665018382032406 + wy*-0.08676189560142286 + aty*0.0555191393646765 + oby*0.07546318260579934 + cy*-0.12888248551286643 + sy*-0.10956325994397098 + rty*0.02008134288876729;
   const mvAng=deg(mvx,mvy);
   // 사격: 기본 조준 + 소량 지터 스윕
   if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
@@ -94,40 +126,8 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "Raptor";}
-function type(){return Type.DEALER;}
-function update(tank,enemies,allies,bulletInfo){
-  function ang(a){a%=360; if(a<0)a+=360; return a;}
-  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
-  const W=900,H=600;
-  // 1) 타겟: 거리+체력 가중
-  let target=null, best=1e9;
-  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.4; if(s<best){best=s; target=e;} }
-  // 2) 총알 회피
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.065*d); evx+=px*w; evy+=py*w; th+=w; } }
-  ;[evx,evy]=nrm(evx,evy);
-  // 3) 벽 회피
-  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
-  // 4) 아군 응집/분리
-  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
-  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
-  // 5) 타겟 접근/측면 + 저체력 이탈
-  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
-  if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
-  // 합성 벡터
-  const mvx=evx*-0.13748366766566208 + wx*-0.08911280341901279 + atx*0.003201291725290087 + obx*-0.14331931096905948 + cx*-0.03846092466351428 + sx*-0.027917957062625925 + rtx*0.1300642326543856;
-  const mvy=evy*-0.13748366766566208 + wy*-0.08911280341901279 + aty*0.003201291725290087 + oby*-0.14331931096905948 + cy*-0.03846092466351428 + sy*-0.027917957062625925 + rty*0.1300642326543856;
-  const mvAng=deg(mvx,mvy);
-  // 사격: 기본 조준 + 소량 지터 스윕
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.06866549621031137*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
-  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
-}
-
-// ===== 다음 로봇 =====
-
 function name(){return "Spectre";}
-function type(){return Type.DEALER;}
+function type(){return 2;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
@@ -146,20 +146,20 @@ function update(tank,enemies,allies,bulletInfo){
   let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
   // 5) 타겟 접근/측면 + 저체력 이탈
   let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
-  if(tank.health<21.36217395616735){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  if(tank.health<20.370703251321203){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   // 합성 벡터
-  const mvx=evx*0.08198107343144213 + wx*-0.0932583085495345 + atx*-0.0886241678253607 + obx*0.16838675556959487 + cx*-0.11406064154020187 + sx*-0.1288375272066685 + rtx*-0.062260981957514686;
-  const mvy=evy*0.08198107343144213 + wy*-0.0932583085495345 + aty*-0.0886241678253607 + oby*0.16838675556959487 + cy*-0.11406064154020187 + sy*-0.1288375272066685 + rty*-0.062260981957514686;
+  const mvx=evx*0.22804098670705178 + wx*-0.1675838939075189 + atx*0.08370108963712762 + obx*-0.12153495798813602 + cx*0.07724166365196061 + sx*-0.05378393328814194 + rtx*0.10583335078769962;
+  const mvy=evy*0.22804098670705178 + wy*-0.1675838939075189 + aty*0.08370108963712762 + oby*-0.12153495798813602 + cy*0.07724166365196061 + sy*-0.05378393328814194 + rty*0.10583335078769962;
   const mvAng=deg(mvx,mvy);
   // 사격: 기본 조준 + 소량 지터 스윕
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.774452635186176*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
+  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=1.0366167485944984*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
 function name(){return "Sentinel";}
-function type(){return Type.NORMAL;}
+function type(){return 0;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
@@ -178,12 +178,12 @@ function update(tank,enemies,allies,bulletInfo){
   let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
   // 5) 타겟 접근/측면 + 저체력 이탈
   let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
-  if(tank.health<21.7965244631354){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  if(tank.health<19.498301476095136){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   // 합성 벡터
-  const mvx=evx*0.10137596074124966 + wx*0.16294414400269214 + atx*-0.03707774501986481 + obx*-0.038669697434032674 + cx*0.02050139110432409 + sx*0.09169705433304015 + rtx*0.06416816953644991;
-  const mvy=evy*0.10137596074124966 + wy*0.16294414400269214 + aty*-0.03707774501986481 + oby*-0.038669697434032674 + cy*0.02050139110432409 + sy*0.09169705433304015 + rty*0.06416816953644991;
+  const mvx=evx*0.08440679483401592 + wx*-0.032902615451862766 + atx*-0.2783249491324137 + obx*-0.0677317600908934 + cx*0.04823420276879982 + sx*-0.04486104432416317 + rtx*0.14995762099842008;
+  const mvy=evy*0.08440679483401592 + wy*-0.032902615451862766 + aty*-0.2783249491324137 + oby*-0.0677317600908934 + cy*0.04823420276879982 + sy*-0.04486104432416317 + rty*0.14995762099842008;
   const mvAng=deg(mvx,mvy);
   // 사격: 기본 조준 + 소량 지터 스윕
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.553843135010185*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
+  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.8036657697829719*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
