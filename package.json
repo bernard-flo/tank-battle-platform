@@ -5,10 +5,10 @@
   "description": "Automated simulator and AI generator for tank_battle_platform.html",
   "license": "UNLICENSED",
   "scripts": {
-    "sim-test": "node tools/simulate.js --self-test"
+    "sim-test": "node tools/simulate.js --self-test",
+    "autorun": "node tools/autorun.js"
   },
   "dependencies": {
     "puppeteer": "^23.4.1"
   }
 }
-
