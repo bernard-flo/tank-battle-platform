@@ -35,7 +35,8 @@ async function main() {
   }
 
   // 여러 시드로 팀 생성 후 평가
-  const seeds = Array.from({ length: 8 }, (_, i) => i * 97 + 13);
+  // 더 촘촘한 시드 탐색으로 강한 팀 선택
+  const seeds = Array.from({ length: 24 }, (_, i) => i * 97 + 13);
   let best = { score: -Infinity, seed: null, team: null };
 
   for (const seed of seeds) {
@@ -44,14 +45,14 @@ async function main() {
     let count = 0;
     if (opponents.length === 0) {
       // 자기자신 미러전 (균형성 체크)
-      const r1 = simulateMatch(myTeam, myTeam, { durationMs: 10000 });
+      const r1 = simulateMatch(myTeam, myTeam, { durationMs: 10000, seed });
       totalScore += (r1.scoreRed - r1.scoreBlue);
       count += 1;
     } else {
       for (const opp of opponents) {
         // 양 진영 스왑하여 2판
-        const r1 = simulateMatch(myTeam, opp.blocks, { durationMs: 12000 });
-        const r2 = simulateMatch(opp.blocks, myTeam, { durationMs: 12000 });
+        const r1 = simulateMatch(myTeam, opp.blocks, { durationMs: 12000, seed: seed + 1 });
+        const r2 = simulateMatch(opp.blocks, myTeam, { durationMs: 12000, seed: seed + 2 });
         totalScore += (r1.scoreRed - r1.scoreBlue);
         totalScore += (r2.scoreBlue - r2.scoreRed);
         count += 2;
@@ -72,4 +73,3 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-
