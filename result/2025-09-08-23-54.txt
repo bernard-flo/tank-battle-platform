@@ -1,0 +1,117 @@
+function name(){return "Aquila-T1";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(dx,dy){return Math.atan2(dy,dx)*180/Math.PI;}
+  function closest(arr, key='distance'){let r=null,md=1e9;for(const e of arr){const v=e[key]??e.distance; if(v<md){md=v;r=e;}}return r;}
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
+  function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv; const proj=dx*nx+dy*ny; if(proj<=0) return false; const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d < (tank.size/2 + 25); }
+  const tgt = focus(enemies);
+  if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter = ((Math.floor(tank.x*7+tank.y*13)%21)-10)*0.25; tank.fire(base + jitter); }
+  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
+  let hot=null,md=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<md && isThreat(b)){md=d; hot=b;}}
+  if(hot){ const a=deg(hot.vx,hot.vy); const cand=[a+90-10,a-90+10,a+120,a-120]; for(const c of cand){ if(tryMove(c)) return; }}
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < (tank.size+30)){ const av=deg(tank.x-ally.x, tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+35)) return; if(tryMove(av-35)) return; }}
+  if(tgt){ const d=tgt.distance, to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<170){ const away=to+180-5; if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return; } else if(d>250){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; } else { const side=to-10; if(tryMove(side)) return; if(tryMove(side+25)) return; if(tryMove(side-25)) return; }}
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p-5)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-T2";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(dx,dy){return Math.atan2(dy,dx)*180/Math.PI;}
+  function closest(arr, key='distance'){let r=null,md=1e9;for(const e of arr){const v=e[key]??e.distance; if(v<md){md=v;r=e;}}return r;}
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
+  function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv; const proj=dx*nx+dy*ny; if(proj<=0) return false; const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d < (tank.size/2 + 25); }
+  const tgt = focus(enemies);
+  if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter = ((Math.floor(tank.x*11+tank.y*5)%19)-9)*0.25; tank.fire(base + jitter); }
+  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
+  let hot=null,md=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<md && isThreat(b)){md=d; hot=b;}}
+  if(hot){ const a=deg(hot.vx,hot.vy); const cand=[a+90+10,a-90-10,a+110,a-110]; for(const c of cand){ if(tryMove(c)) return; }}
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < (tank.size+30)){ const av=deg(tank.x-ally.x, tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+35)) return; if(tryMove(av-35)) return; }}
+  if(tgt){ const d=tgt.distance, to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<170){ const away=to+180+5; if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return; } else if(d>250){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; } else { const side=to+10; if(tryMove(side)) return; if(tryMove(side+25)) return; if(tryMove(side-25)) return; }}
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p+5)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-D1";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(dx,dy){return Math.atan2(dy,dx)*180/Math.PI;}
+  function closest(arr, key='distance'){let r=null,md=1e9;for(const e of arr){const v=e[key]??e.distance; if(v<md){md=v;r=e;}}return r;}
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
+  function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv; const proj=dx*nx+dy*ny; if(proj<=0) return false; const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d < (tank.size/2 + 28); }
+  const tgt = focus(enemies);
+  if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter = ((Math.floor(tank.x*17+tank.y*3)%23)-11)*0.28; tank.fire(base + jitter); }
+  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
+  let hot=null,md=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<md && isThreat(b)){md=d; hot=b;}}
+  if(hot){ const a=deg(hot.vx,hot.vy); const cand=[a+90+25,a-90-25,a+120,a-120]; for(const c of cand){ if(tryMove(c)) return; }}
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < (tank.size+28)){ const av=deg(tank.x-ally.x, tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+35)) return; if(tryMove(av-35)) return; }}
+  if(tgt){ const d=tgt.distance, to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<230){ const away=to+180+20; if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return; } else if(d>340){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; } else { const side=to+20; if(tryMove(side)) return; if(tryMove(side+25)) return; if(tryMove(side-25)) return; }}
+  const pref=[30,150,210,330]; for(const p of pref){ if(tryMove(p+20)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-D2";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(dx,dy){return Math.atan2(dy,dx)*180/Math.PI;}
+  function closest(arr, key='distance'){let r=null,md=1e9;for(const e of arr){const v=e[key]??e.distance; if(v<md){md=v;r=e;}}return r;}
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
+  function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv; const proj=dx*nx+dy*ny; if(proj<=0) return false; const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d < (tank.size/2 + 28); }
+  const tgt = focus(enemies);
+  if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter = ((Math.floor(tank.x*5+tank.y*19)%23)-11)*0.28; tank.fire(base + jitter); }
+  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
+  let hot=null,md=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<md && isThreat(b)){md=d; hot=b;}}
+  if(hot){ const a=deg(hot.vx,hot.vy); const cand=[a+90-25,a-90+25,a+120,a-120]; for(const c of cand){ if(tryMove(c)) return; }}
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < (tank.size+28)){ const av=deg(tank.x-ally.x, tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+35)) return; if(tryMove(av-35)) return; }}
+  if(tgt){ const d=tgt.distance, to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<230){ const away=to+180-20; if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return; } else if(d>340){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; } else { const side=to-20; if(tryMove(side)) return; if(tryMove(side+25)) return; if(tryMove(side-25)) return; }}
+  const pref=[330,210,150,30]; for(const p of pref){ if(tryMove(p-20)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-D3";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(dx,dy){return Math.atan2(dy,dx)*180/Math.PI;}
+  function closest(arr, key='distance'){let r=null,md=1e9;for(const e of arr){const v=e[key]??e.distance; if(v<md){md=v;r=e;}}return r;}
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
+  function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv; const proj=dx*nx+dy*ny; if(proj<=0) return false; const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d < (tank.size/2 + 28); }
+  const tgt = focus(enemies);
+  if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter = ((Math.floor(tank.x*13+tank.y*7)%23)-11)*0.25; tank.fire(base + jitter); }
+  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
+  let hot=null,md=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<md && isThreat(b)){md=d; hot=b;}}
+  if(hot){ const a=deg(hot.vx,hot.vy); const cand=[a+90,a-90,a+100,a-100]; for(const c of cand){ if(tryMove(c)) return; }}
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < (tank.size+28)){ const av=deg(tank.x-ally.x, tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+35)) return; if(tryMove(av-35)) return; }}
+  if(tgt){ const d=tgt.distance, to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<230){ const away=to+180; if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return; } else if(d>340){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; } else { const side=to; if(tryMove(side)) return; if(tryMove(side+25)) return; if(tryMove(side-25)) return; }}
+  const pref=[60,120,240,300]; for(const p of pref){ if(tryMove(p)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-N1";}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(dx,dy){return Math.atan2(dy,dx)*180/Math.PI;}
+  function closest(arr, key='distance'){let r=null,md=1e9;for(const e of arr){const v=e[key]??e.distance; if(v<md){md=v;r=e;}}return r;}
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
+  function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv; const proj=dx*nx+dy*ny; if(proj<=0) return false; const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d < (tank.size/2 + 26); }
+  const tgt = focus(enemies);
+  if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter = ((Math.floor(tank.x*3+tank.y*11)%21)-10)*0.25; tank.fire(base + jitter); }
+  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
+  let hot=null,md=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<md && isThreat(b)){md=d; hot=b;}}
+  if(hot){ const a=deg(hot.vx,hot.vy); const cand=[a+90,a-90,a+110,a-110]; for(const c of cand){ if(tryMove(c)) return; }}
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < (tank.size+26)){ const av=deg(tank.x-ally.x, tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+35)) return; if(tryMove(av-35)) return; }}
+  if(tgt){ const d=tgt.distance, to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<205){ const away=to+180; if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } else if(d>305){ if(tryMove(to)) return; if(tryMove(to+18)) return; if(tryMove(to-18)) return; } else { const side=to; if(tryMove(side)) return; if(tryMove(side+22)) return; if(tryMove(side-22)) return; }}
+  const pref=[0,60,120,180,240,300]; for(const p of pref){ if(tryMove(p)) return; }
+}
