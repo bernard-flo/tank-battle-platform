@@ -156,7 +156,7 @@ function parseCodeBlocks(bigCode) {
 function compileBot(block) {
   // block에는 function name()/type()/update() 정의가 포함
   // 샌드박스로 이름/타입/업데이트 추출
-  const wrapper = `${block}\nreturn { name: name(), type: type(), update: update };`;
+  const wrapper = `(function(){\n${block}\nreturn { name: name(), type: type(), update: update };\n})()`;
   const script = new vm.Script(wrapper);
   const context = vm.createContext({ Type });
   const fn = script.runInContext(context, { timeout: 50 });
@@ -279,4 +279,3 @@ module.exports = {
   parseCodeBlocks,
   simulateMatch,
 };
-
