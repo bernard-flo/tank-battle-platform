@@ -1,0 +1,144 @@
+function name(){return "Vanguard-A";}
+function type(){return 1;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, M=70;
+  // 1) 타겟 선택: 체력 낮고 가까운 적 우선
+  let target=null,score=1e9;
+  for(const e of enemies){const s=e.distance*0.8 + Math.max(0,e.health)*0.35; if(s<score){score=s; target=e;}}
+  // 2) 총알 회피 (접근성 비례, 거리 감쇠)
+  let evx=0,evy=0; for(const b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv,uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.06*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; if(tank.x<M) wx+=1-tank.x/M; if(W-tank.x<M) wx-=1-(W-tank.x)/M; if(tank.y<M) wy+=1-tank.y/M; if(H-tank.y<M) wy-=1-(H-tank.y)/M; ;[wx,wy]=nrm(wx,wy);
+  // 4) 타겟 압박 + 측면 이동(오비트)
+  let atx=0,aty=0,obx=0,oby=0; if(target){atx=target.x-tank.x; aty=target.y-tank.y; const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx;}
+  // 5) 아군 중심과 분산
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x,dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<90){sx+=dx/(d*d); sy+=dy/(d*d);}} ;[sx,sy]=nrm(sx,sy);
+  // 6) 저체력시 후퇴 벡터
+  let rtx=0,rty=0; if(tank.health<22){rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn;}
+  // 7) 가중합 (탱커: 전진/차폐/벽회피 강화)
+  const mvx=evx*0.09 + wx*0.22 + atx*0.18 + obx*0.11 + cx*0.12 + sx*0.11 + rtx*0.07;
+  const mvy=evy*0.09 + wy*0.22 + aty*0.18 + oby*0.11 + cy*0.12 + sy*0.11 + rty*0.07;
+  const mvAng=deg(mvx,mvy);
+  if(target){const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.6*(Math.random()-0.5); tank.fire(ang(aim+jitter));}
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+65))){ if(!tank.move(ang(mvAng-65))){ tank.move(Math.random()*360); }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Vanguard-B";}
+function type(){return 1;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, M=70;
+  let target=null,score=1e9; for(const e of enemies){const s=e.distance*0.78 + Math.max(0,e.health)*0.4; if(s<score){score=s; target=e;}}
+  let evx=0,evy=0; for(const b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv,uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.055*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=nrm(evx,evy);
+  let wx=0,wy=0; if(tank.x<M) wx+=1-tank.x/M; if(W-tank.x<M) wx-=1-(W-tank.x)/M; if(tank.y<M) wy+=1-tank.y/M; if(H-tank.y<M) wy-=1-(H-tank.y)/M; ;[wx,wy]=nrm(wx,wy);
+  let atx=0,aty=0,obx=0,oby=0; if(target){atx=target.x-tank.x; aty=target.y-tank.y; const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx;}
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x,dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<95){sx+=dx/(d*d); sy+=dy/(d*d);}} ;[sx,sy]=nrm(sx,sy);
+  let rtx=0,rty=0; if(tank.health<20){rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn;}
+  const mvx=evx*0.10 + wx*0.23 + atx*0.20 + obx*0.10 + cx*0.10 + sx*0.12 + rtx*0.05;
+  const mvy=evy*0.10 + wy*0.23 + aty*0.20 + oby*0.10 + cy*0.10 + sy*0.12 + rty*0.05;
+  const mvAng=deg(mvx,mvy);
+  if(target){const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.55*(Math.random()-0.5); tank.fire(ang(aim+jitter));}
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Reaper-MkII";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600,M=60; const PREF_DIST=220;
+  let target=null,score=1e9; for(const e of enemies){const s=e.distance*0.7 + Math.max(0,e.health)*0.5; if(s<score){score=s; target=e;}}
+  let evx=0,evy=0; for(const b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv,uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=nrm(evx,evy);
+  let wx=0,wy=0; if(tank.x<M) wx+=1-tank.x/M; if(W-tank.x<M) wx-=1-(W-tank.x)/M; if(tank.y<M) wy+=1-tank.y/M; if(H-tank.y<M) wy-=1-(H-tank.y)/M; ;[wx,wy]=nrm(wx,wy);
+  let atx=0,aty=0,obx=0,oby=0,drx=0,dry=0; if(target){const vx=target.x-tank.x, vy=target.y-tank.y; const n=Math.hypot(vx,vy)||1; atx=vx/n; aty=vy/n; obx=-aty; oby=atx; const dist=Math.hypot(vx,vy); const diff=dist-PREF_DIST; drx=-(vx/dist||0)*Math.tanh(diff/120); dry=-(vy/dist||0)*Math.tanh(diff/120);} ;[drx,dry]=nrm(drx,dry);
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x,dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){sx+=dx/(d*d); sy+=dy/(d*d);}} ;[sx,sy]=nrm(sx,sy);
+  let rtx=0,rty=0; if(tank.health<30){rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn;}
+  const mvx=evx*0.14 + wx*0.14 + atx*0.10 + obx*0.22 + drx*0.20 + cx*0.06 + sx*0.06 + rtx*0.08;
+  const mvy=evy*0.14 + wy*0.14 + aty*0.10 + oby*0.22 + dry*0.20 + cy*0.06 + sy*0.06 + rty*0.08;
+  const mvAng=deg(mvx,mvy);
+  if(target){const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.35*(Math.random()-0.5); tank.fire(ang(aim+jitter));}
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+60))){ if(!tank.move(ang(mvAng-60))){ tank.move(Math.random()*360); }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Spectre-MkII";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600,M=60; const PREF_DIST=240;
+  let target=null,score=1e9; for(const e of enemies){const s=e.distance*0.72 + Math.max(0,e.health)*0.48; if(s<score){score=s; target=e;}}
+  let evx=0,evy=0; for(const b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv,uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.075*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=nrm(evx,evy);
+  let wx=0,wy=0; if(tank.x<M) wx+=1-tank.x/M; if(W-tank.x<M) wx-=1-(W-tank.x)/M; if(tank.y<M) wy+=1-tank.y/M; if(H-tank.y<M) wy-=1-(H-tank.y)/M; ;[wx,wy]=nrm(wx,wy);
+  let atx=0,aty=0,obx=0,oby=0,drx=0,dry=0; if(target){const vx=target.x-tank.x, vy=target.y-tank.y; const n=Math.hypot(vx,vy)||1; atx=vx/n; aty=vy/n; obx=-aty; oby=atx; const dist=Math.hypot(vx,vy); const diff=dist-PREF_DIST; drx=-(vx/dist||0)*Math.tanh(diff/130); dry=-(vy/dist||0)*Math.tanh(diff/130);} ;[drx,dry]=nrm(drx,dry);
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x,dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){sx+=dx/(d*d); sy+=dy/(d*d);}} ;[sx,sy]=nrm(sx,sy);
+  let rtx=0,rty=0; if(tank.health<28){rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn;}
+  const mvx=evx*0.16 + wx*0.12 + atx*0.08 + obx*0.25 + drx*0.19 + cx*0.05 + sx*0.05 + rtx*0.10;
+  const mvy=evy*0.16 + wy*0.12 + aty*0.08 + oby*0.25 + dry*0.19 + cy*0.05 + sy*0.05 + rty*0.10;
+  const mvAng=deg(mvx,mvy);
+  if(target){const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.28*(Math.random()-0.5); tank.fire(ang(aim+jitter));}
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+60))){ if(!tank.move(ang(mvAng-60))){ tank.move(Math.random()*360); }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Viper-MkII";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600,M=60; const PREF_DIST=200;
+  let target=null,score=1e9; for(const e of enemies){const s=e.distance*0.68 + Math.max(0,e.health)*0.55; if(s<score){score=s; target=e;}}
+  let evx=0,evy=0; for(const b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv,uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=nrm(evx,evy);
+  let wx=0,wy=0; if(tank.x<M) wx+=1-tank.x/M; if(W-tank.x<M) wx-=1-(W-tank.x)/M; if(tank.y<M) wy+=1-tank.y/M; if(H-tank.y<M) wy-=1-(H-tank.y)/M; ;[wx,wy]=nrm(wx,wy);
+  let atx=0,aty=0,obx=0,oby=0,drx=0,dry=0; if(target){const vx=target.x-tank.x, vy=target.y-tank.y; const n=Math.hypot(vx,vy)||1; atx=vx/n; aty=vy/n; obx=-aty; oby=atx; const dist=Math.hypot(vx,vy); const diff=dist-PREF_DIST; drx=-(vx/dist||0)*Math.tanh(diff/100); dry=-(vy/dist||0)*Math.tanh(diff/100);} ;[drx,dry]=nrm(drx,dry);
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x,dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){sx+=dx/(d*d); sy+=dy/(d*d);}} ;[sx,sy]=nrm(sx,sy);
+  let rtx=0,rty=0; if(tank.health<26){rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn;}
+  const mvx=evx*0.15 + wx*0.12 + atx*0.09 + obx*0.24 + drx*0.20 + cx*0.06 + sx*0.05 + rtx*0.09;
+  const mvy=evy*0.15 + wy*0.12 + aty*0.09 + oby*0.24 + dry*0.20 + cy*0.06 + sy*0.05 + rty*0.09;
+  const mvAng=deg(mvx,mvy);
+  if(target){const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.32*(Math.random()-0.5); tank.fire(ang(aim+jitter));}
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+60))){ if(!tank.move(ang(mvAng-60))){ tank.move(Math.random()*360); }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Sentinel-MkII";}
+function type(){return 0;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600,M=65; const PREF_DIST=210;
+  let target=null,score=1e9; for(const e of enemies){const s=e.distance*0.74 + Math.max(0,e.health)*0.45; if(s<score){score=s; target=e;}}
+  let evx=0,evy=0; for(const b of bulletInfo){const rx=b.x-tank.x,ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv,uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.065*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=nrm(evx,evy);
+  let wx=0,wy=0; if(tank.x<M) wx+=1-tank.x/M; if(W-tank.x<M) wx-=1-(W-tank.x)/M; if(tank.y<M) wy+=1-tank.y/M; if(H-tank.y<M) wy-=1-(H-tank.y)/M; ;[wx,wy]=nrm(wx,wy);
+  let atx=0,aty=0,obx=0,oby=0,drx=0,dry=0; if(target){const vx=target.x-tank.x, vy=target.y-tank.y; const n=Math.hypot(vx,vy)||1; atx=vx/n; aty=vy/n; obx=-aty; oby=atx; const dist=Math.hypot(vx,vy); const diff=dist-PREF_DIST; drx=-(vx/dist||0)*Math.tanh(diff/110); dry=-(vy/dist||0)*Math.tanh(diff/110);} ;[drx,dry]=nrm(drx,dry);
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x,dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){sx+=dx/(d*d); sy+=dy/(d*d);}} ;[sx,sy]=nrm(sx,sy);
+  let rtx=0,rty=0; if(tank.health<24){rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn;}
+  const mvx=evx*0.13 + wx*0.16 + atx*0.11 + obx*0.21 + drx*0.17 + cx*0.07 + sx*0.06 + rtx*0.09;
+  const mvy=evy*0.13 + wy*0.16 + aty*0.11 + oby*0.21 + dry*0.17 + cy*0.07 + sy*0.06 + rty*0.09;
+  const mvAng=deg(mvx,mvy);
+  if(target){const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=0.33*(Math.random()-0.5); tank.fire(ang(aim+jitter));}
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+60))){ if(!tank.move(ang(mvAng-60))){ tank.move(Math.random()*360); }}}
+}
+
