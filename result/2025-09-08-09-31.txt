@@ -1,0 +1,461 @@
+function name(){return "Bulwark";}
+function type(){return 1;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
+  const W=900,H=600;
+
+  // 1) 타겟 선정: 체력이 낮고 가까운 적 우선
+  let target=null, score=1e9;
+  for(const e of enemies){
+    const k=e.distance*0.9 + Math.max(0, e.health)*0.6 - Math.min(40,e.health)*0.5;
+    if(k<score){score=k; target=e;}
+  }
+
+  // 2) 위협 추정: 접근중인 총알만 회피, 거리 가중치
+  let evx=0,evy=0, threat=0;
+  for(const b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6;
+    const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv;
+    const closing=-(rx*ux+ry*uy)/d; // 양수면 접근중
+    if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; threat+=w; }
+  }
+  ;[evx,evy]=nrm(evx,evy);
+
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60;
+  if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m;
+  if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m;
+  ;[wx,wy]=nrm(wx,wy);
+
+  // 4) 아군 응집/분리로 충돌 줄이기
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const cnt=Math.max(1,allies.length); ax/=cnt; ay/=cnt;
+  let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 5) 공격/측면기동 + 저체력 시 이탈 벡터
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){
+    atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n;
+    obx=-aty; oby=atx; // 측면 기동
+    const hp = tank.health; // 절대 체력 사용 (플랫폼에서 타입별 체력이 다름)
+    const low = hp < 28;
+    if(low){ rtx=-atx; rty=-aty; }
+  }
+
+  // 6) 타입에 따른 가중치 미세 조정
+  const isTanker = tank.type===1, isDealer=tank.type===2;
+  const wBullet = 0.9996381059288979 * (isDealer?1.15: isTanker?0.9:1.0);
+  const wAttack = 0.6984851205348968 * (isDealer?1.05: isTanker?0.95:1.0);
+  const wStrafe = 0.5894838923215867 * (isDealer?1.15: 1.0);
+  const wRetreat = 0.7558615338802338 * (isDealer?1.1:1.0);
+
+  // 7) 최종 이동 벡터
+  const mvx = evx*wBullet + wx*1.0102473443746567 + atx*wAttack + obx*wStrafe + cx*0.12 + sx*0.3629609149694442 + rtx*wRetreat;
+  const mvy = evy*wBullet + wy*1.0102473443746567 + aty*wAttack + oby*wStrafe + cy*0.12 + sy*0.3629609149694442 + rty*wRetreat;
+  let mvAng = deg(mvx,mvy);
+
+  // 8) 사격: 거리 기반 지터, 측면각 보정 약간
+  if(target){
+    const base = target.angle;
+    const dist = Math.max(1, target.distance);
+    const jitter = (dist<200? 7 : 11)*(Math.random()-0.5);
+    const sweep = (isDealer? 6 : 3) * (Math.random()-0.5); // 소폭 스윕
+    const leadHint = obx!==0||oby!==0 ? deg(obx,oby)*0.15 : 0; // 스트레이프 방향을 약한 리드로 사용
+    const aim = ang(base + jitter + sweep + leadHint);
+    tank.fire(aim);
+  }
+
+  // 9) 이동: 실패 시 우회 각도 시도
+  const a0=ang(mvAng);
+  if(!tank.move(a0)){
+    if(!tank.move(ang(a0+70))){ if(!tank.move(ang(a0-70))){ tank.move(Math.random()*360); }}
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aegis";}
+function type(){return 1;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
+  const W=900,H=600;
+
+  // 1) 타겟 선정: 체력이 낮고 가까운 적 우선
+  let target=null, score=1e9;
+  for(const e of enemies){
+    const k=e.distance*0.9 + Math.max(0, e.health)*0.6 - Math.min(40,e.health)*0.5;
+    if(k<score){score=k; target=e;}
+  }
+
+  // 2) 위협 추정: 접근중인 총알만 회피, 거리 가중치
+  let evx=0,evy=0, threat=0;
+  for(const b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6;
+    const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv;
+    const closing=-(rx*ux+ry*uy)/d; // 양수면 접근중
+    if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; threat+=w; }
+  }
+  ;[evx,evy]=nrm(evx,evy);
+
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60;
+  if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m;
+  if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m;
+  ;[wx,wy]=nrm(wx,wy);
+
+  // 4) 아군 응집/분리로 충돌 줄이기
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const cnt=Math.max(1,allies.length); ax/=cnt; ay/=cnt;
+  let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 5) 공격/측면기동 + 저체력 시 이탈 벡터
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){
+    atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n;
+    obx=-aty; oby=atx; // 측면 기동
+    const hp = tank.health; // 절대 체력 사용 (플랫폼에서 타입별 체력이 다름)
+    const low = hp < 28;
+    if(low){ rtx=-atx; rty=-aty; }
+  }
+
+  // 6) 타입에 따른 가중치 미세 조정
+  const isTanker = tank.type===1, isDealer=tank.type===2;
+  const wBullet = 1.0159998059272766 * (isDealer?1.15: isTanker?0.9:1.0);
+  const wAttack = 0.6853276139497757 * (isDealer?1.05: isTanker?0.95:1.0);
+  const wStrafe = 0.4313120424747467 * (isDealer?1.15: 1.0);
+  const wRetreat = 0.8344927489757539 * (isDealer?1.1:1.0);
+
+  // 7) 최종 이동 벡터
+  const mvx = evx*wBullet + wx*0.8577919602394104 + atx*wAttack + obx*wStrafe + cx*0.12 + sx*0.456793909072876 + rtx*wRetreat;
+  const mvy = evy*wBullet + wy*0.8577919602394104 + aty*wAttack + oby*wStrafe + cy*0.12 + sy*0.456793909072876 + rty*wRetreat;
+  let mvAng = deg(mvx,mvy);
+
+  // 8) 사격: 거리 기반 지터, 측면각 보정 약간
+  if(target){
+    const base = target.angle;
+    const dist = Math.max(1, target.distance);
+    const jitter = (dist<200? 5 : 14)*(Math.random()-0.5);
+    const sweep = (isDealer? 6 : 3) * (Math.random()-0.5); // 소폭 스윕
+    const leadHint = obx!==0||oby!==0 ? deg(obx,oby)*0.15 : 0; // 스트레이프 방향을 약한 리드로 사용
+    const aim = ang(base + jitter + sweep + leadHint);
+    tank.fire(aim);
+  }
+
+  // 9) 이동: 실패 시 우회 각도 시도
+  const a0=ang(mvAng);
+  if(!tank.move(a0)){
+    if(!tank.move(ang(a0+70))){ if(!tank.move(ang(a0-70))){ tank.move(Math.random()*360); }}
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Viper";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
+  const W=900,H=600;
+
+  // 1) 타겟 선정: 체력이 낮고 가까운 적 우선
+  let target=null, score=1e9;
+  for(const e of enemies){
+    const k=e.distance*0.9 + Math.max(0, e.health)*0.6 - Math.min(40,e.health)*0.5;
+    if(k<score){score=k; target=e;}
+  }
+
+  // 2) 위협 추정: 접근중인 총알만 회피, 거리 가중치
+  let evx=0,evy=0, threat=0;
+  for(const b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6;
+    const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv;
+    const closing=-(rx*ux+ry*uy)/d; // 양수면 접근중
+    if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; threat+=w; }
+  }
+  ;[evx,evy]=nrm(evx,evy);
+
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60;
+  if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m;
+  if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m;
+  ;[wx,wy]=nrm(wx,wy);
+
+  // 4) 아군 응집/분리로 충돌 줄이기
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const cnt=Math.max(1,allies.length); ax/=cnt; ay/=cnt;
+  let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 5) 공격/측면기동 + 저체력 시 이탈 벡터
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){
+    atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n;
+    obx=-aty; oby=atx; // 측면 기동
+    const hp = tank.health; // 절대 체력 사용 (플랫폼에서 타입별 체력이 다름)
+    const low = hp < 27.556715726852417;
+    if(low){ rtx=-atx; rty=-aty; }
+  }
+
+  // 6) 타입에 따른 가중치 미세 조정
+  const isTanker = tank.type===1, isDealer=tank.type===2;
+  const wBullet = 1.1771047496795652 * (isDealer?1.15: isTanker?0.9:1.0);
+  const wAttack = 0.9480904412269593 * (isDealer?1.05: isTanker?0.95:1.0);
+  const wStrafe = 0.8970214974880217 * (isDealer?1.15: 1.0);
+  const wRetreat = 0.9 * (isDealer?1.1:1.0);
+
+  // 7) 최종 이동 벡터
+  const mvx = evx*wBullet + wx*0.9585948288440704 + atx*wAttack + obx*wStrafe + cx*0.09252519845962526 + sx*0.43581176877021793 + rtx*wRetreat;
+  const mvy = evy*wBullet + wy*0.9585948288440704 + aty*wAttack + oby*wStrafe + cy*0.09252519845962526 + sy*0.43581176877021793 + rty*wRetreat;
+  let mvAng = deg(mvx,mvy);
+
+  // 8) 사격: 거리 기반 지터, 측면각 보정 약간
+  if(target){
+    const base = target.angle;
+    const dist = Math.max(1, target.distance);
+    const jitter = (dist<200? 3 : 6)*(Math.random()-0.5);
+    const sweep = (isDealer? 6 : 3) * (Math.random()-0.5); // 소폭 스윕
+    const leadHint = obx!==0||oby!==0 ? deg(obx,oby)*0.15 : 0; // 스트레이프 방향을 약한 리드로 사용
+    const aim = ang(base + jitter + sweep + leadHint);
+    tank.fire(aim);
+  }
+
+  // 9) 이동: 실패 시 우회 각도 시도
+  const a0=ang(mvAng);
+  if(!tank.move(a0)){
+    if(!tank.move(ang(a0+70))){ if(!tank.move(ang(a0-70))){ tank.move(Math.random()*360); }}
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Wraith";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
+  const W=900,H=600;
+
+  // 1) 타겟 선정: 체력이 낮고 가까운 적 우선
+  let target=null, score=1e9;
+  for(const e of enemies){
+    const k=e.distance*0.9 + Math.max(0, e.health)*0.6 - Math.min(40,e.health)*0.5;
+    if(k<score){score=k; target=e;}
+  }
+
+  // 2) 위협 추정: 접근중인 총알만 회피, 거리 가중치
+  let evx=0,evy=0, threat=0;
+  for(const b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6;
+    const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv;
+    const closing=-(rx*ux+ry*uy)/d; // 양수면 접근중
+    if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; threat+=w; }
+  }
+  ;[evx,evy]=nrm(evx,evy);
+
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60;
+  if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m;
+  if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m;
+  ;[wx,wy]=nrm(wx,wy);
+
+  // 4) 아군 응집/분리로 충돌 줄이기
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const cnt=Math.max(1,allies.length); ax/=cnt; ay/=cnt;
+  let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 5) 공격/측면기동 + 저체력 시 이탈 벡터
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){
+    atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n;
+    obx=-aty; oby=atx; // 측면 기동
+    const hp = tank.health; // 절대 체력 사용 (플랫폼에서 타입별 체력이 다름)
+    const low = hp < 32.26571807861328;
+    if(low){ rtx=-atx; rty=-aty; }
+  }
+
+  // 6) 타입에 따른 가중치 미세 조정
+  const isTanker = tank.type===1, isDealer=tank.type===2;
+  const wBullet = 1.251554831266403 * (isDealer?1.15: isTanker?0.9:1.0);
+  const wAttack = 0.9552723455429077 * (isDealer?1.05: isTanker?0.95:1.0);
+  const wStrafe = 0.925577073097229 * (isDealer?1.15: 1.0);
+  const wRetreat = 0.9 * (isDealer?1.1:1.0);
+
+  // 7) 최종 이동 벡터
+  const mvx = evx*wBullet + wx*0.9136250190734864 + atx*wAttack + obx*wStrafe + cx*0.12713429832458495 + sx*0.49334087133407595 + rtx*wRetreat;
+  const mvy = evy*wBullet + wy*0.9136250190734864 + aty*wAttack + oby*wStrafe + cy*0.12713429832458495 + sy*0.49334087133407595 + rty*wRetreat;
+  let mvAng = deg(mvx,mvy);
+
+  // 8) 사격: 거리 기반 지터, 측면각 보정 약간
+  if(target){
+    const base = target.angle;
+    const dist = Math.max(1, target.distance);
+    const jitter = (dist<200? 2 : 13)*(Math.random()-0.5);
+    const sweep = (isDealer? 6 : 3) * (Math.random()-0.5); // 소폭 스윕
+    const leadHint = obx!==0||oby!==0 ? deg(obx,oby)*0.15 : 0; // 스트레이프 방향을 약한 리드로 사용
+    const aim = ang(base + jitter + sweep + leadHint);
+    tank.fire(aim);
+  }
+
+  // 9) 이동: 실패 시 우회 각도 시도
+  const a0=ang(mvAng);
+  if(!tank.move(a0)){
+    if(!tank.move(ang(a0+70))){ if(!tank.move(ang(a0-70))){ tank.move(Math.random()*360); }}
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Falcon";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
+  const W=900,H=600;
+
+  // 1) 타겟 선정: 체력이 낮고 가까운 적 우선
+  let target=null, score=1e9;
+  for(const e of enemies){
+    const k=e.distance*0.9 + Math.max(0, e.health)*0.6 - Math.min(40,e.health)*0.5;
+    if(k<score){score=k; target=e;}
+  }
+
+  // 2) 위협 추정: 접근중인 총알만 회피, 거리 가중치
+  let evx=0,evy=0, threat=0;
+  for(const b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6;
+    const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv;
+    const closing=-(rx*ux+ry*uy)/d; // 양수면 접근중
+    if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; threat+=w; }
+  }
+  ;[evx,evy]=nrm(evx,evy);
+
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60;
+  if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m;
+  if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m;
+  ;[wx,wy]=nrm(wx,wy);
+
+  // 4) 아군 응집/분리로 충돌 줄이기
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const cnt=Math.max(1,allies.length); ax/=cnt; ay/=cnt;
+  let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 5) 공격/측면기동 + 저체력 시 이탈 벡터
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){
+    atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n;
+    obx=-aty; oby=atx; // 측면 기동
+    const hp = tank.health; // 절대 체력 사용 (플랫폼에서 타입별 체력이 다름)
+    const low = hp < 29.26469316482544;
+    if(low){ rtx=-atx; rty=-aty; }
+  }
+
+  // 6) 타입에 따른 가중치 미세 조정
+  const isTanker = tank.type===1, isDealer=tank.type===2;
+  const wBullet = 1.2158759713172913 * (isDealer?1.15: isTanker?0.9:1.0);
+  const wAttack = 0.9372347993850709 * (isDealer?1.05: isTanker?0.95:1.0);
+  const wStrafe = 1.0078274416923523 * (isDealer?1.15: 1.0);
+  const wRetreat = 0.9 * (isDealer?1.1:1.0);
+
+  // 7) 최종 이동 벡터
+  const mvx = evx*wBullet + wx*1.0127573847770692 + atx*wAttack + obx*wStrafe + cx*0.12181865787506103 + sx*0.4009924120903015 + rtx*wRetreat;
+  const mvy = evy*wBullet + wy*1.0127573847770692 + aty*wAttack + oby*wStrafe + cy*0.12181865787506103 + sy*0.4009924120903015 + rty*wRetreat;
+  let mvAng = deg(mvx,mvy);
+
+  // 8) 사격: 거리 기반 지터, 측면각 보정 약간
+  if(target){
+    const base = target.angle;
+    const dist = Math.max(1, target.distance);
+    const jitter = (dist<200? 3 : 12)*(Math.random()-0.5);
+    const sweep = (isDealer? 6 : 3) * (Math.random()-0.5); // 소폭 스윕
+    const leadHint = obx!==0||oby!==0 ? deg(obx,oby)*0.15 : 0; // 스트레이프 방향을 약한 리드로 사용
+    const aim = ang(base + jitter + sweep + leadHint);
+    tank.fire(aim);
+  }
+
+  // 9) 이동: 실패 시 우회 각도 시도
+  const a0=ang(mvAng);
+  if(!tank.move(a0)){
+    if(!tank.move(ang(a0+70))){ if(!tank.move(ang(a0-70))){ tank.move(Math.random()*360); }}
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Anchor";}
+function type(){return 0;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
+  const W=900,H=600;
+
+  // 1) 타겟 선정: 체력이 낮고 가까운 적 우선
+  let target=null, score=1e9;
+  for(const e of enemies){
+    const k=e.distance*0.9 + Math.max(0, e.health)*0.6 - Math.min(40,e.health)*0.5;
+    if(k<score){score=k; target=e;}
+  }
+
+  // 2) 위협 추정: 접근중인 총알만 회피, 거리 가중치
+  let evx=0,evy=0, threat=0;
+  for(const b of bulletInfo){
+    const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6;
+    const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv;
+    const closing=-(rx*ux+ry*uy)/d; // 양수면 접근중
+    if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.07*d); evx+=px*w; evy+=py*w; threat+=w; }
+  }
+  ;[evx,evy]=nrm(evx,evy);
+
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60;
+  if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m;
+  if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m;
+  ;[wx,wy]=nrm(wx,wy);
+
+  // 4) 아군 응집/분리로 충돌 줄이기
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const cnt=Math.max(1,allies.length); ax/=cnt; ay/=cnt;
+  let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 5) 공격/측면기동 + 저체력 시 이탈 벡터
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){
+    atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n;
+    obx=-aty; oby=atx; // 측면 기동
+    const hp = tank.health; // 절대 체력 사용 (플랫폼에서 타입별 체력이 다름)
+    const low = hp < 28;
+    if(low){ rtx=-atx; rty=-aty; }
+  }
+
+  // 6) 타입에 따른 가중치 미세 조정
+  const isTanker = tank.type===1, isDealer=tank.type===2;
+  const wBullet = 1.0882480835914612 * (isDealer?1.15: isTanker?0.9:1.0);
+  const wAttack = 0.7699844932556152 * (isDealer?1.05: isTanker?0.95:1.0);
+  const wStrafe = 0.7550551152229309 * (isDealer?1.15: 1.0);
+  const wRetreat = 0.7105635643005371 * (isDealer?1.1:1.0);
+
+  // 7) 최종 이동 벡터
+  const mvx = evx*wBullet + wx*0.9113200676441192 + atx*wAttack + obx*wStrafe + cx*0.13521970868110655 + sx*0.34416018486022953 + rtx*wRetreat;
+  const mvy = evy*wBullet + wy*0.9113200676441192 + aty*wAttack + oby*wStrafe + cy*0.13521970868110655 + sy*0.34416018486022953 + rty*wRetreat;
+  let mvAng = deg(mvx,mvy);
+
+  // 8) 사격: 거리 기반 지터, 측면각 보정 약간
+  if(target){
+    const base = target.angle;
+    const dist = Math.max(1, target.distance);
+    const jitter = (dist<200? 4 : 12)*(Math.random()-0.5);
+    const sweep = (isDealer? 6 : 3) * (Math.random()-0.5); // 소폭 스윕
+    const leadHint = obx!==0||oby!==0 ? deg(obx,oby)*0.15 : 0; // 스트레이프 방향을 약한 리드로 사용
+    const aim = ang(base + jitter + sweep + leadHint);
+    tank.fire(aim);
+  }
+
+  // 9) 이동: 실패 시 우회 각도 시도
+  const a0=ang(mvAng);
+  if(!tank.move(a0)){
+    if(!tank.move(ang(a0+70))){ if(!tank.move(ang(a0-70))){ tank.move(Math.random()*360); }}
+  }
+}
+
+// ===== 다음 로봇 =====
