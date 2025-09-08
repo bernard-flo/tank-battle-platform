@@ -1,95 +1,211 @@
 #!/usr/bin/env node
-// Headless simulator matching tank_battle_platform core logic (no DOM)
-const fs = require('fs');
+/*
+ 간이 전투 시뮬레이터: tank_battle_platform.html 규약을 복제해
+ 파일(result/*.txt)의 6개 로봇 코드끼리 6v6 시뮬레이션을 수행.
+ - 틱 간격: 50ms 등가, 발사 쿨다운 500ms => 10틱
+ - 총알 속도: 8, 탱크 속도/크기/에너지/데미지: HTML과 동일
+ - 충돌/경계/사망 규칙: HTML과 최대한 동일하게 반영
+ - 렌더링 없음, 순수 로직만 평가
+ 사용법:
+   node tools/sim.js run result/A.txt result/B.txt [rounds]
+   node tools/sim.js rank result/<candidate>.txt  # 최근 N개와 토너먼트
+*/
 
-const W = 900, H = 600;
-const Type = { NORMAL:0, TANKER:1, DEALER:2 };
+const fs = require('fs');
+const path = require('path');
+
+const Type = { NORMAL: 0, TANKER: 1, DEALER: 2 };
 const TANK_CONFIGS = {
-  [Type.NORMAL]: { energy:100, size:35, speed:5, damage:5 },
-  [Type.TANKER]: { energy:150, size:45, speed:3, damage:4.5 },
-  [Type.DEALER]: { energy:80, size:33, speed:6, damage:6.5 },
+  [Type.NORMAL]: { energy: 100, size: 35, speed: 5, damage: 5 },
+  [Type.TANKER]: { energy: 150, size: 45, speed: 3, damage: 4.5 },
+  [Type.DEALER]: { energy: 80, size: 33, speed: 6, damage: 6.5 },
 };
 
+function splitRobotCodes(code) {
+  const parts = code.split(/(?=function\s+name\s*\(\s*\))/);
+  const robotCodes = [];
+  for (let part of parts) {
+    const trimmed = part.trim();
+    if (trimmed && /function\s+name\s*\(\s*\)/.test(trimmed)) {
+      const clean = trimmed.replace(/\/\/\s*=+.*?=+/g, '').trim();
+      robotCodes.push(clean);
+    }
+  }
+  return robotCodes.slice(0, 6);
+}
+
 class Tank {
-  constructor(id, x, y, team, name, tankType, code){
-    this.id=id; this.x=x; this.y=y; this.team=team; this.playerName=name; this.tankType=tankType; this.code=code;
-    const cfg=TANK_CONFIGS[tankType];
-    this.angle=Math.random()*360; this.gunAngle=this.angle;
-    this.health=cfg.energy; this.energy=cfg.energy; this.speed=cfg.speed; this.size=cfg.size; this.damage=cfg.damage;
-    this.alive=true; this.lastFire=0; this.hasMoved=false; this.moveAttempts=0;
+  constructor(id, x, y, team, playerName, tankType = Type.NORMAL) {
+    this.id = id; this.x = x; this.y = y; this.team = team; this.playerName = playerName; this.tankType = tankType;
+    const cfg = TANK_CONFIGS[tankType];
+    this.angle = 0;
+    this.health = cfg.energy; this.energy = cfg.energy; this.speed = cfg.speed; this.size = cfg.size; this.damage = cfg.damage;
+    this.alive = true; this.lastFireTick = -1e9; this.code = ''; this.hasMoved = false; this.moveAttempts = 0;
   }
-  move(direction){ if(!this.alive||this.hasMoved) return false; this.moveAttempts=(this.moveAttempts||0)+1; if(this.moveAttempts>10) return true; const rad=direction*Math.PI/180; const nx=this.x+Math.cos(rad)*this.speed; const ny=this.y+Math.sin(rad)*this.speed; const r=this.size/2; if(nx-r<0||nx+r>W||ny-r<0||ny+r>H) return false; for(const t of tanks){ if(t.id===this.id||!t.alive) continue; const d=Math.hypot(t.x-nx,t.y-ny); const cr=(this.size+t.size)/2+5; if(d<cr) return false; } this.hasMoved=true; this.angle=direction; this.x=nx; this.y=ny; return true; }
-  fire(angle){ if(!this.alive) return false; if(now - this.lastFire < 500) return false; if(angle==null) return false; this.lastFire=now; const rad=angle*Math.PI/180; bullets.push({x:this.x,y:this.y,vx:Math.cos(rad)*8,vy:Math.sin(rad)*8,team:this.team,owner:this.id,damage:this.damage}); return true; }
-  takeDamage(dmg){ this.health-=dmg; if(this.health<=0){ this.alive=false; }}
-  resetMoveFlag(){ this.hasMoved=false; this.moveAttempts=0; }
-}
-
-let tanks=[], bullets=[], now=0;
-
-function parseTeam(file){
-  const code=fs.readFileSync(file,'utf8');
-  const parts = code.split(/(?=function\s+name\s*\(\s*\))/).filter(s=>/function\s+name\s*\(\s*\)/.test(s));
-  return parts.slice(0,6);
-}
-
-function setup(redParts, blueParts){
-  tanks=[]; bullets=[];
-  for(let i=0;i<6;i++){
-    const redCode=redParts[i]||fallbackCode('R',i+1);
-    const name = new Function(redCode+"\nreturn name();")();
-    const type = new Function('Type', redCode+"\nreturn type();")(Type);
-    const t=new Tank(`R${i+1}`, 140 + (1-(i%2))*100, 90 + Math.floor(i/2)*120, 'red', name, type, redCode); tanks.push(t);
+  resetMoveFlag(){ this.hasMoved = false; this.moveAttempts = 0; }
+  move(direction, tanks){
+    if (!this.alive || this.hasMoved) return false;
+    this.moveAttempts = (this.moveAttempts||0) + 1;
+    if (this.moveAttempts > 10) return true; // 엔진 동작과 동일 처리
+    const rad = (direction*Math.PI)/180;
+    const newX = this.x + Math.cos(rad)*this.speed;
+    const newY = this.y + Math.sin(rad)*this.speed;
+    const r = this.size/2;
+    if (newX - r < 0 || newX + r > 900 || newY - r < 0 || newY + r > 600) return false;
+    for (const t of tanks){
+      if (t.id===this.id || !t.alive) continue;
+      const dist = Math.hypot(t.x-newX, t.y-newY);
+      const comb = (this.size + t.size)/2 + 5;
+      if (dist < comb) return false;
+    }
+    this.hasMoved = true; this.angle = direction; this.x = newX; this.y = newY; return true;
   }
-  for(let i=0;i<6;i++){
-    const blueCode=blueParts[i]||fallbackCode('B',i+1);
-    const name = new Function(blueCode+"\nreturn name();")();
-    const type = new Function('Type', blueCode+"\nreturn type();")(Type);
-    const t=new Tank(`B${i+1}`, 640 + (i%2)*100, 90 + Math.floor(i/2)*120, 'blue', name, type, blueCode); tanks.push(t);
-  }
-}
-
-function fallbackCode(prefix,i){
-  return `function name(){return "Player ${prefix}${i}";} function type(){return 0;} function update(tank,enemies,allies,bulletInfo){ if(enemies.length){ const e=enemies[0]; const a=Math.atan2(e.y-tank.y,e.x-tank.x)*180/Math.PI; tank.fire(a); tank.move(a+180);} }`;
-}
-
-function executeTankAI(t){ if(!t.alive) return; t.resetMoveFlag();
-  const create=(o)=>Object.freeze(JSON.parse(JSON.stringify(o)));
-  const enemies=tanks.filter(x=>x.team!==t.team && x.alive).map(e=>create({x:e.x,y:e.y,distance:Math.hypot(e.x-t.x,e.y-t.y),angle:Math.atan2(e.y-t.y,e.x-t.x)*180/Math.PI,health:e.health}));
-  const allies=tanks.filter(x=>x.team===t.team && x.alive && x.id!==t.id).map(a=>create({x:a.x,y:a.y,distance:Math.hypot(a.x-t.x,a.y-t.y),health:a.health}));
-  const bulletInfo=bullets.filter(b=>b.team!==t.team).map(b=>create({x:b.x,y:b.y,vx:b.vx,vy:b.vy,distance:Math.hypot(b.x-t.x,b.y-t.y)}));
-  const tankAPI=Object.freeze({move:(ang)=>t.move(ang),fire:(ang)=>t.fire(ang),x:t.x,y:t.y,health:t.health,energy:t.energy,type:t.tankType,size:t.size});
-  const fn=new Function('tank','enemies','allies','bulletInfo', `"use strict"; const window=undefined, document=undefined, tanks=undefined, bullets=undefined, gameRunning=undefined, logMessage=undefined, Tank=undefined; const Type={NORMAL:0,TANKER:1,DEALER:2}; const console=Object.freeze({log:(...a)=>{},warn:(...a)=>{},error:(...a)=>{}}); ${t.code}\nupdate(tank,enemies,allies,bulletInfo);`);
-  try{ fn(tankAPI, Object.freeze(enemies), Object.freeze(allies), Object.freeze(bulletInfo)); } catch(e){ /* ignore */ }
-}
-
-function updateBullets(){
-  bullets = bullets.filter(b=>{
-    b.x+=b.vx; b.y+=b.vy; if(b.x<0||b.x>W||b.y<0||b.y>H) return false;
-    for(const t of tanks){ if(!t.alive) continue; const d=Math.hypot(t.x-b.x,t.y-b.y); const hit=t.size/2+2; if(d<hit){ if(t.team!==b.team){ t.takeDamage(b.damage);} else { return true; } return false; } }
+  fire(angle, bullets, tick){
+    if (!this.alive) return false; if (angle===undefined || angle===null) return false;
+    // 500ms == 10틱
+    if (tick - this.lastFireTick < 10) return false;
+    this.lastFireTick = tick;
+    const rad = (angle*Math.PI)/180;
+    bullets.push({ x:this.x, y:this.y, vx:Math.cos(rad)*8, vy:Math.sin(rad)*8, team:this.team, owner:this.id, damage:this.damage, ownerType:this.tankType });
     return true;
-  });
+  }
+  takeDamage(d){ this.health -= d; if (this.health <= 0){ this.alive=false; } }
 }
 
-function step(){ for(const t of tanks){ if(t.alive) executeTankAI(t);} updateBullets(); }
+function initTeams(redCodes, blueCodes){
+  const tanks=[];
+  // Red: 2열 배치 (HTML과 같은 좌표)
+  for (let i=0;i<6;i++){
+    let row = Math.floor(i/2); let col = i%2; col = 1-col; // 1,0,1,0,1,0
+    const t = new Tank(`R${i+1}`, 140 + col*100, 90 + row*120, 'red', `R${i+1}`, extractType(redCodes[i]))
+    t.code = redCodes[i] || defaultCode('R'+(i+1));
+    tanks.push(t);
+  }
+  // Blue: 기존과 동일
+  for (let i=0;i<6;i++){
+    const t = new Tank(`B${i+1}`, 640 + (i%2)*100, 90 + Math.floor(i/2)*120, 'blue', `B${i+1}`, extractType(blueCodes[i]))
+    t.code = blueCodes[i] || defaultCode('B'+(i+1));
+    tanks.push(t);
+  }
+  return tanks;
+}
 
-function alive(team){ return tanks.filter(t=>t.team===team && t.alive).length; }
-function energy(team){ return tanks.filter(t=>t.team===team && t.alive).reduce((s,t)=>s+Math.max(0,t.health),0); }
+function extractType(code){
+  try{
+    const fn = new Function('Type', code + '\nreturn type();');
+    const t = fn(Type);
+    return (t===0||t===1||t===2)? t : Type.NORMAL;
+  }catch(_){ return Type.NORMAL; }
+}
 
-function runBattle(maxMs=60000){ now=0; let iters=0; const dt=50; while(now<maxMs){ step(); now+=500/10; // maintain same fire cooldown basis
-    if(alive('red')===0 || alive('blue')===0) break; if(++iters>2000) break; }
-  const eR=energy('red'), eB=energy('blue');
-  if(alive('red')>0 && alive('blue')===0) return {winner:'red', eR, eB};
-  if(alive('blue')>0 && alive('red')===0) return {winner:'blue', eR, eB};
-  return {winner: eR>eB ? 'red' : (eB>eR ? 'blue' : 'draw'), eR, eB};
+function getEnemiesAllies(tank, tanks){
+  const enemies = []; const allies=[];
+  for (const t of tanks){
+    if (!t.alive) continue; if (t.id===tank.id) continue;
+    const d = Math.hypot(t.x-tank.x, t.y-tank.y);
+    if (t.team !== tank.team){ enemies.push(Object.freeze({x:t.x, y:t.y, distance:d, angle: Math.atan2(t.y-tank.y, t.x-tank.x)*180/Math.PI, health:t.health })); }
+    else { allies.push(Object.freeze({x:t.x, y:t.y, distance:d, health:t.health })); }
+  }
+  return {enemies:Object.freeze(enemies), allies:Object.freeze(allies)};
+}
+
+function getBulletInfo(tank, bullets){
+  const arr=[];
+  for (const b of bullets){ if (b.team!==tank.team){ arr.push(Object.freeze({x:b.x, y:b.y, vx:b.vx, vy:b.vy, distance: Math.hypot(b.x-tank.x,b.y-tank.y)})); } }
+  return Object.freeze(arr);
+}
+
+function compile(code){
+  return new Function('tank','enemies','allies','bulletInfo', `"use strict"; const Type={NORMAL:0,TANKER:1,DEALER:2}; const console = Object.freeze({log:(...a)=>{},warn:(...a)=>{},error:(...a)=>{}});\n${code}\nreturn (t,e,a,b)=>update(t,e,a,b);` )();
+}
+
+function runMatch(redFile, blueFile, rounds=1, maxTicks=3000){
+  const read = f => splitRobotCodes(fs.readFileSync(f,'utf8'));
+  const R = read(redFile); const B = read(blueFile);
+  let redWins=0, blueWins=0, draws=0, agg = {redEnergy:0, blueEnergy:0};
+
+  for (let r=0;r<rounds;r++){
+    let tanks = initTeams(R,B);
+    let bullets=[]; const updaters = new Map();
+    const getUpdater = (t)=>{
+      if (updaters.has(t.id)) return updaters.get(t.id);
+      const code = t.code; const u = compile(code); updaters.set(t.id,u); return u;
+    };
+    for (let tick=0; tick<maxTicks; tick++){
+      // AI
+      for (const t of tanks){ if (!t.alive) continue; t.resetMoveFlag();
+        const {enemies, allies} = getEnemiesAllies(t, tanks);
+        const bulletInfo = getBulletInfo(t, bullets);
+        const tankAPI = Object.freeze({
+          move: Object.freeze((a)=>t.move(a,tanks)),
+          fire: Object.freeze((a)=>t.fire(a,bullets,tick)),
+          x:t.x, y:t.y, health:t.health, energy:t.energy, type:t.tankType, size:t.size,
+        });
+        try{ getUpdater(t)(tankAPI, enemies, allies, bulletInfo); }catch(_){ /* ignore */ }
+      }
+      // Bullets
+      const nextBullets=[];
+      bulletLoop: for (const b of bullets){
+        const nx = b.x + b.vx; const ny = b.y + b.vy;
+        if (nx<0||nx>900||ny<0||ny>600) continue; // out
+        // hit check
+        for (const t of tanks){ if (!t.alive) continue; if (t.team===b.team) continue; const d=Math.hypot(t.x-nx, t.y-ny); const hitR = t.size/2 + 3;
+          if (d < hitR){ t.takeDamage(b.damage); continue bulletLoop; }
+        }
+        nextBullets.push({...b, x:nx, y:ny});
+      }
+      bullets = nextBullets;
+      // end?
+      const redAlive = tanks.filter(t=>t.team==='red' && t.alive).length;
+      const blueAlive = tanks.filter(t=>t.team==='blue' && t.alive).length;
+      if (redAlive===0 || blueAlive===0){ break; }
+    }
+    const redEnergy = tanks.filter(t=>t.team==='red'&&t.alive).reduce((s,t)=>s+t.health,0);
+    const blueEnergy = tanks.filter(t=>t.team==='blue'&&t.alive).reduce((s,t)=>s+t.health,0);
+    agg.redEnergy += redEnergy; agg.blueEnergy += blueEnergy;
+    if (redEnergy>blueEnergy) redWins++; else if (blueEnergy>redEnergy) blueWins++; else draws++;
+  }
+  return {redWins, blueWins, draws, agg};
+}
+
+function defaultCode(label){
+  return `function name(){return "${label}";}\nfunction type(){return Type.NORMAL;}\nfunction update(tank,enemies,allies,bulletInfo){\n  if(enemies.length){ const e=enemies[0]; const a=Math.atan2(e.y-tank.y,e.x-tank.x)*180/Math.PI; tank.fire(a); tank.move(a+180);}\n}`;
+}
+
+function listRecentResults(n=10){
+  const dir = path.join(process.cwd(), 'result');
+  const files = fs.readdirSync(dir).filter(f=>/\.txt$/.test(f)).map(f=>({f, m:fs.statSync(path.join(dir,f)).mtimeMs}))
+    .sort((a,b)=>b.m-a.m).slice(0,n).map(x=>path.join(dir,x.f));
+  return files;
+}
+
+function rankCandidate(candidateFile, recentN=10){
+  const opponents = listRecentResults(recentN).filter(f=>path.resolve(f)!==path.resolve(candidateFile));
+  let score=0; let results=[];
+  for (const opp of opponents){
+    const {redWins, blueWins, draws, agg} = runMatch(candidateFile, opp, 3, 2500);
+    const s = redWins - blueWins; score += s;
+    results.push({opp:path.basename(opp), redWins, blueWins, draws, redEnergy:agg.redEnergy, blueEnergy:agg.blueEnergy});
+  }
+  results.sort((a,b)=> (b.redWins-b.blueWins) - (a.redWins-a.blueWins) || (b.redEnergy-b.blueEnergy) - (a.redEnergy-a.blueEnergy));
+  return {score, results};
 }
 
 function main(){
-  const [,,redPath, bluePath, roundsStr] = process.argv;
-  if(!redPath || !bluePath){ console.error('usage: node tools/sim.js result/RED.txt result/BLUE.txt [rounds]'); process.exit(1);} 
-  const R=parseInt(roundsStr||'9',10);
-  const red=parseTeam(redPath), blue=parseTeam(bluePath);
-  let r=0,b=0,d=0; for(let i=0;i<R;i++){ setup(red,blue); const res=runBattle(60000); if(res.winner==='red') r++; else if(res.winner==='blue') b++; else d++; }
-  console.log(JSON.stringify({red:redPath, blue:bluePath, rounds:R, redWins:r, blueWins:b, draws:d}));
+  const [,,cmd, ...args] = process.argv;
+  if (cmd==='run'){
+    const [red, blue, rounds] = args;
+    if (!red || !blue){ console.error('usage: node tools/sim.js run result/A.txt result/B.txt [rounds]'); process.exit(1);}    
+    const r = runMatch(red, blue, Number(rounds||'3'), 2500);
+    console.log(JSON.stringify(r,null,2));
+  } else if (cmd==='rank'){
+    const [candidate] = args; if (!candidate){ console.error('usage: node tools/sim.js rank result/<candidate>.txt'); process.exit(1);}    
+    const r = rankCandidate(candidate, 12);
+    console.log(JSON.stringify(r,null,2));
+  } else {
+    console.log('usage:\n  node tools/sim.js run result/A.txt result/B.txt [rounds]\n  node tools/sim.js rank result/<candidate>.txt');
+  }
 }
 
-if(require.main===module) main();
+if (require.main === module) main();
+
