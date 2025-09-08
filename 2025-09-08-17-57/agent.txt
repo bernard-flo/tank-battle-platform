@@ -1,0 +1,154 @@
+function name(){return "Atlas";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function A(a){a%=360;return a<0?a+360:a}
+  function D(x,y){return Math.atan2(y,x)*180/Math.PI}
+  function N(x,y){const m=Math.hypot(x,y)||1e-6;return [x/m,y/m]}
+  const W=900,H=600; // arena
+  // 선택: 가까움+저체력
+  let tgt=null,b=1e9;
+  for(const e of enemies){const s=e.distance*0.88 + (e.health||0)*0.28; if(s<b){b=s;tgt=e}}
+  // 총알 회피(측면 이동)
+  let evx=0,evy=0;
+  for(const p of bulletInfo){const rx=p.x-tank.x, ry=p.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(p.vx,p.vy)||1e-6; const ux=p.vx/bv, uy=p.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const tti=d/bv; const w=closing/(1+0.05*d+0.02*tti*tti); evx+=px*w; evy+=py*w;}}
+  ;[evx,evy]=N(evx,evy);
+  // 벽 반발
+  let wx=0,wy=0; const mrg=70; if(tank.x<mrg) wx+=1- tank.x/mrg; if(W-tank.x<mrg) wx-=1- (W-tank.x)/mrg; if(tank.y<mrg) wy+=1- tank.y/mrg; if(H-tank.y<mrg) wy-=1- (H-tank.y)/mrg; ;[wx,wy]=N(wx,wy);
+  // 아군 응집/분리
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){sx+=dx/(d*d); sy+=dy/(d*d)}} ;[sx,sy]=N(sx,sy);
+  let cx=0,cy=0; if(allies.length){for(const a of allies){cx+=a.x; cy+=a.y} cx/=allies.length; cy/=allies.length; cx-=tank.x; cy-=tank.y; [cx,cy]=N(cx,cy)}
+  // 타겟 접근 + 측면
+  let ax=0,ay=0, ox=0,oy=0, dist=999;
+  if(tgt){ ax=tgt.x-tank.x; ay=tgt.y-tank.y; dist=Math.hypot(ax,ay)||1; ax/=dist; ay/=dist; ox=-ay; oy=ax }
+  // 저체력 시 이탈
+  let rx=0,ry=0; if(tank.health<35){ rx=-(cx||ax); ry=-(cy||ay); [rx,ry]=N(rx,ry) }
+  // 가중치(탱커 성향)
+  const wEv=0.25, wWall=0.65, wAt=0.80, wOr=0.20, wSep=0.20, wCoh=0.05, wRt=0.35;
+  const near = dist<150 ? 1:0, far = dist>260 ? 1:0;
+  const atEff = wAt*(far?1.15:(near?0.75:1));
+  const orEff = wOr*(near?1.20:1);
+  const mvx = evx*wEv + wx*wWall + ax*atEff + ox*orEff + sx*wSep + cx*wCoh + rx*wRt;
+  const mvy = evy*wEv + wy*wWall + ay*atEff + oy*orEff + sy*wSep + cy*wCoh + ry*wRt;
+  const ang=D(mvx,mvy);
+  if(tgt){ const aim=D(tgt.x-tank.x,tgt.y-tank.y); tank.fire(A(aim)); }
+  if(!tank.move(A(ang))){ if(!tank.move(A(ang+70))){ if(!tank.move(A(ang-70))){ tank.move(Math.random()*360) }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Viper";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function A(a){a%=360;return a<0?a+360:a}
+  function D(x,y){return Math.atan2(y,x)*180/Math.PI}
+  function N(x,y){const m=Math.hypot(x,y)||1e-6;return [x/m,y/m]}
+  const W=900,H=600;
+  let tgt=null,b=1e9; for(const e of enemies){const s=e.distance*0.92 + (e.health||0)*0.20; if(s<b){b=s;tgt=e}}
+  let evx=0,evy=0; for(const p of bulletInfo){const rx=p.x-tank.x, ry=p.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(p.vx,p.vy)||1e-6; const ux=p.vx/bv, uy=p.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const tti=d/bv; const w=closing/(1+0.03*d+0.01*tti*tti); evx+=px*w; evy+=py*w;}} ;[evx,evy]=N(evx,evy);
+  let wx=0,wy=0; const mrg=65; if(tank.x<mrg) wx+=1- tank.x/mrg; if(W-tank.x<mrg) wx-=1- (W-tank.x)/mrg; if(tank.y<mrg) wy+=1- tank.y/mrg; if(H-tank.y<mrg) wy-=1- (H-tank.y)/mrg; ;[wx,wy]=N(wx,wy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<80){sx+=dx/(d*d); sy+=dy/(d*d)}} ;[sx,sy]=N(sx,sy);
+  let ax=0,ay=0, ox=0,oy=0, dist=999; if(tgt){ ax=tgt.x-tank.x; ay=tgt.y-tank.y; dist=Math.hypot(ax,ay)||1; ax/=dist; ay/=dist; ox=-ay; oy=ax }
+  let rx=0,ry=0; if(tank.health<22){ rx=-ax; ry=-ay; [rx,ry]=N(rx,ry) }
+  const wEv=0.85, wWall=0.35, wAt=0.65, wOr=0.55, wSep=0.35, wCoh=0.0, wRt=0.75;
+  const near = dist<140 ? 1:0, far = dist>260 ? 1:0;
+  const atEff = wAt*(far?1.2:(near?0.6:1));
+  const mvx = evx*wEv + wx*wWall + ax*atEff + ox*wOr + sx*wSep + rx*wRt;
+  const mvy = evy*wEv + wy*wWall + ay*atEff + oy*wOr + sy*wSep + ry*wRt;
+  const ang=D(mvx,mvy);
+  if(tgt){ const BS=8; const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=Math.hypot(dx,dy); const t=Math.min(12,Math.max(0,dist/BS)); const lead=2; const aim=D(dx,dy); tank.fire(A(aim+lead*Math.sin(dist*0.01)))}
+  if(!tank.move(A(ang))){ if(!tank.move(A(ang+85))){ if(!tank.move(A(ang-85))){ tank.move(Math.random()*360) }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aegis";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function A(a){a%=360;return a<0?a+360:a}
+  function D(x,y){return Math.atan2(y,x)*180/Math.PI}
+  function N(x,y){const m=Math.hypot(x,y)||1e-6;return [x/m,y/m]}
+  const W=900,H=600;
+  let tgt=null,b=1e9; for(const e of enemies){const s=e.distance*0.90 + (e.health||0)*0.30; if(s<b){b=s;tgt=e}}
+  let evx=0,evy=0; for(const p of bulletInfo){const rx=p.x-tank.x, ry=p.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(p.vx,p.vy)||1e-6; const ux=p.vx/bv, uy=p.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.05*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=N(evx,evy);
+  let wx=0,wy=0; const mrg=80; if(tank.x<mrg) wx+=1- tank.x/mrg; if(W-tank.x<mrg) wx-=1- (W-tank.x)/mrg; if(tank.y<mrg) wy+=1- tank.y/mrg; if(H-tank.y<mrg) wy-=1- (H-tank.y)/mrg; ;[wx,wy]=N(wx,wy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<90){sx+=dx/(d*d); sy+=dy/(d*d)}} ;[sx,sy]=N(sx,sy);
+  let ax=0,ay=0, ox=0,oy=0, dist=999; if(tgt){ ax=tgt.x-tank.x; ay=tgt.y-tank.y; dist=Math.hypot(ax,ay)||1; ax/=dist; ay/=dist; ox=-ay; oy=ax }
+  const wEv=0.22, wWall=0.70, wAt=0.85, wOr=0.20, wSep=0.25;
+  const near = dist<160?1:0, far=dist>250?1:0; const atEff=wAt*(far?1.1:(near?0.8:1));
+  const mvx=evx*wEv + wx*wWall + ax*atEff + ox*wOr + sx*wSep;
+  const mvy=evy*wEv + wy*wWall + ay*atEff + oy*wOr + sy*wSep;
+  const ang=D(mvx,mvy);
+  if(tgt){ const aim=D(tgt.x-tank.x,tgt.y-tank.y); tank.fire(A(aim)) }
+  if(!tank.move(A(ang))){ if(!tank.move(A(ang+70))){ if(!tank.move(A(ang-70))){ tank.move(Math.random()*360) }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Spectre";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function A(a){a%=360;return a<0?a+360:a}
+  function D(x,y){return Math.atan2(y,x)*180/Math.PI}
+  function N(x,y){const m=Math.hypot(x,y)||1e-6;return [x/m,y/m]}
+  const W=900,H=600;
+  let tgt=null,b=1e9; for(const e of enemies){const s=e.distance*0.95 + (e.health||0)*0.18; if(s<b){b=s;tgt=e}}
+  let evx=0,evy=0; for(const p of bulletInfo){const rx=p.x-tank.x, ry=p.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(p.vx,p.vy)||1e-6; const ux=p.vx/bv, uy=p.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const tti=d/bv; const w=closing/(1+0.02*d+0.01*tti); evx+=px*w; evy+=py*w;}} ;[evx,evy]=N(evx,evy);
+  let wx=0,wy=0; const mrg=60; if(tank.x<mrg) wx+=1- tank.x/mrg; if(W-tank.x<mrg) wx-=1- (W-tank.x)/mrg; if(tank.y<mrg) wy+=1- tank.y/mrg; if(H-tank.y<mrg) wy-=1- (H-tank.y)/mrg; ;[wx,wy]=N(wx,wy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<75){sx+=dx/(d*d); sy+=dy/(d*d)}} ;[sx,sy]=N(sx,sy);
+  let ax=0,ay=0, ox=0,oy=0, dist=999; if(tgt){ ax=tgt.x-tank.x; ay=tgt.y-tank.y; dist=Math.hypot(ax,ay)||1; ax/=dist; ay/=dist; ox=-ay; oy=ax }
+  let rx=0,ry=0; if(tank.health<20){ rx=-ax; ry=-ay; [rx,ry]=N(rx,ry) }
+  const wEv=0.9, wWall=0.30, wAt=0.55, wOr=0.65, wSep=0.35, wRt=0.85;
+  const near = dist<130 ? 1:0, far = dist>280 ? 1:0; const atEff=wAt*(far?1.2:(near?0.55:1));
+  const mvx=evx*wEv + wx*wWall + ax*atEff + ox*wOr + sx*wSep + rx*wRt;
+  const mvy=evy*wEv + wy*wWall + ay*atEff + oy*wOr + sy*wSep + ry*wRt;
+  const ang=D(mvx,mvy);
+  if(tgt){ const aim=D(tgt.x-tank.x,tgt.y-tank.y); tank.fire(A(aim+ (Math.random()-0.5)*4)) }
+  if(!tank.move(A(ang))){ if(!tank.move(A(ang+90))){ if(!tank.move(A(ang-90))){ tank.move(Math.random()*360) }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Sentinel";}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  function A(a){a%=360;return a<0?a+360:a}
+  function D(x,y){return Math.atan2(y,x)*180/Math.PI}
+  function N(x,y){const m=Math.hypot(x,y)||1e-6;return [x/m,y/m]}
+  const W=900,H=600;
+  let tgt=null,b=1e9; for(const e of enemies){const s=e.distance*0.9 + (e.health||0)*0.25; if(s<b){b=s;tgt=e}}
+  let evx=0,evy=0; for(const p of bulletInfo){const rx=p.x-tank.x, ry=p.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(p.vx,p.vy)||1e-6; const ux=p.vx/bv, uy=p.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.04*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=N(evx,evy);
+  let wx=0,wy=0; const mrg=70; if(tank.x<mrg) wx+=1- tank.x/mrg; if(W-tank.x<mrg) wx-=1- (W-tank.x)/mrg; if(tank.y<mrg) wy+=1- tank.y/mrg; if(H-tank.y<mrg) wy-=1- (H-tank.y)/mrg; ;[wx,wy]=N(wx,wy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){sx+=dx/(d*d); sy+=dy/(d*d)}} ;[sx,sy]=N(sx,sy);
+  let ax=0,ay=0, ox=0,oy=0, dist=999; if(tgt){ ax=tgt.x-tank.x; ay=tgt.y-tank.y; dist=Math.hypot(ax,ay)||1; ax/=dist; ay/=dist; ox=-ay; oy=ax }
+  let rx=0,ry=0; if(tank.health<25){ rx=-ax; ry=-ay; [rx,ry]=N(rx,ry) }
+  const wEv=0.55, wWall=0.45, wAt=0.70, wOr=0.35, wSep=0.30, wRt=0.55;
+  const near = dist<150 ? 1:0, far=dist>260?1:0; const atEff=wAt*(far?1.15:(near?0.75:1));
+  const mvx=evx*wEv + wx*wWall + ax*atEff + ox*wOr + sx*wSep + rx*wRt;
+  const mvy=evy*wEv + wy*wWall + ay*atEff + oy*wOr + sy*wSep + ry*wRt;
+  const ang=D(mvx,mvy);
+  if(tgt){ const aim=D(tgt.x-tank.x,tgt.y-tank.y); tank.fire(A(aim)) }
+  if(!tank.move(A(ang))){ if(!tank.move(A(ang+80))){ if(!tank.move(A(ang-80))){ tank.move(Math.random()*360) }}}
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Striker";}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  function A(a){a%=360;return a<0?a+360:a}
+  function D(x,y){return Math.atan2(y,x)*180/Math.PI}
+  function N(x,y){const m=Math.hypot(x,y)||1e-6;return [x/m,y/m]}
+  const W=900,H=600;
+  let tgt=null,b=1e9; for(const e of enemies){const s=e.distance*0.9 + (e.health||0)*0.22; if(s<b){b=s;tgt=e}}
+  let evx=0,evy=0; for(const p of bulletInfo){const rx=p.x-tank.x, ry=p.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(p.vx,p.vy)||1e-6; const ux=p.vx/bv, uy=p.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){const px=-uy,py=ux; const w=closing/(1+0.04*d); evx+=px*w; evy+=py*w;}} ;[evx,evy]=N(evx,evy);
+  let wx=0,wy=0; const mrg=70; if(tank.x<mrg) wx+=1- tank.x/mrg; if(W-tank.x<mrg) wx-=1- (W-tank.x)/mrg; if(tank.y<mrg) wy+=1- tank.y/mrg; if(H-tank.y<mrg) wy-=1- (H-tank.y)/mrg; ;[wx,wy]=N(wx,wy);
+  let sx=0,sy=0; for(const a of allies){const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<80){sx+=dx/(d*d); sy+=dy/(d*d)}} ;[sx,sy]=N(sx,sy);
+  let ax=0,ay=0, ox=0,oy=0, dist=999; if(tgt){ ax=tgt.x-tank.x; ay=tgt.y-tank.y; dist=Math.hypot(ax,ay)||1; ax/=dist; ay/=dist; ox=-ay; oy=ax }
+  const wEv=0.6, wWall=0.4, wAt=0.72, wOr=0.30, wSep=0.25;
+  const near=dist<150?1:0, far=dist>260?1:0; const atEff=wAt*(far?1.1:(near?0.75:1));
+  const mvx=evx*wEv + wx*wWall + ax*atEff + ox*wOr + sx*wSep;
+  const mvy=evy*wEv + wy*wWall + ay*atEff + oy*wOr + sy*wSep;
+  const ang=D(mvx,mvy);
+  if(tgt){ const aim=D(tgt.x-tank.x,tgt.y-tank.y); tank.fire(A(aim)) }
+  if(!tank.move(A(ang))){ if(!tank.move(A(ang+80))){ if(!tank.move(A(ang-80))){ tank.move(Math.random()*360) }}}
+}
