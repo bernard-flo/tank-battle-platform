@@ -128,11 +128,45 @@ function main() {
   if (!fs.existsSync(workDir)) fs.mkdirSync(workDir);
 
   // 후보 생성 및 저장
+  // 기본 후보 + 확장 탐색 후보(무작위 하이퍼파라미터)
   const candidates = [
     { key:'phalanx', blocks: makeCandidatePhalanx() },
     { key:'skirmish', blocks: makeCandidateSkirmish() },
     { key:'bulwark', blocks: makeCandidateBulwark() },
   ];
+
+  // 무작위 탐색 후보 생성 (환경변수로 개수 조절 가능)
+  const RND_TEAMS = Math.max(0, Math.min(24, Number(process.env.BNC_RND_TEAMS || '8')));
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function makeRandomTeam(i){
+    const key = `rnd${String(i+1).padStart(2,'0')}`;
+    const bots = [];
+    // 2 탱커: 근접 교전용
+    for (let k=0;k<2;k++) {
+      const engage = clamp(rand(240, 300), 200, 360);
+      const kite = clamp(rand(140, 190), 120, engage-60);
+      const dodge = clamp(rand(55, 75), 40, 90);
+      const strafe = rand(-20, 20);
+      bots.push(makeBotCode({ botName: `E-T${k+1}`, typeConst: 'Type.TANKER', engageDist: Math.round(engage), kiteDist: Math.round(kite), dodgeAgg: Math.round(dodge), strafeBias: Math.round(strafe) }));
+    }
+    // 3 딜러: 원거리 교전 + 강한 회피
+    for (let k=0;k<3;k++) {
+      const engage = clamp(rand(320, 380), 260, 420);
+      const kite = clamp(rand(210, 260), 180, 320);
+      const dodge = clamp(rand(68, 85), 60, 95);
+      const strafe = (k%2? rand(15,35): rand(-35,-15));
+      bots.push(makeBotCode({ botName: `E-D${k+1}`, typeConst: 'Type.DEALER', engageDist: Math.round(engage), kiteDist: Math.round(kite), dodgeAgg: Math.round(dodge), strafeBias: Math.round(strafe) }));
+    }
+    // 1 노멀: 유연한 링 전투
+    const engage = clamp(rand(280, 330), 220, 360);
+    const kite = clamp(rand(190, 230), 150, 300);
+    const dodge = clamp(rand(62, 78), 50, 90);
+    const strafe = rand(-10, 10);
+    bots.push(makeBotCode({ botName: `E-N1`, typeConst: 'Type.NORMAL', engageDist: Math.round(engage), kiteDist: Math.round(kite), dodgeAgg: Math.round(dodge), strafeBias: Math.round(strafe) }));
+    return { key, blocks: bots };
+  }
+  for (let i=0;i<RND_TEAMS;i++) candidates.push(makeRandomTeam(i));
   for (const c of candidates) {
     fs.writeFileSync(path.join(workDir, `${c.key}.txt`), joinBlocks(c.blocks));
   }
