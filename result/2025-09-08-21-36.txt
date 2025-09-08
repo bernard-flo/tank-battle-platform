@@ -35,7 +35,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.01461888898750019*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); tank.fire(ang(aim));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -80,7 +80,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.49828332204998754*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); tank.fire(ang(aim));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -125,7 +125,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.9276179403677085*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); tank.fire(ang(aim));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -170,7 +170,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.6846290318003695*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); tank.fire(ang(aim));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -215,7 +215,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=1.2776512114399772*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); tank.fire(ang(aim));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -260,7 +260,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.7396937465553424*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); tank.fire(ang(aim));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
