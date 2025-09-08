@@ -39,10 +39,10 @@ function main() {
   // 2) 로컬 최적화 (탐색 횟수/게임수 조절 가능)
   console.log('[2/3] 파라미터 탐색(로컬 시뮬레이터) 진행');
   const env = { ...process.env,
-    SIM_ITERS: process.env.SIM_ITERS || '48',
+    SIM_ITERS: process.env.SIM_ITERS || '24',
     SIM_GAMES: process.env.SIM_GAMES || '2',
-    SIM_TICKS: process.env.SIM_TICKS || '900',
-    SIM_MAX_OPP: process.env.SIM_MAX_OPP || '12',
+    SIM_TICKS: process.env.SIM_TICKS || '800',
+    SIM_MAX_OPP: process.env.SIM_MAX_OPP || '8',
   };
   cp.execSync(`node tools/sim.js ${ts}`, { env, stdio: 'inherit' });
 
