@@ -4,7 +4,7 @@ const path = require('path');
 const { parseCodeBlocks, simulateMatch } = require('./engine');
 const { makeTeam, concatTeamCode } = require('./bot_factory');
 
-function pickOpponents(resultDir, maxN = 6) {
+function pickOpponents(resultDir, maxN = 3) {
   const files = fs.readdirSync(resultDir).filter((f) => f.endsWith('.txt'));
   // 최근 파일 우선으로 샘플링
   files.sort((a, b) => fs.statSync(path.join(resultDir, b)).mtimeMs - fs.statSync(path.join(resultDir, a)).mtimeMs);
@@ -27,7 +27,7 @@ function loadOpponent(file) {
 }
 
 function candidateProfiles() {
-  return ['balanced', 'aggressive', 'evasive'];
+  return ['balanced', 'aggressive'];
 }
 
 async function main() {
@@ -46,7 +46,7 @@ async function main() {
   }
 
   // 후보 탐색: 프로필 x 시드 다양화 + 충분한 경기 시간으로 안정 평가
-  const seeds = Array.from({ length: 6 }, (_, i) => 37 + i * 137);
+  const seeds = Array.from({ length: 2 }, (_, i) => 37 + i * 173);
   const profiles = candidateProfiles();
   let best = { score: -Infinity, seed: null, profile: null, team: null };
 
@@ -55,13 +55,13 @@ async function main() {
       const myTeam = makeTeam(seed, profile);
       let total = 0, cnt = 0;
       if (opponents.length === 0) {
-        const r1 = simulateMatch(myTeam, myTeam, { durationMs: 12000, seed });
+        const r1 = simulateMatch(myTeam, myTeam, { durationMs: 9000, seed });
         total += (r1.scoreRed - r1.scoreBlue); cnt += 1;
       } else {
         for (let i = 0; i < opponents.length; i++) {
           const opp = opponents[i];
-          const r1 = simulateMatch(myTeam, opp, { durationMs: 13000, seed: seed + i*2 + 1 });
-          const r2 = simulateMatch(opp, myTeam, { durationMs: 13000, seed: seed + i*2 + 2 });
+          const r1 = simulateMatch(myTeam, opp, { durationMs: 9000, seed: seed + i*2 + 1 });
+          const r2 = simulateMatch(opp, myTeam, { durationMs: 9000, seed: seed + i*2 + 2 });
           total += (r1.scoreRed - r1.scoreBlue);
           total += (r2.scoreBlue - r2.scoreRed);
           cnt += 2;
