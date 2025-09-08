@@ -1,6 +1,7 @@
 function name(){return "Phalanx-T1";}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
   function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
@@ -64,6 +65,7 @@ function update(tank,enemies,allies,bulletInfo){
 function name(){return "Phalanx-T2";}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
   function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
@@ -127,6 +129,7 @@ function update(tank,enemies,allies,bulletInfo){
 function name(){return "Phalanx-D1";}
 function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
   function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
@@ -190,6 +193,7 @@ function update(tank,enemies,allies,bulletInfo){
 function name(){return "Phalanx-D2";}
 function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
   function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
@@ -253,6 +257,7 @@ function update(tank,enemies,allies,bulletInfo){
 function name(){return "Phalanx-D3";}
 function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
   function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
@@ -316,6 +321,7 @@ function update(tank,enemies,allies,bulletInfo){
 function name(){return "Phalanx-N1";}
 function type(){return Type.NORMAL;}
 function update(tank,enemies,allies,bulletInfo){
+  function focus(enemies){ if(!enemies.length) return null; enemies = enemies.slice().sort((a,b)=> a.health-b.health || (a.x+a.y)-(b.x+b.y)); return enemies[0]; }
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
   function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
