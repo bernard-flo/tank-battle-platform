@@ -24,7 +24,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<18.571692320497977){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
-  const wEvC=0.002282796779632241, wWallC=0.021923508560541344, wAtC=0.0257397295831122, wObC=0.10279129195307327, wCC=-0.08405190103611077, wSC=-0.036499254414444446, wRtC=-0.0216755701992141;
+  const wEvC=-0.006477861834227114, wWallC=0.014424148886890652, wAtC=-0.03340981671197945, wObC=0.10279129195307327, wCC=-0.11597652207120067, wSC=-0.04036620613335104, wRtC=0.014043416407505845;
   const atEff = wAtC * (far?1.15:(near?0.82:1.0));
   const obEff = wObC * (near?1.25:1.0);
   // 합성 벡터
@@ -35,7 +35,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.5278740683198153*(Math.random()-0.5); tank.fire(ang(aim+jitter));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -69,7 +69,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
-  const wEvC=0.06115231152729754, wWallC=0.016510422821530986, wAtC=0.06109321814703047, wObC=-0.02112633659948242, wCC=0.09210698139499654, wSC=-0.0016769781501140813, wRtC=-0.041792907727633555;
+  const wEvC=0.13734945224528972, wWallC=0.018117850522309575, wAtC=-0.03923555647766914, wObC=-0.03559204441032413, wCC=0.06494419703164803, wSC=-0.0026799732492634926, wRtC=0.012834090860674587;
   const atEff = wAtC * (far?1.15:(near?0.82:1.0));
   const obEff = wObC * (near?1.25:1.0);
   // 합성 벡터
@@ -114,7 +114,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<28){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
-  const wEvC=0.07171816101557263, wWallC=-0.04804323709734887, wAtC=0.004673385679753967, wObC=0.08590626929821758, wCC=0.023137182039160004, wSC=0.035834166728565264, wRtC=0.10468316225606507;
+  const wEvC=0.04266680634156139, wWallC=-0.015807373671578952, wAtC=0.02888873861040371, wObC=0.08221104180550784, wCC=0.023137182039160004, wSC=0.07774896158468969, wRtC=0.06455373806066173;
   const atEff = wAtC * (far?1.15:(near?0.82:1.0));
   const obEff = wObC * (near?1.25:1.0);
   // 합성 벡터
@@ -125,7 +125,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.08711418391990944*(Math.random()-0.5); tank.fire(ang(aim+jitter));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -159,7 +159,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
-  const wEvC=-0.10027390803875318, wWallC=-0.027936676876828145, wAtC=-0.008736528633372355, wObC=-0.09624721583091256, wCC=-0.020134733978987157, wSC=-0.017650345730075862, wRtC=-0.047141197717267144;
+  const wEvC=-0.15035050834500938, wWallC=-0.08716013452604905, wAtC=-0.003505084086846989, wObC=-0.10873962171400955, wCC=-0.000043720846008215436, wSC=-0.06297985930435503, wRtC=-0.047141197717267144;
   const atEff = wAtC * (far?1.15:(near?0.82:1.0));
   const obEff = wObC * (near?1.25:1.0);
   // 합성 벡터
@@ -170,7 +170,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=1.8627657839557423*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=2.201676375647788*(Math.random()-0.5); tank.fire(ang(aim+jitter));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -204,7 +204,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
-  const wEvC=0.009403084737593, wWallC=0.03871575026610985, wAtC=-0.11455336534507381, wObC=0.14013126464804226, wCC=-0.020245200722770123, wSC=-0.01733568995014928, wRtC=0.00918272411464823;
+  const wEvC=0.009403084737593, wWallC=-0.016802677749272014, wAtC=-0.03196974797168023, wObC=0.08766808126637188, wCC=-0.020245200722770123, wSC=-0.01733568995014928, wRtC=0.028049921612850026;
   const atEff = wAtC * (far?1.15:(near?0.82:1.0));
   const obEff = wObC * (near?1.25:1.0);
   // 합성 벡터
@@ -215,7 +215,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){
     let tx=target.x, ty=target.y;
     if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
-    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=1.3039640359309366*(Math.random()-0.5); tank.fire(ang(aim+jitter));
     __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
@@ -249,7 +249,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<22.64877996742394){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
   const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
-  const wEvC=0.13271611937962238, wWallC=0.03411988948880586, wAtC=-0.020085748167342318, wObC=0.28069925072570445, wCC=0.009251950115054128, wSC=-0.005542558715404451, wRtC=0.004873544436383262;
+  const wEvC=0.13271611937962238, wWallC=0.05128000527189995, wAtC=0.0028129853135777545, wObC=0.23432458928495917, wCC=0.009251950115054128, wSC=0.015242644748495422, wRtC=0.004873544436383262;
   const atEff = wAtC * (far?1.15:(near?0.82:1.0));
   const obEff = wObC * (near?1.25:1.0);
   // 합성 벡터
