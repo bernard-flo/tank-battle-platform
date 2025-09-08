@@ -1,0 +1,225 @@
+function name(){return "Ares";}
+function type(){return 1;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)+1e-6; return [x/m,y/m];}
+  const Wd=900,Hd=600;
+
+  // 타겟 선정: 거리+체력 페널티
+  let target=null,best=1e9; for(const e of enemies){ const k=e.distance + -0.017186*e.health; if(k<best){best=k; target=e;} }
+
+  // 총알 회피 (닫히는 탄만 수직 회피)
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.061468*d); evx+=px*w; evy+=py*w; } } ;[evx,evy]=nrm(evx,evy);
+
+  // 벽 회피
+  let wx=0,wy=0; const m=68; if(tank.x<m) wx+=1-tank.x/m; if(Wd-tank.x<m) wx-=1-(Wd-tank.x)/m; if(tank.y<m) wy+=1-tank.y/m; if(Hd-tank.y<m) wy-=1-(Hd-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+
+  // 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const ac=allies.length?1/allies.length:0; ax*=ac; ay*=ac; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)+1e-6; if(d<86){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 공격/견제
+  let atx=0,aty=0, obx=0,oby=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)+1e-6; atx/=n; aty/=n; obx=-aty; oby=atx; }
+
+  // 가중합 이동 벡터
+  const mvx = evx*1.361732 + wx*0.849251 + atx*0.801514 + obx*0.701000 + cx*0.051067 + sx*0.402584;
+  const mvy = evy*1.361732 + wy*0.849251 + aty*0.801514 + oby*0.701000 + cy*0.051067 + sy*0.402584;
+  const mvAng = deg(mvx,mvy);
+
+  // 사격: 근사 리드 + 지터
+  if(target){ const base=target.angle; const jitter=5.934009*(Math.random()-0.5); const aim=ang(base+jitter); tank.fire(aim); }
+
+  // 이동: 실패시 회피 각도 재시도
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+62))){ if(!tank.move(ang(mvAng-62))){ tank.move(Math.random()*360); } } }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Bison";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)+1e-6; return [x/m,y/m];}
+  const Wd=900,Hd=600;
+
+  // 타겟 선정: 거리+체력 페널티
+  let target=null,best=1e9; for(const e of enemies){ const k=e.distance + -0.017186*e.health; if(k<best){best=k; target=e;} }
+
+  // 총알 회피 (닫히는 탄만 수직 회피)
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.061468*d); evx+=px*w; evy+=py*w; } } ;[evx,evy]=nrm(evx,evy);
+
+  // 벽 회피
+  let wx=0,wy=0; const m=68; if(tank.x<m) wx+=1-tank.x/m; if(Wd-tank.x<m) wx-=1-(Wd-tank.x)/m; if(tank.y<m) wy+=1-tank.y/m; if(Hd-tank.y<m) wy-=1-(Hd-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+
+  // 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const ac=allies.length?1/allies.length:0; ax*=ac; ay*=ac; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)+1e-6; if(d<86){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 공격/견제
+  let atx=0,aty=0, obx=0,oby=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)+1e-6; atx/=n; aty/=n; obx=-aty; oby=atx; }
+
+  // 가중합 이동 벡터
+  const mvx = evx*1.361732 + wx*0.849251 + atx*0.801514 + obx*0.701000 + cx*0.051067 + sx*0.402584;
+  const mvy = evy*1.361732 + wy*0.849251 + aty*0.801514 + oby*0.701000 + cy*0.051067 + sy*0.402584;
+  const mvAng = deg(mvx,mvy);
+
+  // 사격: 근사 리드 + 지터
+  if(target){ const base=target.angle; const jitter=5.934009*(Math.random()-0.5); const aim=ang(base+jitter); tank.fire(aim); }
+
+  // 이동: 실패시 회피 각도 재시도
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+62))){ if(!tank.move(ang(mvAng-62))){ tank.move(Math.random()*360); } } }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Cerberus";}
+function type(){return 0;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)+1e-6; return [x/m,y/m];}
+  const Wd=900,Hd=600;
+
+  // 타겟 선정: 거리+체력 페널티
+  let target=null,best=1e9; for(const e of enemies){ const k=e.distance + -0.017186*e.health; if(k<best){best=k; target=e;} }
+
+  // 총알 회피 (닫히는 탄만 수직 회피)
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.061468*d); evx+=px*w; evy+=py*w; } } ;[evx,evy]=nrm(evx,evy);
+
+  // 벽 회피
+  let wx=0,wy=0; const m=68; if(tank.x<m) wx+=1-tank.x/m; if(Wd-tank.x<m) wx-=1-(Wd-tank.x)/m; if(tank.y<m) wy+=1-tank.y/m; if(Hd-tank.y<m) wy-=1-(Hd-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+
+  // 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const ac=allies.length?1/allies.length:0; ax*=ac; ay*=ac; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)+1e-6; if(d<86){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 공격/견제
+  let atx=0,aty=0, obx=0,oby=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)+1e-6; atx/=n; aty/=n; obx=-aty; oby=atx; }
+
+  // 가중합 이동 벡터
+  const mvx = evx*1.361732 + wx*0.849251 + atx*0.801514 + obx*0.701000 + cx*0.051067 + sx*0.402584;
+  const mvy = evy*1.361732 + wy*0.849251 + aty*0.801514 + oby*0.701000 + cy*0.051067 + sy*0.402584;
+  const mvAng = deg(mvx,mvy);
+
+  // 사격: 근사 리드 + 지터
+  if(target){ const base=target.angle; const jitter=5.934009*(Math.random()-0.5); const aim=ang(base+jitter); tank.fire(aim); }
+
+  // 이동: 실패시 회피 각도 재시도
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+62))){ if(!tank.move(ang(mvAng-62))){ tank.move(Math.random()*360); } } }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Drake";}
+function type(){return 1;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)+1e-6; return [x/m,y/m];}
+  const Wd=900,Hd=600;
+
+  // 타겟 선정: 거리+체력 페널티
+  let target=null,best=1e9; for(const e of enemies){ const k=e.distance + -0.017186*e.health; if(k<best){best=k; target=e;} }
+
+  // 총알 회피 (닫히는 탄만 수직 회피)
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.061468*d); evx+=px*w; evy+=py*w; } } ;[evx,evy]=nrm(evx,evy);
+
+  // 벽 회피
+  let wx=0,wy=0; const m=68; if(tank.x<m) wx+=1-tank.x/m; if(Wd-tank.x<m) wx-=1-(Wd-tank.x)/m; if(tank.y<m) wy+=1-tank.y/m; if(Hd-tank.y<m) wy-=1-(Hd-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+
+  // 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const ac=allies.length?1/allies.length:0; ax*=ac; ay*=ac; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)+1e-6; if(d<86){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 공격/견제
+  let atx=0,aty=0, obx=0,oby=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)+1e-6; atx/=n; aty/=n; obx=-aty; oby=atx; }
+
+  // 가중합 이동 벡터
+  const mvx = evx*1.361732 + wx*0.849251 + atx*0.801514 + obx*0.701000 + cx*0.051067 + sx*0.402584;
+  const mvy = evy*1.361732 + wy*0.849251 + aty*0.801514 + oby*0.701000 + cy*0.051067 + sy*0.402584;
+  const mvAng = deg(mvx,mvy);
+
+  // 사격: 근사 리드 + 지터
+  if(target){ const base=target.angle; const jitter=5.934009*(Math.random()-0.5); const aim=ang(base+jitter); tank.fire(aim); }
+
+  // 이동: 실패시 회피 각도 재시도
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+62))){ if(!tank.move(ang(mvAng-62))){ tank.move(Math.random()*360); } } }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Eagle";}
+function type(){return 2;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)+1e-6; return [x/m,y/m];}
+  const Wd=900,Hd=600;
+
+  // 타겟 선정: 거리+체력 페널티
+  let target=null,best=1e9; for(const e of enemies){ const k=e.distance + -0.017186*e.health; if(k<best){best=k; target=e;} }
+
+  // 총알 회피 (닫히는 탄만 수직 회피)
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.061468*d); evx+=px*w; evy+=py*w; } } ;[evx,evy]=nrm(evx,evy);
+
+  // 벽 회피
+  let wx=0,wy=0; const m=68; if(tank.x<m) wx+=1-tank.x/m; if(Wd-tank.x<m) wx-=1-(Wd-tank.x)/m; if(tank.y<m) wy+=1-tank.y/m; if(Hd-tank.y<m) wy-=1-(Hd-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+
+  // 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const ac=allies.length?1/allies.length:0; ax*=ac; ay*=ac; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)+1e-6; if(d<86){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 공격/견제
+  let atx=0,aty=0, obx=0,oby=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)+1e-6; atx/=n; aty/=n; obx=-aty; oby=atx; }
+
+  // 가중합 이동 벡터
+  const mvx = evx*1.361732 + wx*0.849251 + atx*0.801514 + obx*0.701000 + cx*0.051067 + sx*0.402584;
+  const mvy = evy*1.361732 + wy*0.849251 + aty*0.801514 + oby*0.701000 + cy*0.051067 + sy*0.402584;
+  const mvAng = deg(mvx,mvy);
+
+  // 사격: 근사 리드 + 지터
+  if(target){ const base=target.angle; const jitter=5.934009*(Math.random()-0.5); const aim=ang(base+jitter); tank.fire(aim); }
+
+  // 이동: 실패시 회피 각도 재시도
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+62))){ if(!tank.move(ang(mvAng-62))){ tank.move(Math.random()*360); } } }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Falcon";}
+function type(){return 0;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){return (a+360)%360;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function nrm(x,y){const m=Math.hypot(x,y)+1e-6; return [x/m,y/m];}
+  const Wd=900,Hd=600;
+
+  // 타겟 선정: 거리+체력 페널티
+  let target=null,best=1e9; for(const e of enemies){ const k=e.distance + -0.017186*e.health; if(k<best){best=k; target=e;} }
+
+  // 총알 회피 (닫히는 탄만 수직 회피)
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)+1e-6; const bv=Math.hypot(b.vx,b.vy)+1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.061468*d); evx+=px*w; evy+=py*w; } } ;[evx,evy]=nrm(evx,evy);
+
+  // 벽 회피
+  let wx=0,wy=0; const m=68; if(tank.x<m) wx+=1-tank.x/m; if(Wd-tank.x<m) wx-=1-(Wd-tank.x)/m; if(tank.y<m) wy+=1-tank.y/m; if(Hd-tank.y<m) wy-=1-(Hd-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+
+  // 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const ac=allies.length?1/allies.length:0; ax*=ac; ay*=ac; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)+1e-6; if(d<86){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+
+  // 공격/견제
+  let atx=0,aty=0, obx=0,oby=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)+1e-6; atx/=n; aty/=n; obx=-aty; oby=atx; }
+
+  // 가중합 이동 벡터
+  const mvx = evx*1.361732 + wx*0.849251 + atx*0.801514 + obx*0.701000 + cx*0.051067 + sx*0.402584;
+  const mvy = evy*1.361732 + wy*0.849251 + aty*0.801514 + oby*0.701000 + cy*0.051067 + sy*0.402584;
+  const mvAng = deg(mvx,mvy);
+
+  // 사격: 근사 리드 + 지터
+  if(target){ const base=target.angle; const jitter=5.934009*(Math.random()-0.5); const aim=ang(base+jitter); tank.fire(aim); }
+
+  // 이동: 실패시 회피 각도 재시도
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+62))){ if(!tank.move(ang(mvAng-62))){ tank.move(Math.random()*360); } } }
+}
