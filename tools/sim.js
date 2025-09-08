@@ -37,13 +37,13 @@ function setup(redParts, blueParts){
   for(let i=0;i<6;i++){
     const redCode=redParts[i]||fallbackCode('R',i+1);
     const name = new Function(redCode+"\nreturn name();")();
-    const type = new Function(redCode+"\nreturn type();")();
+    const type = new Function('Type', redCode+"\nreturn type();")(Type);
     const t=new Tank(`R${i+1}`, 140 + (1-(i%2))*100, 90 + Math.floor(i/2)*120, 'red', name, type, redCode); tanks.push(t);
   }
   for(let i=0;i<6;i++){
     const blueCode=blueParts[i]||fallbackCode('B',i+1);
     const name = new Function(blueCode+"\nreturn name();")();
-    const type = new Function(blueCode+"\nreturn type();")();
+    const type = new Function('Type', blueCode+"\nreturn type();")(Type);
     const t=new Tank(`B${i+1}`, 640 + (i%2)*100, 90 + Math.floor(i/2)*120, 'blue', name, type, blueCode); tanks.push(t);
   }
 }
