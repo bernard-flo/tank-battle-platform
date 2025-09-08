@@ -31,10 +31,20 @@ function main() {
   const workdir = path.join(cwd, ts);
   if (!fs.existsSync(workdir)) fs.mkdirSync(workdir);
   fs.writeFileSync(path.join(cwd, 'CURRENT_WORKDIR'), ts);
+  // 커밋: 작업 디렉토리 생성 및 CURRENT_WORKDIR 기록
+  try {
+    sh('git add -A');
+    sh(`git commit -m "chore: init workdir ${ts} and CURRENT_WORKDIR"`);
+  } catch {}
 
   // 1) 후보 생성 및 간이 경쟁
   console.log(`[1/3] 후보 생성 및 간이 경쟁 -> ${ts}`);
   sh('node tools/build_and_compete.js');
+  // 커밋: 후보 생성 및 간이 경쟁 산출물
+  try {
+    sh('git add -A');
+    sh(`git commit -m "chore: build_and_compete outputs for ${ts}"`);
+  } catch {}
 
   // 2) 로컬 최적화 (탐색 횟수/게임수 조절 가능)
   console.log('[2/3] 파라미터 탐색(로컬 시뮬레이터) 진행');
@@ -47,6 +57,11 @@ function main() {
     BNC_SEEDS: process.env.BNC_SEEDS || '1,2',
   };
   cp.execSync(`node tools/sim.js ${ts}`, { env, stdio: 'inherit' });
+  // 커밋: 최적화 결과물(result/<ts>.txt, summary.json)
+  try {
+    sh('git add -A');
+    sh(`git commit -m "feat(result): optimized team ${ts}"`);
+  } catch {}
 
   // 3) 요약 로그 남기기
   console.log('[3/3] 완료: 결과/요약 파일 확인');
