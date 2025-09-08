@@ -1,377 +1,267 @@
-function name(){return "Phalanx-T1";}
-function type(){return Type.TANKER;}
+function name(){return "Aegis";}
+function type(){return 1;}
+// per-bot persistent memory for lead aim and timers
+var __M__={f:0,ltx:0,lty:0,has:0};
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
-  function threat(b){ // 우리쪽으로 접근 중이고, 경로가 근접할 총알만 위협으로 간주
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
-    const proj = dx*nx+dy*ny; if(proj>0){ // 앞으로 진행 중
-      const px=b.x-proj*nx, py=b.y-proj*ny; // 최근접점
-      const d=Math.hypot(px-tank.x,py-tank.y); return d<(65);
-    } return false;
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, BS=8;
+  __M__.f=(__M__.f|0)+1;
+  // 1) 타겟: 거리+체력 가중(가까운 저체력 우선)
+  let target=null, best=1e9;
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.35; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피(시간가중) 
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const tti=d/bv; const w=closing/(1+0.06*d+0.02*tti*tti); evx+=px*w; evy+=py*w; } }
+  ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+  // 4) 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+  // 5) 타겟 접근/측면 + 저체력 이탈 (거리 기반 가중 조절)
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0, dist=1;
+  if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  if(tank.health<19.948703034319504){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
+  const wEvC=0.06711768601513013, wWallC=0.055418012385718515, wAtC=-0.08810303206781567, wObC=-0.07346669818987979, wCC=0.0339983128977439, wSC=0.04572520363018386, wRtC=0.03478527727620887;
+  const atEff = wAtC * (far?1.15:(near?0.82:1.0));
+  const obEff = wObC * (near?1.25:1.0);
+  // 합성 벡터
+  const mvx=evx*wEvC + wx*wWallC + atx*atEff + obx*obEff + cx*wCC + sx*wSC + rtx*wRtC;
+  const mvy=evy*wEvC + wy*wWallC + aty*atEff + oby*obEff + cy*wCC + sy*wSC + rty*wRtC;
+  const mvAng=deg(mvx,mvy);
+  // 사격: 리드샷 + 소량 지터
+  if(target){
+    let tx=target.x, ty=target.y;
+    if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.07079266435954515*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
-  const tgt = enemies.length?closest(enemies):null;
-  if(tgt){
-    // 사격: 목표 각도에 소폭 흔들림
-    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jitter = ((tank.x*31+tank.y*17)%23-11)*0.3; // 결정적 난수
-    tank.fire(base + jitter);
-  }
-  // 이동 우선순위: 총알 회피 > 팀과 간격 유지 > 교전/카이팅
-  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
-  // 총알 회피: 가장 위협적인 탄 회피 각
-  let dodge=null, minD=1e9, hot=null;
-  for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
-  if(hot){
-    // 총알 진행 벡터에 수직으로 회피, 살짝 전진/후퇴 바이어스
-    const a = deg(hot.vx,hot.vy);
-    const cand=[a+90+(-10), a-90-(-10), a+110, a-110];
-    for(const c of cand){ if(tryMove(c)) return; }
-  }
-  // 아군과 충돌/군집 회피: 가장 가까운 아군에서 멀어지기
-  if(allies.length){
-    const ally = closest(allies);
-    if(ally && ally.distance < 60){
-      const av = deg(tank.x-ally.x, tank.y-ally.y);
-      if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return;
-    }
-  }
-  // 교전/카이팅
-  if(tgt){
-    const d = tgt.distance; const to = deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 160){
-      // 카이팅: 거리 벌리기 + 원운동
-      const away = to+180 + (-10);
-      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
-    } else if(d > 260) {
-      // 접근
-      if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return;
-    } else {
-      // 측면 이동으로 사선 유지
-      const side = to + (-10);
-      if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return;
-    }
-  }
-  // 마지막 수단: 가장 여유 공간 쪽 임의 이동
-  const pref=[0,90,180,270];
-  for(const p of pref){ if(tryMove(p+(-10))) return; }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-function name(){return "Phalanx-T2";}
-function type(){return Type.TANKER;}
+function name(){return "Bulwark";}
+function type(){return 1;}
+// per-bot persistent memory for lead aim and timers
+var __M__={f:0,ltx:0,lty:0,has:0};
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
-  function threat(b){ // 우리쪽으로 접근 중이고, 경로가 근접할 총알만 위협으로 간주
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
-    const proj = dx*nx+dy*ny; if(proj>0){ // 앞으로 진행 중
-      const px=b.x-proj*nx, py=b.y-proj*ny; // 최근접점
-      const d=Math.hypot(px-tank.x,py-tank.y); return d<(65);
-    } return false;
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, BS=8;
+  __M__.f=(__M__.f|0)+1;
+  // 1) 타겟: 거리+체력 가중(가까운 저체력 우선)
+  let target=null, best=1e9;
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.35; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피(시간가중) 
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const tti=d/bv; const w=closing/(1+0.06*d+0.02*tti*tti); evx+=px*w; evy+=py*w; } }
+  ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+  // 4) 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+  // 5) 타겟 접근/측면 + 저체력 이탈 (거리 기반 가중 조절)
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0, dist=1;
+  if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  if(tank.health<19.011512395569156){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
+  const wEvC=-0.05687383146098981, wWallC=-0.12865725418342766, wAtC=0.0933400902715292, wObC=0.22074673366011713, wCC=0.02644378432676171, wSC=0.05039811767788816, wRtC=-0.024458665848542394;
+  const atEff = wAtC * (far?1.15:(near?0.82:1.0));
+  const obEff = wObC * (near?1.25:1.0);
+  // 합성 벡터
+  const mvx=evx*wEvC + wx*wWallC + atx*atEff + obx*obEff + cx*wCC + sx*wSC + rtx*wRtC;
+  const mvy=evy*wEvC + wy*wWallC + aty*atEff + oby*obEff + cy*wCC + sy*wSC + rty*wRtC;
+  const mvAng=deg(mvx,mvy);
+  // 사격: 리드샷 + 소량 지터
+  if(target){
+    let tx=target.x, ty=target.y;
+    if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.5022527686836217*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
-  const tgt = enemies.length?closest(enemies):null;
-  if(tgt){
-    // 사격: 목표 각도에 소폭 흔들림
-    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jitter = ((tank.x*31+tank.y*17)%23-11)*0.3; // 결정적 난수
-    tank.fire(base + jitter);
-  }
-  // 이동 우선순위: 총알 회피 > 팀과 간격 유지 > 교전/카이팅
-  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
-  // 총알 회피: 가장 위협적인 탄 회피 각
-  let dodge=null, minD=1e9, hot=null;
-  for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
-  if(hot){
-    // 총알 진행 벡터에 수직으로 회피, 살짝 전진/후퇴 바이어스
-    const a = deg(hot.vx,hot.vy);
-    const cand=[a+90+(10), a-90-(10), a+110, a-110];
-    for(const c of cand){ if(tryMove(c)) return; }
-  }
-  // 아군과 충돌/군집 회피: 가장 가까운 아군에서 멀어지기
-  if(allies.length){
-    const ally = closest(allies);
-    if(ally && ally.distance < 60){
-      const av = deg(tank.x-ally.x, tank.y-ally.y);
-      if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return;
-    }
-  }
-  // 교전/카이팅
-  if(tgt){
-    const d = tgt.distance; const to = deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 160){
-      // 카이팅: 거리 벌리기 + 원운동
-      const away = to+180 + (10);
-      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
-    } else if(d > 260) {
-      // 접근
-      if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return;
-    } else {
-      // 측면 이동으로 사선 유지
-      const side = to + (10);
-      if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return;
-    }
-  }
-  // 마지막 수단: 가장 여유 공간 쪽 임의 이동
-  const pref=[0,90,180,270];
-  for(const p of pref){ if(tryMove(p+(10))) return; }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-function name(){return "Phalanx-D1";}
-function type(){return Type.DEALER;}
+function name(){return "Valkyrie";}
+function type(){return 2;}
+// per-bot persistent memory for lead aim and timers
+var __M__={f:0,ltx:0,lty:0,has:0};
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
-  function threat(b){ // 우리쪽으로 접근 중이고, 경로가 근접할 총알만 위협으로 간주
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
-    const proj = dx*nx+dy*ny; if(proj>0){ // 앞으로 진행 중
-      const px=b.x-proj*nx, py=b.y-proj*ny; // 최근접점
-      const d=Math.hypot(px-tank.x,py-tank.y); return d<(70);
-    } return false;
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, BS=8;
+  __M__.f=(__M__.f|0)+1;
+  // 1) 타겟: 거리+체력 가중(가까운 저체력 우선)
+  let target=null, best=1e9;
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.35; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피(시간가중) 
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const tti=d/bv; const w=closing/(1+0.06*d+0.02*tti*tti); evx+=px*w; evy+=py*w; } }
+  ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+  // 4) 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+  // 5) 타겟 접근/측면 + 저체력 이탈 (거리 기반 가중 조절)
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0, dist=1;
+  if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  if(tank.health<19.03073680579433){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
+  const wEvC=-0.015795153905462916, wWallC=0.027717804937212993, wAtC=0.02144049377563123, wObC=0.30117494520953525, wCC=0.06176129722530359, wSC=-0.06696067801005391, wRtC=0.01217493065654654;
+  const atEff = wAtC * (far?1.15:(near?0.82:1.0));
+  const obEff = wObC * (near?1.25:1.0);
+  // 합성 벡터
+  const mvx=evx*wEvC + wx*wWallC + atx*atEff + obx*obEff + cx*wCC + sx*wSC + rtx*wRtC;
+  const mvy=evy*wEvC + wy*wWallC + aty*atEff + oby*obEff + cy*wCC + sy*wSC + rty*wRtC;
+  const mvAng=deg(mvx,mvy);
+  // 사격: 리드샷 + 소량 지터
+  if(target){
+    let tx=target.x, ty=target.y;
+    if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.2987207836525707*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
-  const tgt = enemies.length?closest(enemies):null;
-  if(tgt){
-    // 사격: 목표 각도에 소폭 흔들림
-    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jitter = ((tank.x*31+tank.y*17)%23-11)*0.3; // 결정적 난수
-    tank.fire(base + jitter);
-  }
-  // 이동 우선순위: 총알 회피 > 팀과 간격 유지 > 교전/카이팅
-  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
-  // 총알 회피: 가장 위협적인 탄 회피 각
-  let dodge=null, minD=1e9, hot=null;
-  for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
-  if(hot){
-    // 총알 진행 벡터에 수직으로 회피, 살짝 전진/후퇴 바이어스
-    const a = deg(hot.vx,hot.vy);
-    const cand=[a+90+(25), a-90-(25), a+110, a-110];
-    for(const c of cand){ if(tryMove(c)) return; }
-  }
-  // 아군과 충돌/군집 회피: 가장 가까운 아군에서 멀어지기
-  if(allies.length){
-    const ally = closest(allies);
-    if(ally && ally.distance < 60){
-      const av = deg(tank.x-ally.x, tank.y-ally.y);
-      if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return;
-    }
-  }
-  // 교전/카이팅
-  if(tgt){
-    const d = tgt.distance; const to = deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 220){
-      // 카이팅: 거리 벌리기 + 원운동
-      const away = to+180 + (25);
-      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
-    } else if(d > 330) {
-      // 접근
-      if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return;
-    } else {
-      // 측면 이동으로 사선 유지
-      const side = to + (25);
-      if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return;
-    }
-  }
-  // 마지막 수단: 가장 여유 공간 쪽 임의 이동
-  const pref=[0,90,180,270];
-  for(const p of pref){ if(tryMove(p+(25))) return; }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-function name(){return "Phalanx-D2";}
-function type(){return Type.DEALER;}
+function name(){return "Raptor";}
+function type(){return 2;}
+// per-bot persistent memory for lead aim and timers
+var __M__={f:0,ltx:0,lty:0,has:0};
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
-  function threat(b){ // 우리쪽으로 접근 중이고, 경로가 근접할 총알만 위협으로 간주
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
-    const proj = dx*nx+dy*ny; if(proj>0){ // 앞으로 진행 중
-      const px=b.x-proj*nx, py=b.y-proj*ny; // 최근접점
-      const d=Math.hypot(px-tank.x,py-tank.y); return d<(70);
-    } return false;
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, BS=8;
+  __M__.f=(__M__.f|0)+1;
+  // 1) 타겟: 거리+체력 가중(가까운 저체력 우선)
+  let target=null, best=1e9;
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.35; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피(시간가중) 
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const tti=d/bv; const w=closing/(1+0.06*d+0.02*tti*tti); evx+=px*w; evy+=py*w; } }
+  ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+  // 4) 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+  // 5) 타겟 접근/측면 + 저체력 이탈 (거리 기반 가중 조절)
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0, dist=1;
+  if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
+  const wEvC=-0.026610554628204882, wWallC=-0.10844355452287285, wAtC=-0.0382798376421379, wObC=0.22895191834160927, wCC=-0.018293627993379486, wSC=-0.06376686010271683, wRtC=0.07654558708573203;
+  const atEff = wAtC * (far?1.15:(near?0.82:1.0));
+  const obEff = wObC * (near?1.25:1.0);
+  // 합성 벡터
+  const mvx=evx*wEvC + wx*wWallC + atx*atEff + obx*obEff + cx*wCC + sx*wSC + rtx*wRtC;
+  const mvy=evy*wEvC + wy*wWallC + aty*atEff + oby*obEff + cy*wCC + sy*wSC + rty*wRtC;
+  const mvAng=deg(mvx,mvy);
+  // 사격: 리드샷 + 소량 지터
+  if(target){
+    let tx=target.x, ty=target.y;
+    if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=1.2687228584040928*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
-  const tgt = enemies.length?closest(enemies):null;
-  if(tgt){
-    // 사격: 목표 각도에 소폭 흔들림
-    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jitter = ((tank.x*31+tank.y*17)%23-11)*0.3; // 결정적 난수
-    tank.fire(base + jitter);
-  }
-  // 이동 우선순위: 총알 회피 > 팀과 간격 유지 > 교전/카이팅
-  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
-  // 총알 회피: 가장 위협적인 탄 회피 각
-  let dodge=null, minD=1e9, hot=null;
-  for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
-  if(hot){
-    // 총알 진행 벡터에 수직으로 회피, 살짝 전진/후퇴 바이어스
-    const a = deg(hot.vx,hot.vy);
-    const cand=[a+90+(-25), a-90-(-25), a+110, a-110];
-    for(const c of cand){ if(tryMove(c)) return; }
-  }
-  // 아군과 충돌/군집 회피: 가장 가까운 아군에서 멀어지기
-  if(allies.length){
-    const ally = closest(allies);
-    if(ally && ally.distance < 60){
-      const av = deg(tank.x-ally.x, tank.y-ally.y);
-      if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return;
-    }
-  }
-  // 교전/카이팅
-  if(tgt){
-    const d = tgt.distance; const to = deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 220){
-      // 카이팅: 거리 벌리기 + 원운동
-      const away = to+180 + (-25);
-      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
-    } else if(d > 330) {
-      // 접근
-      if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return;
-    } else {
-      // 측면 이동으로 사선 유지
-      const side = to + (-25);
-      if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return;
-    }
-  }
-  // 마지막 수단: 가장 여유 공간 쪽 임의 이동
-  const pref=[0,90,180,270];
-  for(const p of pref){ if(tryMove(p+(-25))) return; }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-function name(){return "Phalanx-D3";}
-function type(){return Type.DEALER;}
+function name(){return "Spectre";}
+function type(){return 2;}
+// per-bot persistent memory for lead aim and timers
+var __M__={f:0,ltx:0,lty:0,has:0};
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
-  function threat(b){ // 우리쪽으로 접근 중이고, 경로가 근접할 총알만 위협으로 간주
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
-    const proj = dx*nx+dy*ny; if(proj>0){ // 앞으로 진행 중
-      const px=b.x-proj*nx, py=b.y-proj*ny; // 최근접점
-      const d=Math.hypot(px-tank.x,py-tank.y); return d<(70);
-    } return false;
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, BS=8;
+  __M__.f=(__M__.f|0)+1;
+  // 1) 타겟: 거리+체력 가중(가까운 저체력 우선)
+  let target=null, best=1e9;
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.35; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피(시간가중) 
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const tti=d/bv; const w=closing/(1+0.06*d+0.02*tti*tti); evx+=px*w; evy+=py*w; } }
+  ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+  // 4) 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+  // 5) 타겟 접근/측면 + 저체력 이탈 (거리 기반 가중 조절)
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0, dist=1;
+  if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
+  const wEvC=-0.07698420669179873, wWallC=-0.11514805667014152, wAtC=-0.21884837309350222, wObC=-0.05055021430603108, wCC=-0.03892421598023281, wSC=0.05089045516316532, wRtC=0.09770323195784074;
+  const atEff = wAtC * (far?1.15:(near?0.82:1.0));
+  const obEff = wObC * (near?1.25:1.0);
+  // 합성 벡터
+  const mvx=evx*wEvC + wx*wWallC + atx*atEff + obx*obEff + cx*wCC + sx*wSC + rtx*wRtC;
+  const mvy=evy*wEvC + wy*wWallC + aty*atEff + oby*obEff + cy*wCC + sy*wSC + rty*wRtC;
+  const mvAng=deg(mvx,mvy);
+  // 사격: 리드샷 + 소량 지터
+  if(target){
+    let tx=target.x, ty=target.y;
+    if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.12662666708509066*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
-  const tgt = enemies.length?closest(enemies):null;
-  if(tgt){
-    // 사격: 목표 각도에 소폭 흔들림
-    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jitter = ((tank.x*31+tank.y*17)%23-11)*0.3; // 결정적 난수
-    tank.fire(base + jitter);
-  }
-  // 이동 우선순위: 총알 회피 > 팀과 간격 유지 > 교전/카이팅
-  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
-  // 총알 회피: 가장 위협적인 탄 회피 각
-  let dodge=null, minD=1e9, hot=null;
-  for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
-  if(hot){
-    // 총알 진행 벡터에 수직으로 회피, 살짝 전진/후퇴 바이어스
-    const a = deg(hot.vx,hot.vy);
-    const cand=[a+90+(0), a-90-(0), a+110, a-110];
-    for(const c of cand){ if(tryMove(c)) return; }
-  }
-  // 아군과 충돌/군집 회피: 가장 가까운 아군에서 멀어지기
-  if(allies.length){
-    const ally = closest(allies);
-    if(ally && ally.distance < 60){
-      const av = deg(tank.x-ally.x, tank.y-ally.y);
-      if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return;
-    }
-  }
-  // 교전/카이팅
-  if(tgt){
-    const d = tgt.distance; const to = deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 220){
-      // 카이팅: 거리 벌리기 + 원운동
-      const away = to+180 + (0);
-      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
-    } else if(d > 330) {
-      // 접근
-      if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return;
-    } else {
-      // 측면 이동으로 사선 유지
-      const side = to + (0);
-      if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return;
-    }
-  }
-  // 마지막 수단: 가장 여유 공간 쪽 임의 이동
-  const pref=[0,90,180,270];
-  for(const p of pref){ if(tryMove(p+(0))) return; }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
 
 // ===== 다음 로봇 =====
 
-function name(){return "Phalanx-N1";}
-function type(){return Type.NORMAL;}
+function name(){return "Sentinel";}
+function type(){return 0;}
+// per-bot persistent memory for lead aim and timers
+var __M__={f:0,ltx:0,lty:0,has:0};
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function nrm(x,y){const m=Math.hypot(x,y)||1; return [x/m,y/m];}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
-  function threat(b){ // 우리쪽으로 접근 중이고, 경로가 근접할 총알만 위협으로 간주
-    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
-    const proj = dx*nx+dy*ny; if(proj>0){ // 앞으로 진행 중
-      const px=b.x-proj*nx, py=b.y-proj*ny; // 최근접점
-      const d=Math.hypot(px-tank.x,py-tank.y); return d<(68);
-    } return false;
+  function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
+  const W=900,H=600, BS=8;
+  __M__.f=(__M__.f|0)+1;
+  // 1) 타겟: 거리+체력 가중(가까운 저체력 우선)
+  let target=null, best=1e9;
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.35; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피(시간가중) 
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const tti=d/bv; const w=closing/(1+0.06*d+0.02*tti*tti); evx+=px*w; evy+=py*w; } }
+  ;[evx,evy]=nrm(evx,evy);
+  // 3) 벽 회피
+  let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
+  // 4) 아군 응집/분리
+  let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
+  let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
+  // 5) 타겟 접근/측면 + 저체력 이탈 (거리 기반 가중 조절)
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0, dist=1;
+  if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  if(tank.health<18){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
+  const wEvC=-0.01279913647910598, wWallC=-0.07738858814598779, wAtC=-0.007487445178540206, wObC=-0.21356188300305143, wCC=-0.0016936470024585693, wSC=0.04117908767355896, wRtC=-0.13532026606054143;
+  const atEff = wAtC * (far?1.15:(near?0.82:1.0));
+  const obEff = wObC * (near?1.25:1.0);
+  // 합성 벡터
+  const mvx=evx*wEvC + wx*wWallC + atx*atEff + obx*obEff + cx*wCC + sx*wSC + rtx*wRtC;
+  const mvy=evy*wEvC + wy*wWallC + aty*atEff + oby*obEff + cy*wCC + sy*wSC + rty*wRtC;
+  const mvAng=deg(mvx,mvy);
+  // 사격: 리드샷 + 소량 지터
+  if(target){
+    let tx=target.x, ty=target.y;
+    if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=0.8560842741056758*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
   }
-  const tgt = enemies.length?closest(enemies):null;
-  if(tgt){
-    // 사격: 목표 각도에 소폭 흔들림
-    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jitter = ((tank.x*31+tank.y*17)%23-11)*0.3; // 결정적 난수
-    tank.fire(base + jitter);
-  }
-  // 이동 우선순위: 총알 회피 > 팀과 간격 유지 > 교전/카이팅
-  let tried=0; function tryMove(a){tried++; return tank.move(ang(a));}
-  // 총알 회피: 가장 위협적인 탄 회피 각
-  let dodge=null, minD=1e9, hot=null;
-  for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
-  if(hot){
-    // 총알 진행 벡터에 수직으로 회피, 살짝 전진/후퇴 바이어스
-    const a = deg(hot.vx,hot.vy);
-    const cand=[a+90+(0), a-90-(0), a+110, a-110];
-    for(const c of cand){ if(tryMove(c)) return; }
-  }
-  // 아군과 충돌/군집 회피: 가장 가까운 아군에서 멀어지기
-  if(allies.length){
-    const ally = closest(allies);
-    if(ally && ally.distance < 60){
-      const av = deg(tank.x-ally.x, tank.y-ally.y);
-      if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return;
-    }
-  }
-  // 교전/카이팅
-  if(tgt){
-    const d = tgt.distance; const to = deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 200){
-      // 카이팅: 거리 벌리기 + 원운동
-      const away = to+180 + (0);
-      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
-    } else if(d > 300) {
-      // 접근
-      if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return;
-    } else {
-      // 측면 이동으로 사선 유지
-      const side = to + (0);
-      if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return;
-    }
-  }
-  // 마지막 수단: 가장 여유 공간 쪽 임의 이동
-  const pref=[0,90,180,270];
-  for(const p of pref){ if(tryMove(p+(0))) return; }
+  if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }
-
-// ===== 다음 로봇 =====
