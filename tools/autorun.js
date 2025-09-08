@@ -43,6 +43,8 @@ function main() {
     SIM_GAMES: process.env.SIM_GAMES || '2',
     SIM_TICKS: process.env.SIM_TICKS || '800',
     SIM_MAX_OPP: process.env.SIM_MAX_OPP || '8',
+    BNC_MAX_OPP: process.env.BNC_MAX_OPP || '8',
+    BNC_SEEDS: process.env.BNC_SEEDS || '1,2',
   };
   cp.execSync(`node tools/sim.js ${ts}`, { env, stdio: 'inherit' });
 
