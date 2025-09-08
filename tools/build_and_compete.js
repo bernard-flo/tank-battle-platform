@@ -53,7 +53,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(hot){
     // 총알 진행 벡터에 수직으로 회피, 살짝 전진/후퇴 바이어스
     const a = deg(hot.vx,hot.vy);
-    const cand=[a+90+${strafeBias}, a-90-${strafeBias}, a+110, a-110];
+    const cand=[a+90+(${strafeBias}), a-90-(${strafeBias}), a+110, a-110];
     for(const c of cand){ if(tryMove(c)) return; }
   }
   // 아군과 충돌/군집 회피: 가장 가까운 아군에서 멀어지기
@@ -69,7 +69,7 @@ function update(tank,enemies,allies,bulletInfo){
     const d = tgt.distance; const to = deg(tgt.x-tank.x,tgt.y-tank.y);
     if(d < ${kiteDist}){
       // 카이팅: 거리 벌리기 + 원운동
-      const away = to+180 + ${strafeBias};
+      const away = to+180 + (${strafeBias});
       if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
     } else if(d > ${engageDist}) {
       // 접근
@@ -82,7 +82,7 @@ function update(tank,enemies,allies,bulletInfo){
   }
   // 마지막 수단: 가장 여유 공간 쪽 임의 이동
   const pref=[0,90,180,270];
-  for(const p of pref){ if(tryMove(p+${strafeBias})) return; }
+  for(const p of pref){ if(tryMove(p+(${strafeBias}))) return; }
 }
 `;
 }
