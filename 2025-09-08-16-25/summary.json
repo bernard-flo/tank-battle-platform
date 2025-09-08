@@ -1,0 +1,371 @@
+{
+  "ts": "2025-09-08-16-25",
+  "bestKey": "phalanx",
+  "wins": 16,
+  "games": 16,
+  "leaderboard": [
+    [
+      "phalanx",
+      {
+        "wins": 16,
+        "games": 16,
+        "detail": [
+          {
+            "vs": "2025-09-08-09-26.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          },
+          {
+            "vs": "2025-09-08-09-59.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          },
+          {
+            "vs": "2025-09-08-10-38.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          },
+          {
+            "vs": "2025-09-08-11-11.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          },
+          {
+            "vs": "2025-09-08-12-52.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          },
+          {
+            "vs": "2025-09-08-14-07.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          },
+          {
+            "vs": "2025-09-08-14-51.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          },
+          {
+            "vs": "2025-09-08-15-46.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 610,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 610
+            }
+          }
+        ]
+      }
+    ],
+    [
+      "bulwark",
+      {
+        "wins": 16,
+        "games": 16,
+        "detail": [
+          {
+            "vs": "2025-09-08-09-26.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          },
+          {
+            "vs": "2025-09-08-09-59.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          },
+          {
+            "vs": "2025-09-08-10-38.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          },
+          {
+            "vs": "2025-09-08-11-11.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          },
+          {
+            "vs": "2025-09-08-12-52.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          },
+          {
+            "vs": "2025-09-08-14-07.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          },
+          {
+            "vs": "2025-09-08-14-51.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          },
+          {
+            "vs": "2025-09-08-15-46.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "red",
+              "redSum": 660,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "blue",
+              "redSum": 600,
+              "blueSum": 660
+            }
+          }
+        ]
+      }
+    ],
+    [
+      "skirmish",
+      {
+        "wins": 0,
+        "games": 16,
+        "detail": [
+          {
+            "vs": "2025-09-08-09-26.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          },
+          {
+            "vs": "2025-09-08-09-59.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          },
+          {
+            "vs": "2025-09-08-10-38.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          },
+          {
+            "vs": "2025-09-08-11-11.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          },
+          {
+            "vs": "2025-09-08-12-52.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          },
+          {
+            "vs": "2025-09-08-14-07.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          },
+          {
+            "vs": "2025-09-08-14-51.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          },
+          {
+            "vs": "2025-09-08-15-46.txt",
+            "seed": 1,
+            "r1": {
+              "winner": "blue",
+              "redSum": 590,
+              "blueSum": 600
+            },
+            "r2": {
+              "winner": "red",
+              "redSum": 600,
+              "blueSum": 590
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}
