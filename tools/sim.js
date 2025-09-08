@@ -273,31 +273,44 @@ function genBotCode(botName, tankType, p) {
   } = p || {};
   return `function name(){return ${JSON.stringify(botName)};}
 function type(){return ${tankType};}
+// per-bot persistent memory for lead aim and timers
+var __M__={f:0,ltx:0,lty:0,has:0};
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
   function nrm(x,y){const m=Math.hypot(x,y)||1e-6; return [x/m,y/m];}
-  const W=900,H=600;
-  // 1) 타겟: 거리+체력 가중
+  const W=900,H=600, BS=8;
+  __M__.f=(__M__.f|0)+1;
+  // 1) 타겟: 거리+체력 가중(가까운 저체력 우선)
   let target=null, best=1e9;
-  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.4; if(s<best){best=s; target=e;} }
-  // 2) 총알 회피
-  let evx=0,evy=0,th=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const w=closing/(1+0.065*d); evx+=px*w; evy+=py*w; th+=w; } }
+  for(const e of enemies){ const s=e.distance*0.9 + Math.max(0,e.health)*0.35; if(s<best){best=s; target=e;} }
+  // 2) 총알 회피(시간가중) 
+  let evx=0,evy=0; for(const b of bulletInfo){ const rx=b.x-tank.x, ry=b.y-tank.y; const d=Math.hypot(rx,ry)||1e-6; const bv=Math.hypot(b.vx,b.vy)||1e-6; const ux=b.vx/bv, uy=b.vy/bv; const closing=-(rx*ux+ry*uy)/d; if(closing>0){ const px=-uy, py=ux; const tti=d/bv; const w=closing/(1+0.06*d+0.02*tti*tti); evx+=px*w; evy+=py*w; } }
   ;[evx,evy]=nrm(evx,evy);
   // 3) 벽 회피
   let wx=0,wy=0; const m=60; if(tank.x<m) wx+=1- tank.x/m; if(W-tank.x<m) wx-=1- (W-tank.x)/m; if(tank.y<m) wy+=1- tank.y/m; if(H-tank.y<m) wy-=1- (H-tank.y)/m; ;[wx,wy]=nrm(wx,wy);
   // 4) 아군 응집/분리
   let ax=0,ay=0; for(const a of allies){ax+=a.x; ay+=a.y;} const c=Math.max(1,allies.length); ax/=c; ay/=c; let cx=ax?ax-tank.x:0, cy=ay?ay-tank.y:0; ;[cx,cy]=nrm(cx,cy);
   let sx=0,sy=0; for(const a of allies){ const dx=tank.x-a.x, dy=tank.y-a.y; const d=Math.hypot(dx,dy)||1; if(d<85){ sx+=dx/(d*d); sy+=dy/(d*d);} } ;[sx,sy]=nrm(sx,sy);
-  // 5) 타겟 접근/측면 + 저체력 이탈
-  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0; if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); const n=Math.hypot(atx,aty)||1; atx/=n; aty/=n; obx=-aty; oby=atx; }
+  // 5) 타겟 접근/측면 + 저체력 이탈 (거리 기반 가중 조절)
+  let atx=0,aty=0, obx=0,oby=0, rtx=0,rty=0, dist=1;
+  if(target){ atx=(target.x-tank.x); aty=(target.y-tank.y); dist=Math.hypot(atx,aty)||1; const n=dist; atx/=n; aty/=n; obx=-aty; oby=atx; }
   if(tank.health<${+lowHp}){ rtx=-(cx||atx); rty=-(cy||aty); const rn=Math.hypot(rtx,rty)||1; rtx/=rn; rty/=rn; }
+  const near = dist<160 ? 1 : 0, far = dist>240 ? 1 : 0;
+  const wEvC=${+wEv}, wWallC=${+wWall}, wAtC=${+wAt}, wObC=${+wOb}, wCC=${+wC}, wSC=${+wS}, wRtC=${+wRt};
+  const atEff = wAtC * (far?1.15:(near?0.82:1.0));
+  const obEff = wObC * (near?1.25:1.0);
   // 합성 벡터
-  const mvx=evx*${+wEv} + wx*${+wWall} + atx*${+wAt} + obx*${+wOb} + cx*${+wC} + sx*${+wS} + rtx*${+wRt};
-  const mvy=evy*${+wEv} + wy*${+wWall} + aty*${+wAt} + oby*${+wOb} + cy*${+wC} + sy*${+wS} + rty*${+wRt};
+  const mvx=evx*wEvC + wx*wWallC + atx*atEff + obx*obEff + cx*wCC + sx*wSC + rtx*wRtC;
+  const mvy=evy*wEvC + wy*wWallC + aty*atEff + oby*obEff + cy*wCC + sy*wSC + rty*wRtC;
   const mvAng=deg(mvx,mvy);
-  // 사격: 기본 조준 + 소량 지터 스윕
-  if(target){ const aim=deg(target.x-tank.x,target.y-tank.y); const jitter=${+jitter}*(Math.random()-0.5); tank.fire(ang(aim+jitter)); }
+  // 사격: 리드샷 + 소량 지터
+  if(target){
+    let tx=target.x, ty=target.y;
+    if(__M__.has){ const tvx=tx-__M__.ltx, tvy=ty-__M__.lty; const tLead = Math.min(10, Math.max(0, Math.hypot(tx-tank.x,ty-tank.y)/BS)); tx += tvx*tLead*0.85; ty += tvy*tLead*0.85; }
+    const aim=deg(tx-tank.x,ty-tank.y); const jitter=${+jitter}*(Math.random()-0.5); tank.fire(ang(aim+jitter));
+    __M__.ltx=target.x; __M__.lty=target.y; __M__.has=1;
+  }
   if(!tank.move(ang(mvAng))){ if(!tank.move(ang(mvAng+70))){ if(!tank.move(ang(mvAng-70))){ tank.move(Math.random()*360); }}}
 }`;
 }
