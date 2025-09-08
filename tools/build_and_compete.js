@@ -143,13 +143,21 @@ function main() {
     .filter(f => f.endsWith('.txt'))
     .map(f => path.join(resultDir, f));
 
-  const opponents = opponentFiles.map(fp => ({ fp, blocks: parseTeamFile(fs.readFileSync(fp,'utf8')) }));
+  let opponents = opponentFiles.map(fp => ({ fp, blocks: parseTeamFile(fs.readFileSync(fp,'utf8')) }));
+  // 상대 과샘플링 방지: 파일명 기준 균등 샘플링
+  const maxOpp = Number(process.env.BNC_MAX_OPP || 12);
+  if (opponents.length > maxOpp) {
+    opponents.sort((a,b)=>path.basename(a.fp).localeCompare(path.basename(b.fp)));
+    const step = opponents.length / maxOpp; const sampled=[];
+    for (let i=0;i<maxOpp;i++) sampled.push(opponents[Math.floor(i*step)]);
+    opponents = sampled;
+  }
   if (opponents.length === 0) {
     console.warn('상대 결과물이 없어 자체 비교만 진행합니다.');
   }
 
   // 평가: 각 후보 vs 각 상대, 양 진영 교차, 여러 시드
-  const seeds = [1,2,3];
+  const seeds = (process.env.BNC_SEEDS ? String(process.env.BNC_SEEDS).split(',').map(s=>+s).filter(Boolean) : [1,2]);
   const scores = new Map();
   for (const c of candidates) scores.set(c.key, { wins:0, games:0, detail:[] });
 
@@ -188,4 +196,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
