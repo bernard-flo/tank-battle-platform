@@ -1,0 +1,33 @@
+function name(){return 'Basic1';}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){ if(enemies.length){ let n=enemies[0]; for(const e of enemies){ if(e.distance<n.distance) n=e;} const a=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(a); if(!tank.move(Math.random()*360)){ tank.move(a+180);} }}
+
+// ===== 다음 로봇 =====
+
+function name(){return 'Basic2';}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){ if(enemies.length){ let n=enemies[0]; for(const e of enemies){ if(e.distance<n.distance) n=e;} const a=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(a+2); if(!tank.move(a+180)){ tank.move(Math.random()*360);} }}
+
+// ===== 다음 로봇 =====
+
+function name(){return 'Basic3';}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){ if(enemies.length){ let n=enemies[0]; for(const e of enemies){ if(e.distance<n.distance) n=e;} const a=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(a-2); if(!tank.move(a+180)){ tank.move(Math.random()*360);} }}
+
+// ===== 다음 로봇 =====
+
+function name(){return 'Basic4';}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){ if(enemies.length){ let n=enemies[0]; for(const e of enemies){ if(e.distance<n.distance) n=e;} const a=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(a); if(!tank.move(a)){ tank.move(a+90);} }}
+
+// ===== 다음 로봇 =====
+
+function name(){return 'Basic5';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){ if(enemies.length){ let n=enemies[0]; for(const e of enemies){ if(e.distance<n.distance) n=e;} const a=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(a); if(!tank.move(a+90)){ tank.move(a-90);} }}
+
+// ===== 다음 로봇 =====
+
+function name(){return 'Basic6';}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){ if(enemies.length){ let n=enemies[0]; for(const e of enemies){ if(e.distance<n.distance) n=e;} const a=Math.atan2(n.y-tank.y,n.x-tank.x)*180/Math.PI; tank.fire(a); if(!tank.move(a-90)){ tank.move(a+90);} }}
