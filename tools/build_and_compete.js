@@ -136,6 +136,11 @@ function main() {
   for (const c of candidates) {
     fs.writeFileSync(path.join(workDir, `${c.key}.txt`), joinBlocks(c.blocks));
   }
+  // 커밋: 후보 txt 파일들
+  try {
+    sh('git add -A');
+    sh(`git commit -m "chore: candidate teams generated for ${ts}"`);
+  } catch (e) {}
 
   // 상대팀 로딩 (result/*.txt)
   const resultDir = path.join(process.cwd(), 'result');
@@ -191,6 +196,11 @@ function main() {
   fs.writeFileSync(path.join(workDir, 'summary.json'), JSON.stringify(summary, null, 2));
 
   console.log(`[완료] 선택 팀: ${bestKey}  (${bestScore.wins}/${bestScore.games}) -> ${outPath}`);
+  // 커밋: 선택 결과 및 요약
+  try {
+    sh('git add -A');
+    sh(`git commit -m "feat(result): selected candidate ${bestKey} for ${ts}"`);
+  } catch (e) {}
 }
 
 if (require.main === module) {
