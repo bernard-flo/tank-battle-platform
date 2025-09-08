@@ -119,10 +119,11 @@ async function evaluateWeights(W, opponents) {
 }
 
 async function main() {
-  const resultDir = path.resolve('result');
+  const scriptDir = __dirname;
+  const resultDir = path.resolve(scriptDir, '..', 'result');
   if (!fs.existsSync(resultDir)) fs.mkdirSync(resultDir, { recursive: true });
-  const tsName = path.basename(path.resolve('.'));
-  const outPath = path.resolve('..', 'result', `${tsName}.txt`);
+  const tsName = path.basename(scriptDir);
+  const outPath = path.resolve(resultDir, `${tsName}.txt`);
 
   const opponents = pickOpponents(resultDir, 3);
   if (opponents.length === 0) {
@@ -154,4 +155,3 @@ async function main() {
 if (require.main === module) {
   main().catch((e) => { console.error(e); process.exit(1); });
 }
-
