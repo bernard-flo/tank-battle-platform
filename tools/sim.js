@@ -169,7 +169,11 @@ function initMatch(redBlocks, blueBlocks) {
       const cfg = TANK_CONFIGS[t.tankType];
       t.health = cfg.energy; t.energy = cfg.energy; t.size = cfg.size; t.speed = cfg.speed; t.damage = cfg.damage;
     } catch {}
-    t.exec = makeSecureExec(redBlocks[i]);
+    try {
+      t.exec = makeSecureExec(redBlocks[i]);
+    } catch (e) {
+      t.exec = () => {}; // 실행 불가 코드: 정지
+    }
     tanks.push(t);
   }
   for (let i = 0; i < 6; i++) {
@@ -184,7 +188,11 @@ function initMatch(redBlocks, blueBlocks) {
       const cfg = TANK_CONFIGS[t.tankType];
       t.health = cfg.energy; t.energy = cfg.energy; t.size = cfg.size; t.speed = cfg.speed; t.damage = cfg.damage;
     } catch {}
-    t.exec = makeSecureExec(blueBlocks[i]);
+    try {
+      t.exec = makeSecureExec(blueBlocks[i]);
+    } catch (e) {
+      t.exec = () => {};
+    }
     tanks.push(t);
   }
 }
@@ -388,4 +396,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
