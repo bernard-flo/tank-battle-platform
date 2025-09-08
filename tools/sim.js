@@ -363,7 +363,18 @@ function main() {
   const opponents = fs.readdirSync(resultDir).filter(f => f.endsWith('.txt'));
   const oppFiles = opponents.map(f => path.join(resultDir, f));
   // Prepare opponents blocks
-  const oppBlocksList = oppFiles.map(f => ({ file:f, blocks: loadTeamFromFile(f) }));
+  let oppBlocksList = oppFiles.map(f => ({ file:f, blocks: loadTeamFromFile(f) }));
+  // Optionally subsample opponents to keep runtime reasonable
+  const maxOpp = Number(process.env.SIM_MAX_OPP || 12);
+  if (oppBlocksList.length > maxOpp) {
+    // deterministic shuffle by filename
+    oppBlocksList.sort((a,b)=>a.file.localeCompare(b.file));
+    // pick evenly spaced samples
+    const step = oppBlocksList.length / maxOpp;
+    const sampled = [];
+    for (let i=0; i<maxOpp; i++) sampled.push(oppBlocksList[Math.floor(i*step)]);
+    oppBlocksList = sampled;
+  }
   // Base team
   let baseParams = [{},{},{},{},{},{}];
   // Allow warm-start from previous summary
