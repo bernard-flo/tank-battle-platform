@@ -37,7 +37,7 @@ async function main() {
 
   const outFile = path.join(resultDir, `${tsDir}.txt`);
 
-  const oppFiles = pickOpponents(resultDir, 10).filter((f) => path.basename(f) !== `${tsDir}.txt`);
+  const oppFiles = pickOpponents(resultDir, 3).filter((f) => path.basename(f) !== `${tsDir}.txt`);
   const opponents = oppFiles.map(loadOpponent);
   if (opponents.length) {
     console.log(`[INFO] 비교 대상: ${oppFiles.map((f) => path.basename(f)).join(', ')}`);
