@@ -178,10 +178,12 @@ function secureExecuteUpdate(tank, tanks, bullets, nowMs, rng) {
     size: tank.size,
   });
 
+  // 일부 결과물 코드에 "- -"가 "--"로 직렬화된 케이스가 있어 파서 오류가 발생할 수 있음
+  const sanitized = (tank.code || '').replace(/--/g, '- -');
   const src = `"use strict";\n` +
     `const window=undefined, document=undefined, tanks=undefined, bullets=undefined, gameRunning=undefined, logMessage=undefined, Tank=undefined;` +
     `const Type={ NORMAL:0, TANKER:1, DEALER:2 };\n` +
-    tank.code + `\nupdate(tank, enemies, allies, bulletInfo);`;
+    sanitized + `\nupdate(tank, enemies, allies, bulletInfo);`;
 
   try {
     const script = new vm.Script(src, { timeout: 20 });
@@ -250,4 +252,3 @@ function simulateMatch(teamA, teamB, { durationMs = 14000, seed = 0 } = {}) {
 }
 
 module.exports = { Type, parseCodeBlocks, simulateMatch };
-
