@@ -38,7 +38,12 @@ function main() {
 
   // 2) 로컬 최적화 (탐색 횟수/게임수 조절 가능)
   console.log('[2/3] 파라미터 탐색(로컬 시뮬레이터) 진행');
-  const env = { ...process.env, SIM_ITERS: process.env.SIM_ITERS || '72', SIM_GAMES: process.env.SIM_GAMES || '3', SIM_TICKS: process.env.SIM_TICKS || '1100' };
+  const env = { ...process.env,
+    SIM_ITERS: process.env.SIM_ITERS || '48',
+    SIM_GAMES: process.env.SIM_GAMES || '2',
+    SIM_TICKS: process.env.SIM_TICKS || '900',
+    SIM_MAX_OPP: process.env.SIM_MAX_OPP || '12',
+  };
   cp.execSync(`node tools/sim.js ${ts}`, { env, stdio: 'inherit' });
 
   // 3) 요약 로그 남기기
@@ -58,4 +63,3 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(e); process.exit(1); }
 }
-
