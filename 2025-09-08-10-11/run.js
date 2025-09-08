@@ -5,10 +5,12 @@ const { parseCodeBlocks, simulateMatch } = require('./engine');
 const { makeTeam, concatTeamCode } = require('./bot_factory');
 
 function readOpponents(resultDir, exclude) {
-  const files = fs
+  const entries = fs
     .readdirSync(resultDir)
     .filter((f) => f.endsWith('.txt') && f !== exclude)
-    .map((f) => path.join(resultDir, f));
+    .map((f) => ({ file: path.join(resultDir, f), mtime: fs.statSync(path.join(resultDir, f)).mtimeMs }));
+  // 최신 결과 위주로 최대 5개만 사용 (시간 제한 고려)
+  const files = entries.sort((a,b)=>b.mtime-a.mtime).slice(0,5).map(e=>e.file);
   return files.map((file) => {
     const code = fs.readFileSync(file, 'utf8');
     const blocks = parseCodeBlocks(code).slice(0, 6);
@@ -34,7 +36,7 @@ async function main() {
 
   // 탐색 전략: 더 많은 시드 + 샘플 재현성 강화
   // 시간 제한 고려: 적당한 시드 수로 탐색 (36개)
-  const seeds = Array.from({ length: 36 }, (_, i) => 17 + i * 73);
+  const seeds = Array.from({ length: 12 }, (_, i) => 17 + i * 73);
   let best = { score: -Infinity, seed: null, team: null };
 
   const perSeedLog = [];
@@ -43,13 +45,13 @@ async function main() {
     let total = 0;
     let games = 0;
     if (opponents.length === 0) {
-      const r = simulateMatch(myTeam, myTeam, { durationMs: 12000, seed });
+      const r = simulateMatch(myTeam, myTeam, { durationMs: 10000, seed });
       total += (r.scoreRed - r.scoreBlue);
       games += 1;
     } else {
       for (const opp of opponents) {
-        const r1 = simulateMatch(myTeam, opp.blocks, { durationMs: 12000, seed: seed + 1 });
-        const r2 = simulateMatch(opp.blocks, myTeam, { durationMs: 12000, seed: seed + 2 });
+        const r1 = simulateMatch(myTeam, opp.blocks, { durationMs: 10000, seed: seed + 1 });
+        const r2 = simulateMatch(opp.blocks, myTeam, { durationMs: 10000, seed: seed + 2 });
         total += (r1.scoreRed - r1.scoreBlue);
         total += (r2.scoreBlue - r2.scoreRed);
         games += 2;
