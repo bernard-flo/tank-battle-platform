@@ -116,6 +116,14 @@
 - 다음 단계: 실제 대회용 AI 코드 설계. 우선 간단한 회피/예측 사격/협동 로직 프로토타입부터.
 - 필요 시, 단위 테스트(쿨다운/충돌/관통/배치 좌표)를 추가하여 회귀 방지 예정.
 
+이번 실행(Prometheus-10x)
+- result-ai.txt를 Prometheus-10x(EchelonNet-XL)로 교체: DNN(96→64→24→10, tanh) + 60방향 전술 스코어링. update(tank,enemies,allies,bulletInfo) 전체를 입력 특징으로 사용.
+- 성능 평가/자동 갱신: `node scripts/evaluate_and_update.js`
+  · REPEAT/SEED/CONCURRENCY 환경변수로 반복/시드/병렬 제어(기본 REPEAT=120, CONC=8). FAST 모드 사용.
+  · 우세 기준: 승률 ≥ 0.7 또는 (승률 ≥ 0.6 && 평균 생존/에너지 우세) → reference-ai.txt 자동 갱신.
+- 스크립트가 reference-ai.txt를 갱신하면 반드시 커밋 필요:
+  · `git add reference-ai.txt result.json && git commit -m "chore(ai): reference-ai.txt 갱신 (Prometheus-10x 우세)"`
+
 이번 실행(추가 기록)
 - 현재 리포지토리에 headless 시뮬레이터가 완비되어 있으며, HTML 규칙과의 정합성 재검증 완료.
 - 변경사항 없음(문서만 갱신). 다음 단계로 AI 코드 개발에 집중 가능.
