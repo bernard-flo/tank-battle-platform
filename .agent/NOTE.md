@@ -21,8 +21,8 @@
     - 모방학습(빠름): `node src/imitation_train.js --matches 8 --ticks 1800 --epochs 4 --batch 256 --lr 0.003 --fast`
     - CEM 튜닝(소규모): `node src/train_cem.js --iters 4 --pop 24 --elite 6 --seeds 3 --ticks 2400 --fast --concurrency 8`
     - ES 튜닝(단계적): `node src/train_es.js --iters 2 --pop 30 --sigma 0.25 --alpha 0.07 --seeds 3 --ticks 2600 --concurrency 8 --fast`
-  · 평가(예시 커맨드): `node src/eval_vs_reference.js --count 40 --start 2000 --maxTicks 2800 --fast`
-  · 현재 수치: 참조 대비 Draw 다수이며 에너지 열세(평균 330~560 vs 640). 더 많은 iteration과 seeds 증가 필요.
+  · 평가(예시 커맨드): `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3000 --fast`
+  · 현재 수치(이번 실행 직후): 모방학습 초기화 직후 60 seeds에서 0W/60L/0D로 참조에 열세. ES/CEM 튜닝 필요.
 
   · 추가 개선 제안(다음 번):
     - seeds를 8~12로 증가, pop 60~80, iters 20+로 장기 러닝.
@@ -33,8 +33,8 @@
 
 실행 메모(이번 실행)
 - generate_dnn_team.js: 발사 확률 게이팅(out.fireP>0.5) 적용. 순수 DNN 의사결정 유지.
-- Teacher 팀 추가 및 imitation_train에 --teacher 지원. Teacher 기반 모방학습으로 가중치 초기화.
-- CEM 소/중형 러닝 반복(여러 번 4~6 iters씩). 일부 배치에서는 Draw 위주로 전환했으나 평균 에너지는 여전히 열세.
+- Teacher 팀 추가 및 imitation_train에 --teacher 지원. 이번 실행에서 Teacher 기반 모방학습(10매치×2200틱, 4 epoch)으로 가중치 초기화.
+- 즉시 평가 결과 열세 확인(0W/60L/0D). 후속 ES/CEM 튜닝 예정.
 
 다음 실행 제안
 - 더 큰 compute 허용 시 CEM 20+ iters, seeds 8~12, pop 80~120으로 확장.

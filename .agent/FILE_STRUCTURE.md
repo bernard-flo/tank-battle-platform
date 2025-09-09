@@ -56,13 +56,8 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 시뮬레이터: actionHook으로 move/fire 기록 기능 확인(모방학습용). 엔진 로직 변경 없음.
-- DNN 팀 코드/가중치 생성 파이프라인 확정: result/ai_dnn_team.txt, ai_dnn_weights.json 산출.
-- 빠른 ES 튜닝 수행: pop 20, seeds 2, 1 iter로 초기 튜닝 후 저장/커밋.
-- CEM 소규모 튜닝: pop 20, elite 4, 2 iters 수행 후 저장/커밋.
-- 모방학습 초기화: reference-ai 행동 8매치×4epoch 지도학습으로 초기 가중치 생성 후 저장/커밋.
-- 추가 ES 튜닝: pop 30 기반 3iters 분할 실행(2+1) 후 저장/커밋.
-- 현 평가(예시): 20 seeds, 2800 ticks에서 Draw 다수(레드 에너지 평균 330~560, 블루 640). 더 긴 학습 필요.
+- 모방학습(Teacher 기반)으로 DNN 가중치 초기화 완료: result/ai_dnn_team.txt, ai_dnn_weights.json 갱신 및 커밋.
+- 빠른 기준 평가: 60 seeds, 3000 ticks에서 아직 레퍼런스에 열세(0W/60L/0D). ES/CEM 튜닝 예정.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
