@@ -143,8 +143,15 @@ async function main(){
           let best=enemies[0]; for(const e of enemies){ if(e.distance<best.distance) best=e; }
           D = Math.atan2(best.y-tank.y, best.x-tank.x)*180/Math.PI; if(D<0) D+=360;
         }
-        const yRad = (D - 180) * Math.PI/180; // toDeg(y)=D에 맞는 내부 표상
-        const Y = [yRad,yRad,yRad,yRad,yRad];
+        // 다중 출력 타겟: 이동 제안 다양화(+/- 편차, 180도)
+        const degToY = (deg)=> (deg - 180) * Math.PI/180; // toDeg(y)=deg
+        const Y = [
+          degToY(D),
+          degToY((D+25)%360),
+          degToY((D+335)%360), // D-25
+          degToY((D+180)%360),
+          degToY(D), // fire angle = D
+        ];
         samples.push({ X, Y });
       }
       engine.step();
@@ -186,4 +193,3 @@ async function main(){
 if (require.main === module) {
   main().catch((e)=>{ console.error(e); process.exit(1); });
 }
-
