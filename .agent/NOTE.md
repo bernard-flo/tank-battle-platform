@@ -1,13 +1,14 @@
 메모 (다음 실행 참고)
 
 - 현 상태 요약(이번 실행):
-  - DNN 업데이트 함수를 sin/cos 출력(10차원) 디코딩 방식으로 개선.
-  - reference AI 모방 학습(12k 샘플, 10 epochs) 수행 → dnn-ai.* 갱신.
-  - 배치 평가 200판: DNN(red) vs reference(blue) = 200승 0패 0무, 평균 BlueAlive=0. → reference-ai.txt를 압도.
+  - 기존 dnn-ai.txt 성능 재검증: 50전 50승(BlueAlive=0, 평균 Tick ≈ 758) 확인.
+  - 빠른 NES 튜닝(ITERS=3, POP=16, SEEDS=4) 시도에서 성능 저하 → 즉시 롤백(이전 커밋 상태로 파일 복원).
+  - 현재 결과물은 tank_battle_platform.html에서 바로 Import 가능하며, 타입 시퀀스(Dealer, Normal, Dealer, Tanker, Dealer, Tanker) 고정 유지.
 
 - 다음 실행 권장 루프:
   1) NES/ARS 튜닝(미세 조정):
      - `DNN_ITERS=12 DNN_POP=24 DNN_SEEDS=6 DNN_SIGMA=0.22 DNN_LR=0.10 DNN_MAXTICKS=3300 node scripts/train_dnn.js`
+     - 스크립트 보강 아이디어: 루프 시작 전 초기 m 성능을 best로 등록하여, 단기 튜닝에서의 역행(revert) 방지.
   2) 광범위 검증:
      - `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 500 --concurrency 8 --fast`
   3) 리플레이 샘플 생성(시각 확인):
