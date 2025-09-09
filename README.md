@@ -10,5 +10,6 @@
 - 팀 코드 파일 지정: `scripts/simulate.sh --red red.js --blue blue.js`
 - 반복/시드/JSON: `scripts/simulate.sh --repeat 100 --seed 42 --json result.json`
 - 리플레이 저장: `scripts/simulate.sh --replay replay.json --seed 7 --recordEvery 2`
+- 런너 선택(보안/성능): `scripts/simulate.sh --runner secure` 또는 `--runner fast`
 
 자세한 옵션/규칙은 `simulator/README.md` 참고.
