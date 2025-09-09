@@ -29,6 +29,7 @@ function parseArgs() {
     fast: true,
     runner: 'secure',
     maxTicks: 3500,
+    concurrency: Math.max(1, (require('os').cpus()||[]).length - 1),
   };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -41,6 +42,7 @@ function parseArgs() {
     else if (a === '--no-fast') opts.fast = false;
     else if (a === '--runner') opts.runner = String(args[++i]);
     else if (a === '--ticks' || a === '--maxTicks') opts.maxTicks = +args[++i];
+    else if (a === '--concurrency') opts.concurrency = Math.max(1, +args[++i]);
   }
   return opts;
 }
@@ -50,30 +52,48 @@ function flatten(arr){
   return arr.slice();
 }
 
-function evaluateCandidate(weights, refCode, opts, rng=Math.random) {
-  // 팀 코드 생성(6로봇 동일 정책, 타입 구성 고정)
+async function evaluatePopulation(population, refCode, opts) {
+  // 병렬 평가: 워커를 사용해 각 후보의 평균 점수를 계산
+  const path = require('path');
+  const { Worker } = require('worker_threads');
   const inputSize = 8 + (4*5) + (3*5) + (5*6) + 3; // 76
   const hidden = [64,64];
   const outputSize = 5;
-  const code = genMLPCode({ inputSize, hiddenSizes: hidden, outputSize, weights });
+  const seeds = Array.from({ length: opts.seeds }, (_, i) => 1000 + i);
+  const cfg = { inputSize, hidden, outputSize, refCode, seeds, maxTicks: opts.maxTicks, runner: opts.runner, fast: opts.fast };
 
-  // 우리팀(레드)
-  const red = compileTeamFromCode(code, 'red', opts.runner);
-  // 상대팀(블루)
-  const blue = compileTeamFromCode(refCode, 'blue', opts.runner);
-  const players = [...red, ...blue];
+  const workerPath = path.resolve(__dirname, 'cem_worker.js');
+  const results = new Array(population.length);
+  let next = 0;
+  let running = 0;
 
-  let total = 0;
-  for (let i = 0; i < opts.seeds; i++) {
-    const seed = 1000 + i + Math.floor(rng()*1000000);
-    const res = runMatch(players, { maxTicks: opts.maxTicks, fast: opts.fast, seed });
-    const { stats, winner } = res;
-    const energyDiff = (stats.redEnergy - stats.blueEnergy);
-    const w = winner === 'red' ? 100 : (winner === 'blue' ? -100 : 0);
-    const score = energyDiff + w;
-    total += score;
-  }
-  return total / opts.seeds;
+  await new Promise((resolve, reject) => {
+    function spawn() {
+      while (running < opts.concurrency && next < population.length) {
+        const idx = next++;
+        running++;
+        const w = new Worker(workerPath, { workerData: { weights: Array.from(population[idx]), cfg } });
+        w.on('message', (msg) => {
+          running--;
+          if (msg && typeof msg.score === 'number') {
+            results[idx] = msg.score;
+          } else {
+            results[idx] = -1e9; // 실패는 최저점 처리
+          }
+          spawn();
+          if (next >= population.length && running === 0) resolve();
+        });
+        w.on('error', (e) => {
+          running--;
+          results[idx] = -1e9;
+          spawn();
+          if (next >= population.length && running === 0) resolve();
+        });
+      }
+    }
+    spawn();
+  });
+  return results;
 }
 
 async function main(){
@@ -121,12 +141,8 @@ async function main(){
     const population = [];
     for(let i=0;i<opts.pop;i++) population.push(sample());
 
-    const scored = [];
-    for(let i=0;i<population.length;i++){
-      const w = population[i];
-      const score = evaluateCandidate(w, refCode, opts);
-      scored.push({ w, score });
-    }
+    const scores = await evaluatePopulation(population, refCode, opts);
+    const scored = population.map((w, i) => ({ w, score: scores[i] }));
 
     scored.sort((a,b)=>b.score - a.score);
     const elites = scored.slice(0, opts.elite);
