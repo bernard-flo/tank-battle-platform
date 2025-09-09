@@ -1,8 +1,8 @@
 메모 (다음 실행 참고)
 
 - 현 상태 요약(이번 실행):
-  - dnn-ai.txt 성능 재검증(배치): 50전 50승(무패), 평균 Tick ≈ 758, BlueAlive=0, BlueEnergy=0.
-  - NES 튜닝(이전 실험): 일부 설정에서 성능 저하 사례 확인 → 스크립트에 베이스라인 보호 장치 유지 중.
+  - dnn-ai.txt 성능 재검증(50전): 50전 50승(무패), 평균 Tick ≈ 758, BlueAlive=0, BlueEnergy=0.
+  - NES 튜닝(6 iter, pop=12, seeds=4, sigma=0.28, lr=0.12, maxTicks=3200): 개선 없음 → 베이스라인 그대로 유지(회귀 방지 장치 동작 확인).
   - 결과물은 HTML에서 즉시 Import 가능하며, 타입 시퀀스(Dealer, Normal, Dealer, Tanker, Dealer, Tanker) 고정.
 
 - 다음 실행 권장 루프:
