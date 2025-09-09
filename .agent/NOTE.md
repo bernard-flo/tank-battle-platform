@@ -133,6 +133,22 @@
 - 리플레이 뷰어(선택): replay.json을 별도 HTML에서 재생하는 간이 페이지 추가 검토(플랫폼 HTML은 수정 금지 원칙 유지).
 - 초고속 모드 실험: bullets/tanks에 객체 풀링 도입하여 대량 배치 시 GC 감소.
 
+Helios-Edge 운영 메모
+- DNN 입력/출력: 64차 입력(자기/적top3/아군top2/탄top4/집계) → 8차 출력([mvx,mvy, fvx,fvy, wTow,wAway,wCW,wCCW]).
+- 이동 합성: 탄 회피(TTC·측면), 벽 반발, 아군 분리, 목표 벡터(접근/이탈/시계/반시계) + 네트 보정.
+- 사격: 리드샷(직전 위치 기반 속도 추정) + DNN 각 보정 + 소량 지터.
+- 역할: TANKER×2(앵커), DEALER×2(카이팅), NORMAL×2(측면). 타겟은 팀 공통으로 최소 체력 우선.
+
+평가/갱신 절차(빠른 근사→정밀)
+- 빠른 근사: `node scripts/quick_evaluate_and_update.js` (MAX_TICKS=400, REPEAT=12, CONCURRENCY=4)
+  · 대부분 무승부가 나오면 maxTicks를 600~1000으로 늘려 수렴 추세 확인(스크립트 수정 필요 시 직접 CLI 사용).
+- 정밀 비교: `node simulator/cli.js --red result-ai.txt --blue reference-ai.txt --repeat 12 --concurrency 6 --fast --maxTicks 2000 --json result.json`
+- 우세 기준: 스크립트 기본값 유지(승률 ≥0.72 혹은 ≥0.62 + 생존/에너지 우세). 충족 시 reference-ai.txt 갱신 후 커밋.
+
+추가 튜닝 아이디어
+- 딜러 이탈 가중 동적화(근접시 away↑, 원거리시 toward↑), 탱커 회피 반경 +10%, 벽 반발 곡선 완만화.
+- DNN 시드 고정은 유지하되, 역할별 seed를 더 차등 부여하여 행동 다양성 확보.
+
 이번 실행(현재 세션 요약)
 - 변경 없음. 시뮬레이터 규칙/효율화 재확인.
 - 다음 실행에서 AI 기본 전략(회피+집중사격) 설계 시작 권장.
