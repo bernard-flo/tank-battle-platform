@@ -24,8 +24,15 @@
   - 단일/배치 결과 요약 출력 및 JSON 저장 지원.
 - simulator/ai/default_team.js: 예시 6로봇 코드(HTML 기본 예제와 동일 로직).
 - simulator/README.md: 사용법/규칙 매핑/배치 실행 예시.
+ - scripts/simulate.sh: 시뮬레이터 실행용 래퍼 스크립트(옵션 그대로 전달).
+   - 예: `scripts/simulate.sh --red red.js --blue blue.js --repeat 100 --fast`.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
 - 시뮬레이터 출력 JSON(result*.json)과 리플레이(replay*.json)는 .gitignore에 포함됨.
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
+
+사용 팁
+- 기본 실행: `node simulator/cli.js`
+- 스크립트 실행: `scripts/simulate.sh` (경로/옵션 전달이 간편)
+- 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
