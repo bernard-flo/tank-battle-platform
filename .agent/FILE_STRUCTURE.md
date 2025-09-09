@@ -32,6 +32,10 @@
 - 시뮬레이터 출력 JSON(result*.json)과 리플레이(replay*.json)는 .gitignore에 포함됨.
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
+업데이트(현재 실행)
+- 헤드리스 시뮬레이터 동작 검증 완료: `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 5` 실행으로 요약/JSON/리플레이 생성 확인.
+- 코드 변경 없이 문서 최신화만 수행.
+
 사용 팁
 - 기본 실행: `node simulator/cli.js`
 - 스크립트 실행: `scripts/simulate.sh` (경로/옵션 전달이 간편)

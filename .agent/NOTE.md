@@ -47,14 +47,16 @@
 - 코드 변경 없음. 시뮬레이터/CLI/샌드박스 동작 이상 없음.
 
 이번 실행(요약)
-- 실행 래퍼 추가: `scripts/simulate.sh` 생성 및 실행 권한 부여.
-- 최상위 README에 빠른 시작 섹션 추가(예시 포함).
-- 요구사항 재확인: HTML 규칙과 엔진 동기화 상태 점검 완료(쿨다운/충돌/배치/타입 스펙).
-- 사용자 안내 준비: 사용법/결과 파일/리플레이 활용 포인트를 답변에 요약 예정.
+- 헤드리스 시뮬레이터 재검증: 단일 경기/리플레이 저장 성공. HTML 규칙과 일치 확인.
+- 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
 
 다음 실행 제안(TODO)
 - 초고속 모드(객체 풀링/TypedArray) 프로토타입 추가 검토: bullets/tanks를 구조적 공유버퍼로 관리해 GC 압력 저감.
 - 간단 단위테스트 추가: 이동 충돌, 아군 관통, 쿨다운 타이밍, 초기 배치 좌표.
+
+참고 명령어
+- 단일 경기 + 리플레이: `node simulator/cli.js --red simulator/ai/default_team.js --blue simulator/ai/default_team.js --seed 7 --replay replay.json --recordEvery 5 --fast`
+- 배치 실행: `node simulator/cli.js --repeat 50 --seed 42 --fast --json result.json`
 
 이번 실행(자동 기록)
 - 재검증 실행: `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 5`
