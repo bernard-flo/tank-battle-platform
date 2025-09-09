@@ -54,8 +54,8 @@
   - result/dnn-ai-weights.json: ARCH/가중치/메타.
 
 검증(이번 실행)
-- 성능 확인: `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 50 --seed 424242 --fast --runner secure`
-  - 결과: 50전 50승(무패), BlueAlive=0, 평균 Tick ≈ 758.
+- 성능 확인: `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 100 --concurrency 8 --fast --runner secure`
+  - 결과: 100전 100승(무패), BlueAlive=0, 평균 Tick ≈ 758.
 - 빠른 NES 미세튜닝 1회 시도(DNN_ITERS=3, POP=16, SEEDS=4)에서 성능 저하 감지 → 즉시 롤백(커밋 보존 상태로 복구).
   - 다음번 장기 튜닝 시에는 ITERS를 10/15 단위로 두고 첫 평가 전 초기 m에 대한 점수도 비교/보존하도록 스크립트 보강 권장.
 
