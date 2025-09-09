@@ -9,7 +9,7 @@ function splitRobotCodes(code) {
   for (const part of parts) {
     const trimmed = part.trim();
     if (!trimmed) continue;
-    if (trimmed.includes('function name()')) {
+    if (/^\s*function\s+name\s*\(\s*\)/.test(trimmed)) {
       const clean = trimmed.replace(/\/\/\s*=+.*?=+/g, '').trim();
       robots.push(clean);
     }
