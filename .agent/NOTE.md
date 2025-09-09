@@ -80,6 +80,10 @@
   → 결과: BLUE 승, Ticks 638, JSON/리플레이 저장 확인.
   코드 변경 없음(문서 갱신만 수행). tank_battle_platform.html 미변경.
 
+이번 실행(현재 세션)
+- 시뮬레이터 정합성/효율화 재확인. 문서 최신화.
+- 편의 스크립트 추가: `scripts/quick_sim.sh` (기본 `--json result.json` 적용). 다음 실행에서 활용 권장.
+
 이번 실행(시뮬레이터 확인)
 - 시뮬레이터 규칙 일치 재확인. 성능 옵션(--fast, --runner secure|fast) 가이드 추가 제공.
 - 코드 변경 없음. 다음 단계: AI 설계/튜닝 착수 가능.
