@@ -1,7 +1,7 @@
 메모 (다음 실행 참고)
 
 - 현 상태 요약(이번 실행):
-  - 기존 dnn-ai.txt 성능 재검증: 50전 50승(BlueAlive=0, 평균 Tick ≈ 758) 확인.
+  - 기존 dnn-ai.txt 성능 재검증: 100전 100승(BlueAlive=0, 평균 Tick ≈ 758) 확인.
   - 빠른 NES 튜닝(ITERS=3, POP=16, SEEDS=4) 시도에서 성능 저하 → 즉시 롤백(이전 커밋 상태로 파일 복원).
   - 현재 결과물은 tank_battle_platform.html에서 바로 Import 가능하며, 타입 시퀀스(Dealer, Normal, Dealer, Tanker, Dealer, Tanker) 고정 유지.
 
