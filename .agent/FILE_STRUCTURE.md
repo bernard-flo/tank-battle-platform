@@ -56,10 +56,19 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 모방학습(Teacher 기반)으로 DNN 가중치 초기화 완료: result/ai_dnn_team.txt, ai_dnn_weights.json 갱신 및 커밋.
-- 빠른 기준 평가: 60 seeds, 3000 ticks에서 아직 레퍼런스에 열세(0W/60L/0D). ES/CEM 튜닝 예정.
+- 모방학습 1: reference-ai.txt 기준(8매치×2500틱, 4epoch)으로 초기화 → 커밋.
+- ES 튜닝: 2 iters(pop=40, seeds=3, ticks=2800) 실행 → 개선 미미.
+- CEM 튜닝: 4 iters(pop=40, elite=8, seeds=3, ticks=3200) 실행 → 에너지 열세 지속.
+- 모방학습 2: Teacher AI(src/teacher_ai.txt) 기준(12매치×2600틱, 6epoch) 재초기화 → 빠른 전멸 경향으로 부적합 판단.
+- 설계형 가중치 초기화(src/design_weights_9.js): 타겟 조준/접근/스트레이프/후퇴 + 거리 기반 발사를 DNN 가중치로 임베드 → 여전히 reference 대비 열세.
+- 현재 결과물(result/ai_dnn_team.txt)은 update 파라미터 전체를 사용하는 순수 DNN 정책이며, tank_battle_platform.html Import 호환을 만족.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
 - 스크립트 실행: `scripts/simulate.sh` (경로/옵션 전달이 간편)
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
+ - 빠른 비교 평가: `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3500 --fast`
+
+추천 실행(장시간 컴퓨트 가능 시)
+- CEM 장기 튜닝: `node src/train_cem.js --iters 20 --pop 120 --elite 24 --seeds 8 --ticks 3600 --fast --concurrency 8`
+- ES 누적 러닝(120초 제한 회피): `node src/train_es.js --iters 2 --pop 60 --sigma 0.25 --alpha 0.06 --seeds 6 --ticks 3600 --concurrency 8 --fast`를 여러 차례 반복
