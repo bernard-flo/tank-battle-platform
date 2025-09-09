@@ -9,7 +9,7 @@
 - 탱크 타입(Type.NORMAL/TANKER/DEALER)의 에너지/크기/속도/공격력 값을 HTML과 동일하게 적용.
 - 이동: 탱크당 틱 내 1회 성공만 허용(hasMoved), 실패 시 false 반환. 시도 횟수 10회 초과 시 true 반환하여 추가 호출 차단.
 - 충돌: 경계 및 다른 탱크와의 충돌 검사(안전 여백 +5).
-- 발사: 500ms(=10틱) 쿨다운(시작 후 최초 500ms는 발사 불가), 아군 관통, 적 적중 시 탄 제거 및 피해 반영.
+- 발사: 500ms(=10틱) 쿨다운(경기 시작 직후 즉시 발사 가능), 아군 관통, 적 적중 시 탄 제거 및 피해 반영.
 - AI 입력: update(tank, enemies, allies, bulletInfo) 서명 및 제공 필드 동일.
   - 보안: 실행 샌드박스에서 window/document/globalThis/global/process/require/module/Function/eval 등 주요 전역을 차단.
 - 승리: 한쪽 팀 생존 0, 상대 생존 > 0인 시점 종료.
