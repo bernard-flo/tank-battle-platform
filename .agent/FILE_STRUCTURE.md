@@ -12,13 +12,14 @@
   - 리플레이 기록 옵션(record, recordEvery) 추가: meta(맵/틱/시드/플레이어 목록)와 frames(틱별 탱크/총알 상태) 생성.
   - 초기 배치: HTML과 동일(레드 140/90 기준, 열 역전 배치; 블루 640/90 기준 표준 배치).
   - 승리 판정: 한쪽 생존 0, 상대 >0일 때 즉시 종료(동시 전멸/시간만료 시 무승부 처리).
+  - fast 모드: Object.freeze 생략 등으로 AI 데이터 래핑 비용 절감(--fast).
 - simulator/bot_loader.js: 팀 코드 로더/컴파일러.
   - 입력 텍스트에서 각 로봇을 'function name()' 기준으로 분할.
   - name()/type() 추출 및 샌드박스 실행기(Function) 생성.
   - update(tank,enemies,allies,bulletInfo) 시그니처/제한 전역(window/document 등 차단) 준수.
 - simulator/cli.js: 커맨드라인 인터페이스.
   - 인자: --red, --blue, --maxTicks, --seed, --repeat, --json.
-  - 추가 인자: --replay replay.json, --recordEvery N (리플레이 저장/프레임 간격).
+  - 추가 인자: --replay replay.json, --recordEvery N (리플레이 저장/프레임 간격), --fast(고속 모드).
   - 단일/배치 결과 요약 출력 및 JSON 저장 지원.
 - simulator/ai/default_team.js: 예시 6로봇 코드(HTML 기본 예제와 동일 로직).
 - simulator/README.md: 사용법/규칙 매핑/배치 실행 예시.
