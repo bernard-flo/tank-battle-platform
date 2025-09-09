@@ -3,7 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const { runMatch } = require('./engine');
-const { compileTeamsFromFiles, compileTeamFromCode, defaultCode } = require('./bot_loader');
+const { compileTeamFromCode, defaultCode } = require('./bot_loader');
+const { Worker } = require('worker_threads');
 
 function parseArgs(argv) {
   const args = {};
@@ -45,6 +46,7 @@ async function main() {
   const recordEvery = args.recordEvery ? parseInt(args.recordEvery, 10) : 1;
   const fast = !!args.fast;
   const runnerMode = (args.runner === 'fast' || args.runner === 'secure') ? args.runner : 'secure';
+  const concurrency = args.concurrency ? Math.max(1, parseInt(args.concurrency, 10)) : 1;
 
   const redCode = readOrDefault(redFile, 'red');
   const blueCode = readOrDefault(blueFile, 'blue');
@@ -66,29 +68,74 @@ async function main() {
   let blueEnergySum = 0;
 
   let lastReplay = null;
-  for (let i = 0; i < repeat; i++) {
-    const s = typeof baseSeed === 'number' ? baseSeed + i : `${baseSeed}-${i}`;
-    const wantReplay = !!replayOut && repeat === 1; // only supported for single run
-    const result = runMatch(players, { seed: s, maxTicks, record: wantReplay, recordEvery, fast });
-    if (wantReplay && result.replay) lastReplay = result.replay;
-    const summary = {
-      seed: s,
-      winner: result.winner,
-      ticks: result.ticks,
-      redAlive: result.stats.redAlive,
-      blueAlive: result.stats.blueAlive,
-      redEnergy: Math.round(result.stats.redEnergy),
-      blueEnergy: Math.round(result.stats.blueEnergy),
-    };
-    summaries.push(summary);
-    if (summary.winner === 'red') redWins++;
-    else if (summary.winner === 'blue') blueWins++;
-    else draws++;
-    ticksSum += summary.ticks;
-    redAliveSum += summary.redAlive;
-    blueAliveSum += summary.blueAlive;
-    redEnergySum += summary.redEnergy;
-    blueEnergySum += summary.blueEnergy;
+
+  // Build seed list
+  const seeds = Array.from({ length: repeat }, (_, i) => (typeof baseSeed === 'number' ? baseSeed + i : `${baseSeed}-${i}`));
+
+  if (repeat > 1 && concurrency > 1 && !replayOut) {
+    // Parallel execution using worker_threads
+    const workerCount = Math.min(concurrency, repeat);
+    const chunks = Array.from({ length: workerCount }, () => []);
+    for (let i = 0; i < seeds.length; i++) chunks[i % workerCount].push(seeds[i]);
+
+    const workerPath = path.resolve(__dirname, 'worker.js');
+    const tasks = chunks.filter((c) => c.length > 0).map((seedChunk) =>
+      new Promise((resolve, reject) => {
+        const w = new Worker(workerPath, {
+          workerData: {
+            redCode,
+            blueCode,
+            runnerMode,
+            seeds: seedChunk,
+            maxTicks,
+            fast,
+          },
+        });
+        w.on('message', (arr) => resolve(arr));
+        w.on('error', reject);
+        w.on('exit', (code) => { if (code !== 0) reject(new Error(`Worker exited with code ${code}`)); });
+      })
+    );
+
+    const batches = await Promise.all(tasks);
+    const flat = batches.flat();
+    for (const s of flat) {
+      summaries.push(s);
+      if (s.winner === 'red') redWins++;
+      else if (s.winner === 'blue') blueWins++;
+      else draws++;
+      ticksSum += s.ticks;
+      redAliveSum += s.redAlive;
+      blueAliveSum += s.blueAlive;
+      redEnergySum += s.redEnergy;
+      blueEnergySum += s.blueEnergy;
+    }
+  } else {
+    // Serial execution (and the only path supporting --replay)
+    for (let i = 0; i < repeat; i++) {
+      const s = seeds[i];
+      const wantReplay = !!replayOut && repeat === 1; // only supported for single run
+      const result = runMatch(players, { seed: s, maxTicks, record: wantReplay, recordEvery, fast });
+      if (wantReplay && result.replay) lastReplay = result.replay;
+      const summary = {
+        seed: s,
+        winner: result.winner,
+        ticks: result.ticks,
+        redAlive: result.stats.redAlive,
+        blueAlive: result.stats.blueAlive,
+        redEnergy: Math.round(result.stats.redEnergy),
+        blueEnergy: Math.round(result.stats.blueEnergy),
+      };
+      summaries.push(summary);
+      if (summary.winner === 'red') redWins++;
+      else if (summary.winner === 'blue') blueWins++;
+      else draws++;
+      ticksSum += summary.ticks;
+      redAliveSum += summary.redAlive;
+      blueAliveSum += summary.blueAlive;
+      redEnergySum += summary.redEnergy;
+      blueEnergySum += summary.blueEnergy;
+    }
   }
 
   if (repeat === 1) {
@@ -131,6 +178,7 @@ async function main() {
       avgRedEnergy: +(redEnergySum / repeat).toFixed(2),
       avgBlueEnergy: +(blueEnergySum / repeat).toFixed(2),
       baseSeed,
+      concurrency,
     } };
     fs.writeFileSync(path.resolve(jsonOut), JSON.stringify(out, null, 2));
     console.log(`Saved JSON -> ${jsonOut}`);

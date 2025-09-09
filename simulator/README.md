@@ -39,6 +39,11 @@
   - 동일한 baseSeed(예: 42)를 기준으로 42,43,44... 순으로 시드를 바꿔 100회 경기
   - 콘솔에 승/패/무, 평균 틱/생존/에너지 출력, JSON에는 summaries/aggregate 기록
 
+- 병렬 실행(효율화, 멀티코어 활용):
+  node simulator/cli.js --red red.js --blue blue.js --repeat 200 --concurrency 8 --seed 1000 --json result.json
+  - worker_threads 기반으로 시드를 균등 분할하여 병렬 실행
+  - --replay 옵션과 동시 사용 불가(단일 경기에서만 리플레이 기록 지원)
+
 실행 모드(보안/성능)
 - 런너 모드(--runner):
   - secure(기본): Node vm 샌드박스에서 사용자 코드를 실행하여 process/require/global 접근 차단.
@@ -49,6 +54,11 @@
   node simulator/cli.js --red red.js --blue blue.js --repeat 500 --fast
   - 기능은 동일하며, 사용자 코드가 tank/enemies/allies/bulletInfo 객체를 임의로 변형하더라도 엔진의 내부 상태는 보호됩니다.
   - 대량 반복 시뮬레이션에서 성능이 우선일 때 추천(보안은 --runner secure 유지 권장).
+
+병렬 옵션
+- --concurrency N: 반복 실행(--repeat > 1) 시 N개의 워커로 병렬 실행. 기본 1.
+  - JSON aggregate에 concurrency 필드를 추가 기록.
+  - 단일 경기 또는 --replay 사용 시에는 직렬 실행 경로 사용.
 
 출력 예시
 - 콘솔 요약: 승자, 틱 수, 각 팀 생존/에너지.
