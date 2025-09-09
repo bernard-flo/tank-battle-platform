@@ -34,7 +34,7 @@ class Tank {
     this.damage = config.damage;
 
     this.alive = true;
-    this.lastFire = -1; // ms
+    this.lastFire = 0; // ms, HTML과 동일하게 초기 500ms 동안 발사 불가
     this.code = '';
     this.hasMoved = false;
     this.moveAttempts = 0;
