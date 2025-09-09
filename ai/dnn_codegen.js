@@ -2,6 +2,7 @@
 // - tank_battle_platform.html의 Import 포맷에 맞춘 6개 로봇 코드 문자열 생성
 // - update 함수는 DNN 순전파만으로 의사결정(휴리스틱 금지)
 // - 타입 고정 순서: dealer, normal, dealer, tanker, dealer, tanker
+// - 특징 확장: 각도 sin/cos, 개수/벽거리/탄 접근성 등 추가 (결정은 오직 DNN)
 
 function genMatrixCode(name, mat) {
   const flat = mat.flat();
@@ -49,7 +50,7 @@ function update(tank,enemies,allies,bulletInfo){
 
   // 고정 하이퍼파라미터(플랫폼 상수)
   const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
-  const EN_K=3, AL_K=2, BL_K=3;
+  const EN_K=3, AL_K=2, BL_K=3; // 최근접 개수 유지
 
   // 특징 벡터 구성
   function norm(v, s){ return s ? v/s : v; }
@@ -61,6 +62,9 @@ function update(tank,enemies,allies,bulletInfo){
     const out=[]; for(let i=0;i<k;i++){ out.push(tmp[i]? tmp[i].e:null); }
     return out;
   }
+  function s(x){ return Math.sin(x); }
+  function c(x){ return Math.cos(x); }
+  function deg2rad(d){ return (d%360)*Math.PI/180; }
 
   const xSelf = [
     norm(tank.x, W),
@@ -81,9 +85,11 @@ function update(tank,enemies,allies,bulletInfo){
   for(let i=0;i<EN_K;i++){
     const e = ens[i];
     if(e){
-      xEn.push( norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL) );
+      const dx = (e.x - tank.x), dy = (e.y - tank.y);
+      const ang = Math.atan2(dy, dx);
+      xEn.push( norm(dx, W), norm(dy, H), norm(e.health, EMAX), norm(e.distance, SCL), s(ang), c(ang) );
     } else {
-      xEn.push(0,0,0,0);
+      xEn.push(0,0,0,0,0,0);
     }
   }
 
@@ -91,9 +97,11 @@ function update(tank,enemies,allies,bulletInfo){
   for(let i=0;i<AL_K;i++){
     const a = als[i];
     if(a){
-      xAl.push( norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL) );
+      const dx = (a.x - tank.x), dy = (a.y - tank.y);
+      const ang = Math.atan2(dy, dx);
+      xAl.push( norm(dx, W), norm(dy, H), norm(a.health, EMAX), norm(a.distance, SCL), s(ang), c(ang) );
     } else {
-      xAl.push(0,0,0,0);
+      xAl.push(0,0,0,0,0,0);
     }
   }
 
@@ -101,13 +109,20 @@ function update(tank,enemies,allies,bulletInfo){
   for(let i=0;i<BL_K;i++){
     const b = bls[i];
     if(b){
-      xBl.push( norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL) );
+      const dx = (b.x - tank.x), dy = (b.y - tank.y);
+      const sp = Math.hypot(b.vx||0,b.vy||0) || 1;
+      const appr = (dx*(b.vx||0) + dy*(b.vy||0)) > 0 ? 1 : 0; // 접근 여부(특징화만, 의사결정 아님)
+      xBl.push( norm(dx, W), norm(dy, H), norm(b.vx||0, VX), norm(b.vy||0, VY), norm(b.distance, SCL), norm(sp, 12), appr );
     } else {
-      xBl.push(0,0,0,0,0);
+      xBl.push(0,0,0,0,0,0,0);
     }
   }
 
-  const X = [].concat(xSelf, xEn, xAl, xBl);
+  // 글로벌 컨텍스트 특징: 개수/벽거리
+  const counts = [ Math.min(1, enemies.length/6), Math.min(1, allies.length/5), Math.min(1, bulletInfo.length/6) ];
+  const walls = [ norm(tank.x, W), norm(W - tank.x, W), norm(tank.y, H), norm(H - tank.y, H) ];
+
+  const X = [].concat(xSelf, xEn, xAl, xBl, counts, walls);
 
   // 네트워크 파라미터
   ${genMatrixCode('W1', W1)}

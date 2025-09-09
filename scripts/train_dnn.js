@@ -15,8 +15,9 @@ const { runMatch } = require('../simulator/engine');
 const { compileTeamFromCode } = require('../simulator/bot_loader');
 const { buildTeamCode } = require('../ai/dnn_codegen');
 
-// 고정 아키텍처 (HTML/시뮬레이터 입력 특징 설계와 동기화)
-const ARCH = { inDim: 43, h1: 24, h2: 16, outDim: 5 };
+// 고정 아키텍처 (ai/dnn_codegen.js의 특징 구성과 반드시 동기화)
+// inDim 계산: self(8) + enemies(3*6) + allies(2*6) + bullets(3*7) + counts(3) + walls(4) = 8+18+12+21+3+4 = 66
+const ARCH = { inDim: 66, h1: 48, h2: 32, outDim: 5 };
 
 function weightCount(a) {
   return a.h1 * a.inDim + a.h1 + a.h2 * a.h1 + a.h2 + a.outDim * a.h2 + a.outDim;
@@ -65,8 +66,9 @@ function evaluate(weights, seeds, opts = {}) {
     // 보상: 승/패 + 에너지 차 가중합
     const energyDiff = (r.stats.redEnergy - r.stats.blueEnergy);
     const aliveDiff = (r.stats.redAlive - r.stats.blueAlive);
-    const winTerm = (r.winner === 'red') ? 1000 : (r.winner === 'blue') ? -1000 : 0;
-    const sc = winTerm + 0.5 * aliveDiff + 0.02 * energyDiff - 0.001 * r.ticks; // 빠른 승리 선호
+    const winTerm = (r.winner === 'red') ? 2000 : (r.winner === 'blue') ? -2000 : 0;
+    // 생존/에너지 차 가중치를 상향하고 빠른 승리를 더 선호
+    const sc = winTerm + 2.0 * aliveDiff + 0.1 * energyDiff - 0.002 * r.ticks;
     scoreSum += sc;
     if (r.winner === 'red') wins += 1;
   }
