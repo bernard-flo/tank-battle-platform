@@ -16,6 +16,7 @@
 업데이트
 – 리플레이 기록 기능 추가: --replay replay.json, --recordEvery N 지원. 단일 실행에서만 저장.
 – 엔진 meta에 seed/tickMs/맵 크기/플레이어 목록 포함.
+– .gitignore에 replay*.json 추가(대용량 리플레이 커밋 방지).
 
 다음 액션 제안
 – 리플레이 로그(틱별 탱크/총알 상태) 덤프 옵션 추가하여 HTML에서 재생 검증.
