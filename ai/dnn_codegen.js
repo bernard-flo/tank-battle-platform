@@ -5,11 +5,11 @@
 
 function genMatrixCode(name, mat) {
   const flat = mat.flat();
-  return `const ${name} = new Float64Array([${flat.map((v) => +(+v).toFixed(8)).join(', ')}]);`;
+  return `const ${name} = [${flat.map((v) => +(+v).toFixed(8)).join(', ')}];`;
 }
 
 function genVectorCode(name, vec) {
-  return `const ${name} = new Float64Array([${vec.map((v) => +(+v).toFixed(8)).join(', ')}]);`;
+  return `const ${name} = [${vec.map((v) => +(+v).toFixed(8)).join(', ')}];`;
 }
 
 function chunkWeights(weights, inDim, h1, h2, outDim) {
@@ -107,7 +107,7 @@ function update(tank,enemies,allies,bulletInfo){
     }
   }
 
-  const X = new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+  const X = [].concat(xSelf, xEn, xAl, xBl);
 
   // 네트워크 파라미터
   ${genMatrixCode('W1', W1)}
@@ -125,11 +125,11 @@ function update(tank,enemies,allies,bulletInfo){
   function tanh(x){ return Math.tanh(x); }
 
   const IN=${arch.inDim}, H1=${arch.h1}, H2=${arch.h2}, OUT=${arch.outDim};
-  const h1 = new Float64Array(H1);
+  const h1 = new Array(H1);
   for(let i=0;i<H1;i++){ h1[i] = tanh(dotRow(W1, IN, i, X) + b1[i]); }
-  const h2 = new Float64Array(H2);
+  const h2 = new Array(H2);
   for(let i=0;i<H2;i++){ h2[i] = tanh(dotRow(W2, H1, i, h1) + b2[i]); }
-  const y = new Float64Array(OUT);
+  const y = new Array(OUT);
   for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
 
   // 각도 변환: y in R -> [0,360)
