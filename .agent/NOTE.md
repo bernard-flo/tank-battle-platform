@@ -2,7 +2,7 @@
 
 - 현 상태 요약(이번 실행):
   - dnn-ai.txt 성능 재검증(50전): 50전 50승(무패), 평균 Tick ≈ 758, BlueAlive=0, BlueEnergy=0.
-  - NES 튜닝(6 iter, pop=12, seeds=4, sigma=0.28, lr=0.12, maxTicks=3200): 개선 없음 → 베이스라인 그대로 유지(회귀 방지 장치 동작 확인).
+  - NES 튜닝(5 iter, pop=12, seeds=4, sigma=0.28, lr=0.12, maxTicks=3300): 개선 없음 → 베이스라인 그대로 유지(회귀 방지 장치 동작 확인). weights.json의 meta.iter만 5로 갱신됨.
   - 결과물은 HTML에서 즉시 Import 가능하며, 타입 시퀀스(Dealer, Normal, Dealer, Tanker, Dealer, Tanker) 고정.
 
 - 다음 실행 권장 루프:

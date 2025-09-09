@@ -51,12 +51,13 @@
   - ARCH.outDim=10으로 동기화. 필요 시 추가 튜닝 가능.
 - 결과물(Import용):
   - result/dnn-ai.txt: HTML에서 Import 가능한 팀 코드(타입 고정 유지).
-  - result/dnn-ai-weights.json: ARCH/가중치/메타.
+  - result/dnn-ai-weights.json: ARCH/가중치/메타(이번 실행에서 meta.iter=5로 갱신, 가중치 값은 베이스라인 유지).
 
 검증(이번 실행)
-- 재검증 배치: `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 50 --concurrency 6 --fast --runner fast`
-  - 결과(이번 실행): 50전 50승(무패), AvgTicks ≈ 758, BlueAlive=0, BlueEnergy=0.
-- 회귀 방지: `scripts/train_dnn.js`는 초기 베이스라인 점수를 기록하고, 그 이하로 떨어지면 저장하지 않도록 구현됨(보호장치 유지). 이번 실행에서 6 iter 튜닝 시도(개선 없음) 후 기존 베이스라인 유지.
+- 재검증 배치: `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 50 --concurrency 8 --fast --runner fast`
+  - 결과: 50전 50승(무패), AvgTicks ≈ 758, BlueAlive=0, BlueEnergy=0.
+- NES 튜닝(짧게): `DNN_ITERS=5 DNN_POP=12 DNN_SEEDS=4 DNN_SIGMA=0.28 DNN_LR=0.12 DNN_MAXTICKS=3300 node scripts/train_dnn.js`
+  - 결과: 평균 점수 하락 추세로 베이스라인 유지(가중치 불변), weights.json의 meta만 iter=5로 갱신됨.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
