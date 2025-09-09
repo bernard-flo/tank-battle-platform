@@ -28,8 +28,10 @@
 - simulator/worker.js: 배치 시뮬 병렬 실행용 워커(worker_threads). 시드 청크를 입력받아 일괄 처리 후 요약 반환.
 - simulator/ai/default_team.js: 예시 6로봇 코드(HTML 기본 예제와 동일 로직).
 - simulator/README.md: 사용법/규칙 매핑/배치 실행 예시.
- - scripts/simulate.sh: 시뮬레이터 실행용 래퍼 스크립트(옵션 그대로 전달).
+- scripts/simulate.sh: 시뮬레이터 실행용 래퍼 스크립트(옵션 그대로 전달).
    - 예: `scripts/simulate.sh --red red.js --blue blue.js --repeat 100 --fast`.
+ - scripts/auto_train.sh: 모방학습→ES 튜닝→평가 자동 루프 스크립트.
+   - 예: `scripts/auto_train.sh 3` (3라운드 반복)
 - simulator/replay_viewer.html: 리플레이(JSON) 재생용 독립 HTML 뷰어(시각적 확인 전용).
 
 AI/DNN 학습/생성 파일
