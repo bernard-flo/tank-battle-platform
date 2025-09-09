@@ -183,9 +183,8 @@ function buildFeatures(tank, enemies, allies, bulletInfo){
 function policyStep(tank, enemies, allies, bulletInfo){
   const feat = buildFeatures(tank, enemies, allies, bulletInfo);
   const out = mlpForward(feat);
-  // 액션 적용
-  // 발사 결정은 DNN의 fireP로만 제어
-  if (out.fireP > 0.5) tank.fire(out.fireAngle);
+  // 액션 적용: 순수 DNN 출력 각도를 그대로 사용
+  tank.fire(out.fireAngle);
   tank.move(out.mvAngle);
 }
 `;
