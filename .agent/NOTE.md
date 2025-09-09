@@ -4,17 +4,19 @@
 - 현재 정책: 공유 MLP(입력 76, 히든 32-32, 출력 5: [move x,y, fire x,y, fire logit])
   · 피처: tank(자기 상태), enemies/allies 최근접 K, bulletInfo 최근접 K, 전역 통계.
   · 액션: fireP>0.5일 때 fire(fireAngle), move(mvAngle) 1회 호출. 휴리스틱 없음.
-- 학습: CEM(pop 60, elite 12, seeds 3, iters 10, sigma 0.6→감쇠)
+- 학습: (1) 모방학습으로 초기화(레퍼런스 행동 수집→Adam 3 epoch) → (2) CEM으로 미세튜닝
   · 보상: (redEnergy - blueEnergy) + 승패 보너스(승 +100, 패 -100)
-  · 반복 중간에도 result/ai_dnn_team.txt 갱신.
+  · 시간 제한(120s/호출) 때문에 iters를 4~8로 잘게 나눠 반복 실행 권장.
 
-아이디어/향후 개선
-- 입력에 탄환 상대 각·속도 외에 최근 이동각 추정(모델 안에서 처리하도록 시계열 스택 or EMA 추가) 고려.
-- 출력에 move/fire 강도(logit→soft gate) 따로 두어 탐색성 증가 가능.
-- CEM 병렬화 구현 완료(src/cem_worker.js). 향후 후보 샘플링 전략(antithetic, CMA-ES) 검토.
-- seeds 수를 점진 증가: 이터 후반에 안정적 일반화.
+- 아이디어/향후 개선
+  · 입력에 시계열 스택(직전 3틱)을 추가해 관성/예측력 강화(입력 차원 확장).
+  · fireP 게이팅을 부활시키고 BCE 비중을 높여 불필요한 사격 억제(현재는 항상 발사).
+  · CEM에 반대표본(antithetic) + sigma schedule 조정, CMA-ES 도입 검토.
+  · seeds 수를 점진 증가: 이터 후반에 안정적 일반화.
 
-실행 메모(이번 실행)
-- reference-ai.txt 대비 학습 시작점 승률 낮음. 병렬화 추가 후 짧은 러닝으로 반복 예정.
-- 빠른 실험 파라미터 예: `node src/train_cem.js --iters 8 --pop 40 --elite 8 --seeds 2 --ticks 1200 --fast --runner secure --concurrency 8`
+- 실행 메모(이번 실행)
+  · 모방학습 가중치 → CEM 미세튜닝을 시도했으나 시간 제약 내 뚜렷한 우세 미확보. 현재 결과는 무승부 비율이 높은 안정 정책으로 설정.
+  · 빠른 실험 예:
+    - 모방학습: `node src/imitation_train.js`
+    - CEM 튜닝: `node src/train_cem.js --iters 8 --pop 40 --elite 8 --seeds 2 --ticks 2500 --fast --runner secure --concurrency 8`
   · 은닉층 32-32로 경량화하여 120초 제한 내 반복 학습 용이

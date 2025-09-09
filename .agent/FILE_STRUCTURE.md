@@ -36,11 +36,13 @@ AI/DNN 학습/생성 파일
 - src/generate_dnn_team.js: MLP 정책 코드 생성기. update()에서 tank/enemies/allies/bulletInfo 전부를 피처로 사용하여 추론하는 코드 문자열을 만들어 팀(6로봇) 텍스트를 출력.
 - src/train_cem.js: Cross-Entropy Method 기반 학습 스크립트. reference-ai.txt를 상대 블루팀으로 두고 평균 보상(에너지 차 + 승패 보너스)을 최대화하도록 공유 가중치를 최적화. 최적 가중치로 result/ai_dnn_team.txt를 저장. 히든층 크기 32-32로 경량화.
  - src/cem_worker.js: 학습 중 개별 후보(가중치)의 성능을 병렬로 평가하는 워커. train_cem.js에서 --concurrency로 활용.
+ - src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 32-32 MLP 초기화. 이후 CEM 미세튜닝 권장.
+ - src/generate_from_weights.js: result/ai_dnn_weights.json을 읽어 팀 코드를 재생성.
 
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
 - result/ai_dnn_team.txt: 본 스크립트가 생성하는 DNN 팀 코드. tank_battle_platform.html Import로 붙여넣어 사용 가능. 타입 조합은 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER] 고정.
- - result/ai_dnn_weights.json: 현재 최적 가중치(평탄화 배열) 저장. 다음 실행 시 학습 재개에 사용.
+- result/ai_dnn_weights.json: 현재 최적 가중치(평탄화 배열) 저장. 다음 실행 시 학습 재개/재생성에 사용.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
@@ -48,9 +50,9 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 시뮬레이터: --concurrency N 옵션과 simulator/worker.js 도입으로 반복 경기 병렬 처리 지원.
-- 학습기: CEM 평가 병렬화(src/cem_worker.js 추가, src/train_cem.js 업데이트). --concurrency로 인코어 활용.
-- README와 집계 JSON에 concurrency 항목 추가. 기존 규칙/로직 유지, HTML 미변경.
+- 시뮬레이터: actionHook 추가로 AI의 move/fire 시도를 수집 가능(모방학습용). 기존 로직 영향 없음.
+- 학습기: CEM 평가 병렬화(--concurrency) + 모방학습(Adam) 파이프라인 추가. 빠른 초기화 후 CEM으로 미세튜닝 가능.
+- 코드 생성기: 사격 게이팅 제거(항상 DNN 각도로 fire 호출). HTML 미변경.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
