@@ -31,6 +31,7 @@
  - scripts/simulate.sh: 시뮬레이터 실행용 래퍼 스크립트(옵션 그대로 전달).
    - 예: `scripts/simulate.sh --red red.js --blue blue.js --repeat 100 --fast`.
 - simulator/replay_viewer.html: 리플레이(JSON) 재생용 독립 HTML 뷰어(시각적 확인 전용).
+ - scripts/evaluate_and_update.js: Nemesis(result-ai.txt)와 reference-ai.txt를 배치 시뮬로 비교하고, 우세 시 자동 갱신.
 
 AI 팀 코드 산출물
 - result-ai.txt: tank_battle_platform.html에서 import 가능한 팀 코드(6 로봇).
