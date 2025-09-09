@@ -10,9 +10,10 @@
 - 점수: 승리 +1000, 생존차*100, 에너지 차 합산.
 
 실행 기록(이번 실행)
-- 평가: `node src/eval_vs_reference.js --count 200 --start 1 --maxTicks 4000 --fast`
-  · 결과: W:0 L:200 D:0 (현 DNN이 레퍼런스에 열세). avgTicks≈556~675 범위(가중치에 따라 변동), avgRed≈0, avgBlue>100.
-  · 결론: 장시간 ES 튜닝/데이터 증강을 통한 모방학습 고도화 필요.
+- 설계형 초기화(design_weights_plus) → 50전 0승(평균 틱 감소, 블루 에너지 우위).
+- 모방학습 30매치·10에폭 → 50전 0승.
+- ES 1회 이터레이션(pop=40, seeds=4, ticks=2600) → 20전 전부 무승부(에너지는 블루 우위).
+- 결론: 장시간 ES 튜닝/모방 데이터 확대가 필요. 현재 팀 코드는 HTML에서 정상 동작하며 DNN만으로 update 수행.
 
 참고
 - 결과물은 result/ai_dnn_team.txt, 가중치는 result/ai_dnn_weights.json에 저장. tank_battle_platform.html에서 Import 가능.
@@ -35,4 +36,4 @@
 메모
 - update(tank, enemies, allies, bulletInfo) 전 파라미터를 모두 사용한 DNN 추론만 적용(휴리스틱 없음).
 - 타입 순서 고정: [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER].
-- 필요 시 장시간 ES 학습으로 추가 성능 확보 가능(현재도 기준 초과).
+- 성능 개선을 위해 ES 장기 학습 또는 더 많은 모방 샘플 필요.
