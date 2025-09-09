@@ -31,6 +31,7 @@
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
+- 간편 실행: `scripts/simulate.sh` (옵션 동일 지원)
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
 - 반복/시드/JSON: `node simulator/cli.js --repeat 100 --seed 42 --json result.json`
  - 리플레이 저장: `node simulator/cli.js --replay replay.json --seed 7 [--recordEvery 2]`
@@ -42,6 +43,8 @@
 - 코드 변경 없음(문서만 갱신). 다음 단계로 AI 코드 설계/튜닝 착수 가능.
 
 이번 실행(요약)
+- 실행 래퍼 추가: `scripts/simulate.sh` 생성 및 실행 권한 부여.
+- 최상위 README에 빠른 시작 섹션 추가(예시 포함).
 - 요구사항 재확인: HTML 규칙과 엔진 동기화 상태 점검 완료(쿨다운/충돌/배치/타입 스펙).
 - 사용자 안내 준비: 사용법/결과 파일/리플레이 활용 포인트를 답변에 요약 예정.
 
