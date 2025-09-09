@@ -181,8 +181,16 @@ class Engine {
       );
 
     const tankAPI = freezer({
-      move: freezer((angle) => tank.move(angle)),
-      fire: freezer((angle) => tank.fire(angle, this.timeMs)),
+      move: freezer((angle) => {
+        const ok = tank.move(angle);
+        try { if (typeof this.actionHook === 'function') this.actionHook(tank, 'move', angle, ok, this.timeMs); } catch (_) {}
+        return ok;
+      }),
+      fire: freezer((angle) => {
+        const ok = tank.fire(angle, this.timeMs);
+        try { if (typeof this.actionHook === 'function') this.actionHook(tank, 'fire', angle, ok, this.timeMs); } catch (_) {}
+        return ok;
+      }),
       x: tank.x,
       y: tank.y,
       health: tank.health,
