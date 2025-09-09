@@ -38,6 +38,8 @@ AI/DNN 학습/생성 파일
  - src/cem_worker.js: 학습 중 개별 후보(가중치)의 성능을 병렬로 평가하는 워커. train_cem.js에서 --concurrency로 활용.
  - src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 32-32 MLP 초기화. 이후 CEM 미세튜닝 권장.
  - src/generate_from_weights.js: result/ai_dnn_weights.json을 읽어 팀 코드를 재생성.
+ - src/train_es.js: Evolution Strategies(OpenAI-ES) 기반 블랙박스 최적화. Mirrored sampling과 병렬 워커로 빠르게 gradient 추정 후 가중치 업데이트.
+  - src/es_worker.js: ES 평가 워커. 주어진 가중치 벡터로 코드 생성→시뮬레이션→스코어 반환.
 
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
@@ -52,7 +54,8 @@ AI/DNN 학습/생성 파일
 업데이트(현재 실행)
 - 시뮬레이터: actionHook 추가로 AI의 move/fire 시도를 수집 가능(모방학습용). 기존 로직 영향 없음.
 - 학습기: CEM 평가 병렬화(--concurrency) + 모방학습(Adam) 파이프라인 추가. 빠른 초기화 후 CEM으로 미세튜닝 가능.
-- 코드 생성기: 사격 게이팅 제거(항상 DNN 각도로 fire 호출). HTML 미변경.
+ - 코드 생성기: DNN fire 확률 게이팅(>0.5일 때 fire) 적용. HTML 미변경.
+ - 최적화기: ES(OpenAI-ES) 스크립트 추가. Mirrored sampling으로 분산 감소 및 빠른 업데이트.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`

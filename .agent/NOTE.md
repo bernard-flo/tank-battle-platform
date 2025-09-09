@@ -15,8 +15,12 @@
   · seeds 수를 점진 증가: 이터 후반에 안정적 일반화.
 
 - 실행 메모(이번 실행)
-  · 모방학습 가중치 → CEM 미세튜닝을 시도했으나 시간 제약 내 뚜렷한 우세 미확보. 현재 결과는 무승부 비율이 높은 안정 정책으로 설정.
+  · 모방학습으로 초기화 후 CEM 16iters, ES 30iters를 수행. 당장 레퍼런스를 압도하지 못함(무/패 혼재). 추가 이터레이션과 seeds 확대 필요.
   · 빠른 실험 예:
     - 모방학습: `node src/imitation_train.js`
-    - CEM 튜닝: `node src/train_cem.js --iters 8 --pop 40 --elite 8 --seeds 2 --ticks 2500 --fast --runner secure --concurrency 8`
-  · 은닉층 32-32로 경량화하여 120초 제한 내 반복 학습 용이
+    - CEM 튜닝: `node src/train_cem.js --iters 16 --pop 60 --elite 12 --seeds 4 --ticks 2500 --fast --runner secure --concurrency 8`
+    - ES 튜닝: `node src/train_es.js --iters 40 --pop 80 --sigma 0.2 --alpha 0.08 --seeds 4 --ticks 2500 --concurrency 8 --fast`
+  · 추가 개선 제안(다음 번):
+    - 네트워크 확장(64-64) 및 seeds 8~12로 안정화.
+    - 입력에 시간 스택(직전 2~3틱) 추가. update는 순수 DNN 추론만 수행하도록 유지.
+    - 보상 shaping: 생존/가까운 적 피해 가중치 추가(여전히 시뮬레이터 스칼라 보상 기반, 휴리스틱 제어 아님).
