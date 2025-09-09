@@ -25,6 +25,7 @@
 
 - 최대 틱/시드/JSON 출력:
   node simulator/cli.js --red red.js --blue blue.js --maxTicks 4000 --seed 123 --json out.json
+  (시드 적용: 초기 포신 각도만 시드 기반 RNG 사용. 봇 코드 내 Math.random은 브라우저와 동일하게 비결정적.)
 
 - 배치 시뮬레이션(반복 실행)과 통계 집계:
   node simulator/cli.js --red red.js --blue blue.js --repeat 100 --seed 42 --json result.json
