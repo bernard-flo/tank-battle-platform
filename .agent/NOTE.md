@@ -13,6 +13,17 @@
   3) 시간이 허용되면 안정 설정으로 장기 학습:
      - `DNN_ITERS=50 DNN_POP=16 DNN_SEEDS=3 DNN_SIGMA=0.3 DNN_LR=0.15 DNN_MAXTICKS=3500 node scripts/train_dnn.js`
 
+이번 실행 로그 메모:
+- codegen 수정: Float64Array 사용 제거 → Node vm에서 문제 없이 실행 확인.
+- 학습: fast sweep 3회 + imitate_reference(8k/10ep) + ELM 출력층 적합 + NES 장기(40 iters, pop=16, seeds=3).
+- 성능: 여전히 reference-ai 대비 0/100 승, 평균 생존 0. 구조/보상/특징 확장 필요.
+
+다음 개선 후보(코드 변경 동반):
+- ARCH 확장: 43→64→32→5로 증대(ai/dnn_codegen.js + scripts/train_dnn.js 동시 수정), Xavier 초기화.
+- 특징 확장: 적/아군/탄 각도 s,c 인코딩, 거리의 log/제곱근 스케일링 추가(입력 차원 증가).
+- 보상 튜닝: 명중/회피 근사 보상(틱별) 부여, 빠른 승리 가중 상향 조정 등.
+- 탐색 강화: CMA-ES 구현 또는 ARS에 top-k 표준화 가중 도입, pop 증대와 병렬화.
+
 - 향후 개선(필요시 코드 변경 포함):
   - 아키텍처 확장(예: 43→64→32→5) 및 Xavier 초기화 강화. 스크립트 ARCH 동기화 필요.
   - feature 확장(K값 증대: EN_K/AL_K/BL_K) 및 정규화 범위 재조정.

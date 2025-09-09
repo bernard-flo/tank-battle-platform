@@ -50,6 +50,7 @@
 - 코드 생성기: ai/dnn_codegen.js (기존)
   - 가중치 배열 → 6개 로봇 코드 생성. update는 DNN 순전파만 사용.
   - 타입 순서: dealer, normal, dealer, tanker, dealer, tanker (요구사항 준수, 하드코딩).
+  - 변경: Float64Array 대신 일반 배열로 생성하여 Node vm 샌드박스 호환성 개선.
 - 결과물(Import용):
   - result/dnn-ai.txt: tank_battle_platform.html에서 Import 가능한 최종 팀 코드.
   - result/dnn-ai-weights.json: 아키텍처/가중치/메타 정보.
