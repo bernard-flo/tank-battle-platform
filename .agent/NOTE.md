@@ -160,3 +160,13 @@
 - DNN은 64→48→24→6로, 이동/사격 각도 제안과 혼합 계수 산출. 제안은 전술 각과 혼합해 안정성 확보.
 - 타깃 선택은 최저 체력 우선(동률 시 y→x 사전식)으로 팀 전체가 동일 타깃을 집중.
 - 배치 평가: `node scripts/evaluate_and_update.js` (REPEAT=120, CONCURRENCY=8). 우세 시 reference-ai.txt 자동 갱신.
+
+이번 실행(Hyperion-7u 결과)
+- result-ai.txt를 Hyperion-7u(AegisNet-Z)로 교체(DNN 72→40→16→8 + 전술 스코어 탐색/게이팅).
+- 배치 비교: `node scripts/evaluate_and_update.js` (REPEAT=120, CONC=8, FAST)
+  · 결과: RED 0 / BLUE 120 / DRAW 0, Avg BlueAlive≈4.0, BlueEnergy≈340 → reference 유지.
+- 다음 튜닝 제안:
+  1) 후보 각 탐색을 48방향으로 확장, 탄 위협 비용 가중 +15% 상향, 벽/아군 가중 -10% 하향.
+  2) 게이팅 보정 계수 0.12→0.06으로 축소(전술 안정성 우선), 근접시 이탈 후보에 지터 ±10 추가.
+  3) 딜러 최소 교전 거리 170→200 상향(과도한 근접 교전 방지).
+  4) 리드샷에서 속도 추정 임계 거리 100→140으로 상향하여 추정 안정화.

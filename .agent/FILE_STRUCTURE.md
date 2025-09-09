@@ -35,12 +35,11 @@
 
 AI 팀 코드 산출물
 - result-ai.txt: tank_battle_platform.html에서 import 가능한 팀 코드(6 로봇).
-  - Nemesis-4(AegisNet-X): DNN(64→48→24→6, tanh) + 전술 휴리스틱 혼합.
-  - update(tank,enemies,allies,bulletInfo)에서 모든 파라미터를 사용해 입력(64차원) 구성:
-    self(10) + top3 적(6×3) + top2 아군(4×2) + 위협탄 top4(5×4) + 집계(5) = 64.
-  - 출력 6차원: moveVec(2), fireVec(2), mixMove(1), mixFire(1) → 휴리스틱 각과 혼합하여 최종 결정.
-  - 리드샷: 이전 틱 표적 이동으로 속도 추정 후 탄속(8) 요격각 계산. 팀 단위로 최저 체력 목표 집중.
-  - 역할/거리/회피: 탱커(근접 카이팅), 딜러(중장거리 측면), 노멀(균형). 탄 위협(TTC 근사) 최우선 회피, 벽 반발/아군 간격 유지.
+  - Hyperion-7u(AegisNet-Z): DNN(72→40→16→8, tanh) + 전술 스코어 탐색(36방향).
+  - 입력 72차원: self + 적 top3(6ea) + 아군 top2(4ea) + 적탄 top4(6ea) + 집계(4) 패드.
+  - 출력 8차원: moveVec(2), fireVec(2), 게이팅(w_toward/away/strafeL/strafeR).
+  - 사격: 리드샷 + DNN 보정 + 소량 지터. 이동: 탄 위협(TTC/측면), 벽/아군 잠재장, 목표 기하(접근/이탈/측면) 합산 비용 최소 각 선택.
+  - 역할 구성: TANKER×2, NORMAL×2, DEALER×2.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
@@ -56,11 +55,11 @@ AI 팀 코드 산출물
 - 스크립트 실행: `scripts/simulate.sh` (경로/옵션 전달이 간편)
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
 
-이번 실행(Nemesis-4 반영)
-- result-ai.txt를 Nemesis-4(AegisNet-X)로 전면 교체: 64→48→24→6 MLP, 리드샷/탄 회피(TTC)/집중사격/벽 반발/아군 간격/카이팅.
-- 6 로봇 구성: TANKER×2, DEALER×3, NORMAL×1.
-- 평가 결과: `REPEAT=120` 기준 승률 87.5% (레드 105 / 블루 15 / 무 0), 평균 생존/에너지 우세.
-- 조치: reference-ai.txt 자동 갱신 완료(난이도 상향).
+이번 실행(Hyperion-7u 추가)
+- result-ai.txt를 Hyperion-7u(AegisNet-Z)로 교체: DNN(72→40→16→8) + 전술 스코어 탐색(36방향) + 게이팅.
+- 배치 비교 실행: `node scripts/evaluate_and_update.js` (REPEAT=120, CONCURRENCY=8, FAST)
+  · 결과 요약: Hyperion(RED) 0승 / Reference(BLUE) 120승 / 무 0, 평균 BlueAlive≈4, BlueEnergy≈340.
+  · 갱신 조건 미충족 → reference-ai.txt 유지.
 
 이번 실행 업데이트
 - 시뮬레이터 동작 재검증: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5` 실행.
