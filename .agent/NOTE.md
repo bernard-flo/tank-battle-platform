@@ -1,22 +1,21 @@
 메모 (다음 실행 참고)
 
 - 현 상태 요약(이번 실행):
-  - dnn-ai.txt 성능 재검증: 100전 100승(BlueAlive=0, 평균 Tick ≈ 758) 유지(이번 실행에서도 동일 결과 확인).
-  - NES 튜닝(ITERS=4, POP=16, SEEDS=4, MAXTICKS=3200) 시도 → 성능 저하. 해당 결과를 커밋으로 보존 후 이전 강한 모델로 롤백 완료.
-  - train_dnn.js 보강: 초기 m(베이스라인)을 best로 등록해 단기 튜닝에서의 역행 방지. 실행 시 baselineScore 로그 확인 가능.
+  - dnn-ai.txt 성능 재검증(배치): 200전 200승(무패), 평균 Tick ≈ 758, BlueAlive=0, BlueEnergy=0. 시드 1000부터 200판 병렬 검증.
+  - NES 튜닝(이전 실험): 일부 설정에서 성능 저하 사례 확인 → 스크립트에 베이스라인 보호 장치 추가 완료.
   - 결과물은 HTML에서 즉시 Import 가능하며, 타입 시퀀스(Dealer, Normal, Dealer, Tanker, Dealer, Tanker) 고정.
 
 - 다음 실행 권장 루프:
-  1) NES/ARS 튜닝(미세 조정):
+  1) NES/ARS 미세 조정(선택):
      - `DNN_ITERS=12 DNN_POP=24 DNN_SEEDS=6 DNN_SIGMA=0.22 DNN_LR=0.10 DNN_MAXTICKS=3300 node scripts/train_dnn.js`
-     - 초기 baselineScore가 양호할 경우, 중간 저장은 best 기준으로만 진행(스크립트 보강 완료).
+     - baselineScore 대비 개선 시에만 저장하도록 스크립트 로직 유지.
   2) 광범위 검증:
      - `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 500 --concurrency 8 --fast`
-  3) 리플레이 샘플 생성(시각 확인):
-     - `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --seed 7 --replay result/replay-dnn-vs-ref.json`
+  3) 리플레이 샘플(시각 확인):
+     - `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --seed 777 --replay result/replay-dnn-vs-ref-777.json`
 
 - HTML 사용 팁:
-  - tank_battle_platform.html → 팀 헤더의 "가져오기"에서 result/dnn-ai.txt 내용 전체를 붙여넣으면 즉시 사용 가능.
+  - tank_battle_platform.html → 팀 헤더의 "가져오기"에서 result/dnn-ai.txt 전체를 붙여넣기.
   - 타입 조합(순서 고정): Dealer, Normal, Dealer, Tanker, Dealer, Tanker.
   - update 함수는 DNN 순전파만 사용(입력 파라미터 전부 특징으로 활용, 휴리스틱 없음).
 
