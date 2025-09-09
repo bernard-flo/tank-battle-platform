@@ -90,19 +90,20 @@ async function main(){
   const refCode = fs.readFileSync(refPath, 'utf8');
 
   // 탐색 설정
-  const seedBase = 20250909;
-  const seeds = Array.from({length: 6}, (_,i)=> seedBase + i*97);
+  const seedBase = parseInt(process.env.DNN_SEEDBASE || '20250909', 10);
+  const nSeeds = Math.max(1, parseInt(process.env.DNN_SEEDS || '6', 10));
+  const seeds = Array.from({length: nSeeds}, (_,i)=> seedBase + i*97);
   const rng = makeRng(seedBase);
 
   let bestW = initWeights(rng);
   let best = evaluate(bestW, refCode, seeds);
   console.log(`[init] fitness=${best.fitness.toFixed(3)} w/d/l=${best.wins}/${best.draws}/${best.losses}`);
 
-  let sigma = 0.6;
+  let sigma = parseFloat(process.env.DNN_SIGMA || '0.6');
   const iters = parseInt(process.env.DNN_ITERS || '60', 10);
   for (let t=1;t<=iters;t++){
     const candW = mutate(bestW, rng, sigma);
-    const cand = evaluate(candW, refCode, seeds);
+    const cand = evaluate(candW, refCode, seeds, { maxTicks: parseInt(process.env.DNN_TICKS || '3000', 10) });
     const improved = cand.fitness > best.fitness;
     if (improved) {
       best = cand; bestW = candW;
@@ -125,4 +126,3 @@ async function main(){
 if (require.main === module) {
   main().catch((e)=>{ console.error(e); process.exit(1); });
 }
-
