@@ -93,6 +93,7 @@ async function main(){
   const evalSeeds = getArg('--seeds', '0,1,2,3,4').split(',').map(s=>parseInt(s,10));
   const outWeights = getArg('--out', 'result/ai_dnn_weights.json');
   const outTeam = getArg('--team', 'result/ai_dnn_team.txt');
+  const resume = getFlag('--resume');
 
   function getArg(flag, def){ const i = args.indexOf(flag); return i>=0 ? args[i+1] : def; }
   function getFlag(flag){ return args.includes(flag); }
@@ -100,8 +101,23 @@ async function main(){
   const refPath = path.resolve('result/reference-ai.txt');
   const referenceCode = fs.readFileSync(refPath, 'utf8');
 
-  const w0 = initWeights(defaultRng(seed));
-  const { vec: mu0, shapes, sizes } = flattenWeights(w0);
+  let w0 = initWeights(defaultRng(seed));
+  let mu0, shapes, sizes;
+  if (resume && fs.existsSync(path.resolve(outWeights))) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(path.resolve(outWeights), 'utf8'));
+      shapes = { INPUT_SIZE: prev.INPUT_SIZE, H1: prev.H1, H2: prev.H2, OUTPUT_SIZE: prev.OUTPUT_SIZE };
+      sizes = { W1: prev.W1.length, b1: prev.b1.length, W2: prev.W2.length, b2: prev.b2.length, W3: prev.W3.length, b3: prev.b3.length };
+      const vec = [...prev.W1, ...prev.b1, ...prev.W2, ...prev.b2, ...prev.W3, ...prev.b3];
+      mu0 = vec;
+      console.log(`[CEM] resume from ${outWeights} (vec=${vec.length})`);
+    } catch (e) {
+      console.warn('[CEM] resume failed, fallback to random init:', e.message);
+      const f = flattenWeights(w0); mu0 = f.vec; shapes = f.shapes; sizes = f.sizes;
+    }
+  } else {
+    const f = flattenWeights(w0); mu0 = f.vec; shapes = f.shapes; sizes = f.sizes;
+  }
   let mu = mu0.slice();
   let sigma = new Array(mu.length).fill(sigmaInit);
   const rng = defaultRng(seed ^ 0x9e3779b9);
@@ -147,4 +163,3 @@ if (require.main === module) {
 }
 
 module.exports = { defaultRng, randn, flattenWeights, unflatten };
-
