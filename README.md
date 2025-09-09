@@ -9,6 +9,7 @@
 - 기본 대결(기본 AI): `scripts/simulate.sh`
 - 팀 코드 파일 지정: `scripts/simulate.sh --red red.js --blue blue.js`
 - 반복/시드/JSON: `scripts/simulate.sh --repeat 100 --seed 42 --json result.json`
+- 병렬 배치 실행: `scripts/simulate.sh --repeat 200 --seed 1000 --concurrency 8 --json result.json`
 - 리플레이 저장: `scripts/simulate.sh --replay replay.json --seed 7 --recordEvery 2`
 - 런너 선택(보안/성능): `scripts/simulate.sh --runner secure` 또는 `--runner fast`
 
