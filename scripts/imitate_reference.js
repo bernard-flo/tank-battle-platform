@@ -16,8 +16,14 @@ const { createEngineWithTeams, Type } = require('../simulator/engine');
 const { compileTeamFromCode } = require('../simulator/bot_loader');
 const { buildTeamCode } = require('../ai/dnn_codegen');
 
-// 고정 아키텍처
-const ARCH = { inDim: 43, h1: 24, h2: 16, outDim: 5 };
+// 고정 아키텍처(코드 생성기와 동기화)
+// inDim: self(8)
+//      + enemies EN_K=3 (dx,dy,health,dist,sin,cos) => 3*6=18
+//      + allies  AL_K=2 (dx,dy,health,dist,sin,cos) => 2*6=12
+//      + bullets BL_K=3 (dx,dy,vx,vy,dist,speed,approach) => 3*7=21
+//      + counts(3) + walls(4) = 7
+// 합계 8+18+12+21+7 = 66
+const ARCH = { inDim: 66, h1: 48, h2: 32, outDim: 5 };
 
 function featureVector(tank, enemies, allies, bullets) {
   const W = 900, H = 600, EMAX = 150, SCL = 700, VX = 10, VY = 10;
@@ -29,6 +35,7 @@ function featureVector(tank, enemies, allies, bullets) {
     const out = []; for (let i = 0; i < k; i++) out.push(tmp[i] ? tmp[i].e : null);
     return out;
   };
+  const s = Math.sin, c = Math.cos;
 
   const xSelf = [
     norm(tank.x, W),
@@ -48,23 +55,36 @@ function featureVector(tank, enemies, allies, bullets) {
   const xEn = [];
   for (let i = 0; i < EN_K; i++) {
     const e = ens[i];
-    if (e) xEn.push(norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL));
-    else xEn.push(0, 0, 0, 0);
+    if (e) {
+      const dx = e.x - tank.x, dy = e.y - tank.y;
+      const ang = Math.atan2(dy, dx);
+      xEn.push(norm(dx, W), norm(dy, H), norm(e.health, EMAX), norm(e.distance, SCL), s(ang), Math.cos(ang));
+    } else xEn.push(0, 0, 0, 0, 0, 0);
   }
   const xAl = [];
   for (let i = 0; i < AL_K; i++) {
     const a = als[i];
-    if (a) xAl.push(norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL));
-    else xAl.push(0, 0, 0, 0);
+    if (a) {
+      const dx = a.x - tank.x, dy = a.y - tank.y;
+      const ang = Math.atan2(dy, dx);
+      xAl.push(norm(dx, W), norm(dy, H), norm(a.health, EMAX), norm(a.distance, SCL), s(ang), Math.cos(ang));
+    } else xAl.push(0, 0, 0, 0, 0, 0);
   }
   const xBl = [];
   for (let i = 0; i < BL_K; i++) {
     const b = bls[i];
-    if (b) xBl.push(norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL));
-    else xBl.push(0, 0, 0, 0, 0);
+    if (b) {
+      const dx = b.x - tank.x, dy = b.y - tank.y;
+      const sp = Math.hypot(b.vx || 0, b.vy || 0) || 1;
+      const appr = (dx * (b.vx || 0) + dy * (b.vy || 0)) > 0 ? 1 : 0;
+      xBl.push(norm(dx, W), norm(dy, H), norm(b.vx || 0, VX), norm(b.vy || 0, VY), norm(b.distance, SCL), norm(sp, 12), appr);
+    } else xBl.push(0, 0, 0, 0, 0, 0, 0);
   }
 
-  return new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+  const counts = [Math.min(1, enemies.length / 6), Math.min(1, allies.length / 5), Math.min(1, bullets.length / 6)];
+  const walls = [norm(tank.x, W), norm(W - tank.x, W), norm(tank.y, H), norm(H - tank.y, H)];
+
+  return new Float64Array([].concat(xSelf, xEn, xAl, xBl, counts, walls));
 }
 
 // reference update를 실행하여 (fireAngle, moveAngle들) 수집
@@ -369,4 +389,3 @@ async function main() {
 if (require.main === module) {
   main().catch((e) => { console.error(e); process.exit(1); });
 }
-
