@@ -184,8 +184,8 @@ function policyStep(tank, enemies, allies, bulletInfo){
   const feat = buildFeatures(tank, enemies, allies, bulletInfo);
   const out = mlpForward(feat);
   // 액션 적용
-  // 발사 쿨다운은 엔진이 관리하므로, 언제나 예측 각도로 발사 시도
-  tank.fire(out.fireAngle);
+  // 발사 결정은 DNN의 fireP로만 제어
+  if (out.fireP > 0.5) tank.fire(out.fireAngle);
   tank.move(out.mvAngle);
 }
 `;
