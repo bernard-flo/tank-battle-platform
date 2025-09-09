@@ -179,6 +179,21 @@ Helios-Edge 운영 메모
 - tank_battle_platform.html은 절대 수정하지 않음.
 - 모든 파일 변경 시 즉시 git commit 수행.
 
+이번 실행 요약(Helios-Edge 평가)
+- result-ai.txt: Helios-Edge(AegisNet-L, DNN 64→32→16→8 + 전술 합성) 유지.
+- 빠른 평가: `node scripts/quick_evaluate_and_update.js`
+  · 결과: 12전 0승 0패 12무, 평균 RedAlive 3 / BlueAlive 4, RedEnergy 294 / BlueEnergy 310 → 갱신 조건 미충족.
+- 정밀 평가: `REPEAT=60 CONCURRENCY=8 node scripts/evaluate_and_update.js`
+  · 결과: 60전 8승 44패 8무, RedWinRate≈0.133, Avg BlueAlive≈3.33, BlueEnergy≈186.9 → reference 유지.
+- 결론: 현 시점에서 reference-ai.txt 대비 성능 열위. 다음 단계에서 전술/게이팅/파라미터 튜닝 또는 자동 탐색 도입 필요.
+
+다음 실행 제안(개선 계획)
+- 전술 가중 튜닝: 탄 회피(TTC) 가중 +15%, 벽 반발 -10%, 궤도(CW/CCW) 가중 상황별 동적화(근접시 이탈↑, 원거리시 접근↑).
+- 타겟팅: 최소 체력 + 최근 피격 가중(집중사격 유지), 리드샷 융합비 0.82→0.88 조정 검토.
+- 역할별 파라미터 분기: TANKER(벽반발↑/이탈↑), DEALER(최소 교전거리 200↑), NORMAL(측면 각도 우선, 사이드 스텝 지터).
+- 자동 탐색(옵션): 스크립트형 진화적 탐색(게이팅 계수/상수/시드) 100~300 시도 후 상위안 채택 → result-ai.txt 생성.
+- 검증: quick → 정밀 배치 재검증 후 우세 시 reference-ai.txt 자동 갱신.
+
 이번 실행 메모(Ares-Edge)
 - result-ai.txt를 Ares-Edge(DNN 64-32-16-8 + 경량 전술 합성)로 교체. 실행 속도 향상 및 안정적 교전 목표.
 - 빠른 근사 평가: `MAX_TICKS=1000 REPEAT=16 CONCURRENCY=8 node scripts/quick_evaluate_and_update.js`
