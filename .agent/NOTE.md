@@ -11,5 +11,9 @@
 아이디어/향후 개선
 - 입력에 탄환 상대 각·속도 외에 최근 이동각 추정(모델 안에서 처리하도록 시계열 스택 or EMA 추가) 고려.
 - 출력에 move/fire 강도(logit→soft gate) 따로 두어 탐색성 증가 가능.
-- CEM 병렬화(worker_threads) 옵션화(현재는 단순 직렬 평가).
+- CEM 병렬화 구현 완료(src/cem_worker.js). 향후 후보 샘플링 전략(antithetic, CMA-ES) 검토.
 - seeds 수를 점진 증가: 이터 후반에 안정적 일반화.
+
+실행 메모(이번 실행)
+- reference-ai.txt 대비 학습 시작점 승률 낮음. 병렬화 추가 후 짧은 러닝으로 반복 예정.
+- 빠른 실험 파라미터 예: `node src/train_cem.js --iters 8 --pop 40 --elite 8 --seeds 2 --ticks 1200 --fast --runner secure --concurrency 8`

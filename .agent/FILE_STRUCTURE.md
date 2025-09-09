@@ -35,6 +35,7 @@
 AI/DNN 학습/생성 파일
 - src/generate_dnn_team.js: MLP 정책 코드 생성기. update()에서 tank/enemies/allies/bulletInfo 전부를 피처로 사용하여 추론하는 코드 문자열을 만들어 팀(6로봇) 텍스트를 출력.
 - src/train_cem.js: Cross-Entropy Method 기반 학습 스크립트. reference-ai.txt를 상대 블루팀으로 두고 평균 보상(에너지 차 + 승패 보너스)을 최대화하도록 공유 가중치를 최적화. 최적 가중치로 result/ai_dnn_team.txt를 저장.
+ - src/cem_worker.js: 학습 중 개별 후보(가중치)의 성능을 병렬로 평가하는 워커. train_cem.js에서 --concurrency로 활용.
 
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
@@ -47,7 +48,8 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 병렬 실행 추가: --concurrency N 옵션과 simulator/worker.js 도입으로 반복 경기 병렬 처리 지원.
+- 시뮬레이터: --concurrency N 옵션과 simulator/worker.js 도입으로 반복 경기 병렬 처리 지원.
+- 학습기: CEM 평가 병렬화(src/cem_worker.js 추가, src/train_cem.js 업데이트). --concurrency로 인코어 활용.
 - README와 집계 JSON에 concurrency 항목 추가. 기존 규칙/로직 유지, HTML 미변경.
 
 사용 팁
