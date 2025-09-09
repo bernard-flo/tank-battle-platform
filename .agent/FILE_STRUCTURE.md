@@ -32,6 +32,14 @@
    - 예: `scripts/simulate.sh --red red.js --blue blue.js --repeat 100 --fast`.
 - simulator/replay_viewer.html: 리플레이(JSON) 재생용 독립 HTML 뷰어(시각적 확인 전용).
 
+AI/DNN 학습/생성 파일
+- src/generate_dnn_team.js: MLP 정책 코드 생성기. update()에서 tank/enemies/allies/bulletInfo 전부를 피처로 사용하여 추론하는 코드 문자열을 만들어 팀(6로봇) 텍스트를 출력.
+- src/train_cem.js: Cross-Entropy Method 기반 학습 스크립트. reference-ai.txt를 상대 블루팀으로 두고 평균 보상(에너지 차 + 승패 보너스)을 최대화하도록 공유 가중치를 최적화. 최적 가중치로 result/ai_dnn_team.txt를 저장.
+
+결과물(result)
+- result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
+- result/ai_dnn_team.txt: 본 스크립트가 생성하는 DNN 팀 코드. tank_battle_platform.html Import로 붙여넣어 사용 가능. 타입 조합은 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER] 고정.
+
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
 - 시뮬레이터 출력 JSON(result*.json)과 리플레이(replay*.json)는 .gitignore에 포함됨.
