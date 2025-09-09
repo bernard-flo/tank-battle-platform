@@ -159,6 +159,28 @@ async function main(){
   }
   console.log(`collected samples: ${samples.length}`);
 
+  // 기하학 보강: (dx,dy)->각도 지도 학습용 합성 샘플 추가
+  const synthN = parseInt(process.env.ELM_SYNTH || '12000', 10);
+  for(let i=0;i<synthN;i++){
+    const dx = (rng()*2-1)*900, dy = (rng()*2-1)*600;
+    const D = (Math.atan2(dy, dx)*180/Math.PI + 360) % 360;
+    // 입력 벡터: self=0, enemy[0]에 (dx/W, dy/H)만 주입, 나머지 0
+    const X = new Float64Array(inDim);
+    // self 8 -> 0..7, enemies 시작 오프셋 8
+    X[8+0] = dx/900; // e0.dx
+    X[8+1] = dy/600; // e0.dy
+    // distance/health 비우더라도 학습에는 충분
+    const degToY = (deg)=> (deg - 180) * Math.PI/180;
+    const Y = [
+      degToY(D),
+      degToY((D+25)%360),
+      degToY((D+335)%360),
+      degToY((D+180)%360),
+      degToY(D),
+    ];
+    samples.push({ X, Y });
+  }
+
   // H 생성 및 릿지 회귀로 출력층 적합
   const H = samples.map(s=>{ const h2=forwardHidden(s.X, pars); return Array.from(h2).concat([1]); }); // bias 포함
   const Y = samples.map(s=> s.Y.slice());
