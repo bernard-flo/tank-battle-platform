@@ -39,6 +39,18 @@ function createRunner(code) {
     `"use strict";
      const window = undefined;
      const document = undefined;
+     const globalThis = undefined;
+     const global = undefined;
+     const process = undefined;
+     const require = undefined;
+     const module = undefined;
+     const Function = undefined;
+     const eval = undefined;
+     const setTimeout = undefined;
+     const setInterval = undefined;
+     const setImmediate = undefined;
+     const WebAssembly = undefined;
+     const fetch = undefined;
      const tanks = undefined;
      const bullets = undefined;
      const gameRunning = undefined;
