@@ -73,7 +73,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.01673948, -0.12116627, 0.08956943, 0.01743388, -0.01673948]);
+  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -93,7 +93,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 각도 변환: y in R -> [0,360)
   function toDeg(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
-    return angleWrap((v*180/Math.PI)%360 + 180);
+    return angleWrap((v*180/Math.PI));
   }
 
   const m1 = toDeg(y[0]);
@@ -188,7 +188,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.01673948, -0.12116627, 0.08956943, 0.01743388, -0.01673948]);
+  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -208,7 +208,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 각도 변환: y in R -> [0,360)
   function toDeg(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
-    return angleWrap((v*180/Math.PI)%360 + 180);
+    return angleWrap((v*180/Math.PI));
   }
 
   const m1 = toDeg(y[0]);
@@ -303,7 +303,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.01673948, -0.12116627, 0.08956943, 0.01743388, -0.01673948]);
+  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -323,7 +323,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 각도 변환: y in R -> [0,360)
   function toDeg(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
-    return angleWrap((v*180/Math.PI)%360 + 180);
+    return angleWrap((v*180/Math.PI));
   }
 
   const m1 = toDeg(y[0]);
@@ -418,7 +418,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.01673948, -0.12116627, 0.08956943, 0.01743388, -0.01673948]);
+  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -438,7 +438,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 각도 변환: y in R -> [0,360)
   function toDeg(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
-    return angleWrap((v*180/Math.PI)%360 + 180);
+    return angleWrap((v*180/Math.PI));
   }
 
   const m1 = toDeg(y[0]);
@@ -533,7 +533,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.01673948, -0.12116627, 0.08956943, 0.01743388, -0.01673948]);
+  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -553,7 +553,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 각도 변환: y in R -> [0,360)
   function toDeg(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
-    return angleWrap((v*180/Math.PI)%360 + 180);
+    return angleWrap((v*180/Math.PI));
   }
 
   const m1 = toDeg(y[0]);
@@ -648,7 +648,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.01673948, -0.12116627, 0.08956943, 0.01743388, -0.01673948]);
+  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -668,7 +668,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 각도 변환: y in R -> [0,360)
   function toDeg(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
-    return angleWrap((v*180/Math.PI)%360 + 180);
+    return angleWrap((v*180/Math.PI));
   }
 
   const m1 = toDeg(y[0]);
