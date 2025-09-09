@@ -191,12 +191,26 @@ function toAngles(a){ // deg→unit vector
   const rad = (a*Math.PI)/180; return [Math.cos(rad), Math.sin(rad)];
 }
 
+function parseArgs(){
+  const args = process.argv.slice(2);
+  const opts = { matches: 12, ticks: 2000, epochs: 5, batch: 128, lr: 0.003, startSeed: 4242, fast: true };
+  for(let i=0;i<args.length;i++){
+    const a = args[i];
+    if(a==='--matches') opts.matches = +args[++i];
+    else if(a==='--ticks') opts.ticks = +args[++i];
+    else if(a==='--epochs') opts.epochs = +args[++i];
+    else if(a==='--batch') opts.batch = +args[++i];
+    else if(a==='--lr') opts.lr = +args[++i];
+    else if(a==='--seed') opts.startSeed = +args[++i];
+    else if(a==='--fast') opts.fast = true;
+    else if(a==='--no-fast') opts.fast = false;
+  }
+  return opts;
+}
+
 async function main(){
-  // 수집 설정
-  const maxMatches = 8;
-  const maxTicks = 1500;
-  const fast = true;
-  const startSeed = 4242;
+  // 수집/학습 설정
+  const { matches: maxMatches, ticks: maxTicks, fast, startSeed, epochs, batch: batchSize, lr } = parseArgs();
   const ref = fs.readFileSync(path.resolve('result/reference-ai.txt'), 'utf8');
   const red = compileTeamFromCode(ref, 'red', 'secure');
   const blue = compileTeamFromCode(ref, 'blue', 'secure');
@@ -244,9 +258,7 @@ async function main(){
   const { params, forward, backward, adamUpdate } = net;
 
   function randInt(n){ return Math.floor(Math.random()*n); }
-  const epochs = 3;
-  const batchSize = 128;
-  const lr = 0.003;
+  // epochs, batchSize, lr는 CLI로 조절
 
   for(let ep=0; ep<epochs; ep++){
     let totalLoss=0, count=0;
