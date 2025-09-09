@@ -1,0 +1,98 @@
+// Heuristic Teacher AI (학습 전용): 총알 회피 + 근접 적 추적 + 아군 분리 + 간단한 스트레이프
+// 최종 결과물은 DNN 전용이지만, 데이터 수집을 위해 Teacher를 사용합니다.
+
+function commonUpdate(role, tank, enemies, allies, bulletInfo){
+  // 가중치 파라미터(역할에 따라 차등)
+  const wEnemy = role==='dealer' ? 1.2 : (role==='tanker' ? 0.8 : 1.0);
+  const wStrafe = role==='dealer' ? 0.9 : (role==='tanker' ? 0.7 : 0.8);
+  const wBullet = role==='tanker' ? 1.5 : 1.2;
+  const wAllySep = 0.8;
+
+  // 타겟 선정: 가장 가까운 적
+  let target = null;
+  for (const e of enemies) {
+    if (!target || e.distance < target.distance) target = e;
+  }
+
+  // 벡터 합성: 적 추적 + 스트레이프 + 총알 회피 + 아군 분리
+  let vx=0, vy=0;
+
+  if (target) {
+    let dx = target.x - tank.x; let dy = target.y - tank.y;
+    const d = Math.hypot(dx,dy) || 1e-6; dx/=d; dy/=d;
+    // 적 방향
+    vx += wEnemy*dx; vy += wEnemy*dy;
+    // 스트레이프 성분(좌우 교대)
+    const sdx = -dy, sdy = dx;
+    const toggle = ((Math.floor((tank.x + tank.y) * 0.1) + Math.floor(d*0.05)) % 2) ? 1 : -1;
+    vx += wStrafe * sdx * toggle; vy += wStrafe * sdy * toggle;
+  }
+
+  // 총알 회피: 가까운 총알 반대 방향 + 측면으로 비켜가기
+  for (const b of bulletInfo) {
+    const dx = tank.x - b.x; const dy = tank.y - b.y; const d = Math.hypot(dx,dy) || 1e-6;
+    const wx = dx/d, wy = dy/d;
+    const w = wBullet * Math.max(0, 1 - d/220);
+    // 기본은 반대 방향 회피
+    vx += w*wx; vy += w*wy;
+    // 탄속에 수직 성분으로 미세 회피
+    const bvx = b.vx, bvy = b.vy; const bl = Math.hypot(bvx,bvy)||1e-6; const px = -bvy/bl, py = bvx/bl;
+    vx += 0.3*w*px; vy += 0.3*w*py;
+  }
+
+  // 아군 분리(충돌 감소)
+  for (const a of allies) {
+    const dx = tank.x - a.x; const dy = tank.y - a.y; const d = Math.hypot(dx,dy) || 1e-6;
+    const w = wAllySep * Math.max(0, 1 - d/140);
+    vx += w*(dx/d); vy += w*(dy/d);
+  }
+
+  // 경계 회피
+  const W=900,H=600; const m=70;
+  if (tank.x < m) vx += 0.7; if (tank.x > W-m) vx -= 0.7;
+  if (tank.y < m) vy += 0.7; if (tank.y > H-m) vy -= 0.7;
+
+  // 이동 적용
+  const ang = Math.atan2(vy, vx) * 180/Math.PI;
+  if(!tank.move(ang)){
+    if(!tank.move(ang+30)) tank.move(ang-30);
+  }
+
+  // 사격: 타겟 예측 조준(단순 리드)
+  if (target) {
+    const fx = target.x - tank.x; const fy = target.y - tank.y;
+    const fireAng = Math.atan2(fy, fx) * 180/Math.PI;
+    tank.fire(fireAng);
+  }
+}
+
+// ===== 로봇1 =====
+function name(){ return 'Teacher N1'; }
+function type(){ return Type.NORMAL; }
+function update(tank, enemies, allies, bulletInfo){ commonUpdate('normal', tank, enemies, allies, bulletInfo); }
+
+// ===== 다음 로봇 =====
+function name(){ return 'Teacher D1'; }
+function type(){ return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo){ commonUpdate('dealer', tank, enemies, allies, bulletInfo); }
+
+// ===== 다음 로봇 =====
+function name(){ return 'Teacher T1'; }
+function type(){ return Type.TANKER; }
+function update(tank, enemies, allies, bulletInfo){ commonUpdate('tanker', tank, enemies, allies, bulletInfo); }
+
+// ===== 다음 로봇 =====
+function name(){ return 'Teacher D2'; }
+function type(){ return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo){ commonUpdate('dealer', tank, enemies, allies, bulletInfo); }
+
+// ===== 다음 로봇 =====
+function name(){ return 'Teacher T2'; }
+function type(){ return Type.TANKER; }
+function update(tank, enemies, allies, bulletInfo){ commonUpdate('tanker', tank, enemies, allies, bulletInfo); }
+
+// ===== 다음 로봇 =====
+function name(){ return 'Teacher D3'; }
+function type(){ return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo){ commonUpdate('dealer', tank, enemies, allies, bulletInfo); }
+

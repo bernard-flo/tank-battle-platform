@@ -193,7 +193,7 @@ function toAngles(a){ // deg→unit vector
 
 function parseArgs(){
   const args = process.argv.slice(2);
-  const opts = { matches: 12, ticks: 2000, epochs: 5, batch: 128, lr: 0.003, startSeed: 4242, fast: true };
+  const opts = { matches: 12, ticks: 2000, epochs: 5, batch: 128, lr: 0.003, startSeed: 4242, fast: true, teacher: null };
   for(let i=0;i<args.length;i++){
     const a = args[i];
     if(a==='--matches') opts.matches = +args[++i];
@@ -204,14 +204,16 @@ function parseArgs(){
     else if(a==='--seed') opts.startSeed = +args[++i];
     else if(a==='--fast') opts.fast = true;
     else if(a==='--no-fast') opts.fast = false;
+    else if(a==='--teacher') opts.teacher = String(args[++i]);
   }
   return opts;
 }
 
 async function main(){
   // 수집/학습 설정
-  const { matches: maxMatches, ticks: maxTicks, fast, startSeed, epochs, batch: batchSize, lr } = parseArgs();
-  const ref = fs.readFileSync(path.resolve('result/reference-ai.txt'), 'utf8');
+  const { matches: maxMatches, ticks: maxTicks, fast, startSeed, epochs, batch: batchSize, lr, teacher } = parseArgs();
+  const teacherPath = teacher ? path.resolve(teacher) : path.resolve('result/reference-ai.txt');
+  const ref = fs.readFileSync(teacherPath, 'utf8');
   const red = compileTeamFromCode(ref, 'red', 'secure');
   const blue = compileTeamFromCode(ref, 'blue', 'secure');
   const players = [...red, ...blue];
