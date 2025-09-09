@@ -10,8 +10,8 @@
 - 점수: 승리 +1000, 생존차*100, 에너지 차 합산.
 
 실행 기록(이번 실행)
-- 평가: `node src/eval_vs_reference.js --start 1000 --count 30 --maxTicks 3000 --no-fast`
-  · 결과: W:30 L:0 D:0, avgTicks≈761, avgRed≈54, avgBlue≈0 → reference-ai.txt를 안정적으로 압도
+- 평가: `node src/eval_vs_reference.js --start 3000 --count 40 --maxTicks 3200 --fast`
+  · 결과: W:40 L:0 D:0, avgTicks≈761, avgRed≈54, avgBlue≈0 → reference-ai.txt를 안정적으로 압도
   · 현재 팀(result/ai_dnn_team.txt) 유지, 추가 학습 없이도 기준 충족
 
 참고
