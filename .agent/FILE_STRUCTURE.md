@@ -38,22 +38,21 @@
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 스크립트 추가: scripts/train_dnn.js
-  - NES(antithetic) 기반 DNN 가중치 탐색.
-  - simulator 엔진을 직접 호출해 reference-ai.txt 상대로 반복 평가.
-  - 결과물을 result/dnn-ai-weights.json, result/dnn-ai.txt로 저장.
-  - 환경변수: DNN_ITERS, DNN_POP, DNN_SEEDS, DNN_SIGMA, DNN_LR, DNN_MAXTICKS, DNN_BASESEED.
-- 스크립트 추가: scripts/imitate_reference.js
-  - reference-ai 행동을 데이터로 수집(사격각+이동 4각).
-  - 2층 DNN(43→24→16→5) 순전파/역전파/Adam 구현으로 지도학습.
-  - 초기 가중치 워밍업 후 NES 파인튜닝 추천.
-- 코드 생성기: ai/dnn_codegen.js
-  - 가중치 배열 -> 6개 로봇 코드 문자열 생성.
-  - update는 DNN 순전파만 사용, 휴리스틱 미포함.
-  - 타입 순서 고정: dealer, normal, dealer, tanker, dealer, tanker.
+- 스크립트: scripts/train_dnn.js (기존)
+  - NES(antithetic) 기반 DNN 가중치 탐색. reference-ai.txt 상대로 반복 평가/최적화.
+  - 이번 실행: 짧은 반복 배치(5 iters x 2회, pop=16,seeds=3) + 빠른 스윕(10 iters, pop=12,seeds=1) 수행.
+  - 중간/최종 산출물 저장: result/dnn-ai-weights.json, result/dnn-ai.txt (각 저장 후 커밋 완료).
+- 스크립트: scripts/imitate_reference.js (기존)
+  - reference-ai 행동 모방 지도학습 실행(20k 샘플, 15 epochs) → dnn-ai 초기화에 사용.
+- 스크립트: scripts/fit_elm.js (기존)
+  - 은닉층 고정 + 출력층 릿지 회귀(교전/회피 힌트 포함)로 출력층 초기화.
+  - 실행하여 dnn-ai 초기화 강화 후 저장.
+- 코드 생성기: ai/dnn_codegen.js (기존)
+  - 가중치 배열 → 6개 로봇 코드 생성. update는 DNN 순전파만 사용.
+  - 타입 순서: dealer, normal, dealer, tanker, dealer, tanker (요구사항 준수, 하드코딩).
 - 결과물(Import용):
-  - result/dnn-ai.txt: tank_battle_platform.html Import 모달에 그대로 붙여넣기 가능.
-  - result/dnn-ai-weights.json: 아키텍처/가중치 스냅샷.
+  - result/dnn-ai.txt: tank_battle_platform.html에서 Import 가능한 최종 팀 코드.
+  - result/dnn-ai-weights.json: 아키텍처/가중치/메타 정보.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
