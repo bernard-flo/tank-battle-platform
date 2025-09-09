@@ -1,3 +1,5 @@
 preferred_auth_method = "apikey"
 sandbox_mode = "danger-full-access"
 approval_policy = "never"
+model = "gpt-5"
+model_reasoning_effort = "high"
