@@ -45,7 +45,6 @@ function createRunner(code) {
      const require = undefined;
      const module = undefined;
      const Function = undefined;
-     const eval = undefined;
      const setTimeout = undefined;
      const setInterval = undefined;
      const setImmediate = undefined;
