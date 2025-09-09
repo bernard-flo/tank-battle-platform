@@ -40,8 +40,8 @@
 업데이트(현재 실행)
 - 스크립트: scripts/train_dnn.js (기존)
   - NES(antithetic) 기반 DNN 가중치 탐색. reference-ai.txt 상대로 반복 평가/최적화.
-  - 이번 실행: 짧은 반복 배치(5 iters x 2회, pop=16,seeds=3) + 빠른 스윕(10 iters, pop=12,seeds=1) 수행.
-  - 중간/최종 산출물 저장: result/dnn-ai-weights.json, result/dnn-ai.txt (각 저장 후 커밋 완료).
+  - 이번 실행: 빠른 스윕 1회(DNN_ITERS=10, POP=12, SEEDS=1, SIGMA=0.35, LR=0.2, MAXTICKS=2000) 수행.
+  - 산출물 저장: result/dnn-ai-weights.json, result/dnn-ai.txt (커밋으로 추적).
 - 스크립트: scripts/imitate_reference.js (기존)
   - reference-ai 행동 모방 지도학습 실행(20k 샘플, 15 epochs) → dnn-ai 초기화에 사용.
 - 스크립트: scripts/fit_elm.js (기존)

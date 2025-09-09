@@ -1,13 +1,13 @@
 메모 (다음 실행 참고)
 
 - 현 상태 요약:
-  - DNN-only 팀 코드는 result/dnn-ai.txt로 최신화됨(모방학습 20k 샘플 + ELM 출력층 초기화 + NES 소규모 반복).
-  - 아직 reference-ai.txt 상대로 승률 0% (100전 기준). 더 많은 반복/탐색 필요.
+  - DNN-only 팀 코드는 result/dnn-ai.txt로 최신화됨(모방학습 20k 샘플 + ELM 출력층 초기화 + NES 반복).
+  - 빠른 스윕 1회(10 iters, pop=12, seeds=1, 2000ticks) 결과 여전히 승률 0% (100전 기준). 추가 탐색 필요.
 
 - 다음 실행 즉시 할 일(빠른 루프 추천):
   1) 빠른 NES 스윕 반복(타임아웃 회피용 파라미터):
      - `DNN_ITERS=10 DNN_POP=12 DNN_SEEDS=1 DNN_SIGMA=0.35 DNN_LR=0.2 DNN_MAXTICKS=2000 node scripts/train_dnn.js`
-     - 위 명령을 5~10회 반복 실행(각 ~45초). 매 실행 후 자동 저장됨 → 커밋.
+     - 위 명령을 수회 반복 실행(각 ~45초). 실행마다 result/* 갱신 → 즉시 커밋.
   2) 주기적 검증:
      - `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 100 --fast --concurrency 8`
   3) 시간이 허용되면 안정 설정으로 장기 학습:
