@@ -38,22 +38,20 @@
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 스크립트: scripts/train_dnn.js (기존)
-  - NES(antithetic) 기반 DNN 가중치 탐색. reference-ai.txt 상대로 반복 평가/최적화.
-  - 이번 실행: 빠른 스윕 1회(DNN_ITERS=10, POP=12, SEEDS=1, SIGMA=0.35, LR=0.2, MAXTICKS=2000) 수행.
-  - 산출물 저장: result/dnn-ai-weights.json, result/dnn-ai.txt (커밋으로 추적).
-- 스크립트: scripts/imitate_reference.js (기존)
-  - reference-ai 행동 모방 지도학습 실행(20k 샘플, 15 epochs) → dnn-ai 초기화에 사용.
-- 스크립트: scripts/fit_elm.js (기존)
-  - 은닉층 고정 + 출력층 릿지 회귀(교전/회피 힌트 포함)로 출력층 초기화.
-  - 실행하여 dnn-ai 초기화 강화 후 저장.
-- 코드 생성기: ai/dnn_codegen.js (기존)
-  - 가중치 배열 → 6개 로봇 코드 생성. update는 DNN 순전파만 사용.
-  - 타입 순서: dealer, normal, dealer, tanker, dealer, tanker (요구사항 준수, 하드코딩).
-  - 변경: Float64Array 대신 일반 배열로 생성하여 Node vm 샌드박스 호환성 개선.
+- 코드 생성기: ai/dnn_codegen.js
+  - 입력 특징 확장(66차원):
+    · self(8) + enemies 3명(각 dx,dy,health,dist,sin,cos) + allies 2명(동일 6특징) + bullets 3개(각 dx,dy,vx,vy,dist,speed,approach) + counts(3) + walls(4)
+  - 네트워크 확장: 66 -> 48 -> 32 -> 5, tanh 활성화.
+  - 출력: move 4개 + fire 1개(각도), DNN 순전파 외 휴리스틱 없음.
+- 학습 스크립트: scripts/train_dnn.js
+  - ARCH 동기화(inDim=66,h1=48,h2=32,out=5) 및 보상 튜닝(생존/에너지/속전속결 가중 상향).
+  - NES 빠른 스윕 12회(pop=18, seeds=3, maxTicks=2800) 수행하여 결과 갱신.
+- 초기화 스크립트 실행:
+  - scripts/fit_elm.js 실행 → 출력층 릿지로 초기화 후 저장/커밋.
+  - scripts/imitate_reference.js 실행(8k/10ep) → 모방 학습 가중치 반영 후 저장/커밋.
 - 결과물(Import용):
-  - result/dnn-ai.txt: tank_battle_platform.html에서 Import 가능한 최종 팀 코드.
-  - result/dnn-ai-weights.json: 아키텍처/가중치/메타 정보.
+  - result/dnn-ai.txt: tank_battle_platform.html에서 Import 가능한 팀 코드(6 로봇, 타입 고정 시퀀스).
+  - result/dnn-ai-weights.json: 현재 ARCH 및 가중치, 메타 정보.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
