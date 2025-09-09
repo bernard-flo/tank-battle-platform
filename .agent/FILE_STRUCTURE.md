@@ -41,3 +41,8 @@
 - 기본 실행: `node simulator/cli.js`
 - 스크립트 실행: `scripts/simulate.sh` (경로/옵션 전달이 간편)
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
+
+이번 실행 업데이트
+- 시뮬레이터 동작 재검증: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5` 실행.
+- 결과 요약: BLUE 승, Ticks 638, JSON/리플레이 정상 저장 확인.
+- 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경 유지.
