@@ -1,0 +1,125 @@
+{
+  "summaries": [
+    {
+      "seed": "7000-0",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-1",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-2",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-3",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-4",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-5",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-6",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-7",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-8",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-9",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-10",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    },
+    {
+      "seed": "7000-11",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 594
+    }
+  ],
+  "aggregate": {
+    "matches": 12,
+    "redWins": 0,
+    "blueWins": 0,
+    "draws": 12,
+    "avgTicks": 3000,
+    "avgRedAlive": 3,
+    "avgBlueAlive": 6,
+    "avgRedEnergy": 330,
+    "avgBlueEnergy": 594,
+    "baseSeed": "7000",
+    "concurrency": 1
+  }
+}
