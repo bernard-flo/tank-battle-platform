@@ -4,7 +4,7 @@
 - 현재 정책: 공유 MLP(입력 76, 히든 64-64, 출력 9: [mv1x,mv1y,mv2x,mv2y, fx,fy, fire_logit, mv3x,mv3y])
   · 피처: tank(자기 상태), enemies/allies 최근접 K, bulletInfo 최근접 K, 전역 통계.
   · 액션: fireP>0.5일 때 fire(fireAngle), move는 최대 3회 시도(mv1→mv2→mv3). 휴리스틱 없음.
-- 학습: (1) 모방학습으로 초기화(레퍼런스 행동 수집→Adam 3 epoch) → (2) CEM으로 미세튜닝
+- 학습: (1) 모방학습으로 초기화(레퍼런스 행동 수집→Adam 8 epoch) → (2) CEM/ES로 미세튜닝
   · 보상: (redEnergy - blueEnergy) + 승패 보너스(승 +100, 패 -100)
   · 시간 제한(120s/호출) 때문에 iters를 4~8로 잘게 나눠 반복 실행 권장.
 
@@ -17,9 +17,9 @@
 - 실행 메모(이번 실행)
   · 모방학습 스크립트 출력 차원 버그(5→9) 수정. 이후 모방학습으로 초기화하고 CEM/ES로 미세튜닝 예정.
   · 빠른 실험 예:
-    - 모방학습: `node src/imitation_train.js`
-    - CEM 튜닝: `node src/train_cem.js --iters 16 --pop 60 --elite 12 --seeds 4 --ticks 2500 --fast --runner secure --concurrency 8`
-    - ES 튜닝: `node src/train_es.js --iters 40 --pop 80 --sigma 0.2 --alpha 0.08 --seeds 4 --ticks 2500 --concurrency 8 --fast`
+    - 모방학습(대규모): `node src/imitation_train.js --matches 40 --ticks 2800 --epochs 10 --batch 256 --lr 0.003 --fast`
+    - CEM 튜닝(빠른 러너): `node src/train_cem.js --iters 12 --pop 30 --elite 6 --seeds 4 --ticks 2800 --fast --runner fast --concurrency 8`
+    - ES 튜닝(빠른 러너): `node src/train_es.js --iters 20 --pop 60 --sigma 0.2 --alpha 0.06 --seeds 4 --ticks 2800 --concurrency 8 --fast`
   · 추가 개선 제안(다음 번):
     - 네트워크 확장(64-64) 및 seeds 8~12로 안정화.
     - 입력에 시간 스택(직전 2~3틱) 추가. update는 순수 DNN 추론만 수행하도록 유지.

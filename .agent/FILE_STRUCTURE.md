@@ -36,7 +36,9 @@ AI/DNN 학습/생성 파일
 - src/generate_dnn_team.js: MLP 정책 코드 생성기. update()에서 tank/enemies/allies/bulletInfo 전부를 피처로 사용하여 추론하는 코드 문자열을 만들어 팀(6로봇) 텍스트를 출력.
 - src/train_cem.js: Cross-Entropy Method 기반 학습 스크립트. reference-ai.txt를 상대 블루팀으로 두고 평균 보상(에너지 차 + 승패 보너스)을 최대화하도록 공유 가중치를 최적화. 최적 가중치로 result/ai_dnn_team.txt를 저장. 히든층 크기 32-32로 경량화.
  - src/cem_worker.js: 학습 중 개별 후보(가중치)의 성능을 병렬로 평가하는 워커. train_cem.js에서 --concurrency로 활용.
- - src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 32-32 MLP 초기화. 이후 CEM 미세튜닝 권장.
+- src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 32-32 MLP 초기화. 이후 CEM 미세튜닝 권장.
+ - src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 64-64 MLP 초기화. 이후 CEM/ES 미세튜닝 권장.
+   · CLI 옵션: --matches N --ticks N --epochs N --batch N --lr F --seed S [--fast|--no-fast]
  - src/generate_from_weights.js: result/ai_dnn_weights.json을 읽어 팀 코드를 재생성.
  - src/train_es.js: Evolution Strategies(OpenAI-ES) 기반 블랙박스 최적화. Mirrored sampling과 병렬 워커로 빠르게 gradient 추정 후 가중치 업데이트.
   - src/es_worker.js: ES 평가 워커. 주어진 가중치 벡터로 코드 생성→시뮬레이션→스코어 반환.
