@@ -13,3 +13,8 @@
 – 리플레이 로그(틱별 탱크/총알 상태) 덤프 옵션 추가하여 HTML에서 재생 검증.
 – 성능 튜닝: 대량 반복 시 메모리 압력 완화(객체 풀링) 및 JIT 친화 루프 재구성 검토.
 – 간단한 검증 테스트 스위트 추가(예: 아군 관통, 쿨다운, 경계 충돌 단위 테스트).
+
+사용 팁
+- 기본 실행: `node simulator/cli.js`
+- 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
+- 반복/시드/JSON: `node simulator/cli.js --repeat 100 --seed 42 --json result.json`
