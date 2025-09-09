@@ -35,12 +35,12 @@
 
 AI 팀 코드 산출물
 - result-ai.txt: tank_battle_platform.html에서 import 가능한 팀 코드(6 로봇).
-  - Nemesis-2 팀: DNN(64→32→16→6 tanh) + 고급 휴리스틱 혼합.
-  - update(tank,enemies,allies,bulletInfo)에서 모든 파라미터를 사용해 입력(최대 64차원 패딩 포함) 구성:
-    self(6) + top3 적(6×3) + top2 아군(4×2) + 위협탄 top4(5×4) + 카운트(3) = 55 → 64 패딩.
-  - 출력 6차원: 이동벡터(2), 사격벡터(2), 혼합계수 2(α,β). 휴리스틱(탄 회피/아군 분산/벽 반발/카이팅)과 각도 혼합.
-  - 리드샷: 이전 틱 타깃 위치로 속도 추정 후 탄속(8) 기준 요격 각 계산. 팀 전반 집중사격(체력/거리 점수 최소) 우선.
-  - 역할/거리: TANKER 2대(front/support), DEALER 4대(flank/support), 각기 선호 거리 범위 설정.
+  - Nemesis-3(AegisNet): DNN(64→48→24→6 tanh) + 전술 휴리스틱 혼합.
+  - update(tank,enemies,allies,bulletInfo)에서 모든 파라미터를 사용해 입력(64차원 패딩) 구성:
+    self(7) + top3 적(6×3) + top2 아군(4×2) + 위협탄 top4(5×4) + 카운트(3) = 55 → 64.
+  - 출력 6차원: 이동벡터(2), 사격벡터(2), 혼합계수 2(이동/사격 가중치). 휴리스틱과 각도 혼합.
+  - 리드샷: 이전 틱 타깃 위치로 속도 추정 후 탄속(8) 기준 요격 각 계산. 팀 전반 집중사격(최저 체력 우선) 유도.
+  - 역할/거리: TANKER×2(front/support), DEALER×3(flank/support), NORMAL×1.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
@@ -56,9 +56,9 @@ AI 팀 코드 산출물
 - 스크립트 실행: `scripts/simulate.sh` (경로/옵션 전달이 간편)
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
 
-이번 실행(Nemesis-2 교체)
-- result-ai.txt를 Nemesis-2(DNN 64→32→16→6 + 리드샷/탄 회피/카이팅/벽 반발)로 전면 교체.
-- 각 로봇은 동일 코어 로직을 사용하되 역할/거리 파라미터만 다르게 설정(TANKER 2, DEALER 4).
+이번 실행(Nemesis-3 반영)
+- result-ai.txt를 Nemesis-3(AegisNet)으로 전면 교체: 64→48→24→6 MLP, 리드샷/탄 회피(TTC)/집중사격/벽 반발/아군 간격/카이팅.
+- 6 로봇 구성: TANKER×2, DEALER×3, NORMAL×1.
 - 다음 단계: `node scripts/evaluate_and_update.js`로 reference-ai.txt 대비 성능 비교 및 자동 갱신 시도.
 
 이번 실행 업데이트
