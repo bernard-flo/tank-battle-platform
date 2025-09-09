@@ -55,9 +55,10 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(이번 실행)
-- 현재 DNN 팀(result/ai_dnn_team.txt) vs reference 200시드 평가: W:200 L:0 D:0 (start=1, maxTicks=4000, fast). 평균 tick≈761.0, 평균 RedE≈54.0, BlueE≈0.0.
+- 시뮬레이터로 기존 DNN 팀을 reference-ai.txt와 대조 평가한 결과, 기존 가중치는 크게 열세(0승 200패)로 확인됨.
+- 모방학습(레퍼런스 교사) 60매치·12에폭으로 재학습, 설계형 가중치(design_weights_9 / design_weights_plus) 생성도 시도했으나 아직 reference 대비 성능 미달.
+- 결과물(result/ai_dnn_team.txt, ai_dnn_weights.json) 갱신 및 대조 평가 JSON 저장.
 - tank_battle_platform.html에서 Import 가능한 형식 유지 확인.
-- 문서 최신화(.agent/*).
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
@@ -66,5 +67,6 @@ AI/DNN 학습/생성 파일
 - 빠른 비교 평가: `node src/eval_vs_reference.js --count 200 --start 1 --maxTicks 4000 --fast`
 
 추천 실행(장시간 컴퓨트 가능 시)
-- ES 장기 튜닝(권장): `node src/train_es.js --iters 20 --pop 80 --sigma 0.2 --alpha 0.05 --seeds 8 --ticks 3600 --concurrency 8 --fast`
-- 모방→ES 파이프라인: `node src/imitation_train.js --matches 20 --ticks 2200 --epochs 5` 후 `train_es.js` 반복
+- ES 장기 튜닝(권장): `node src/train_es.js --iters 30 --pop 120 --sigma 0.18 --alpha 0.06 --seeds 8 --ticks 3600 --concurrency 8 --fast`
+- 모방→ES 파이프라인: `node src/imitation_train.js --matches 80 --ticks 2600 --epochs 20 --fast` 후 `train_es.js` 반복
+- CEM 보조 탐색: `node src/train_cem.js --iters 20 --pop 80 --elite 0.25 --seeds 0,1,2,3,4 --maxTicks 3200`

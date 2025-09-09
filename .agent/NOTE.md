@@ -11,21 +11,21 @@
 
 실행 기록(이번 실행)
 - 평가: `node src/eval_vs_reference.js --count 200 --start 1 --maxTicks 4000 --fast`
-  · 결과: W:200 L:0 D:0, avgTicks≈761.0, avgRed≈54.0, avgBlue≈0.0 → reference-ai.txt를 안정적으로 압도
-  · 현재 팀(result/ai_dnn_team.txt) 유지, 추가 학습 없이도 기준 충족
+  · 결과: W:0 L:200 D:0 (현 DNN이 레퍼런스에 열세). avgTicks≈556~675 범위(가중치에 따라 변동), avgRed≈0, avgBlue>100.
+  · 결론: 장시간 ES 튜닝/데이터 증강을 통한 모방학습 고도화 필요.
 
 참고
 - 결과물은 result/ai_dnn_team.txt, 가중치는 result/ai_dnn_weights.json에 저장. tank_battle_platform.html에서 Import 가능.
 - 빠른 비교: `node simulator/cli.js --red result/ai_dnn_team.txt --blue result/reference-ai.txt --repeat 200 --fast --concurrency 8 --maxTicks 4000`
 
 다음 실행 제안(성능 개선 루프)
-- ES 장기 러닝을 2~3세트 반복(각 20~40분 예상)하여 강건성 추가 확보:
-  `node src/train_es.js --iters 20 --pop 120 --sigma 0.15 --alpha 0.06 --seeds 8 --ticks 3500 --concurrency 8 --fast`
-  · 시간이 부족하면: `--iters 10 --pop 60 --seeds 6 --ticks 3000`
+- ES 장기 러닝을 2~3세트 반복(각 30~60분 예상):
+  `node src/train_es.js --iters 30 --pop 120 --sigma 0.18 --alpha 0.06 --seeds 8 --ticks 3600 --concurrency 8 --fast`
+  · 빠른 탐색(짧게): `--iters 10 --pop 60 --seeds 6 --ticks 3000`
 - CEM 보조 탐색(중간 저장 재개 권장):
-  `node src/train_cem.js --resume --iters 12 --pop 60 --elite 0.25 --seed 4242 --seeds 0,1,2,3,4 --maxTicks 3200 --no-fast`
-- 초기 정책 안정화 필요 시 모방학습(teacher_ai 기준) → ES 미세 조정:
-  `node src/imitation_train.js --matches 40 --ticks 2400 --epochs 8 --fast --teacher src/teacher_ai.txt`
+  `node src/train_cem.js --iters 20 --pop 80 --elite 0.25 --seeds 0,1,2,3,4 --maxTicks 3200`
+- 모방학습 데이터 확대(레퍼런스/teacher 혼합) 후 ES 미세 조정:
+  `node src/imitation_train.js --matches 120 --ticks 2600 --epochs 20 --fast --teacher result/reference-ai.txt`
 
 검증 체크리스트
 - tank_battle_platform.html에서 result/ai_dnn_team.txt 불러오기 → 6로봇 표시 확인.
