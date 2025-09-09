@@ -5,6 +5,9 @@
 – CLI 배치 실행(--repeat)과 JSON 저장(--json) 정상 동작 확인. .gitignore에 result*.json 포함.
 – 시드는 초기 포신 각도에만 적용. 봇 내부 Math.random은 브라우저와 동일하게 비결정적.
 
+보안
+– 샌드박스 강화: window/document뿐 아니라 globalThis/global/process/require/module/Function/eval/setTimeout 등 주요 전역 접근을 차단하여 Node 환경 영향 최소화.
+
 검증 메모(HTML 대비)
 – 초기 배치 좌표/열 역전, 탱크 크기·속도·공격력·체력 값, 탄환 속도/피격 반경(+2), 이동 실패 처리(안전 여백+5, 틱 내 1회 성공·최대 10회 시도), 승리 조건 모두 동기화 확인.
 – 발사 쿨다운 초기값을 0으로 맞춰 HTML과 동일하게 시작 500ms 잠금. 판정은 엔진 시간 누적(tickMs 50)으로 수행하되 결과는 HTML과 동일.

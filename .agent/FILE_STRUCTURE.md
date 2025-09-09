@@ -17,6 +17,7 @@
   - 입력 텍스트에서 각 로봇을 'function name()' 기준으로 분할.
   - name()/type() 추출 및 샌드박스 실행기(Function) 생성.
   - update(tank,enemies,allies,bulletInfo) 시그니처/제한 전역(window/document 등 차단) 준수.
+  - 샌드박스 강화: globalThis/global/process/require/module/Function/eval/setTimeout 등 Node 전역 접근 차단.
 - simulator/cli.js: 커맨드라인 인터페이스.
   - 인자: --red, --blue, --maxTicks, --seed, --repeat, --json.
   - 추가 인자: --replay replay.json, --recordEvery N (리플레이 저장/프레임 간격), --fast(고속 모드).
