@@ -1,12 +1,12 @@
-// Hyperion-7u (AegisNet-Z)
-// - Deep Neural Network(확장 입력 72→40→16→8) + 전술 스코어 탐색(36방향) 혼합
-// - update(tank, enemies, allies, bulletInfo) 모든 파라미터를 사용하여 특징을 구성하고, DNN은 후보 이동/사격 가중을 산출
-// - 이동: 탄환 위협(TTC/측면 거리), 벽/아군/형태 잠재장, 목표와의 기하(접근/이탈/측면)를 종합 스코어링하여 최소 비용 각 선택
-// - 사격: 요격각(lead) + DNN 벡터 혼합 + 소량 지터. 팀 전체는 최소 체력 타깃을 일관되게 집중
-// - 각 로봇 update 내부에 유틸/네트 정의하여 로더 분할에도 안전하게 동작
+// Prometheus-10x (EchelonNet-XL)
+// - Deep Neural Network(확장 입력 96→64→24→10, tanh) + 전술 스코어 탐색(60방향)
+// - update(tank, enemies, allies, bulletInfo) 모든 파라미터를 사용하여 96차원 특징을 구성, DNN은 이동/사격 벡터와 게이팅 가중 산출
+// - 이동: 탄환 위협(TTC/측면/예상 위치), 벽/아군/군집 잠재장, 목표 기하(접근/이탈/측면) 스코어 최소화
+// - 사격: 리드샷(속도추정) + DNN 보정 + 소량 지터. 팀 전체는 최소 체력 타깃을 일관되게 집중
+// - tank_battle_platform.html과 동일 포맷(function name/type/update) 6기 로봇
 
-// ===== 로봇 1 (TANKER, side -15) =====
-function name(){return 'Hyperion T1';}
+// ===== 로봇 1 (TANKER, anchor -12) =====
+function name(){return 'Prometheus T1';}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
   function __u__(){
@@ -14,382 +14,300 @@ function update(tank,enemies,allies,bulletInfo){
     U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;};
     U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
     U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
-    U.closest=(arr)=>{let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
+    U.sign=(v)=>v<0?-1:(v>0?1:0);
+    U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; };
     U.sortByDist=(a,b)=>a.distance-b.distance;
     U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
-    U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; };
-    U.norm=(x,y)=>{ const m=Math.hypot(x,y)||1; return [x/m,y/m]; };
-    U.dot=(ax,ay,bx,by)=>ax*bx+ay*by;
+    U.closest=(arr)=>{ let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
     U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; };
     U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
     U.mv=(Wm,v)=>{ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; };
     U.tanhV=(v)=>{ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; };
-    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W, tk.y/H, U.clamp(tk.health/200,0,1), (tk.type===0?1:0), (tk.type===1?1:0), (tk.type===2?1:0), U.clamp(tk.size/60,0,1)];
-      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const ax=Math.cos(Math.atan2(e.y-tk.y,e.x-tk.x)); const ay=Math.sin(Math.atan2(e.y-tk.y,e.x-tk.x)); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),ax,ay,U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
-      const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
-      const bs=bul.slice(0,4), bf=[]; for(let i=0;i<4;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=(b.x-tk.x), ry=(b.y-tk.y); const proj=U.clamp((rx*nx+ry*ny)/900, -1, 1); const lat=U.clamp((Math.hypot(rx,ry) - Math.abs(rx*nx+ry*ny))/600, 0, 1); bf.push((b.x-tk.x)/W,(b.y-tk.y)/H,nx,ny, proj, lat); } else bf.push(0,0,0,0,0,1); }
+    U.wallCost=(x,y)=>{ const W=900,H=600,m=48; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/m; };
+    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<58) c+=(58-d)/58; } return c; };
+    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+3; const tti = proj/(v+1e-6); const near=lat-rad; const p=U.clamp(1/(1+tti*0.55),0,1); return near<22 ? p*(22-Math.max(0,near))/22 : 0; };
+    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<140){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
+    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600;
+      const tNorm=[tk.x/W, tk.y/H, U.clamp(tk.health/200,0,1), (tk.type===0?1:0),(tk.type===1?1:0),(tk.type===2?1:0), U.clamp(tk.size/60,0,1), U.clamp(tk.speed/8,0,1)];
+      const es=ens.slice().sort(U.sortByDist).slice(0,4), ef=[]; for(let i=0;i<4;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tk.y,e.x-tk.x); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),Math.cos(a),Math.sin(a), U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=als.slice().sort(U.sortByDist).slice(0,3), af=[]; for(let i=0;i<3;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=bul.slice(0,6), bf=[]; for(let i=0;i<6;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=b.x-tk.x, ry=b.y-tk.y; const proj=U.clamp((rx*nx+ry*ny)/900,-1,1); const lat=U.clamp((Math.hypot(rx,ry)-Math.abs(rx*nx+ry*ny))/600,0,1); bf.push(rx/W,ry/H,nx,ny,proj,lat); } else bf.push(0,0,0,0,0,1); }
+      const ex=U.mean(ens.map(e=>e.x)||[tk.x]), ey=U.mean(ens.map(e=>e.y)||[tk.y]);
+      const ax=U.mean(als.map(a=>a.x)||[tk.x]), ay=U.mean(als.map(a=>a.y)||[tk.y]);
       const crowd=U.clamp(ens.length/6,0,1), allyN=U.clamp(als.length/6,0,1), bulletsN=U.clamp(bul.length/12,0,1);
-      const agg=[crowd,allyN,bulletsN, (U.mean(ens.map(e=>U.clamp(e.health/200,0,1)))||0)];
-      const x=self.concat(ef,af,bf,agg); while(x.length<72) x.push(0); return x.slice(0,72); };
-    U.initNet=(seed)=>({ W1:U.initW(seed^0x9E37,72,40), W2:U.initW(seed^0x6A09,40,16), W3:U.initW(seed^0xBB67,16,8) });
+      const agg=[(ex-tk.x)/W,(ey-tk.y)/H,(ax-tk.x)/W,(ay-tk.y)/H,crowd,allyN,bulletsN];
+      const x=tNorm.concat(ef,af,bf,agg); while(x.length<96) x.push(0); return x.slice(0,96);
+    };
+    U.initNet=(seed)=>({ W1:U.initW(seed^0xC0FFEE,96,64), W2:U.initW(seed^0xA11CE5,64,24), W3:U.initW(seed^0xBEEFED,24,10) });
     U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
-    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<100){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
-    U.wallCost=(x,y)=>{ const W=900,H=600,m=40; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/(m); };
-    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+3; const tti = proj/(v+1e-6); const near = lat - rad; const p=U.clamp(1/(1+tti*0.5),0,1); return near<20 ? p*(20-Math.max(0,near))/20 : 0; };
-    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<55) c+=(55-d)/55; } return c; };
     U.pickTarget=(ens)=>{ if(!ens.length) return null; return ens.slice().sort(U.sortByHealthThenPos)[0]; };
     return U;
   }
-  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0xA17C ^ 11111), lastMove:0 };
+  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0x71A71A ^ 11111) };
   const tgt=U.pickTarget(enemies)||U.closest(enemies);
-  const x=U.buildFeat(tank,enemies,allies,bulletInfo); const y=U.fwd(update._m.net,x);
+  const x=U.buildFeat(tank,enemies,allies,bulletInfo), y=U.fwd(update._m.net,x);
   const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]);
   const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
-  const wTow=Math.max(0, y[4]), wAway=Math.max(0, y[5]), wSL=Math.max(0, y[6]), wSR=Math.max(0, y[7]);
-  const aimBase=tgt? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
-  const netAim=U.ang(U.deg(fvx,fvy)); const aim=U.ang(0.88*aimBase + 0.12*netAim + ((tank.x*31+tank.y*17+7)%23-11)*0.22);
-  tank.fire(aim);
-  let cands=[]; const base=aimBase; const side=-15; const dirs=[base, base+180, base+90+side, base-90+side, base+30, base-30, base+60, base-60, 0,45,90,135,180,225,270,315];
-  for(const d of dirs){ cands.push(U.ang(d)); }
-  const extra=U.ang(U.deg(mvx,mvy)); cands.push(extra, U.ang(extra+30), U.ang(extra-30));
+  const wTow=Math.max(0,y[4]), wAway=Math.max(0,y[5]), wSL=Math.max(0,y[6]), wSR=Math.max(0,y[7]);
+  const rangeBias=U.clamp(y[8],-1,1), orbitBias=U.clamp(y[9],-1,1);
+  const aimLead=tgt ? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
+  const aimNet=U.ang(U.deg(fvx,fvy)); const jitter=((tank.x*11+tank.y*13+23)%21-10)*0.25;
+  tank.fire(U.ang(0.86*aimLead + 0.14*aimNet + jitter));
+  const base=aimLead; const dirs=[]; for(let k=0;k<60;k++){ dirs.push(U.ang(k*6)); }
+  dirs.push(base, base+180, base+90-12, base-90-12, base+30, base-30);
+  const extra=U.ang(U.deg(mvx,mvy)); dirs.push(extra, U.ang(extra+18), U.ang(extra-18));
   function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0;
-    // 위협탄 비용
     for(const b of bulletInfo){ s += 3.0*U.bulletDanger(tank,b,px,py); }
-    // 벽/아군 비용
-    s += 1.2*U.wallCost(px,py);
-    s += 1.0*U.allyCost(px,py,allies);
-    // 목표 기하 보상/비용
-    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const sidePref=Math.abs(Math.sin(rel*Math.PI/180));
-      if(d>300) s += 0.4*(1-sidePref) + 0.4*(Math.abs(U.ang(a-base))/180); // 멀면 접근
-      else if(d<180) s += 0.5*(1-Math.abs(Math.cos(rel*Math.PI/180))) + 0.6*(Math.cos(rel*Math.PI/180)>0?0:0.2); // 가깝다면 측면/이탈
-      else s += 0.35*(1-sidePref);
+    s += 1.0*U.wallCost(px,py);
+    s += 0.85*U.allyCost(px,py,allies);
+    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a);
+      const forward=Math.cos(rel*Math.PI/180), side=Math.sin(rel*Math.PI/180);
+      const far=(d>320), close=(d<180);
+      s += far? 0.42*(1-Math.abs(side)) : (close? 0.55*(1-Math.abs(forward)) : 0.36*(1-Math.abs(side)));
+      s += 0.10*rangeBias*(close? -1:1);
     }
-    // DNN 게이팅(선호 각 보상)
     const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y) : 0; const rel=U.ang(a-to);
-    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0);
-    s -= 0.15*pref;
+    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0) + 0.06*Math.sin(orbitBias*rel*Math.PI/180);
+    s -= 0.14*pref;
     return s;
   }
-  let bestA=null, bestS=1e9; for(const a of cands){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
-  const seq=[bestA, bestA+25, bestA-25, base+180+side, base+90+side, base-90+side, extra];
+  let bestA=null,bestS=1e9; for(const a of dirs){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
+  const seq=[bestA, bestA+18, bestA-18, base+180-12, extra];
   for(const a of seq){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
 }
 
-// ===== 로봇 2 (TANKER, side +15) =====
-function name(){return 'Hyperion T2';}
+// ===== 로봇 2 (TANKER, anchor -6) =====
+function name(){return 'Prometheus T2';}
 function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
   function __u__(){
     const U={};
     U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;};
-    U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
-    U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
-    U.closest=(arr)=>{let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
-    U.sortByDist=(a,b)=>a.distance-b.distance;
-    U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI; U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
     U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; };
-    U.norm=(x,y)=>{ const m=Math.hypot(x,y)||1; return [x/m,y/m]; };
-    U.dot=(ax,ay,bx,by)=>ax*bx+ay*by;
+    U.sortByDist=(a,b)=>a.distance-b.distance; U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.closest=(arr)=>{ let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
     U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; };
     U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
     U.mv=(Wm,v)=>{ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; };
     U.tanhV=(v)=>{ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; };
-    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W, tk.y/H, U.clamp(tk.health/200,0,1), (tk.type===0?1:0), (tk.type===1?1:0), (tk.type===2?1:0), U.clamp(tk.size/60,0,1)];
-      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const ax=Math.cos(Math.atan2(e.y-tk.y,e.x-tk.x)); const ay=Math.sin(Math.atan2(e.y-tk.y,e.x-tk.x)); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),ax,ay,U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
-      const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
-      const bs=bul.slice(0,4), bf=[]; for(let i=0;i<4;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=(b.x-tk.x), ry=(b.y-tk.y); const proj=U.clamp((rx*nx+ry*ny)/900, -1, 1); const lat=U.clamp((Math.hypot(rx,ry) - Math.abs(rx*nx+ry*ny))/600, 0, 1); bf.push((b.x-tk.x)/W,(b.y-tk.y)/H,nx,ny, proj, lat); } else bf.push(0,0,0,0,0,1); }
-      const crowd=U.clamp(ens.length/6,0,1), allyN=U.clamp(als.length/6,0,1), bulletsN=U.clamp(bul.length/12,0,1);
-      const agg=[crowd,allyN,bulletsN, (U.mean(ens.map(e=>U.clamp(e.health/200,0,1)))||0)];
-      const x=self.concat(ef,af,bf,agg); while(x.length<72) x.push(0); return x.slice(0,72); };
-    U.initNet=(seed)=>({ W1:U.initW(seed^0x9E37,72,40), W2:U.initW(seed^0x6A09,40,16), W3:U.initW(seed^0xBB67,16,8) });
+    U.wallCost=(x,y)=>{ const W=900,H=600,m=46; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/m; };
+    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<56) c+=(56-d)/56; } return c; };
+    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+3; const tti = proj/(v+1e-6); const near=lat-rad; const p=U.clamp(1/(1+tti*0.55),0,1); return near<22 ? p*(22-Math.max(0,near))/22 : 0; };
+    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<140){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
+    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W,tk.y/H,U.clamp(tk.health/200,0,1),(tk.type===0?1:0),(tk.type===1?1:0),(tk.type===2?1:0),U.clamp(tk.size/60,0,1), U.clamp(tk.speed/8,0,1)];
+      const es=ens.slice().sort(U.sortByDist).slice(0,4), ef=[]; for(let i=0;i<4;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tk.y,e.x-tk.x); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),Math.cos(a),Math.sin(a),U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=als.slice().sort(U.sortByDist).slice(0,3), af=[]; for(let i=0;i<3;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=bul.slice(0,6), bf=[]; for(let i=0;i<6;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=b.x-tk.x, ry=b.y-tk.y; const proj=U.clamp((rx*nx+ry*ny)/900,-1,1); const lat=U.clamp((Math.hypot(rx,ry)-Math.abs(rx*nx+ry*ny))/600,0,1); bf.push(rx/W,ry/H,nx,ny,proj,lat); } else bf.push(0,0,0,0,0,1); }
+      const ex=U.mean(ens.map(e=>e.x)||[tk.x]), ey=U.mean(ens.map(e=>e.y)||[tk.y]);
+      const ax=U.mean(als.map(a=>a.x)||[tk.x]), ay=U.mean(als.map(a=>a.y)||[tk.y]);
+      const agg=[(ex-tk.x)/W,(ey-tk.y)/H,(ax-tk.x)/W,(ay-tk.y)/H,U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
+      const x=self.concat(ef,af,bf,agg); while(x.length<96) x.push(0); return x.slice(0,96);
+    };
+    U.initNet=(seed)=>({ W1:U.initW(seed^0xC0DE,96,64), W2:U.initW(seed^0xA11C,64,24), W3:U.initW(seed^0xBEEF,24,10) });
     U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
-    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<100){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
-    U.wallCost=(x,y)=>{ const W=900,H=600,m=40; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/(m); };
-    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+3; const tti = proj/(v+1e-6); const near = lat - rad; const p=U.clamp(1/(1+tti*0.5),0,1); return near<20 ? p*(20-Math.max(0,near))/20 : 0; };
-    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<55) c+=(55-d)/55; } return c; };
     U.pickTarget=(ens)=>{ if(!ens.length) return null; return ens.slice().sort(U.sortByHealthThenPos)[0]; };
     return U;
   }
-  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0xA17D ^ 22222), lastMove:0 };
+  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0x51AB ^ 22222) };
   const tgt=U.pickTarget(enemies)||U.closest(enemies);
-  const x=U.buildFeat(tank,enemies,allies,bulletInfo); const y=U.fwd(update._m.net,x);
+  const x=U.buildFeat(tank,enemies,allies,bulletInfo), y=U.fwd(update._m.net,x);
   const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]);
   const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
-  const wTow=Math.max(0, y[4]), wAway=Math.max(0, y[5]), wSL=Math.max(0, y[6]), wSR=Math.max(0, y[7]);
-  const aimBase=tgt? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
-  const netAim=U.ang(U.deg(fvx,fvy)); const aim=U.ang(0.9*aimBase + 0.1*netAim + ((tank.x*19+tank.y*23+3)%29-14)*0.2);
-  tank.fire(aim);
-  let cands=[]; const base=aimBase; const side=+15; const dirs=[base, base+180, base+90+side, base-90+side, base+30, base-30, base+60, base-60, 0,45,90,135,180,225,270,315];
-  for(const d of dirs){ cands.push(U.ang(d)); }
-  const extra=U.ang(U.deg(mvx,mvy)); cands.push(extra, U.ang(extra+25), U.ang(extra-25));
+  const wTow=Math.max(0,y[4]), wAway=Math.max(0,y[5]), wSL=Math.max(0,y[6]), wSR=Math.max(0,y[7]);
+  const rangeBias=U.clamp(y[8],-1,1), orbitBias=U.clamp(y[9],-1,1);
+  const aimLead=tgt ? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
+  const aimNet=U.ang(U.deg(fvx,fvy)); const jitter=((tank.x*17+tank.y*5+7)%21-10)*0.22; tank.fire(U.ang(0.86*aimLead + 0.14*aimNet + jitter));
+  const base=aimLead; const dirs=[]; for(let k=0;k<60;k++){ dirs.push(U.ang(k*6)); }
+  dirs.push(base, base+180, base+90-6, base-90-6, base+30, base-30);
+  const extra=U.ang(U.deg(mvx,mvy)); dirs.push(extra, U.ang(extra+16), U.ang(extra-16));
   function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0;
-    for(const b of bulletInfo){ s += 3.2*U.bulletDanger(tank,b,px,py); }
-    s += 1.1*U.wallCost(px,py);
-    s += 1.0*U.allyCost(px,py,allies);
-    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const sidePref=Math.abs(Math.sin(rel*Math.PI/180));
-      if(d>300) s += 0.35*(1-sidePref);
-      else if(d<180) s += 0.55*(1-Math.abs(Math.cos(rel*Math.PI/180)));
-      else s += 0.3*(1-sidePref);
+    for(const b of bulletInfo){ s += 3.0*U.bulletDanger(tank,b,px,py); }
+    s += 1.0*U.wallCost(px,py);
+    s += 0.85*U.allyCost(px,py,allies);
+    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a);
+      const forward=Math.cos(rel*Math.PI/180), side=Math.sin(rel*Math.PI/180);
+      const far=(d>320), close=(d<180);
+      s += far? 0.42*(1-Math.abs(side)) : (close? 0.55*(1-Math.abs(forward)) : 0.36*(1-Math.abs(side)));
+      s += 0.10*rangeBias*(close? -1:1);
     }
     const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y) : 0; const rel=U.ang(a-to);
-    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0);
-    s -= 0.12*pref;
+    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0) + 0.06*Math.sin(orbitBias*rel*Math.PI/180);
+    s -= 0.14*pref;
     return s;
   }
-  let bestA=null, bestS=1e9; for(const a of cands){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
-  const seq=[bestA, bestA+20, bestA-20, base+180+side, base+90+side, base-90+side, extra];
+  let bestA=null,bestS=1e9; for(const a of dirs){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
+  const seq=[bestA, bestA+16, bestA-16, base+180-6, extra];
   for(const a of seq){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
 }
 
-// ===== 로봇 3 (NORMAL, side -5) =====
-function name(){return 'Hyperion N1';}
+// ===== 로봇 3 (NORMAL, flank +8) =====
+function name(){return 'Prometheus N1';}
 function type(){return Type.NORMAL;}
 function update(tank,enemies,allies,bulletInfo){
   function __u__(){
     const U={};
-    U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;};
-    U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
-    U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
-    U.closest=(arr)=>{let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
-    U.sortByDist=(a,b)=>a.distance-b.distance;
-    U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;}; U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI; U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
     U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; };
+    U.sortByDist=(a,b)=>a.distance-b.distance; U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.closest=(arr)=>{ let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
     U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; };
     U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
     U.mv=(Wm,v)=>{ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; };
     U.tanhV=(v)=>{ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; };
-    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W, tk.y/H, U.clamp(tk.health/200,0,1), (tk.type===0?1:0), (tk.type===1?1:0), (tk.type===2?1:0), U.clamp(tk.size/60,0,1)];
-      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const ax=Math.cos(Math.atan2(e.y-tk.y,e.x-tk.x)); const ay=Math.sin(Math.atan2(e.y-tk.y,e.x-tk.x)); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),ax,ay,U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
-      const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
-      const bs=bul.slice(0,4), bf=[]; for(let i=0;i<4;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=(b.x-tk.x), ry=(b.y-tk.y); const proj=((rx*nx+ry*ny)/900); const lat=U.clamp((Math.hypot(rx,ry) - Math.abs(rx*nx+ry*ny))/600, 0, 1); bf.push((b.x-tk.x)/W,(b.y-tk.y)/H,nx,ny, proj, lat); } else bf.push(0,0,0,0,0,1); }
-      const agg=[U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
-      const x=self.concat(ef,af,bf,agg); while(x.length<72) x.push(0); return x.slice(0,72); };
-    U.initNet=(seed)=>({ W1:U.initW(seed^0x8E37,72,40), W2:U.initW(seed^0x5A09,40,16), W3:U.initW(seed^0xCB67,16,8) });
-    U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
-    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<100){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
-    U.wallCost=(x,y)=>{ const W=900,H=600,m=35; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/(m); };
-    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti = proj/(v+1e-6); const near = lat - rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
+    U.wallCost=(x,y)=>{ const W=900,H=600,m=38; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/m; };
     U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<52) c+=(52-d)/52; } return c; };
+    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti=proj/(v+1e-6); const near=lat-rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
+    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<120){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
+    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W,tk.y/H,U.clamp(tk.health/200,0,1),(tk.type===0?1:0),(tk.type===1?1:0),(tk.type===2?1:0),U.clamp(tk.size/60,0,1)];
+      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tk.y,e.x-tk.x); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),Math.cos(a),Math.sin(a),U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=bul.slice(0,5), bf=[]; for(let i=0;i<5;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=b.x-tk.x, ry=b.y-tk.y; const proj=U.clamp((rx*nx+ry*ny)/900,-1,1); const lat=U.clamp((Math.hypot(rx,ry)-Math.abs(rx*nx+ry*ny))/600,0,1); bf.push(rx/W,ry/H,nx,ny,proj,lat); } else bf.push(0,0,0,0,0,1); }
+      const ex=U.mean(ens.map(e=>e.x)||[tk.x]), ey=U.mean(ens.map(e=>e.y)||[tk.y]);
+      const ax=U.mean(als.map(a=>a.x)||[tk.x]), ay=U.mean(als.map(a=>a.y)||[tk.y]);
+      const agg=[(ex-tk.x)/W,(ey-tk.y)/H,(ax-tk.x)/W,(ay-tk.y)/H,U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
+      const x=self.concat(ef,af,bf,agg); while(x.length<96) x.push(0); return x.slice(0,96);
+    };
+    U.initNet=(seed)=>({ W1:U.initW(seed^0xFEED,96,64), W2:U.initW(seed^0xCAFE,64,24), W3:U.initW(seed^0xD00D,24,10) });
+    U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
     U.pickTarget=(ens)=>{ if(!ens.length) return null; return ens.slice().sort(U.sortByHealthThenPos)[0]; };
     return U;
   }
-  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0x91AA ^ 33333), lastMove:0 };
+  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0xA11A ^ 33333) };
   const tgt=U.pickTarget(enemies)||U.closest(enemies);
-  const x=U.buildFeat(tank,enemies,allies,bulletInfo); const y=U.fwd(update._m.net,x);
-  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]);
-  const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
-  const wTow=Math.max(0, y[4]), wAway=Math.max(0, y[5]), wSL=Math.max(0, y[6]), wSR=Math.max(0, y[7]);
-  const aimBase=tgt? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
-  const netAim=U.ang(U.deg(fvx,fvy)); const aim=U.ang(0.88*aimBase + 0.12*netAim + ((tank.x*13+tank.y*11+9)%19-9)*0.22);
-  tank.fire(aim);
-  let cands=[]; const base=aimBase; const side=-5; const dirs=[base, base+180, base+90+side, base-90+side, base+25, base-25, 0,45,90,135,180,225,270,315];
-  for(const d of dirs){ cands.push(U.ang(d)); }
-  const extra=U.ang(U.deg(mvx,mvy)); cands.push(extra, U.ang(extra+25), U.ang(extra-25));
-  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0;
-    for(const b of bulletInfo){ s += 2.8*U.bulletDanger(tank,b,px,py); }
-    s += 1.1*U.wallCost(px,py);
-    s += 0.9*U.allyCost(px,py,allies);
-    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const sidePref=Math.abs(Math.sin(rel*Math.PI/180));
-      if(d>320) s += 0.4*(1-sidePref);
-      else if(d<180) s += 0.5*(1-Math.abs(Math.cos(rel*Math.PI/180)));
-      else s += 0.35*(1-sidePref);
-    }
-    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y) : 0; const rel=U.ang(a-to);
-    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0);
-    s -= 0.12*pref;
-    return s;
-  }
-  let bestA=null, bestS=1e9; for(const a of cands){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
-  const seq=[bestA, bestA+20, bestA-20, base+180+side, extra];
-  for(const a of seq){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
+  const x=U.buildFeat(tank,enemies,allies,bulletInfo), y=U.fwd(update._m.net,x);
+  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]); const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
+  const wTow=Math.max(0,y[4]), wAway=Math.max(0,y[5]), wSL=Math.max(0,y[6]), wSR=Math.max(0,y[7]); const rangeBias=U.clamp(y[8],-1,1), orbitBias=U.clamp(y[9],-1,1);
+  const aimLead=tgt ? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0; const aimNet=U.ang(U.deg(fvx,fvy));
+  const jitter=((tank.x*13+tank.y*21+17)%21-10)*0.2; tank.fire(U.ang(0.88*aimLead + 0.12*aimNet + jitter));
+  const base=aimLead; const dirs=[]; for(let k=0;k<60;k++){ dirs.push(U.ang(k*6)); }
+  dirs.push(base, base+180, base+90+8, base-90+8, base+24, base-24); const extra=U.ang(U.deg(mvx,mvy)); dirs.push(extra, U.ang(extra+16), U.ang(extra-16));
+  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0; for(const b of bulletInfo){ s += 2.6*U.bulletDanger(tank,b,px,py);} s+=0.95*U.wallCost(px,py); s+=0.9*U.allyCost(px,py,allies);
+    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const forward=Math.cos(rel*Math.PI/180), side=Math.sin(rel*Math.PI/180); const far=d>340, close=d<170; s += far? 0.44*(1-Math.abs(side)) : (close? 0.56*(1-Math.abs(forward)) : 0.35*(1-Math.abs(side))); s += 0.12*rangeBias*(close? -1:1); }
+    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y):0; const rel=U.ang(a-to); const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0)+ wAway*(Math.cos(rel*Math.PI/180)<0?1:0)+ wSL*(Math.sin(rel*Math.PI/180)>0?1:0)+ wSR*(Math.sin(rel*Math.PI/180)<0?1:0)+ 0.06*Math.sin(orbitBias*rel*Math.PI/180); s -= 0.13*pref; return s; }
+  let bestA=null,bestS=1e9; for(const a of dirs){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } } for(const a of [bestA,bestA+16,bestA-16,base+180+8,extra]){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
 }
 
-// ===== 로봇 4 (NORMAL, side +5) =====
-function name(){return 'Hyperion N2';}
+// ===== 로봇 4 (NORMAL, flank -8) =====
+function name(){return 'Prometheus N2';}
 function type(){return Type.NORMAL;}
 function update(tank,enemies,allies,bulletInfo){
   function __u__(){
     const U={};
-    U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;};
-    U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
-    U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
-    U.closest=(arr)=>{let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
-    U.sortByDist=(a,b)=>a.distance-b.distance;
-    U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;}; U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI; U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
     U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; };
+    U.sortByDist=(a,b)=>a.distance-b.distance; U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.closest=(arr)=>{ let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
     U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; };
     U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
     U.mv=(Wm,v)=>{ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; };
     U.tanhV=(v)=>{ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; };
-    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W, tk.y/H, U.clamp(tk.health/200,0,1), (tk.type===0?1:0), (tk.type===1?1:0), (tk.type===2?1:0), U.clamp(tk.size/60,0,1)];
-      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const ax=Math.cos(Math.atan2(e.y-tk.y,e.x-tk.x)); const ay=Math.sin(Math.atan2(e.y-tk.y,e.x-tk.x)); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),ax,ay,U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
-      const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
-      const bs=bul.slice(0,4), bf=[]; for(let i=0;i<4;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=(b.x-tk.x), ry=(b.y-tk.y); const proj=((rx*nx+ry*ny)/900); const lat=U.clamp((Math.hypot(rx,ry) - Math.abs(rx*nx+ry*ny))/600, 0, 1); bf.push((b.x-tk.x)/W,(b.y-tk.y)/H,nx,ny, proj, lat); } else bf.push(0,0,0,0,0,1); }
-      const agg=[U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
-      const x=self.concat(ef,af,bf,agg); while(x.length<72) x.push(0); return x.slice(0,72); };
-    U.initNet=(seed)=>({ W1:U.initW(seed^0x8E37,72,40), W2:U.initW(seed^0x5A09,40,16), W3:U.initW(seed^0xCB67,16,8) });
-    U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
-    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<100){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
-    U.wallCost=(x,y)=>{ const W=900,H=600,m=35; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/(m); };
-    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti = proj/(v+1e-6); const near = lat - rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
+    U.wallCost=(x,y)=>{ const W=900,H=600,m=38; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/m; };
     U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<52) c+=(52-d)/52; } return c; };
+    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti=proj/(v+1e-6); const near=lat-rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
+    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<120){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
+    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W,tk.y/H,U.clamp(tk.health/200,0,1),(tk.type===0?1:0),(tk.type===1?1:0),(tk.type===2?1:0),U.clamp(tk.size/60,0,1)];
+      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tk.y,e.x-tk.x); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),Math.cos(a),Math.sin(a),U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=bul.slice(0,5), bf=[]; for(let i=0;i<5;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=b.x-tk.x, ry=b.y-tk.y; const proj=U.clamp((rx*nx+ry*ny)/900,-1,1); const lat=U.clamp((Math.hypot(rx,ry)-Math.abs(rx*nx+ry*ny))/600,0,1); bf.push(rx/W,ry/H,nx,ny,proj,lat); } else bf.push(0,0,0,0,0,1); }
+      const ex=U.mean(ens.map(e=>e.x)||[tk.x]), ey=U.mean(ens.map(e=>e.y)||[tk.y]); const ax=U.mean(als.map(a=>a.x)||[tk.x]), ay=U.mean(als.map(a=>a.y)||[tk.y]); const agg=[(ex-tk.x)/W,(ey-tk.y)/H,(ax-tk.x)/W,(ay-tk.y)/H,U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
+      const x=self.concat(ef,af,bf,agg); while(x.length<96) x.push(0); return x.slice(0,96);
+    };
+    U.initNet=(seed)=>({ W1:U.initW(seed^0xFEA1,96,64), W2:U.initW(seed^0xCA1E,64,24), W3:U.initW(seed^0xD0AD,24,10) });
+    U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
     U.pickTarget=(ens)=>{ if(!ens.length) return null; return ens.slice().sort(U.sortByHealthThenPos)[0]; };
     return U;
   }
-  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0x91AB ^ 44444), lastMove:0 };
+  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0xB17B ^ 44444) };
   const tgt=U.pickTarget(enemies)||U.closest(enemies);
-  const x=U.buildFeat(tank,enemies,allies,bulletInfo); const y=U.fwd(update._m.net,x);
-  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]);
-  const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
-  const wTow=Math.max(0, y[4]), wAway=Math.max(0, y[5]), wSL=Math.max(0, y[6]), wSR=Math.max(0, y[7]);
-  const aimBase=tgt? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
-  const netAim=U.ang(U.deg(fvx,fvy)); const aim=U.ang(0.88*aimBase + 0.12*netAim + ((tank.x*17+tank.y*7+5)%19-9)*0.22);
-  tank.fire(aim);
-  let cands=[]; const base=aimBase; const side=+5; const dirs=[base, base+180, base+90+side, base-90+side, base+25, base-25, 0,45,90,135,180,225,270,315];
-  for(const d of dirs){ cands.push(U.ang(d)); }
-  const extra=U.ang(U.deg(mvx,mvy)); cands.push(extra, U.ang(extra+25), U.ang(extra-25));
-  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0;
-    for(const b of bulletInfo){ s += 2.8*U.bulletDanger(tank,b,px,py); }
-    s += 1.1*U.wallCost(px,py);
-    s += 0.9*U.allyCost(px,py,allies);
-    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const sidePref=Math.abs(Math.sin(rel*Math.PI/180));
-      if(d>320) s += 0.4*(1-sidePref);
-      else if(d<180) s += 0.5*(1-Math.abs(Math.cos(rel*Math.PI/180)));
-      else s += 0.35*(1-sidePref);
-    }
-    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y) : 0; const rel=U.ang(a-to);
-    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0);
-    s -= 0.12*pref;
-    return s;
-  }
-  let bestA=null, bestS=1e9; for(const a of cands){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
-  const seq=[bestA, bestA+20, bestA-20, base+180+side, extra];
-  for(const a of seq){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
+  const x=U.buildFeat(tank,enemies,allies,bulletInfo), y=U.fwd(update._m.net,x);
+  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]); const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
+  const wTow=Math.max(0,y[4]), wAway=Math.max(0,y[5]), wSL=Math.max(0,y[6]), wSR=Math.max(0,y[7]); const rangeBias=U.clamp(y[8],-1,1), orbitBias=U.clamp(y[9],-1,1);
+  const aimLead=tgt ? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0; const aimNet=U.ang(U.deg(fvx,fvy));
+  const jitter=((tank.x*19+tank.y*9+13)%21-10)*0.22; tank.fire(U.ang(0.88*aimLead + 0.12*aimNet + jitter));
+  const base=aimLead; const dirs=[]; for(let k=0;k<60;k++){ dirs.push(U.ang(k*6)); }
+  dirs.push(base, base+180, base+90-8, base-90-8, base+22, base-22); const extra=U.ang(U.deg(mvx,mvy)); dirs.push(extra, U.ang(extra+16), U.ang(extra-16));
+  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0; for(const b of bulletInfo){ s += 2.6*U.bulletDanger(tank,b,px,py);} s+=0.95*U.wallCost(px,py); s+=0.9*U.allyCost(px,py,allies);
+    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const forward=Math.cos(rel*Math.PI/180), side=Math.sin(rel*Math.PI/180); const far=d>340, close=d<170; s += far? 0.44*(1-Math.abs(side)) : (close? 0.56*(1-Math.abs(forward)) : 0.35*(1-Math.abs(side))); s += 0.12*rangeBias*(close? -1:1); }
+    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y):0; const rel=U.ang(a-to); const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0)+ wAway*(Math.cos(rel*Math.PI/180)<0?1:0)+ wSL*(Math.sin(rel*Math.PI/180)>0?1:0)+ wSR*(Math.sin(rel*Math.PI/180)<0?1:0)+ 0.06*Math.sin(orbitBias*rel*Math.PI/180); s -= 0.13*pref; return s; }
+  let bestA=null,bestS=1e9; for(const a of dirs){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } } for(const a of [bestA,bestA+16,bestA-16,base+180-8,extra]){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
 }
 
-// ===== 로봇 5 (DEALER, side +28) =====
-function name(){return 'Hyperion D1';}
+// ===== 로봇 5 (DEALER, backline +24) =====
+function name(){return 'Prometheus D1';}
 function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
-  function __u__(){
-    const U={};
-    U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;};
-    U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
-    U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
-    U.closest=(arr)=>{let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
-    U.sortByDist=(a,b)=>a.distance-b.distance;
-    U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
-    U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; };
-    U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; };
-    U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
+  function __u__(){ const U={}; U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;}; U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI; U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
+    U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; }; U.sortByDist=(a,b)=>a.distance-b.distance; U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.closest=(arr)=>{ let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
+    U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; }; U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
     U.mv=(Wm,v)=>{ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; };
     U.tanhV=(v)=>{ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; };
-    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W, tk.y/H, U.clamp(tk.health/200,0,1), (tk.type===0?1:0), (tk.type===1?1:0), (tk.type===2?1:0), U.clamp(tk.size/60,0,1)];
-      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const ax=Math.cos(Math.atan2(e.y-tk.y,e.x-tk.x)); const ay=Math.sin(Math.atan2(e.y-tk.y,e.x-tk.x)); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),ax,ay,U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+    U.wallCost=(x,y)=>{ const W=900,H=600,m=34; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/m; };
+    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<50) c+=(50-d)/50; } return c; };
+    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti=proj/(v+1e-6); const near=lat-rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
+    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<140){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
+    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W,tk.y/H,U.clamp(tk.health/200,0,1),(tk.type===0?1:0),(tk.type===1?1:0),(tk.type===2?1:0),U.clamp(tk.size/60,0,1)];
+      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tk.y,e.x-tk.x); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),Math.cos(a),Math.sin(a),U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
       const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
-      const bs=bul.slice(0,4), bf=[]; for(let i=0;i<4;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=(b.x-tk.x), ry=(b.y-tk.y); const proj=((rx*nx+ry*ny)/900); const lat=U.clamp((Math.hypot(rx,ry) - Math.abs(rx*nx+ry*ny))/600, 0, 1); bf.push((b.x-tk.x)/W,(b.y-tk.y)/H,nx,ny, proj, lat); } else bf.push(0,0,0,0,0,1); }
-      const agg=[U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
-      const x=self.concat(ef,af,bf,agg); while(x.length<72) x.push(0); return x.slice(0,72); };
-    U.initNet=(seed)=>({ W1:U.initW(seed^0x7E37,72,40), W2:U.initW(seed^0x4A09,40,16), W3:U.initW(seed^0xDB67,16,8) });
+      const bs=bul.slice(0,5), bf=[]; for(let i=0;i<5;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=b.x-tk.x, ry=b.y-tk.y; const proj=U.clamp((rx*nx+ry*ny)/900,-1,1); const lat=U.clamp((Math.hypot(rx,ry)-Math.abs(rx*nx+ry*ny))/600,0,1); bf.push(rx/W,ry/H,nx,ny,proj,lat); } else bf.push(0,0,0,0,0,1); }
+      const ex=U.mean(ens.map(e=>e.x)||[tk.x]), ey=U.mean(ens.map(e=>e.y)||[tk.y]); const ax=U.mean(als.map(a=>a.x)||[tk.x]), ay=U.mean(als.map(a=>a.y)||[tk.y]); const agg=[(ex-tk.x)/W,(ey-tk.y)/H,(ax-tk.x)/W,(ay-tk.y)/H,U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
+      const x=self.concat(ef,af,bf,agg); while(x.length<96) x.push(0); return x.slice(0,96);
+    };
+    U.initNet=(seed)=>({ W1:U.initW(seed^0xFACE,96,64), W2:U.initW(seed^0xB00B,64,24), W3:U.initW(seed^0xC0DE,24,10) });
     U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
-    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<100){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
-    U.wallCost=(x,y)=>{ const W=900,H=600,m=35; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/(m); };
-    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti = proj/(v+1e-6); const near = lat - rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
-    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<52) c+=(52-d)/52; } return c; };
     U.pickTarget=(ens)=>{ if(!ens.length) return null; return ens.slice().sort(U.sortByHealthThenPos)[0]; };
-    return U;
-  }
-  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0x81AC ^ 55555), lastMove:0 };
+    return U; }
+  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0xC1D5 ^ 55555) };
   const tgt=U.pickTarget(enemies)||U.closest(enemies);
-  const x=U.buildFeat(tank,enemies,allies,bulletInfo); const y=U.fwd(update._m.net,x);
-  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]);
-  const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
-  const wTow=Math.max(0, y[4]), wAway=Math.max(0, y[5]), wSL=Math.max(0, y[6]), wSR=Math.max(0, y[7]);
-  const aimBase=tgt? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
-  const netAim=U.ang(U.deg(fvx,fvy)); const aim=U.ang(0.86*aimBase + 0.14*netAim + ((tank.x*23+tank.y*5+11)%19-9)*0.22);
-  tank.fire(aim);
-  let cands=[]; const base=aimBase; const side=+28; const dirs=[base, base+180, base+90+side, base-90+side, base+25, base-25, 0,45,90,135,180,225,270,315];
-  for(const d of dirs){ cands.push(U.ang(d)); }
-  const extra=U.ang(U.deg(mvx,mvy)); cands.push(extra, U.ang(extra+20), U.ang(extra-20));
-  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0;
-    for(const b of bulletInfo){ s += 2.5*U.bulletDanger(tank,b,px,py); }
-    s += 1.0*U.wallCost(px,py);
-    s += 0.9*U.allyCost(px,py,allies);
-    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const sidePref=Math.abs(Math.sin(rel*Math.PI/180));
-      if(d>330) s += 0.45*(1-sidePref);
-      else if(d<170) s += 0.55*(1-Math.abs(Math.cos(rel*Math.PI/180)));
-      else s += 0.35*(1-sidePref);
-    }
-    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y) : 0; const rel=U.ang(a-to);
-    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0);
-    s -= 0.12*pref;
-    return s;
-  }
-  let bestA=null, bestS=1e9; for(const a of cands){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
-  const seq=[bestA, bestA+18, bestA-18, base+180+side, extra];
-  for(const a of seq){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
+  const x=U.buildFeat(tank,enemies,allies,bulletInfo), y=U.fwd(update._m.net,x);
+  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]); const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
+  const wTow=Math.max(0,y[4]), wAway=Math.max(0,y[5]), wSL=Math.max(0,y[6]), wSR=Math.max(0,y[7]); const rangeBias=U.clamp(y[8],-1,1), orbitBias=U.clamp(y[9],-1,1);
+  const aimLead=tgt ? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0; const aimNet=U.ang(U.deg(fvx,fvy)); const jitter=((tank.x*23+tank.y*3+9)%19-9)*0.22; tank.fire(U.ang(0.84*aimLead + 0.16*aimNet + jitter));
+  const base=aimLead; const dirs=[]; for(let k=0;k<60;k++){ dirs.push(U.ang(k*6)); }
+  dirs.push(base, base+180, base+90+24, base-90+24, base+20, base-20); const extra=U.ang(U.deg(mvx,mvy)); dirs.push(extra, U.ang(extra+16), U.ang(extra-16));
+  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0; for(const b of bulletInfo){ s += 2.4*U.bulletDanger(tank,b,px,py);} s+=0.92*U.wallCost(px,py); s+=0.88*U.allyCost(px,py,allies);
+    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const forward=Math.cos(rel*Math.PI/180), side=Math.sin(rel*Math.PI/180); const far=d>360, close=d<200; s += far? 0.48*(1-Math.abs(side)) : (close? 0.62*(1-Math.abs(forward)) : 0.38*(1-Math.abs(side))); s += 0.14*rangeBias*(close? -1:1); }
+    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y):0; const rel=U.ang(a-to); const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0)+ wAway*(Math.cos(rel*Math.PI/180)<0?1:0)+ wSL*(Math.sin(rel*Math.PI/180)>0?1:0)+ wSR*(Math.sin(rel*Math.PI/180)<0?1:0)+ 0.06*Math.sin(orbitBias*rel*Math.PI/180); s -= 0.12*pref; return s; }
+  let bestA=null,bestS=1e9; for(const a of dirs){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } } for(const a of [bestA,bestA+16,bestA-16,base+180+24,extra]){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
 }
 
-// ===== 로봇 6 (DEALER, side -28) =====
-function name(){return 'Hyperion D2';}
+// ===== 로봇 6 (DEALER, backline -24) =====
+function name(){return 'Prometheus D2';}
 function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
-  function __u__(){
-    const U={};
-    U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;};
-    U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
-    U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
-    U.closest=(arr)=>{let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
-    U.sortByDist=(a,b)=>a.distance-b.distance;
-    U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
-    U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; };
-    U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; };
-    U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
+  function __u__(){ const U={}; U.ang=(a)=>{a%=360; if(a<0)a+=360; return a;}; U.deg=(x,y)=>Math.atan2(y,x)*180/Math.PI; U.clamp=(v,min,max)=>v<min?min:(v>max?max:v);
+    U.mean=(a)=>{ if(!a.length) return 0; let s=0; for(const v of a) s+=v; return s/a.length; }; U.sortByDist=(a,b)=>a.distance-b.distance; U.sortByHealthThenPos=(a,b)=>{ if(a.health!==b.health) return a.health-b.health; if(a.y!==b.y) return a.y-b.y; return a.x-b.x; };
+    U.closest=(arr)=>{ let r=null,md=1e9; for(const e of arr){ if(e.distance<md){md=e.distance;r=e;} } return r; };
+    U.sr=(s)=>{ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; }; U.initW=(seed,i,o)=>{ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=U.sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; };
     U.mv=(Wm,v)=>{ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; };
     U.tanhV=(v)=>{ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; };
-    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W, tk.y/H, U.clamp(tk.health/200,0,1), (tk.type===0?1:0), (tk.type===1?1:0), (tk.type===2?1:0), U.clamp(tk.size/60,0,1)];
-      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const ax=Math.cos(Math.atan2(e.y-tk.y,e.x-tk.x)); const ay=Math.sin(Math.atan2(e.y-tk.y,e.x-tk.x)); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),ax,ay,U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+    U.wallCost=(x,y)=>{ const W=900,H=600,m=34; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/m; };
+    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<50) c+=(50-d)/50; } return c; };
+    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti=proj/(v+1e-6); const near=lat-rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
+    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<140){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
+    U.buildFeat=(tk,ens,als,bul)=>{ const W=900,H=600; const self=[tk.x/W,tk.y/H,U.clamp(tk.health/200,0,1),(tk.type===0?1:0),(tk.type===1?1:0),(tk.type===2?1:0),U.clamp(tk.size/60,0,1)];
+      const es=ens.slice().sort(U.sortByDist).slice(0,3), ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tk.y,e.x-tk.x); ef.push((e.x-tk.x)/W,(e.y-tk.y)/H,U.clamp(e.distance/900,0,1),Math.cos(a),Math.sin(a),U.clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
       const as=als.slice().sort(U.sortByDist).slice(0,2), af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tk.x)/W,(a.y-tk.y)/H,U.clamp(a.distance/600,0,1),U.clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
-      const bs=bul.slice(0,4), bf=[]; for(let i=0;i<4;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=(b.x-tk.x), ry=(b.y-tk.y); const proj=((rx*nx+ry*ny)/900); const lat=U.clamp((Math.hypot(rx,ry) - Math.abs(rx*nx+ry*ny))/600, 0, 1); bf.push((b.x-tk.x)/W,(b.y-tk.y)/H,nx,ny, proj, lat); } else bf.push(0,0,0,0,0,1); }
-      const agg=[U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
-      const x=self.concat(ef,af,bf,agg); while(x.length<72) x.push(0); return x.slice(0,72); };
-    U.initNet=(seed)=>({ W1:U.initW(seed^0x7E37,72,40), W2:U.initW(seed^0x4A09,40,16), W3:U.initW(seed^0xDB67,16,8) });
+      const bs=bul.slice(0,5), bf=[]; for(let i=0;i<5;i++){ const b=bs[i]; if(b){ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=b.x-tk.x, ry=b.y-tk.y; const proj=U.clamp((rx*nx+ry*ny)/900,-1,1); const lat=U.clamp((Math.hypot(rx,ry)-Math.abs(rx*nx+ry*ny))/600,0,1); bf.push(rx/W,ry/H,nx,ny,proj,lat); } else bf.push(0,0,0,0,0,1); }
+      const ex=U.mean(ens.map(e=>e.x)||[tk.x]), ey=U.mean(ens.map(e=>e.y)||[tk.y]); const ax=U.mean(als.map(a=>a.x)||[tk.x]), ay=U.mean(als.map(a=>a.y)||[tk.y]); const agg=[(ex-tk.x)/W,(ey-tk.y)/H,(ax-tk.x)/W,(ay-tk.y)/H,U.clamp(ens.length/6,0,1),U.clamp(als.length/6,0,1),U.clamp(bul.length/12,0,1)];
+      const x=self.concat(ef,af,bf,agg); while(x.length<96) x.push(0); return x.slice(0,96);
+    };
+    U.initNet=(seed)=>({ W1:U.initW(seed^0xFA11,96,64), W2:U.initW(seed^0xBA11,64,24), W3:U.initW(seed^0xDA11,24,10) });
     U.fwd=(net,x)=>{ const h1=U.tanhV(U.mv(net.W1,x)); const h2=U.tanhV(U.mv(net.W2,h1)); return U.mv(net.W3,h2); };
-    U.leadAngle=(mem,tk,tgt)=>{ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(mem.last && Math.hypot(tgt.x-mem.last.x,tgt.y-mem.last.y)<100){ vx=tgt.x-mem.last.x; vy=tgt.y-mem.last.y; } const dx=tgt.x-tk.x, dy=tgt.y-tk.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; mem.last={x:tgt.x,y:tgt.y}; return U.deg(px,py); };
-    U.wallCost=(x,y)=>{ const W=900,H=600,m=35; let c=0; if(x<m) c+=(m-x); if(x>W-m) c+=(x-(W-m)); if(y<m) c+=(m-y); if(y>H-m) c+=(y-(H-m)); return c/(m); };
-    U.bulletDanger=(tk,b,px,py)=>{ const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const rx=px-b.x, ry=py-b.y; const proj=rx*nx+ry*ny; if(proj<0) return 0; const lat=Math.abs(rx*(-ny)+ry*nx); const rad=tk.size/2+2; const tti = proj/(v+1e-6); const near = lat - rad; const p=U.clamp(1/(1+tti*0.6),0,1); return near<18 ? p*(18-Math.max(0,near))/18 : 0; };
-    U.allyCost=(px,py,als)=>{ let c=0; for(const a of als){ const d=Math.hypot(px-a.x,py-a.y); if(d<52) c+=(52-d)/52; } return c; };
     U.pickTarget=(ens)=>{ if(!ens.length) return null; return ens.slice().sort(U.sortByHealthThenPos)[0]; };
-    return U;
-  }
-  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0x81AD ^ 66666), lastMove:0 };
+    return U; }
+  const U=__u__(); if(!update._m) update._m={ last:null, net:U.initNet(0xD1E5 ^ 66666) };
   const tgt=U.pickTarget(enemies)||U.closest(enemies);
-  const x=U.buildFeat(tank,enemies,allies,bulletInfo); const y=U.fwd(update._m.net,x);
-  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]);
-  const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
-  const wTow=Math.max(0, y[4]), wAway=Math.max(0, y[5]), wSL=Math.max(0, y[6]), wSR=Math.max(0, y[7]);
-  const aimBase=tgt? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0;
-  const netAim=U.ang(U.deg(fvx,fvy)); const aim=U.ang(0.86*aimBase + 0.14*netAim + ((tank.x*7+tank.y*13+15)%19-9)*0.22);
-  tank.fire(aim);
-  let cands=[]; const base=aimBase; const side=-28; const dirs=[base, base+180, base+90+side, base-90+side, base+25, base-25, 0,45,90,135,180,225,270,315];
-  for(const d of dirs){ cands.push(U.ang(d)); }
-  const extra=U.ang(U.deg(mvx,mvy)); cands.push(extra, U.ang(extra+20), U.ang(extra-20));
-  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0;
-    for(const b of bulletInfo){ s += 2.5*U.bulletDanger(tank,b,px,py); }
-    s += 1.0*U.wallCost(px,py);
-    s += 0.9*U.allyCost(px,py,allies);
-    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const sidePref=Math.abs(Math.sin(rel*Math.PI/180));
-      if(d>330) s += 0.45*(1-sidePref);
-      else if(d<170) s += 0.55*(1-Math.abs(Math.cos(rel*Math.PI/180)));
-      else s += 0.35*(1-sidePref);
-    }
-    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y) : 0; const rel=U.ang(a-to);
-    const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0) + wAway*(Math.cos(rel*Math.PI/180)<0?1:0) + wSL*(Math.sin(rel*Math.PI/180)>0?1:0) + wSR*(Math.sin(rel*Math.PI/180)<0?1:0);
-    s -= 0.12*pref;
-    return s;
-  }
-  let bestA=null, bestS=1e9; for(const a of cands){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } }
-  const seq=[bestA, bestA+18, bestA-18, base+180+side, extra];
-  for(const a of seq){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
+  const x=U.buildFeat(tank,enemies,allies,bulletInfo), y=U.fwd(update._m.net,x);
+  const mvx=Math.tanh(y[0]), mvy=Math.tanh(y[1]); const fvx=Math.tanh(y[2]), fvy=Math.tanh(y[3]);
+  const wTow=Math.max(0,y[4]), wAway=Math.max(0,y[5]), wSL=Math.max(0,y[6]), wSR=Math.max(0,y[7]); const rangeBias=U.clamp(y[8],-1,1), orbitBias=U.clamp(y[9],-1,1);
+  const aimLead=tgt ? (U.leadAngle(update._m,tank,tgt) ?? U.deg(tgt.x-tank.x,tgt.y-tank.y)) : 0; const aimNet=U.ang(U.deg(fvx,fvy)); const jitter=((tank.x*7+tank.y*27+11)%19-9)*0.22; tank.fire(U.ang(0.84*aimLead + 0.16*aimNet + jitter));
+  const base=aimLead; const dirs=[]; for(let k=0;k<60;k++){ dirs.push(U.ang(k*6)); }
+  dirs.push(base, base+180, base+90-24, base-90-24, base+20, base-20); const extra=U.ang(U.deg(mvx,mvy)); dirs.push(extra, U.ang(extra+16), U.ang(extra-16));
+  function score(a){ const nx=Math.cos(a), ny=Math.sin(a); const px=tank.x+nx*tank.speed, py=tank.y+ny*tank.speed; let s=0; for(const b of bulletInfo){ s += 2.4*U.bulletDanger(tank,b,px,py);} s+=0.92*U.wallCost(px,py); s+=0.88*U.allyCost(px,py,allies);
+    if(tgt){ const dx=tgt.x-px, dy=tgt.y-py; const d=Math.hypot(dx,dy); const to=U.deg(dx,dy); const rel=U.ang(to-a); const forward=Math.cos(rel*Math.PI/180), side=Math.sin(rel*Math.PI/180); const far=d>360, close=d<200; s += far? 0.48*(1-Math.abs(side)) : (close? 0.62*(1-Math.abs(forward)) : 0.38*(1-Math.abs(side))); s += 0.14*rangeBias*(close? -1:1); }
+    const to=tgt? U.deg(tgt.x-tank.x,tgt.y-tank.y):0; const rel=U.ang(a-to); const pref = wTow*(Math.cos(rel*Math.PI/180)>0?1:0)+ wAway*(Math.cos(rel*Math.PI/180)<0?1:0)+ wSL*(Math.sin(rel*Math.PI/180)>0?1:0)+ wSR*(Math.sin(rel*Math.PI/180)<0?1:0)+ 0.06*Math.sin(orbitBias*rel*Math.PI/180); s -= 0.12*pref; return s; }
+  let bestA=null,bestS=1e9; for(const a of dirs){ const sc=score(a); if(sc<bestS){ bestS=sc; bestA=a; } } for(const a of [bestA,bestA+16,bestA-16,base+180-24,extra]){ if(a==null) continue; if(tank.move(U.ang(a))) break; }
 }
 
