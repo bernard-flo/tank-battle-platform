@@ -1,24 +1,16 @@
-# 프로젝트 목표
-* tank_battle_platform.html으로 실행되는 ai code 대결에서 사용할 뛰어난 성능의 code를 만드는게 목표야.
+# Project Goal
+* The objective is to create high-performance code for an AI code competition that runs on tank_battle_platform.html.
 
-# 구동 환경
-* 지금 너는 docker container 내에서 구동되고 있고, 이 PROMPT 내용으로 반복 실행되고 있음을 참고해.
-* 가능한 권한으로 시스템의 모든 기능을 사용하도록 해.
-* gpu(cuda)도 사용할수 있어.
-* 호스트에 영향을 줄수 있는 심각한 보안 문제는 없어야 해.
+# Execution Environment
+* Be aware that you are currently running inside a Docker container..
+* Utilize all available system functionalities within your granted permissions.
+* GPU (CUDA) is also available for use.
+* There must be no critical security issues that could affect the host system.
 
-# 기록
-* .agent/FILE_STRUCTURE.md
-  * 위 파일에 생성한 파일을 모두 리스트업하고, 파일에 대한 간단한 설명을 최신화하도록 해.
-  * 매 실행마다 이 파일은 항상 참조하도록 해.
-* .agent/NOTE.md
-  * 위 파일에는 다음 실행에 참고할 내용을 기록하도록 해.
-  * 매 실행마다 이 파일은 항상 참조하도록 해.
-  * 해당 내용을 무조건 따르지는 말고, 참고만 하도록 해.
+# Record-Keeping
+* .agent/SIMULATOR.md
+  * Always refer to this file upon every execution.
 
-# 대화 언어
-* 모든 대화 및 문서는 한글을 사용해.
-
-# 기타 주의사항
-* tank_battle_platform.html 파일은 수정하지 마
-* 파일 변경할때마다 git commit을 수행해.
+# Other Precautions
+* Do not modify the tank_battle_platform.html file.
+* Perform a git commit every time a file is modified.
