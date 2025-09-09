@@ -21,10 +21,12 @@
     - 모방학습(빠름): `node src/imitation_train.js --matches 8 --ticks 1800 --epochs 4 --batch 256 --lr 0.003 --fast`
     - CEM 튜닝(소규모): `node src/train_cem.js --iters 4 --pop 24 --elite 6 --seeds 3 --ticks 2400 --fast --concurrency 8`
     - ES 튜닝(단계적): `node src/train_es.js --iters 2 --pop 30 --sigma 0.25 --alpha 0.07 --seeds 3 --ticks 2600 --concurrency 8 --fast`
-  · 평가(예시 커맨드): `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3000 --fast`
+  · 평가(예시 커맨드): `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3500 --fast`
   · 현재 수치(이번 실행 직후):
-    - 모방학습 초기화 직후 60 seeds에서 0W/60L/0D.
-    - 이후 ES 2 iters(pop 40, ticks 2400) + CEM 3 iters(pop 40, ticks 2400~2800) 적용 후 20 seeds 평가: 0W/0L/20D, 평균 에너지 Red 330, Blue 575 수준. 추가 학습 필요.
+    - 모방학습(Ref 기반) 초기화 후 10 seeds: 0W/0L/10D, 평균 에너지 Red 330, Blue 575.
+    - ES 2 iters(pop 40, ticks 2800) → CEM 4 iters(pop 40, ticks 3200) 후 20 seeds: 0W/0L/20D, 평균 에너지 Red 330, Blue 598.
+    - 모방학습(Teacher 기반) 12매치×6epoch 후 20 seeds: 0W/20L/0D, 평균 틱 623.
+    - 설계형 가중치(design_weights_9) 후 20 seeds: 0W/20L/0D, 평균 틱 357.
 
   · 추가 개선 제안(다음 번):
     - seeds를 8~12로 증가, pop 60~80, iters 20+로 장기 러닝.
@@ -34,12 +36,14 @@
     - Teacher 모방 초기화: src/teacher_ai.txt를 --teacher로 지정해 행동 수집 후 초기화, 이후 CEM로 미세튜닝.
 
 실행 메모(이번 실행)
-- generate_dnn_team.js: 발사 확률 게이팅(out.fireP>0.5) 적용. 순수 DNN 의사결정 유지.
-- Teacher 팀 추가 및 imitation_train에 --teacher 지원. 이번 실행에서 Teacher 기반 모방학습(10매치×2200틱, 4 epoch)으로 가중치 초기화.
-- ES(2 iters, pop 40, sigma 0.25, alpha 0.06, seeds 3, ticks 2400) → CEM(3 iters, pop 40, elite 8, seeds 3, ticks 2400~2800) 순으로 소규모 튜닝 및 평가.
+- generate_dnn_team.js: DNN-only 정책 생성(입력 전 파라미터 사용). 발사 게이팅(out.fireP>0.5).
+- imitation_train: Ref 기반(8×2500틱, 4epoch), Teacher 기반(12×2600틱, 6epoch) 각각 시도.
+- train_es: 2 iters(pop 40, seeds 3~4, ticks 2800~3200) 여러 번 → 점수 정체.
+- train_cem: 4 iters(pop 40, elite 8, seeds 3, ticks 3200) → 점수 정체.
+- design_weights_9: 목표지향 가중치 임베드 → 단기 성능 저조.
 
 다음 실행 제안
-- 더 큰 compute 허용 시 CEM 20+ iters, seeds 8~12, pop 80~120으로 확장.
-- ES 러닝을 짧은 구간으로 여러 번 호출(각 120s 한도 내). 예: --iters 2 --pop 50를 5회.
-- 입력 확장: 시간 스택(직전 2틱) 추가 후 가중치 재초기화→모방→CEM.
-- 결과 검증: `node src/eval_vs_reference.js --count 200 --start 9000 --maxTicks 3500 --fast`로 통계적 우세 확인.
+- compute 확대 시: CEM 20+ iters(pop 120, elite 24, seeds 8, ticks 3600) 또는 ES 누적 러닝을 여러 번 반복.
+- 입력 개선: 시간 스택(직전 2~3틱) 추가하여 동적 회피/추격 성능 향상(정책은 여전히 DNN-only).
+- 보상 shaping(학습용): 생존/근접 피해/총알 회피 등의 완만한 항 추가(실행 정책은 DNN-only 유지).
+- 최종 검증: `node src/eval_vs_reference.js --count 200 --start 9000 --maxTicks 3500 --fast`로 통계적 우세 확인.
