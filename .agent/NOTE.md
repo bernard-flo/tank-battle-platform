@@ -142,7 +142,7 @@
 이번 실행( Nemesis AI 결과 )
 - result-ai.txt를 per-block DNN+휴리스틱으로 전면 재작성(분할 파서 호환/문법 검증 통과).
 - 배치 비교: `node scripts/evaluate_and_update.js` (REPEAT=120, SEED=7777, CONCURRENCY=8)
-  · 요약: 승률 0%, Blue 평균 생존 2.0. 기준 갱신 조건 미충족 → reference-ai.txt 유지.
+  · Nemesis-3c 결과: 승률 0%, Blue 평균 생존 ≈4.0, Blue 평균 에너지 ≈275. 기준 갱신 조건 미충족 → reference-ai.txt 유지.
 - 다음 액션: 집중사격(최소 체력 타겟 통일), 간이 리드샷(내부 메모리로 속도 추정), 타입 재배치(Dealer 3 + Normal 1) 실험.
 
 다음 실행 계획(비교/튜닝)
