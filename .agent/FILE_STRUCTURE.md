@@ -33,22 +33,13 @@
 - simulator/replay_viewer.html: 리플레이(JSON) 재생용 독립 HTML 뷰어(시각적 확인 전용).
 
 AI/DNN 학습/생성 파일
-- src/generate_dnn_team.js: MLP 정책 코드 생성기. update()에서 tank/enemies/allies/bulletInfo 전부를 피처로 사용하여 추론하는 코드 문자열을 만들어 팀(6로봇) 텍스트를 출력.
-- src/train_cem.js: Cross-Entropy Method 기반 학습 스크립트. reference-ai.txt를 상대 블루팀으로 두고 평균 보상(에너지 차 + 승패 보너스)을 최대화하도록 공유 가중치를 최적화. 최적 가중치로 result/ai_dnn_team.txt를 저장. 히든층 크기 32-32로 경량화.
- - src/cem_worker.js: 학습 중 개별 후보(가중치)의 성능을 병렬로 평가하는 워커. train_cem.js에서 --concurrency로 활용.
-- src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 32-32 MLP 초기화. 이후 CEM 미세튜닝 권장.
- - src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 64-64 MLP 초기화. 이후 CEM/ES 미세튜닝 권장.
-   · CLI 옵션: --matches N --ticks N --epochs N --batch N --lr F --seed S [--fast|--no-fast]
- - src/generate_from_weights.js: result/ai_dnn_weights.json을 읽어 팀 코드를 재생성.
-- src/train_es.js: Evolution Strategies(OpenAI-ES) 기반 블랙박스 최적화. Mirrored sampling과 병렬 워커로 빠르게 gradient 추정 후 가중치 업데이트.
-  - src/es_worker.js: ES 평가 워커. 주어진 가중치 벡터로 코드 생성→시뮬레이션→스코어 반환.
-- src/teacher_ai.txt: 모방학습용 Teacher 팀(휴리스틱). 각 로봇 블록 내에 helper 포함(분할 실행 호환). 총알 회피/아군 분리/타겟 추적/스트레이프 조합.
-- src/imitation_train.js: --teacher 옵션 추가(기본은 result/reference-ai.txt). Teacher 코드를 레드팀으로 하여 행동을 수집하고 DNN을 지도학습으로 초기화.
+- src/generate_dnn_team.js: DNN 정책(MLP 64-64) 코드 생성기. update()에서 tank/enemies/allies/bulletInfo를 모두 피처화하고, 순수 DNN 출력만으로 발사/이동을 결정. 타입 순서 고정 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER].
+- src/train_cem.js: Cross-Entropy Method 기반 최적화 스크립트. result/reference-ai.txt를 상대 팀으로 하여 여러 시드에서 평균 점수를 최대화. 최적 가중치를 result/ai_dnn_weights.json으로 저장하고, result/ai_dnn_team.txt를 생성.
 
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
-- result/ai_dnn_team.txt: 본 스크립트가 생성하는 DNN 팀 코드. tank_battle_platform.html Import로 붙여넣어 사용 가능. 타입 조합은 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER] 고정.
-- result/ai_dnn_weights.json: 현재 최적 가중치(평탄화 배열) 저장. 다음 실행 시 학습 재개/재생성에 사용.
+- result/ai_dnn_team.txt: 생성된 DNN 팀 코드. tank_battle_platform.html에서 Import 가능한 형식. 타입 조합 고정 [N, D, T, D, T, D].
+- result/ai_dnn_weights.json: 최적 가중치(평탄화 배열/shape 포함). generate_dnn_team.js로 재생성 가능.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
@@ -56,12 +47,9 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 모방학습 1: reference-ai.txt 기준(8매치×2500틱, 4epoch)으로 초기화 → 커밋.
-- ES 튜닝: 2 iters(pop=40, seeds=3, ticks=2800) 실행 → 개선 미미.
-- CEM 튜닝: 4 iters(pop=40, elite=8, seeds=3, ticks=3200) 실행 → 에너지 열세 지속.
-- 모방학습 2: Teacher AI(src/teacher_ai.txt) 기준(12매치×2600틱, 6epoch) 재초기화 → 빠른 전멸 경향으로 부적합 판단.
-- 설계형 가중치 초기화(src/design_weights_9.js): 타겟 조준/접근/스트레이프/후퇴 + 거리 기반 발사를 DNN 가중치로 임베드 → 여전히 reference 대비 열세.
-- 현재 결과물(result/ai_dnn_team.txt)은 update 파라미터 전체를 사용하는 순수 DNN 정책이며, tank_battle_platform.html Import 호환을 만족.
+- DNN 팀 코드 생성기(src/generate_dnn_team.js)와 CEM 학습기(src/train_cem.js) 추가.
+- result/reference-ai.txt 대비 자동 평가/학습 파이프라인 준비 완료.
+- 다음 단계: CEM으로 초기 가중치 최적화 후 성능 비교 리포트.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
