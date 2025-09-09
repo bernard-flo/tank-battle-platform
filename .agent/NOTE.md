@@ -79,3 +79,7 @@
 - 재검증 실행: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5`
   → 결과: BLUE 승, Ticks 638, JSON/리플레이 저장 확인.
   코드 변경 없음(문서 갱신만 수행). tank_battle_platform.html 미변경.
+
+이번 실행(시뮬레이터 확인)
+- 시뮬레이터 규칙 일치 재확인. 성능 옵션(--fast, --runner secure|fast) 가이드 추가 제공.
+- 코드 변경 없음. 다음 단계: AI 설계/튜닝 착수 가능.

@@ -48,3 +48,7 @@
 - 시뮬레이터 동작 재검증: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5` 실행.
 - 결과 요약: BLUE 승, Ticks 638, JSON/리플레이 정상 저장 확인.
 - 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경 유지.
+
+이번 실행(시뮬레이터 확인)
+- 코드 변경 없음. 기존 시뮬레이터 구현 상태(engine/bot_loader/cli/README)와 HTML 규칙 일치 재확인.
+- tank_battle_platform.html 미변경. 사용 안내만 제공.
