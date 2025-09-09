@@ -6,7 +6,7 @@ function genArray(name, arr, perLine = 16) {
   const lines = [];
   for (let i = 0; i < arr.length; i += perLine) {
     const chunk = arr.slice(i, i + perLine);
-    lines.push(chunk.map((v) => Number(v).toFixed(6)).join(','));
+    lines.push(chunk.map((v) => Number(v).toFixed(6)).join(',') + ',');
   }
   return `const ${name} = [\n${lines.map((l) => '  ' + l).join('\n')}\n];`;
 }
