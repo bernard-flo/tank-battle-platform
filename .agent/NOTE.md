@@ -44,11 +44,11 @@
  - 리플레이 시각 확인: `simulator/replay_viewer.html`을 브라우저로 열어 `replay.json` 선택 후 재생.
 
 이번 실행
-- Nemesis-4(AegisNet-X) 팀으로 result-ai.txt 전면 교체 (64→48→24→6 MLP + 휴리스틱 혼합, 리드샷/회피/측면/벽반발/아군간격).
-- 성능 비교 자동화: `node scripts/evaluate_and_update.js` (기본 REPEAT=120, CONCURRENCY=8, FAST)
-  · 레드: result-ai.txt, 블루: reference-ai.txt로 배치 실행 후 승률/생존/에너지 집계.
-  · 우세 기준 충족 시 reference-ai.txt 자동 갱신(copy).
-- 단일 리플레이 확인: `node simulator/cli.js --red result-ai.txt --blue reference-ai.txt --seed 7 --replay replay.json --recordEvery 3`
+- Nemesis-4h: 레퍼런스 이동 정합 + 리드샷 강화 + DNN 보정 최소화로 성능 도약.
+- 배치 평가: `node scripts/evaluate_and_update.js` (REPEAT=120, CONCURRENCY=8, FAST)
+  · 결과: 승률 87.5% (Red 105 / Blue 15 / Draw 0), 평균 생존 0.875 vs 0.25, 평균 에너지 47.25 vs 8.13.
+  · 기준 충족하여 reference-ai.txt 자동 갱신 완료.
+  · 단일 리플레이 확인: `node simulator/cli.js --red result-ai.txt --blue reference-ai.txt --seed 7 --replay replay.json --recordEvery 3`
 
 이번 실행(추가 확인)
 - 기본 실행 재검증: `node simulator/cli.js --repeat 1 --seed 123 --fast` → BLUE 승, 틱 713, 통계 정상 출력.
@@ -59,9 +59,9 @@
 - 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
 
 다음 실행 제안(TODO)
-- 승률 향상을 위한 DNN 출력 혼합계수 튜닝(mixMove/mixFire 범위 조정, 역할별 상수 미세화).
-- 위협탄 판정 반경/시간 근사 조정(타입/크기 반영)과 아군 충돌 회피 각도 분산 더 확대.
-- (선택) 객체 풀링/TypedArray 도입한 초고속 모드 프로토타입 검토.
+- 리드샷 안정화: 표적 변경 시 초기 프레임에 속도 0 가정으로 과도 보정 방지.
+- DNN 보정 학습 방향: 오프라인 룰 기반 데이터로 distillation(출력 오차 최소화) 후 mix 비중 확대.
+- 위협탄 판정 민감도 역할별 차등화(탱커 낮춤, 딜러 높임)로 생존/딜 밸런스 추가 개선.
 
 참고 명령어
 - 단일 경기 + 리플레이: `node simulator/cli.js --red simulator/ai/default_team.js --blue simulator/ai/default_team.js --seed 7 --replay replay.json --recordEvery 5 --fast`
