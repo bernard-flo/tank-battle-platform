@@ -200,10 +200,13 @@ async function main(){
     let actions = {};
     engine.actionHook = (tank, kind, angle, ok, nowMs) => {
       if (tank.team !== 'red') return; // 레드팀만 수집
-      const e = actions[tank.id] || (actions[tank.id] = { move: null, fire: null });
-      if (kind==='move' && e.move===null) e.move = angle; // 첫 시도 각도 기준
-      if (kind==='fire' && e.fire===null) e.fire = angle; // 첫 시도 각도 기준
-    };
+      const e = actions[tank.id] || (actions[tank.id] = { moveAttempt: null, moveOk: null, fire: null });
+      if (kind==='move'){
+        if (e.moveAttempt===null) e.moveAttempt = angle; // 첫 시도 각
+        if (ok && e.moveOk===null) e.moveOk = angle;     // 첫 성공 각
+      }
+      if (kind==='fire' && e.fire===null) e.fire = angle; // 첫 사격 시도 각
+      };
     for(let t=0;t<maxTicks;t++){
       actions = {}; // 틱 단위 초기화
       engine.step();
@@ -213,7 +216,8 @@ async function main(){
         const a = actions[tank.id];
         if(!a) continue; // 행동이 없으면 스킵
         const x = buildFeatures(tank, engine);
-        const [mvx, mvy] = a.move!=null ? toAngles(a.move) : [0,0];
+        const chosenMove = (a.moveOk!=null ? a.moveOk : a.moveAttempt);
+        const [mvx, mvy] = chosenMove!=null ? toAngles(chosenMove) : [0,0];
         const fired = a.fire!=null ? 1 : 0;
         const [fx, fy] = a.fire!=null ? toAngles(a.fire) : [0,0];
         samples.push({ x, mvx, mvy, fired, fx, fy });
@@ -280,4 +284,3 @@ async function main(){
 if(require.main===module){
   main().catch(e=>{ console.error(e); process.exit(1); });
 }
-
