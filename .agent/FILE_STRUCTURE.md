@@ -76,3 +76,8 @@
 이번 실행(요약 - 현재 세션)
 - 코드 변경 없음. 시뮬레이터 구현/옵션/병렬 실행 재확인.
 - 문서 최신화만 수행. 다음 단계: AI 코드 설계/튜닝 진행 가능.
+
+이번 실행(요약 - 시뮬레이터 동작 확인)
+- 명령: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5 --fast`
+- 결과: RED 승, Ticks 642, Red Alive 1 / Blue Alive 0 (Energy: 5 / 0)
+- 산출물: result.json, replay.json (.gitignore에 의해 미추적)

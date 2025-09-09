@@ -122,3 +122,8 @@
 이번 실행(현재 세션 요약)
 - 변경 없음. 시뮬레이터 규칙/효율화 재확인.
 - 다음 실행에서 AI 기본 전략(회피+집중사격) 설계 시작 권장.
+
+이번 실행(추가 기록)
+- 방금 단일 경기 확인: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5 --fast`
+  → RED 승, Ticks 642, Red Alive 1 / Blue Alive 0 (Energy 5/0). JSON/리플레이 저장 정상.
+  다음 단계: 기본 방어/회피/집중사격 로직 초안 작성 후 시뮬레이터로 반복 검증.
