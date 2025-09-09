@@ -69,11 +69,11 @@ function update(tank,enemies,allies,bulletInfo){
 
   // 네트워크 파라미터
   const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b1 = new Float64Array([-0.10784929, -0.62432027, -0.55596506, 0.28032117, -0.0122588, 0.17507482, 0.51142225, -0.84358176, 0.45214991, -0.14815902, 0.64203361, -1.32512329, 0.23124333, -0.50277798, 0.51182624, 0.24439189, -0.0855701, 0.05636389, -0.30130439, -0.65709605, 0.84727858, 0.03166989, -0.15277345, -0.23071854]);
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b2 = new Float64Array([-0.40481543, 0.6060204, -0.04991324, 0.57083143, 0.38885959, 0.33011924, 0.09079953, 0.22424865, -0.79279853, -0.04340555, 0.91047346, 0.43236991, 1.19781242, -1.00669315, -0.70042486, -1.41035695]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
+  const b3 = new Float64Array([-0.50898547, -0.54182165, 0.14170669, 1.44189418, 0.58255205]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -184,11 +184,11 @@ function update(tank,enemies,allies,bulletInfo){
 
   // 네트워크 파라미터
   const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b1 = new Float64Array([-0.10784929, -0.62432027, -0.55596506, 0.28032117, -0.0122588, 0.17507482, 0.51142225, -0.84358176, 0.45214991, -0.14815902, 0.64203361, -1.32512329, 0.23124333, -0.50277798, 0.51182624, 0.24439189, -0.0855701, 0.05636389, -0.30130439, -0.65709605, 0.84727858, 0.03166989, -0.15277345, -0.23071854]);
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b2 = new Float64Array([-0.40481543, 0.6060204, -0.04991324, 0.57083143, 0.38885959, 0.33011924, 0.09079953, 0.22424865, -0.79279853, -0.04340555, 0.91047346, 0.43236991, 1.19781242, -1.00669315, -0.70042486, -1.41035695]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
+  const b3 = new Float64Array([-0.50898547, -0.54182165, 0.14170669, 1.44189418, 0.58255205]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -299,11 +299,11 @@ function update(tank,enemies,allies,bulletInfo){
 
   // 네트워크 파라미터
   const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b1 = new Float64Array([-0.10784929, -0.62432027, -0.55596506, 0.28032117, -0.0122588, 0.17507482, 0.51142225, -0.84358176, 0.45214991, -0.14815902, 0.64203361, -1.32512329, 0.23124333, -0.50277798, 0.51182624, 0.24439189, -0.0855701, 0.05636389, -0.30130439, -0.65709605, 0.84727858, 0.03166989, -0.15277345, -0.23071854]);
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b2 = new Float64Array([-0.40481543, 0.6060204, -0.04991324, 0.57083143, 0.38885959, 0.33011924, 0.09079953, 0.22424865, -0.79279853, -0.04340555, 0.91047346, 0.43236991, 1.19781242, -1.00669315, -0.70042486, -1.41035695]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
+  const b3 = new Float64Array([-0.50898547, -0.54182165, 0.14170669, 1.44189418, 0.58255205]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -414,11 +414,11 @@ function update(tank,enemies,allies,bulletInfo){
 
   // 네트워크 파라미터
   const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b1 = new Float64Array([-0.10784929, -0.62432027, -0.55596506, 0.28032117, -0.0122588, 0.17507482, 0.51142225, -0.84358176, 0.45214991, -0.14815902, 0.64203361, -1.32512329, 0.23124333, -0.50277798, 0.51182624, 0.24439189, -0.0855701, 0.05636389, -0.30130439, -0.65709605, 0.84727858, 0.03166989, -0.15277345, -0.23071854]);
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b2 = new Float64Array([-0.40481543, 0.6060204, -0.04991324, 0.57083143, 0.38885959, 0.33011924, 0.09079953, 0.22424865, -0.79279853, -0.04340555, 0.91047346, 0.43236991, 1.19781242, -1.00669315, -0.70042486, -1.41035695]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
+  const b3 = new Float64Array([-0.50898547, -0.54182165, 0.14170669, 1.44189418, 0.58255205]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -529,11 +529,11 @@ function update(tank,enemies,allies,bulletInfo){
 
   // 네트워크 파라미터
   const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b1 = new Float64Array([-0.10784929, -0.62432027, -0.55596506, 0.28032117, -0.0122588, 0.17507482, 0.51142225, -0.84358176, 0.45214991, -0.14815902, 0.64203361, -1.32512329, 0.23124333, -0.50277798, 0.51182624, 0.24439189, -0.0855701, 0.05636389, -0.30130439, -0.65709605, 0.84727858, 0.03166989, -0.15277345, -0.23071854]);
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b2 = new Float64Array([-0.40481543, 0.6060204, -0.04991324, 0.57083143, 0.38885959, 0.33011924, 0.09079953, 0.22424865, -0.79279853, -0.04340555, 0.91047346, 0.43236991, 1.19781242, -1.00669315, -0.70042486, -1.41035695]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
+  const b3 = new Float64Array([-0.50898547, -0.54182165, 0.14170669, 1.44189418, 0.58255205]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -644,11 +644,11 @@ function update(tank,enemies,allies,bulletInfo){
 
   // 네트워크 파라미터
   const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b1 = new Float64Array([-0.10784929, -0.62432027, -0.55596506, 0.28032117, -0.0122588, 0.17507482, 0.51142225, -0.84358176, 0.45214991, -0.14815902, 0.64203361, -1.32512329, 0.23124333, -0.50277798, 0.51182624, 0.24439189, -0.0855701, 0.05636389, -0.30130439, -0.65709605, 0.84727858, 0.03166989, -0.15277345, -0.23071854]);
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
-  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const b2 = new Float64Array([-0.40481543, 0.6060204, -0.04991324, 0.57083143, 0.38885959, 0.33011924, 0.09079953, 0.22424865, -0.79279853, -0.04340555, 0.91047346, 0.43236991, 1.19781242, -1.00669315, -0.70042486, -1.41035695]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([-0.03244263, -0.11347256, 0.08572184, 0.03316965, -0.03244263]);
+  const b3 = new Float64Array([-0.50898547, -0.54182165, 0.14170669, 1.44189418, 0.58255205]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
