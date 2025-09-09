@@ -27,4 +27,4 @@
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
 - 시뮬레이터 출력 JSON(result*.json)과 리플레이(replay*.json)는 .gitignore에 포함됨.
- - HTML과 차이: HTML은 fire 쿨다운을 Date.now()로 판정, 시뮬레이터는 엔진 시간 누적으로 판정(틱 50ms 기준 동등 동작).
+정확화: HTML과 동일하게 발사 쿨다운 초기값을 0ms로 두어 경기 시작 후 500ms까지 발사 불가(10틱). 판정은 엔진 시간 누적 기반으로 수행(틱 50ms)하나, 결과는 HTML(Date.now())과 동일.
