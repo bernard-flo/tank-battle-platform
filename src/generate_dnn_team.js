@@ -1,249 +1,220 @@
-// DNN 기반 팀 코드 생성기
-// - tank_battle_platform.html에서 Import 가능한 텍스트를 생성
-// - update(tank, enemies, allies, bulletInfo) 내에서 모든 파라미터를 활용하는 피처 추출 + MLP 추론만 사용(휴리스틱 없음)
+// 코드 생성기: 주어진 가중치로 6개 로봇(DNN 전용) 팀 코드를 생성
+// - tank_battle_platform.html 및 simulator/bot_loader.js 호환 형식
+// - 블록 구성: function name(), function type(), function update(...)
+// - 타입 순서 고정: [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER]
 
-function genArray(name, arr, perLine = 16) {
-  const lines = [];
-  for (let i = 0; i < arr.length; i += perLine) {
-    const chunk = arr.slice(i, i + perLine);
-    lines.push(chunk.map((v) => Number(v).toFixed(6)).join(',') + ',');
-  }
-  return `const ${name} = [\n${lines.map((l) => '  ' + l).join('\n')}\n];`;
+const fs = require('fs');
+const path = require('path');
+
+// 네트워크 구조 정의(생성기와 런타임 코드 동일하게 유지)
+function getNetSpec() {
+  // 입력 구성:
+  // - 탱크 자체: x,y, health, energy, type onehot(3), size(정규화)
+  // - 적 K_e = 3: 각 (dx, dy, distance, angle_sin, angle_cos, health)
+  // - 아군 K_a = 2: 각 (dx, dy, distance, health)
+  // - 총알 K_b = 4: 각 (dx, dy, distance, vx, vy)
+  // 합계: self(1*8) + enemies(3*6) + allies(2*4) + bullets(4*5) = 8 + 18 + 8 + 20 = 54
+  // 여유로 전역 정보 추가: [bias(1), mapW(1), mapH(1)] => 3, 총 57
+  // 추가: 팀별 평균/최소 거리(적/아군) 4개 => 61
+  // 추가: 카운트(적,아군,총알) 3개 => 64
+  // 여유 입력을 위해 padding 0  => INPUT_SIZE = 64
+  const INPUT_SIZE = 64;
+  const H1 = 64;
+  const H2 = 64;
+  const OUTPUT_SIZE = 9; // [mv1x,mv1y,mv2x,mv2y, fx,fy, fire_logit, mv3x,mv3y]
+  return { INPUT_SIZE, H1, H2, OUTPUT_SIZE };
 }
 
-function genMLPCode(config) {
-  const {
-    inputSize,
-    hiddenSizes, // [h1, h2]
-    outputSize,  // 9: [mv1x,mv1y, mv2x,mv2y, fx,fy, fire_logit, mv3x,mv3y]
-    weights,     // flat Float64Array
-    typesOrder = [0, 2, 1, 2, 1, 2], // NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER
-    playerNames = ['DNN-N1','DNN-D1','DNN-T1','DNN-D2','DNN-T2','DNN-D3'],
-  } = config;
+function zeros(n) { return Array.from({ length: n }, () => 0); }
 
-  // 분해 인덱스 계산
-  const L1 = inputSize * hiddenSizes[0];
-  const B1 = hiddenSizes[0];
-  const L2 = hiddenSizes[0] * hiddenSizes[1];
-  const B2 = hiddenSizes[1];
-  const L3 = hiddenSizes[1] * outputSize;
-  const B3 = outputSize;
-
-  if (weights.length !== L1 + B1 + L2 + B2 + L3 + B3) {
-    throw new Error('weights length mismatch');
+function initWeights(rand = Math.random) {
+  const { INPUT_SIZE, H1, H2, OUTPUT_SIZE } = getNetSpec();
+  const scale = 1/Math.sqrt(INPUT_SIZE);
+  function randn() {
+    // Box-Muller
+    let u = 0, v = 0; while (u === 0) u = rand(); while (v === 0) v = rand();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   }
+  function initDense(inDim, outDim) {
+    const W = []; const b = [];
+    for (let o = 0; o < outDim; o++) {
+      for (let i = 0; i < inDim; i++) W.push(randn() * scale);
+      b.push(0);
+    }
+    return { W, b };
+  }
+  const L1 = initDense(INPUT_SIZE, H1);
+  const L2 = initDense(H1, H2);
+  const L3 = initDense(H2, OUTPUT_SIZE);
+  return { ...getNetSpec(), ...L1, ...L2, ...L3 };
+}
 
-  const w1 = weights.slice(0, L1);
-  const b1 = weights.slice(L1, L1 + B1);
-  const o1 = L1 + B1;
-  const w2 = weights.slice(o1, o1 + L2);
-  const b2 = weights.slice(o1 + L2, o1 + L2 + B2);
-  const o2 = o1 + L2 + B2;
-  const w3 = weights.slice(o2, o2 + L3);
-  const b3 = weights.slice(o2 + L3, o2 + L3 + B3);
+function flattenWeights(w) {
+  const { INPUT_SIZE, H1, H2, OUTPUT_SIZE } = w;
+  return {
+    INPUT_SIZE, H1, H2, OUTPUT_SIZE,
+    W1: w.W.slice(0, H1 * INPUT_SIZE), b1: w.b.slice(0, H1),
+    W2: w.W.slice(H1 * INPUT_SIZE, H1 * INPUT_SIZE + H2 * H1), b2: w.b.slice(H1, H1 + H2),
+    W3: w.W.slice(H1 * INPUT_SIZE + H2 * H1), b3: w.b.slice(H1 + H2),
+  };
+}
+
+// 문자열 코드 생성기
+function generateRobotBlock(name, tankType, weights) {
+  const { INPUT_SIZE, H1, H2, OUTPUT_SIZE, W1, b1, W2, b2, W3, b3 } = weights;
+  const header = `const INPUT_SIZE = ${INPUT_SIZE};\nconst H1 = ${H1};\nconst H2 = ${H2};\nconst OUTPUT_SIZE = ${OUTPUT_SIZE};`;
 
   const arrays = [
-    genArray('W1', w1),
-    genArray('B1', b1),
-    genArray('W2', w2),
-    genArray('B2', b2),
-    genArray('W3', w3),
-    genArray('B3', b3),
-  ].join('\n');
+    `const W1 = [\n  ${W1.map((v, i) => (i>0 && i%16===0?"\n  ":"") + v.toFixed(6)).join(',')}\n];`,
+    `const b1 = [${b1.map(v => v.toFixed(6)).join(',')}];`,
+    `const W2 = [\n  ${W2.map((v, i) => (i>0 && i%16===0?"\n  ":"") + v.toFixed(6)).join(',')}\n];`,
+    `const b2 = [${b2.map(v => v.toFixed(6)).join(',')}];`,
+    `const W3 = [${W3.map(v => v.toFixed(6)).join(',')}];`,
+    `const b3 = [${b3.map(v => v.toFixed(6)).join(',')}];`,
+  ].join('\n\n');
 
-  // 팀 코드 템플릿
-  // - 순수 MLP 추론으로 move/fire 각도와 발사 확률을 산출
-  // - fire 확률 게이팅으로 발사 여부를 결정(임계값 0.5)
-  // - 입력 피처는 update 파라미터들을 전부 사용하여 구성
-  const common = `
-const INPUT_SIZE = ${inputSize};
-const H1 = ${hiddenSizes[0]};
-const H2 = ${hiddenSizes[1]};
-const OUTPUT_SIZE = ${outputSize}; // [mv1x,mv1y,mv2x,mv2y, fx,fy, fire_logit, mv3x,mv3y]
-
-${arrays}
-
+  const math = `
+function clamp01(x){return x<0?0:(x>1?1:x);} 
+function norm(x,a,b){return (x-a)/Math.max(1e-6,(b-a));}
 function relu(x){return x>0?x:0;}
-function tanh(x){const e1=Math.exp(x), e2=Math.exp(-x); return (e1-e2)/(e1+e2);}
+function tanh(x){const e=Math.exp; const a=e(x), b=e(-x); return (a-b)/(a+b);} 
 function sigmoid(x){return 1/(1+Math.exp(-x));}
-
+function gemv(W, x, outDim, inDim, b){
+  const y = new Array(outDim).fill(0);
+  for(let o=0;o<outDim;o++){
+    let s = b?b[o]:0; const base=o*inDim;
+    for(let i=0;i<inDim;i++) s += W[base+i]*x[i];
+    y[o]=s;
+  }
+  return y;
+}
 function mlpForward(x){
-  // x: length INPUT_SIZE
-  const h1 = new Array(H1).fill(0);
-  for(let i=0;i<H1;i++){
-    let s = B1[i];
-    for(let j=0;j<INPUT_SIZE;j++) s += W1[i*INPUT_SIZE + j]*x[j];
-    h1[i] = relu(s);
-  }
-  const h2 = new Array(H2).fill(0);
-  for(let i=0;i<H2;i++){
-    let s = B2[i];
-    for(let j=0;j<H1;j++) s += W2[i*H1 + j]*h1[j];
-    h2[i] = relu(s);
-  }
-  const out = new Array(OUTPUT_SIZE).fill(0);
-  for(let i=0;i<OUTPUT_SIZE;i++){
-    let s = B3[i];
-    for(let j=0;j<H2;j++) s += W3[i*H2 + j]*h2[j];
-    out[i] = s;
-  }
-  // post-process
-  const mv1x = tanh(out[0]);
-  const mv1y = tanh(out[1]);
-  const mv2x = tanh(out[2]);
-  const mv2y = tanh(out[3]);
-  const fx   = tanh(out[4]);
-  const fy   = tanh(out[5]);
-  const fireP = sigmoid(out[6]);
-  const mv3x = tanh(out[7]);
-  const mv3y = tanh(out[8]);
-  // 각도 변환
-  const mv1 = Math.atan2(mv1y, mv1x) * 180/Math.PI;
-  const mv2 = Math.atan2(mv2y, mv2x) * 180/Math.PI;
-  const mv3 = Math.atan2(mv3y, mv3x) * 180/Math.PI;
-  const fireAngle = Math.atan2(fy, fx) * 180/Math.PI;
+  const h1 = gemv(W1, x, H1, INPUT_SIZE, b1).map(relu);
+  const h2 = gemv(W2, h1, H2, H1, b2).map(relu);
+  const o = gemv(W3, h2, OUTPUT_SIZE, H2, b3);
+  const mv1 = Math.atan2(o[1], o[0]) * 180/Math.PI;
+  const mv2 = Math.atan2(o[3], o[2]) * 180/Math.PI;
+  const fireAngle = Math.atan2(o[5], o[4]) * 180/Math.PI;
+  const fireP = sigmoid(o[6]);
+  const mv3 = Math.atan2(o[8], o[7]) * 180/Math.PI;
   return { mv1, mv2, mv3, fireAngle, fireP };
 }
+`;
 
-function norm(x, a, b){ return (x - a) / (b - a); }
-function clamp01(v){ return v<0?0:(v>1?1:v); }
-
+  const features = `
 function buildFeatures(tank, enemies, allies, bulletInfo){
-  // 입력 피처 구성 (전부 사용)
-  // - 탱크 자체 상태: x,y,health,energy,typeOneHot(3),size
-  // - 적/아군 최근접 K명: 상대 위치(상대 좌표-자기 좌표), 거리, 각, 체력
-  // - 총알 최근접 K발: 상대 위치/속도(상대 좌표-자기 좌표), 거리
-  const W=900, H=600;
-  const self = [
-    norm(tank.x, 0, W),
-    norm(tank.y, 0, H),
-    clamp01(tank.health/200),
-    clamp01(tank.energy/200),
-    tank.type===0?1:0,
-    tank.type===1?1:0,
-    tank.type===2?1:0,
-    clamp01(tank.size/60),
-  ];
-
-  // 정렬 및 K개 추출
-  function topK(arr, k){
-    const sorted = arr.slice().sort((a,b)=> (a.distance||1e9)-(b.distance||1e9));
-    return sorted.slice(0,k);
-  }
-  const KE=4, KA=3, KB=5;
-  const es = topK(enemies, KE);
-  const as = topK(allies, KA);
-  const bs = topK(bulletInfo, KB);
-
-  const ef = [];
-  for(let i=0;i<KE;i++){
+  const W = 900, H = 600; // 엔진과 동일
+  const x=[];
+  // self
+  x.push(norm(tank.x,0,W));
+  x.push(norm(tank.y,0,H));
+  x.push(clamp01(tank.health/200));
+  x.push(clamp01(tank.energy/200));
+  x.push(tank.type===0?1:0);
+  x.push(tank.type===1?1:0);
+  x.push(tank.type===2?1:0);
+  x.push(clamp01(tank.size/60));
+  // enemies (top-3 by distance)
+  const es = enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3);
+  for(let i=0;i<3;i++){
     const e = es[i];
     if(e){
-      const dx = e.x - tank.x; const dy = e.y - tank.y;
-      const ang = Math.atan2(dy, dx)/Math.PI; // -1..1
-      ef.push(clamp01(Math.hypot(dx,dy)/1100), clamp01(dx/900 + 0.5), clamp01(dy/600 + 0.5), ang, clamp01(e.health/200));
-    }else{
-      ef.push(0,0,0,0,0);
-    }
+      const dx=e.x-tank.x, dy=e.y-tank.y; const d=Math.hypot(dx,dy)||1;
+      x.push(dx/900); x.push(dy/600); x.push(clamp01(d/1000));
+      x.push(Math.sin(Math.atan2(dy,dx))); x.push(Math.cos(Math.atan2(dy,dx)));
+      x.push(clamp01(e.health/200));
+    }else{ x.push(0,0,1,0,1,0); }
   }
-  const af = [];
-  for(let i=0;i<KA;i++){
+  // allies (top-2 by distance)
+  const as = allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2);
+  for(let i=0;i<2;i++){
     const a = as[i];
-    if(a){
-      const dx = a.x - tank.x; const dy = a.y - tank.y;
-      const ang = Math.atan2(dy, dx)/Math.PI;
-      af.push(clamp01(Math.hypot(dx,dy)/1100), clamp01(dx/900 + 0.5), clamp01(dy/600 + 0.5), ang, clamp01(a.health/200));
-    }else{
-      af.push(0,0,0,0,0);
-    }
+    if(a){ const dx=a.x-tank.x, dy=a.y-tank.y; const d=Math.hypot(dx,dy)||1; x.push(dx/900, dy/600, clamp01(d/1000), clamp01(a.health/200)); }
+    else { x.push(0,0,1,0); }
   }
-  const bf = [];
-  for(let i=0;i<KB;i++){
+  // bullets (top-4 by distance)
+  const bs = bulletInfo.slice().sort((a,b)=>a.distance-b.distance).slice(0,4);
+  for(let i=0;i<4;i++){
     const b = bs[i];
-    if(b){
-      const dx = b.x - tank.x; const dy = b.y - tank.y;
-      const ang = Math.atan2(dy, dx)/Math.PI;
-      bf.push(clamp01(Math.hypot(dx,dy)/1100), clamp01(dx/900 + 0.5), clamp01(dy/600 + 0.5), ang,
-              clamp01((b.vx+8)/16), clamp01((b.vy+8)/16));
-    }else{
-      bf.push(0,0,0,0,0,0);
-    }
+    if(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const d=Math.hypot(dx,dy)||1; x.push(dx/900, dy/600, clamp01(d/1000), b.vx/8, b.vy/8); }
+    else { x.push(0,0,1,0,0); }
   }
-
-  // 전역 통계(개수/합계)
-  const stats = [
-    clamp01(enemies.length/6),
-    clamp01(allies.length/5),
-    clamp01(bulletInfo.length/10),
-  ];
-
-  const x = self.concat(ef, af, bf, stats);
-  // 길이 보정(정확히 INPUT_SIZE)
-  if (x.length < INPUT_SIZE) {
-    while (x.length < INPUT_SIZE) x.push(0);
-  } else if (x.length > INPUT_SIZE) {
-    x.length = INPUT_SIZE;
-  }
+  // global features
+  x.push(1); // bias
+  x.push(W/1000); x.push(H/1000);
+  // aggregate dists
+  function agg(arr){ if(arr.length===0) return {mn:1, av:1}; let mn=1e9, s=0; for(const d of arr){ if(d<mn) mn=d; s+=d; } return { mn: clamp01(mn/1000), av: clamp01((s/arr.length)/1000) }; }
+  const ed = agg(enemies.map(e=>e.distance)); x.push(ed.mn, ed.av);
+  const ad = agg(allies.map(a=>a.distance)); x.push(ad.mn, ad.av);
+  // counts
+  x.push(clamp01(enemies.length/6)); x.push(clamp01(allies.length/5)); x.push(clamp01(bulletInfo.length/20));
+  // pad to INPUT_SIZE
+  while(x.length<INPUT_SIZE) x.push(0);
+  if(x.length>INPUT_SIZE) x.length=INPUT_SIZE;
   return x;
 }
+`;
 
+  const policy = `
 function policyStep(tank, enemies, allies, bulletInfo){
   const feat = buildFeatures(tank, enemies, allies, bulletInfo);
   const out = mlpForward(feat);
-  // 액션 적용: 순수 DNN 출력 기반
-  // - 발사: DNN이 예측한 확률 fireP에 따라 게이팅(임계 0.5)
-  if (out.fireP > 0.5) {
-    tank.fire(out.fireAngle);
-  }
-  if (!tank.move(out.mv1)) {
-    if (!tank.move(out.mv2)) {
+  if(out.fireP>0.5){ tank.fire(out.fireAngle); }
+  if(!tank.move(out.mv1)){
+    if(!tank.move(out.mv2)){
       tank.move(out.mv3);
     }
   }
 }
 `;
 
-  function robotBlock(name, typeConst) {
-    return `
-function name(){ return ${JSON.stringify(name)}; }
-function type(){ return Type.${typeConst}; }
-function update(tank, enemies, allies, bulletInfo){
-  policyStep(tank, enemies, allies, bulletInfo);
-}
-`;
-  }
+  const block = [
+    header,
+    arrays,
+    math,
+    features,
+    policy,
+    `function name(){ return ${JSON.stringify(name)}; }`,
+    `function type(){ return Type.${tankType}; }`,
+    `function update(tank, enemies, allies, bulletInfo){\n  policyStep(tank, enemies, allies, bulletInfo);\n}`,
+  ].join('\n\n');
 
+  return block;
+}
+
+function generateTeamCode(weights, names){
+  const typeSeq = ['NORMAL','DEALER','TANKER','DEALER','TANKER','DEALER'];
   const blocks = [];
-  for (let i = 0; i < 6; i++) {
-    const nm = playerNames[i] || `DNN-${i+1}`;
-    const t = typesOrder[i];
-    const typeConst = t === 0 ? 'NORMAL' : (t === 1 ? 'TANKER' : 'DEALER');
-    // 각 로봇 블록에 공통 MLP 정의 포함(HTML/Node 분할 로더가 개별 블록만 실행하기 때문)
-    blocks.push(common + '\n' + robotBlock(nm, typeConst));
+  for(let i=0;i<6;i++){
+    const nm = names && names[i] ? names[i] : `DNN-${typeSeq[i][0]}${i+1}`; // 간단 이름
+    blocks.push(generateRobotBlock(nm, typeSeq[i], weights));
+    if(i<5) blocks.push('\n\n// ===== 다음 로봇 =====\n\n');
   }
-
-  return blocks.join('\n\n// ===== 다음 로봇 =====\n\n');
+  return blocks.join('');
 }
 
-function initialWeights(inputSize, hiddenSizes, outputSize, sigma=0.5, rng=Math.random){
-  const L1 = inputSize * hiddenSizes[0];
-  const B1 = hiddenSizes[0];
-  const L2 = hiddenSizes[0] * hiddenSizes[1];
-  const B2 = hiddenSizes[1];
-  const L3 = hiddenSizes[1] * outputSize;
-  const B3 = outputSize;
-  const n = L1+B1+L2+B2+L3+B3;
-  const w = new Float64Array(n);
-  for(let i=0;i<n;i++){
-    // Xavier-like scaled normal approx using Box-Muller
-    let u=0,v=0; while(u===0) u=rng(); while(v===0) v=rng();
-    const z = Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
-    w[i] = z * sigma;
-  }
-  return w;
+function saveTeamTo(filePath, weights, names){
+  const code = generateTeamCode(weights, names);
+  fs.writeFileSync(path.resolve(filePath), code, 'utf8');
+  return code.length;
 }
 
-module.exports = {
-  genMLPCode,
-  initialWeights,
-};
+module.exports = { getNetSpec, initWeights, flattenWeights, generateRobotBlock, generateTeamCode, saveTeamTo };
+
+if (require.main === module) {
+  // CLI: node src/generate_dnn_team.js result/ai_dnn_team.txt
+  const out = process.argv[2] || 'result/ai_dnn_team.txt';
+  const w = initWeights();
+  const flat = {
+    INPUT_SIZE: w.INPUT_SIZE, H1: w.H1, H2: w.H2, OUTPUT_SIZE: w.OUTPUT_SIZE,
+    W1: w.W1 || w.W.slice(0, w.H1*w.INPUT_SIZE),
+    b1: w.b1 || w.b.slice(0, w.H1),
+    W2: w.W2 || w.W.slice(w.H1*w.INPUT_SIZE, w.H1*w.INPUT_SIZE + w.H2*w.H1),
+    b2: w.b2 || w.b.slice(w.H1, w.H1 + w.H2),
+    W3: w.W3 || w.W.slice(w.H1*w.INPUT_SIZE + w.H2*w.H1),
+    b3: w.b3 || w.b.slice(w.H1 + w.H2),
+  };
+  const n = saveTeamTo(out, flat);
+  console.log(`Generated team code -> ${out} (${n} bytes)`);
+}
+
