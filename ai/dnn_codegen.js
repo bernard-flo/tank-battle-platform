@@ -46,7 +46,9 @@ function type(){ return ${tankType}; }
 function update(tank,enemies,allies,bulletInfo){
   // ===== DNN 기반 정책 =====
   // 입력: self + 상위 K개의 enemy/allies/bullets 특징
-  // 출력: [move1, move2, move3, move4, fireAngle] (각도: 0~360)
+  // 출력:
+  //  - OUT=5  : [move1, move2, move3, move4, fireAngle] (라디안)
+  //  - OUT=10 : [sin(m1),cos(m1), sin(m2),cos(m2), sin(m3),cos(m3), sin(m4),cos(m4), sin(f),cos(f)]
 
   // 고정 하이퍼파라미터(플랫폼 상수)
   const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
@@ -147,17 +149,31 @@ function update(tank,enemies,allies,bulletInfo){
   const y = new Array(OUT);
   for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
 
-  // 각도 변환: y in R -> [0,360)
-  function toDeg(v){
+  // 각도 변환: 라디안 출력 -> 도(deg)
+  function toDegFromRad(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
     return angleWrap((v*180/Math.PI));
   }
+  function toDegFromSinCos(s,c){
+    // atan2(sin,cos) = angle(rad)
+    const a = Math.atan2(s, c);
+    return angleWrap(a*180/Math.PI);
+  }
 
-  const m1 = toDeg(y[0]);
-  const m2 = toDeg(y[1]);
-  const m3 = toDeg(y[2]);
-  const m4 = toDeg(y[3]);
-  const fA = toDeg(y[4]);
+  let m1, m2, m3, m4, fA;
+  if (OUT === 10) {
+    m1 = toDegFromSinCos(y[0], y[1]);
+    m2 = toDegFromSinCos(y[2], y[3]);
+    m3 = toDegFromSinCos(y[4], y[5]);
+    m4 = toDegFromSinCos(y[6], y[7]);
+    fA = toDegFromSinCos(y[8], y[9]);
+  } else {
+    m1 = toDegFromRad(y[0]);
+    m2 = toDegFromRad(y[1]);
+    m3 = toDegFromRad(y[2]);
+    m4 = toDegFromRad(y[3]);
+    fA = toDegFromRad(y[4]);
+  }
 
   // 사격 및 이동 시도 (DNN 출력만 사용)
   tank.fire(fA);

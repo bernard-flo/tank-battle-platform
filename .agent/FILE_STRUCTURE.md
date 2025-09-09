@@ -39,15 +39,18 @@
 
 업데이트(현재 실행)
 - 코드 생성기: ai/dnn_codegen.js
-  - 입력 특징 66차원(코드 내 설명 동일). 네트워크 66→48→32→5, tanh.
-  - 출력: move 4 + fire 1 (각도), 결정은 전적으로 DNN 출력만 사용.
+  - 입력 특징 66차원(고정). 네트워크 66→48→32→OUT, tanh.
+  - 출력 모드 지원:
+    · OUT=5  : [m1,m2,m3,m4,fire] 라디안 직접 예측(하위호환)
+    · OUT=10 : [sin,cos]×5 쌍으로 각도 예측의 랩어라운드 안정화(신규)
+  - 타입 시퀀스 고정: dealer, normal, dealer, tanker, dealer, tanker.
 - 지도학습(모방): scripts/imitate_reference.js
-  - 1차: 12k 샘플, 12 epochs 학습 및 저장.
-  - 2차: 20k 샘플, 20 epochs 고정밀 재학습 및 저장.
+  - 출력 차원을 10(각도당 sin/cos)으로 변경하여 랩어라운드 손실 문제 해소.
+  - 12k 샘플, 10 epochs로 학습해 dnn-ai.* 생성.
 - NES 튜닝: scripts/train_dnn.js
-  - 4 iters(pop=16,seeds=3) + 4 iters(pop=12,seeds=2) 단기 튜닝 실행 및 저장.
+  - ARCH.outDim=10으로 동기화. 필요 시 추가 튜닝 가능.
 - 결과물(Import용):
-  - result/dnn-ai.txt: HTML에서 Import 가능한 팀 코드(타입 고정: dealer, normal, dealer, tanker, dealer, tanker).
+  - result/dnn-ai.txt: HTML에서 Import 가능한 팀 코드(타입 고정 유지).
   - result/dnn-ai-weights.json: ARCH/가중치/메타.
 
 사용 팁

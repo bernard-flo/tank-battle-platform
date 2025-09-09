@@ -23,7 +23,9 @@ const { buildTeamCode } = require('../ai/dnn_codegen');
 //      + bullets BL_K=3 (dx,dy,vx,vy,dist,speed,approach) => 3*7=21
 //      + counts(3) + walls(4) = 7
 // 합계 8+18+12+21+7 = 66
-const ARCH = { inDim: 66, h1: 48, h2: 32, outDim: 5 };
+// 각도 예측의 랩어라운드 문제를 줄이기 위해 출력 차원을 sin/cos(각도당 2차원)로 확장
+// outDim = 10: [sin(m1),cos(m1), sin(m2),cos(m2), sin(m3),cos(m3), sin(m4),cos(m4), sin(f),cos(f)]
+const ARCH = { inDim: 66, h1: 48, h2: 32, outDim: 10 };
 
 function featureVector(tank, enemies, allies, bullets) {
   const W = 900, H = 600, EMAX = 150, SCL = 700, VX = 10, VY = 10;
@@ -162,13 +164,22 @@ function collectDataset(opts = {}) {
         let teacher = teacherCache.get(t.code);
         if (!teacher) { teacher = buildTeacherRunner(t.code); teacherCache.set(t.code, teacher); }
         const act = teacher(t, enemies, allies, bullets);
-        const y = new Float64Array(5);
-        // 각도 회귀: deg -> rad 레이블로 정규화
-        y[0] = deg2rad(angWrap(act.moves[0] || 0));
-        y[1] = deg2rad(angWrap(act.moves[1] || 0));
-        y[2] = deg2rad(angWrap(act.moves[2] || 0));
-        y[3] = deg2rad(angWrap(act.moves[3] || 0));
-        y[4] = deg2rad(angWrap(act.fire || 0));
+        // 각도 -> [sin, cos] 레이블(랩어라운드 안정)
+        const toSinCos = (deg) => {
+          const r = deg2rad(angWrap(deg || 0));
+          return [Math.sin(r), Math.cos(r)];
+        };
+        const y = new Float64Array(10);
+        const p0 = toSinCos(act.moves[0] || 0);
+        const p1 = toSinCos(act.moves[1] || 0);
+        const p2 = toSinCos(act.moves[2] || 0);
+        const p3 = toSinCos(act.moves[3] || 0);
+        const pf = toSinCos(act.fire || 0);
+        y[0]=p0[0]; y[1]=p0[1];
+        y[2]=p1[0]; y[3]=p1[1];
+        y[4]=p2[0]; y[5]=p2[1];
+        y[6]=p3[0]; y[7]=p3[1];
+        y[8]=pf[0]; y[9]=pf[1];
 
         X.push(feat);
         Y.push(y);
@@ -338,7 +349,7 @@ function trainSupervised(dataset, a = ARCH, opts = {}) {
         const x = X[i0];
         const yTrue = Y[i0];
         const cache = forward(P, a, x);
-        // MSE in radians
+        // MSE on sin/cos components (각 10차원)
         const gy = new Float64Array(a.outDim);
         for (let k = 0; k < a.outDim; k++) {
           const diff = cache.y[k] - yTrue[k];

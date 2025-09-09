@@ -17,7 +17,8 @@ const { buildTeamCode } = require('../ai/dnn_codegen');
 
 // 고정 아키텍처 (ai/dnn_codegen.js의 특징 구성과 반드시 동기화)
 // inDim 계산: self(8) + enemies(3*6) + allies(2*6) + bullets(3*7) + counts(3) + walls(4) = 8+18+12+21+3+4 = 66
-const ARCH = { inDim: 66, h1: 48, h2: 32, outDim: 5 };
+// outDim: 10 (각도 5개에 대해 [sin,cos] 쌍)
+const ARCH = { inDim: 66, h1: 48, h2: 32, outDim: 10 };
 
 function weightCount(a) {
   return a.h1 * a.inDim + a.h1 + a.h2 * a.h1 + a.h2 + a.outDim * a.h2 + a.outDim;
