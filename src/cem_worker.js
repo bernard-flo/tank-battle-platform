@@ -31,4 +31,3 @@ function evaluate(weights, cfg) {
     parentPort.postMessage({ error: String((e && e.stack) || e) });
   }
 })();
-
