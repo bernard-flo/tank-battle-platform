@@ -53,3 +53,9 @@
 이번 실행(시뮬레이터 확인)
 - 코드 변경 없음. 기존 시뮬레이터 구현 상태(engine/bot_loader/cli/README)와 HTML 규칙 일치 재확인.
 - tank_battle_platform.html 미변경. 사용 안내만 제공.
+
+이번 실행(요약)
+- 신규 코드 변경 없음. 기존 시뮬레이터로 단일 매치/리플레이 저장 재검증.
+- 실행 예: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5`
+- 결과 예: Winner BLUE, Ticks ~636, JSON/리플레이 저장 정상.
+- tank_battle_platform.html 미변경 준수.

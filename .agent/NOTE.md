@@ -87,3 +87,8 @@
 이번 실행(변경 요약)
 - bot_loader 분할 정규식 HTML과 완전 동기화: /(?=function\s+name\s*\(\s*\))/ 로 수정하여 줄 시작(anchor) 제약 제거.
 - README에 해당 사항 반영.
+
+이번 실행(요약 추가)
+- 방금 단일 경기/리플레이 저장 재검증: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5`
+  → BLUE 승, 약 636틱. 시뮬레이터/JSON/리플레이 정상.
+- 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
