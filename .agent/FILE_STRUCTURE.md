@@ -10,6 +10,8 @@
   - 경계/탱크 충돌(안전 여백 +5) 처리, 아군 탄환 관통 유지, 적 피격 시 탄환 제거 및 피해 반영.
   - Type.NORMAL/TANKER/DEALER의 에너지/크기/속도/공격력 HTML과 동기화.
   - 리플레이 기록 옵션(record, recordEvery) 추가: meta(맵/틱/시드/플레이어 목록)와 frames(틱별 탱크/총알 상태) 생성.
+  - 초기 배치: HTML과 동일(레드 140/90 기준, 열 역전 배치; 블루 640/90 기준 표준 배치).
+  - 승리 판정: 한쪽 생존 0, 상대 >0일 때 즉시 종료(동시 전멸/시간만료 시 무승부 처리).
 - simulator/bot_loader.js: 팀 코드 로더/컴파일러.
   - 입력 텍스트에서 각 로봇을 'function name()' 기준으로 분할.
   - name()/type() 추출 및 샌드박스 실행기(Function) 생성.
@@ -24,3 +26,4 @@
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
 - 시뮬레이터 출력 JSON(result*.json)은 .gitignore에 포함됨.
+ - HTML과 차이: HTML은 fire 쿨다운을 Date.now()로 판정, 시뮬레이터는 엔진 시간 누적으로 판정(틱 50ms 기준 동등 동작).
