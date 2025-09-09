@@ -25,5 +25,5 @@
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
-- 시뮬레이터 출력 JSON(result*.json)은 .gitignore에 포함됨.
+- 시뮬레이터 출력 JSON(result*.json)과 리플레이(replay*.json)는 .gitignore에 포함됨.
  - HTML과 차이: HTML은 fire 쿨다운을 Date.now()로 판정, 시뮬레이터는 엔진 시간 누적으로 판정(틱 50ms 기준 동등 동작).
