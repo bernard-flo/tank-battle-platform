@@ -16,6 +16,7 @@
 - simulator/bot_loader.js: 팀 코드 로더/컴파일러.
   - 입력 텍스트에서 각 로봇을 'function name()' 기준으로 분할.
   - name()/type() 추출 및 샌드박스 실행기 생성.
+    · 수정: type() 평가 시 Type 상수 주입(new Function('Type', ...))으로 HTML과 동일하게 Type.NORMAL/TANKER/DEALER 인식.
   - update(tank,enemies,allies,bulletInfo) 시그니처/제한 전역(window/document 등 차단) 준수.
   - 런너 모드 지원: secure(vm 샌드박스, 기본) | fast(new Function 기반).
     · secure: process/require/global 비공개, 호스트 탈출 위험 억제.

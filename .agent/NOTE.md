@@ -9,6 +9,10 @@
 – secure 런너(vm 샌드박스) 도입: 기본값으로 사용. process/require/global 비공개, Function은 샌드박스 영역으로 한정되어 호스트 탈출 위험 억제.
 – fast 런너(new Function 기반): 성능 우선 테스트용, 보안 강도 낮음. 필요 시 `--runner fast`로 선택.
 
+버그 수정(이번 실행)
+– bot_loader: type() 추출 시 Type 상수가 없어 항상 실패하던 문제 수정.
+  · 해결: new Function 호출에 'Type' 인자를 주입하여 HTML과 동일하게 Type.NORMAL/TANKER/DEALER 평가.
+
 검증 메모(HTML 대비)
 – 초기 배치 좌표/열 역전, 탱크 크기·속도·공격력·체력 값, 탄환 속도/피격 반경(+2), 이동 실패 처리(안전 여백+5, 틱 내 1회 성공·최대 10회 시도), 승리 조건 모두 동기화 확인.
 – 발사 쿨다운은 HTML과 동일하게 첫 발 즉시 허용 후 500ms 잠금. 판정은 엔진 시간 누적(tickMs 50) 기준.
