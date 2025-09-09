@@ -133,7 +133,10 @@ function update(tank,enemies,allies,bulletInfo){
   for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
 
   // 각도 변환: y in R -> [0,360)
-  function toDeg(v){ return angleWrap((v*180/Math.PI)%360 + 180); }
+  function toDeg(v){
+    if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
+    return angleWrap((v*180/Math.PI)%360 + 180);
+  }
 
   const m1 = toDeg(y[0]);
   const m2 = toDeg(y[1]);
@@ -165,4 +168,3 @@ module.exports = {
   buildTeamCode,
   chunkWeights,
 };
-
