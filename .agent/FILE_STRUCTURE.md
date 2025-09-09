@@ -33,13 +33,20 @@
 - simulator/replay_viewer.html: 리플레이(JSON) 재생용 독립 HTML 뷰어(시각적 확인 전용).
 
 AI/DNN 학습/생성 파일
-- src/generate_dnn_team.js: DNN 정책(MLP 64-64) 코드 생성기. update()에서 tank/enemies/allies/bulletInfo를 모두 피처화하고, 순수 DNN 출력만으로 발사/이동을 결정. 타입 순서 고정 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER].
-- src/train_cem.js: Cross-Entropy Method 기반 최적화 스크립트. result/reference-ai.txt를 상대 팀으로 하여 여러 시드에서 평균 점수를 최대화. 최적 가중치를 result/ai_dnn_weights.json으로 저장하고, result/ai_dnn_team.txt를 생성.
+- src/generate_dnn_team.js: DNN 정책 코드 생성기.
+  - getNetSpec/initWeights: 64입력(탑K 정렬 기반) MLP(64-64-9)용 유틸.
+  - genMLPCode: 범용 MLP 생성기(입력 76, 히든 [64,64], 출력 9 권장). update()는 순수 DNN.
+  - generateTeamCode/saveTeamTo: 64입력 버전 팀 코드 생성기(레거시 호환).
+- src/train_cem.js: CEM(64입력 버전) 최적화 스크립트. 참고용.
+- src/train_es.js: ES(76입력 버전, 64-64-9) 최적화 스크립트. 병렬 워커 사용.
+- src/es_worker.js: ES 평가 워커. genMLPCode로 팀 코드 생성 후 시뮬레이션.
+- src/imitation_train.js: 레퍼런스 AI 모방 지도학습(76입력, 64-64-9). 결과를 ai_dnn_team.txt/ai_dnn_weights.json에 저장.
+- src/design_weights_9.js: 76입력용 분석적 초기 가중치(조준/스트레이프/거리 게이팅) 생성기. update는 DNN만 사용.
 
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
-- result/ai_dnn_team.txt: 생성된 DNN 팀 코드. tank_battle_platform.html에서 Import 가능한 형식. 타입 조합 고정 [N, D, T, D, T, D].
-- result/ai_dnn_weights.json: 최적 가중치(평탄화 배열/shape 포함). generate_dnn_team.js로 재생성 가능.
+- result/ai_dnn_team.txt: 생성된 DNN 팀 코드. tank_battle_platform.html Import 가능. 타입 고정 [N, D, T, D, T, D].
+- result/ai_dnn_weights.json: 최신 가중치(입력 76, 히든 [64,64], 출력 9). genMLPCode로 재생성 가능.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
@@ -47,9 +54,9 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- DNN 팀 코드 생성기(src/generate_dnn_team.js)와 CEM 학습기(src/train_cem.js) 추가.
-- result/reference-ai.txt 대비 자동 평가/학습 파이프라인 준비 완료.
-- 다음 단계: CEM으로 초기 가중치 최적화 후 성능 비교 리포트.
+- generate_dnn_team.js에 범용 genMLPCode(입력76/출력9) 추가, update는 DNN만 사용하도록 고정.
+- 설계형 초기 가중치(design_weights_9.js) 및 모방학습(imitation_train.js) 실행 경로 정비.
+- 빠른 ES 학습(train_es.js, 4x24x3 @2500 ticks) 1회 수행, 팀 코드/가중치 갱신.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
@@ -58,5 +65,5 @@ AI/DNN 학습/생성 파일
  - 빠른 비교 평가: `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3500 --fast`
 
 추천 실행(장시간 컴퓨트 가능 시)
-- CEM 장기 튜닝: `node src/train_cem.js --iters 20 --pop 120 --elite 24 --seeds 8 --ticks 3600 --fast --concurrency 8`
-- ES 누적 러닝(120초 제한 회피): `node src/train_es.js --iters 2 --pop 60 --sigma 0.25 --alpha 0.06 --seeds 6 --ticks 3600 --concurrency 8 --fast`를 여러 차례 반복
+- ES 장기 튜닝(권장): `node src/train_es.js --iters 20 --pop 80 --sigma 0.2 --alpha 0.05 --seeds 8 --ticks 3600 --concurrency 8 --fast`
+- 모방→ES 파이프라인: `node src/imitation_train.js --matches 20 --ticks 2200 --epochs 5` 후 `train_es.js` 반복
