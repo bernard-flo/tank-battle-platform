@@ -20,7 +20,16 @@
 - 현재 성능은 reference-ai 대비 열세. 장시간 ES 학습 반복 권장.
 - 빠른 비교: `node simulator/cli.js --red result/ai_dnn_team.txt --blue result/reference-ai.txt --repeat 60 --fast --concurrency 8 --maxTicks 3500`
 
-다음 실행 제안
-- ES 장기 러닝 2~3회 반복하여 승률 개선 목표(각 15~30분 권장):
-  `node src/train_es.js --iters 20 --pop 80 --sigma 0.2 --alpha 0.05 --seeds 8 --ticks 3600 --concurrency 8 --fast`
-- 필요 시 모방학습 데이터 추가 수집(매치/틱 증가) 후 재학습 → ES 미세 조정
+다음 실행 제안(성능 개선 루프)
+- ES 장기 러닝을 2~3세트 반복(각 20~40분 예상)하여 참조 AI 초과 목표:
+  `node src/train_es.js --iters 20 --pop 120 --sigma 0.15 --alpha 0.06 --seeds 8 --ticks 3500 --concurrency 8 --fast`
+  · 시간이 부족하면: `--iters 10 --pop 60 --seeds 6 --ticks 3000`
+- CEM 보조 탐색(중간 저장 재개 권장):
+  `node src/train_cem.js --resume --iters 12 --pop 60 --elite 0.25 --seed 4242 --seeds 0,1,2,3,4 --maxTicks 3200 --no-fast`
+- 초기 정책 안정화가 필요하면 모방학습(teacher_ai 기준) → ES 미세 조정 순으로 진행:
+  `node src/imitation_train.js --matches 40 --ticks 2400 --epochs 8 --fast --teacher src/teacher_ai.txt`
+
+메모
+- 업데이트 함수는 전 파라미터(tank, enemies, allies, bulletInfo)를 입력으로 쓰는 MLP 추론만 수행함(휴리스틱 분기 없음).
+- 타입 순서는 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER]로 고정됨.
+- 현재 단기 학습 결과는 레퍼런스 대비 열세. 장시간 ES 학습이 필요.
