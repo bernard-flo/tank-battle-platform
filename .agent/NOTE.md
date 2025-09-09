@@ -55,3 +55,8 @@
 다음 실행 제안(TODO)
 - 초고속 모드(객체 풀링/TypedArray) 프로토타입 추가 검토: bullets/tanks를 구조적 공유버퍼로 관리해 GC 압력 저감.
 - 간단 단위테스트 추가: 이동 충돌, 아군 관통, 쿨다운 타이밍, 초기 배치 좌표.
+
+이번 실행(자동 기록)
+- 재검증 실행: `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 5`
+  → 결과: BLUE 승, Ticks 661, Red Energy 0, Blue Energy 65, JSON/리플레이 저장 확인.
+  변경 코드 없음(문서만 갱신). HTML 미변경.
