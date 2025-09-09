@@ -32,6 +32,13 @@
    - 예: `scripts/simulate.sh --red red.js --blue blue.js --repeat 100 --fast`.
 - simulator/replay_viewer.html: 리플레이(JSON) 재생용 독립 HTML 뷰어(시각적 확인 전용).
 
+AI 팀 코드 산출물
+- result-ai.txt: tank_battle_platform.html에서 import 가능한 팀 코드(6 로봇).
+  - Nemesis 팀: DNN(2층 MLP) + 휴리스틱 혼합 전략.
+  - update(tank,enemies,allies,bulletInfo)에서 모든 파라미터를 활용해 관측 벡터(48차원)를 구성하고,
+    48→32→16→4 tanh MLP 추론 결과를 이동/사격 각도에 반영. 총알 회피/아군 분산/교전 로직과 혼합.
+  - 두 대의 Tanker(선봉), 네 대의 Dealer(측면/지원) 역할 구성.
+
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
 - 시뮬레이터 출력 JSON(result*.json)과 리플레이(replay*.json)는 .gitignore에 포함됨.
