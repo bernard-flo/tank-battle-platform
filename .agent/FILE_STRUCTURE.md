@@ -40,13 +40,14 @@
 업데이트(현재 실행)
 - 코드 생성기: ai/dnn_codegen.js
   - 입력 특징 66차원(코드 내 설명 동일). 네트워크 66→48→32→5, tanh.
-  - 출력: move 4 + fire 1 (모두 각도), 전적으로 DNN 출력만 사용.
+  - 출력: move 4 + fire 1 (각도), 결정은 전적으로 DNN 출력만 사용.
 - 지도학습(모방): scripts/imitate_reference.js
-  - inDim을 66으로 확장하고, 레퍼런스 행위를 모방하도록 학습(12k 샘플, 8 epochs)하여 초기 가중치 생성.
+  - 1차: 12k 샘플, 12 epochs 학습 및 저장.
+  - 2차: 20k 샘플, 20 epochs 고정밀 재학습 및 저장.
 - NES 튜닝: scripts/train_dnn.js
-  - 모방 가중치를 초기값으로 사용해 8 iters(pop=16,seeds=4) 빠른 튜닝 실행.
+  - 4 iters(pop=16,seeds=3) + 4 iters(pop=12,seeds=2) 단기 튜닝 실행 및 저장.
 - 결과물(Import용):
-  - result/dnn-ai.txt: HTML에서 Import 가능한 팀 코드(타입 시퀀스: dealer, normal, dealer, tanker, dealer, tanker).
+  - result/dnn-ai.txt: HTML에서 Import 가능한 팀 코드(타입 고정: dealer, normal, dealer, tanker, dealer, tanker).
   - result/dnn-ai-weights.json: ARCH/가중치/메타.
 
 사용 팁
