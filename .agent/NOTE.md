@@ -1,24 +1,26 @@
 메모 (다음 실행 참고)
 
-- 목표: reference-ai.txt를 안정적으로 상회하는 DNN 팀 생성 (최종 update는 DNN 순전파만 사용).
-- 실행 순서 제안:
-  1) 모방학습 워밍업: `IM_SAMPLES=20000 IM_EPOCHS=15 node scripts/imitate_reference.js`
-     - reference-ai의 행동을 지도학습으로 근사하여 초기 가중치 확보(빠르고 안정적).
-  2) 강화/진화 미세조정: `DNN_ITERS=200 DNN_POP=24 DNN_SEEDS=4 node scripts/train_dnn.js`
-     - reference 상대로 승률을 직접 최적화. 시간이 오래 걸리나 성능 향상 여지 큼.
-  2) 검증: `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 50 --fast --concurrency 4`
-  3) 리플레이(단일 시드): `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --seed 123 --replay result/replay.json`
+- 현 상태 요약:
+  - DNN-only 팀 코드는 result/dnn-ai.txt로 최신화됨(모방학습 20k 샘플 + ELM 출력층 초기화 + NES 소규모 반복).
+  - 아직 reference-ai.txt 상대로 승률 0% (100전 기준). 더 많은 반복/탐색 필요.
 
-- 제약: tank_battle_platform.html은 수정 금지. Import 모달에 result/dnn-ai.txt 내용을 그대로 붙여넣으면 인식됨.
-- update는 DNN 순전파만 사용(회피/타게팅 등 휴리스틱 로직 미사용). 이동은 DNN이 산출한 4개 각도를 순차 시도.
-- 타입 배치는 고정(dealer, normal, dealer, tanker, dealer, tanker)이며 코드에 하드코딩됨.
+- 다음 실행 즉시 할 일(빠른 루프 추천):
+  1) 빠른 NES 스윕 반복(타임아웃 회피용 파라미터):
+     - `DNN_ITERS=10 DNN_POP=12 DNN_SEEDS=1 DNN_SIGMA=0.35 DNN_LR=0.2 DNN_MAXTICKS=2000 node scripts/train_dnn.js`
+     - 위 명령을 5~10회 반복 실행(각 ~45초). 매 실행 후 자동 저장됨 → 커밋.
+  2) 주기적 검증:
+     - `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 100 --fast --concurrency 8`
+  3) 시간이 허용되면 안정 설정으로 장기 학습:
+     - `DNN_ITERS=50 DNN_POP=16 DNN_SEEDS=3 DNN_SIGMA=0.3 DNN_LR=0.15 DNN_MAXTICKS=3500 node scripts/train_dnn.js`
 
-- 개선 아이디어:
-  - seeds 다양화/반복수 증가하여 과적합 방지.
-  - arch 확장(h1/h2 유닛 수 증가) 시 파라미터 급증 -> DNN_ITERS 확장, 또는 IM_SAMPLES 증가.
-  - 평가 지표(승리, 에너지 격차, 생존 수, 종료 틱)에 대한 가중치 튜닝.
-  - imitate_reference로 초기화 후 train_dnn으로 파인튜닝(성능/안정성 균형).
+- 향후 개선(필요시 코드 변경 포함):
+  - 아키텍처 확장(예: 43→64→32→5) 및 Xavier 초기화 강화. 스크립트 ARCH 동기화 필요.
+  - feature 확장(K값 증대: EN_K/AL_K/BL_K) 및 정규화 범위 재조정.
+  - 평가 보상 가중치 튜닝(에너지/생존/속전속결 가중치).
+  - 데이터 혼합 모방학습: reference + 강화된 teacher를 혼합해 대규모(supervised pretrain) 후 NES 파인튜닝.
 
-현재 상태
-- dnn-ai.txt는 DNN-only 정책으로 생성/유지되며, 타입 순서(dealer, normal, dealer, tanker, dealer, tanker)는 고정됨.
-- 짧은 학습으로는 reference-ai 대비 성능이 낮음 -> 위 절차로 반복 학습 권장.
+- 고정 규칙 재확인:
+  - tank_battle_platform.html 파일은 절대 수정하지 않음.
+  - 결과물은 result/dnn-ai.txt에 항상 저장(Import 가능 형식).
+  - 타입 조합 고정: dealer, normal, dealer, tanker, dealer, tanker.
+  - update는 DNN 순전파만 사용(휴리스틱 없음). 입력은 tank/enemies/allies/bulletInfo 모두 반영.
