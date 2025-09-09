@@ -39,6 +39,7 @@ AI/DNN 학습/생성 파일
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
 - result/ai_dnn_team.txt: 본 스크립트가 생성하는 DNN 팀 코드. tank_battle_platform.html Import로 붙여넣어 사용 가능. 타입 조합은 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER] 고정.
+ - result/ai_dnn_weights.json: 현재 최적 가중치(평탄화 배열) 저장. 다음 실행 시 학습 재개에 사용.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
