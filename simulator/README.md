@@ -38,11 +38,16 @@
   - 동일한 baseSeed(예: 42)를 기준으로 42,43,44... 순으로 시드를 바꿔 100회 경기
   - 콘솔에 승/패/무, 평균 틱/생존/에너지 출력, JSON에는 summaries/aggregate 기록
 
-고속 모드
-- Object.freeze를 생략하여 AI 입력/출력 래핑 비용을 줄입니다.
+실행 모드(보안/성능)
+- 런너 모드(--runner):
+  - secure(기본): Node vm 샌드박스에서 사용자 코드를 실행하여 process/require/global 접근 차단.
+  - fast: new Function 기반, 보안 강도가 낮지만 약간 더 빠름.
+  예) node simulator/cli.js --red red.js --blue blue.js --runner secure
+
+- 고속 모드(--fast): Object.freeze 생략으로 AI 입력/출력 래핑 비용을 줄입니다.
   node simulator/cli.js --red red.js --blue blue.js --repeat 500 --fast
   - 기능은 동일하며, 사용자 코드가 tank/enemies/allies/bulletInfo 객체를 임의로 변형하더라도 엔진의 내부 상태는 보호됩니다.
-  - 보안 샌드박스 수준을 HTML과 완전히 동일하게 강제해야 할 필요가 없거나, 대량 반복 시뮬레이션에서 성능이 우선일 때 추천.
+  - 대량 반복 시뮬레이션에서 성능이 우선일 때 추천(보안은 --runner secure 유지 권장).
 
 출력 예시
 - 콘솔 요약: 승자, 틱 수, 각 팀 생존/에너지.
