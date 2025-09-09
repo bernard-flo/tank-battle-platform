@@ -68,3 +68,8 @@
 - 재검증 실행: `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 5`
   → 결과: BLUE 승, Ticks 934, Red Energy 0, Blue Energy 60, JSON/리플레이 저장 확인.
   코드 변경 없음(문서만 갱신). HTML 미변경.
+
+이번 실행(추가 기록)
+- 재검증 실행: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5`
+  → 결과: BLUE 승, Ticks 638, JSON/리플레이 저장 확인.
+  코드 변경 없음(문서 갱신만 수행). tank_battle_platform.html 미변경.
