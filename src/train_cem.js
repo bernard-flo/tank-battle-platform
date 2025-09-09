@@ -89,6 +89,19 @@ async function main(){
   // CEM 초기화
   let mean = initialWeights(inputSize, hidden, outputSize, 0); // 0으로 채우기
   for (let i=0;i<mean.length;i++) mean[i] = 0;
+  // 이전 학습 결과가 있으면 재시작
+  const weightPath = path.resolve('result/ai_dnn_weights.json');
+  if (fs.existsSync(weightPath)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(weightPath, 'utf8'));
+      if (prev && prev.weights && prev.weights.length === mean.length) {
+        mean = Float64Array.from(prev.weights);
+        console.log(`[resume] load previous mean from ${weightPath}`);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
   let sigma = opts.sigmaInit;
 
   function sample(){
@@ -150,9 +163,12 @@ function saveTeam(weights){
   const outPath = path.resolve('result/ai_dnn_team.txt');
   fs.writeFileSync(outPath, code, 'utf8');
   console.log(`[save] ${outPath} 갱신`);
+  // weights json도 저장
+  const wjson = { inputSize, hiddenSizes: hidden, outputSize, weights: Array.from(weights) };
+  const wpath = path.resolve('result/ai_dnn_weights.json');
+  fs.writeFileSync(wpath, JSON.stringify(wjson), 'utf8');
 }
 
 if (require.main === module) {
   main().catch((e)=>{ console.error(e); process.exit(1); });
 }
-
