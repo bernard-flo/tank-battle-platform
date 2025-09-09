@@ -4,8 +4,9 @@ const vm = require('vm');
 const { Type } = require('./engine');
 
 function splitRobotCodes(code) {
-  // Split only when 'function name()' starts at a new line (ignore comments)
-  const parts = String(code).split(/(?=^\s*function\s+name\s*\(\s*\))/m);
+  // HTML과 동일한 규칙: 'function name()' 패턴을 기준으로 분할(줄 시작 고정 아님)
+  // tank_battle_platform.html: code.split(/(?=function\s+name\s*\(\s*\))/)
+  const parts = String(code).split(/(?=function\s+name\s*\(\s*\))/);
   const robots = [];
   for (const part of parts) {
     const trimmed = part.trim();

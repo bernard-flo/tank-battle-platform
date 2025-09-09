@@ -14,7 +14,7 @@
   - 승리 판정: 한쪽 생존 0, 상대 >0일 때 즉시 종료(동시 전멸/시간만료 시 무승부 처리).
   - fast 모드: Object.freeze 생략 등으로 AI 데이터 래핑 비용 절감(--fast).
 - simulator/bot_loader.js: 팀 코드 로더/컴파일러.
-  - 입력 텍스트에서 각 로봇을 'function name()' 기준으로 분할.
+  - 입력 텍스트에서 각 로봇을 'function name()' 기준으로 분할(HTML과 동일 정규식 사용).
   - name()/type() 추출 및 샌드박스 실행기 생성.
     · 수정: type() 평가 시 Type 상수 주입(new Function('Type', ...))으로 HTML과 동일하게 Type.NORMAL/TANKER/DEALER 인식.
   - update(tank,enemies,allies,bulletInfo) 시그니처/제한 전역(window/document 등 차단) 준수.
@@ -38,6 +38,7 @@
 업데이트(현재 실행)
 - 샌드박스 강화 및 런너 모드 추가: 기본 secure(vm) 런너 도입, `--runner secure|fast` 제공.
 - CLI/README 갱신: 런너 선택 문서화. tank_battle_platform.html 미변경 유지.
+- 분할 정규식 동기화: bot_loader.js의 로봇 코드 분리 로직을 HTML 구현과 동일(/(?=function\s+name\s*\(\s*\))/)로 수정.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`

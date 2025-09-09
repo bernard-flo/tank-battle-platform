@@ -23,6 +23,7 @@
 
   파일 포맷: 각 로봇을 function name()/function type()/function update(...)로 정의하고,
   로봇 간 구분은 "function name()" 패턴으로 자동 분리됩니다. 최대 6개 사용.
+  (분리 정규식은 HTML과 동일: /(?=function\s+name\s*\(\s*\))/)
 
 - 최대 틱/시드/JSON 출력:
   node simulator/cli.js --red red.js --blue blue.js --maxTicks 4000 --seed 123 --json out.json
