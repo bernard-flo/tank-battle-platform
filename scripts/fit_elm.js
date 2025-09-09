@@ -143,15 +143,36 @@ async function main(){
           let best=enemies[0]; for(const e of enemies){ if(e.distance<best.distance) best=e; }
           D = Math.atan2(best.y-tank.y, best.x-tank.x)*180/Math.PI; if(D<0) D+=360;
         }
-        // 다중 출력 타겟: 이동 제안 다양화(+/- 편차, 180도)
-        const degToY = (deg)=> (deg - 180) * Math.PI/180; // toDeg(y)=deg
-        const Y = [
-          degToY(D),
-          degToY((D+25)%360),
-          degToY((D+335)%360), // D-25
-          degToY((D+180)%360),
-          degToY(D), // fire angle = D
-        ];
+        // 교사 정책(teacher): 레퍼런스 로직을 근사한 각도 세트 산출
+        const angNorm = (a)=>{ a%=360; if(a<0)a+=360; return a; };
+        const degToY = (deg)=> (deg) * Math.PI/180;
+        // bullets 위협도 평가
+        let hot=null, minD=1e9;
+        for(const b of bullets){
+          const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
+          const proj = dx*nx+dy*ny;
+          if(proj>0){
+            const px=b.x-proj*nx, py=b.y-proj*ny;
+            const dd=Math.hypot(px-tank.x,py-tank.y);
+            if(dd<minD && dd<70){ minD=dd; hot=b; }
+          }
+        }
+        let m = [];
+        if(hot){
+          const a = Math.atan2(hot.vy, hot.vx)*180/Math.PI;
+          m.push(angNorm(a+90), angNorm(a-90), angNorm(a+110), angNorm(a-110));
+        }
+        // 아군과 가까우면 분리
+        if(allies.length){
+          let ally=allies[0]; for(const a of allies){ if(a.distance<ally.distance) ally=a; }
+          if(ally.distance<60){ m.unshift(angNorm(Math.atan2(tank.y-ally.y, tank.x-ally.x)*180/Math.PI)); }
+        }
+        // 기본 교전 각도들
+        m.push(angNorm(D), angNorm(D+25), angNorm(D-25), angNorm(D+180));
+        // 상위 4개만 사용
+        m = m.slice(0,4);
+        while(m.length<4) m.push(angNorm(D));
+        const Y = [degToY(m[0]), degToY(m[1]), degToY(m[2]), degToY(m[3]), degToY(D)];
         samples.push({ X, Y });
       }
       engine.step();
