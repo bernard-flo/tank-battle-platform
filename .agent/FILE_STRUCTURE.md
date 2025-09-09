@@ -66,5 +66,9 @@
 
 이번 실행(요약 추가)
 - 요구사항: "시뮬레이터 구현(정확도+효율화)" → 기존 simulator/*로 충족됨을 재검증.
-- 코드 변경 없음. 문서만 갱신. tank_battle_platform.html 미변경.
-- 사용 예: `node simulator/cli.js --red simulator/ai/default_team.js --blue simulator/ai/default_team.js --repeat 20 --concurrency 4 --fast --json result.json`
+- 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
+- 빠른 사용 예: `scripts/simulate.sh --repeat 20 --concurrency 4 --fast --json result.json`
+
+이번 실행(점검 결과)
+- 엔진 규칙/샌드박스/CLI 동작 이상 없음. HTML의 상수/이동·발사·탄환 판정과 동등하게 동작 확인.
+- 리플레이/JSON 출력, 병렬 실행 옵션 정상.
