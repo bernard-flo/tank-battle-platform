@@ -135,7 +135,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 각도 변환: y in R -> [0,360)
   function toDeg(v){
     if (!(v===v) || !isFinite(v)) v = 0; // NaN/Infinity 방지
-    return angleWrap((v*180/Math.PI)%360 + 180);
+    return angleWrap((v*180/Math.PI));
   }
 
   const m1 = toDeg(y[0]);
