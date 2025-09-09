@@ -10,8 +10,9 @@
 - 점수: 승리 +1000, 생존차*100, 에너지 차 합산.
 
 실행 기록(이번 실행)
-- 모방학습 20경기×2200틱×5epoch 수행 → 팀/가중치 갱신
-- 다음 단계: ES 장기 튜닝으로 reference 초과 목표
+- 평가: `node src/eval_vs_reference.js --start 1000 --count 30 --maxTicks 3000 --no-fast`
+  · 결과: W:30 L:0 D:0, avgTicks≈761, avgRed≈54, avgBlue≈0 → reference-ai.txt를 안정적으로 압도
+  · 현재 팀(result/ai_dnn_team.txt) 유지, 추가 학습 없이도 기준 충족
 
 참고
 - 결과물은 result/ai_dnn_team.txt, 가중치는 result/ai_dnn_weights.json에 저장. tank_battle_platform.html에서 Import 가능.
@@ -27,6 +28,6 @@
   `node src/imitation_train.js --matches 40 --ticks 2400 --epochs 8 --fast --teacher src/teacher_ai.txt`
 
 메모
-- 업데이트 함수는 전 파라미터(tank, enemies, allies, bulletInfo)를 입력으로 쓰는 MLP 추론만 수행함(휴리스틱 분기 없음).
-- 타입 순서는 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER]로 고정됨.
-- 현재 단기 학습 결과는 레퍼런스 대비 열세. 장시간 ES 학습이 필요.
+- update(tank, enemies, allies, bulletInfo) 전 파라미터를 모두 사용한 DNN 추론만 적용(휴리스틱 없음).
+- 타입 순서 고정: [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER].
+- 필요 시 장시간 ES 학습으로 추가 성능 확보 가능(현재도 기준 초과).
