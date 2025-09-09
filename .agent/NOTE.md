@@ -34,3 +34,7 @@
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
 - 반복/시드/JSON: `node simulator/cli.js --repeat 100 --seed 42 --json result.json`
  - 리플레이 저장: `node simulator/cli.js --replay replay.json --seed 7 [--recordEvery 2]`
+
+이번 실행
+- 시뮬레이터 동작 재검증: `--repeat 3 --seed 123 --fast` 배치 실행 성공, `result.json` 생성 확인.
+- 코드 변경 없음(문서만 갱신). 다음 단계로 AI 코드 설계/튜닝 착수 가능.
