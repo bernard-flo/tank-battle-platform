@@ -59,3 +59,7 @@
 - 실행 예: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5`
 - 결과 예: Winner BLUE, Ticks ~636, JSON/리플레이 저장 정상.
 - tank_battle_platform.html 미변경 준수.
+
+이번 실행(자동 갱신)
+- 사용자 요청 사항 확인: 시뮬레이터 구현 및 효율화. 현재 simulator/* 구성으로 HTML 규칙과 동등 동작, 병렬/빠른 모드로 효율화 완료 상태.
+- 이번 실행에서는 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경 유지.
