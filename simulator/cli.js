@@ -44,12 +44,13 @@ async function main() {
   const replayOut = args.replay; // when set, record replay frames
   const recordEvery = args.recordEvery ? parseInt(args.recordEvery, 10) : 1;
   const fast = !!args.fast;
+  const runnerMode = (args.runner === 'fast' || args.runner === 'secure') ? args.runner : 'secure';
 
   const redCode = readOrDefault(redFile, 'red');
   const blueCode = readOrDefault(blueFile, 'blue');
 
-  const red = compileTeamFromCode(redCode, 'red');
-  const blue = compileTeamFromCode(blueCode, 'blue');
+  const red = compileTeamFromCode(redCode, 'red', runnerMode);
+  const blue = compileTeamFromCode(blueCode, 'blue', runnerMode);
   const players = [...red, ...blue];
 
   const baseSeed = seed !== undefined ? seed : Math.floor(Math.random() * 1e9);
