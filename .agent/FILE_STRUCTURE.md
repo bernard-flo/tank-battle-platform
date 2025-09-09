@@ -42,6 +42,7 @@ AI/DNN 학습/생성 파일
 - src/es_worker.js: ES 평가 워커. genMLPCode로 팀 코드 생성 후 시뮬레이션.
 - src/imitation_train.js: 레퍼런스 AI 모방 지도학습(76입력, 64-64-9). 결과를 ai_dnn_team.txt/ai_dnn_weights.json에 저장.
 - src/design_weights_9.js: 76입력용 분석적 초기 가중치(조준/스트레이프/거리 게이팅) 생성기. update는 DNN만 사용.
+- src/design_weights_plus.js: 개선된 설계 가중치(탄 회피·스트레이프·후퇴 결합) 생성기. update는 DNN만 사용.
 
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).
@@ -57,6 +58,8 @@ AI/DNN 학습/생성 파일
 - 모방학습(imitation_train.js) 수행: 10매치 × 2000틱 × 3에폭.
 - result/ai_dnn_team.txt, result/ai_dnn_weights.json 갱신.
 - baseline 비교 JSON(result/baseline_eval_small.json) 생성.
+- CEM 초단기 탐색(2×14@2200) → 팀/가중치 갱신.
+- 설계 가중치 개선 스크립트 추가(design_weights_plus.js) 및 결과 반영/평가.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
