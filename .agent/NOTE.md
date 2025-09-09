@@ -44,10 +44,11 @@
  - 리플레이 시각 확인: `simulator/replay_viewer.html`을 브라우저로 열어 `replay.json` 선택 후 재생.
 
 이번 실행
-- 단일 경기 검증(방금 실행): `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 2`
-  실행 결과 BLUE 승, 틱 646, Red 에너지 0, Blue 에너지 75 확인. `result.json`, `replay.json` 저장.
-- 배치 검증(이전): `node simulator/cli.js --repeat 5 --seed 777 --fast` 실행 결과, Red 2 / Blue 3 / 무 0.
-- 코드 변경 없음(문서만 갱신). 다음 단계로 AI 코드 설계/튜닝 착수 가능.
+- Nemesis-4(AegisNet-X) 팀으로 result-ai.txt 전면 교체 (64→48→24→6 MLP + 휴리스틱 혼합, 리드샷/회피/측면/벽반발/아군간격).
+- 성능 비교 자동화: `node scripts/evaluate_and_update.js` (기본 REPEAT=120, CONCURRENCY=8, FAST)
+  · 레드: result-ai.txt, 블루: reference-ai.txt로 배치 실행 후 승률/생존/에너지 집계.
+  · 우세 기준 충족 시 reference-ai.txt 자동 갱신(copy).
+- 단일 리플레이 확인: `node simulator/cli.js --red result-ai.txt --blue reference-ai.txt --seed 7 --replay replay.json --recordEvery 3`
 
 이번 실행(추가 확인)
 - 기본 실행 재검증: `node simulator/cli.js --repeat 1 --seed 123 --fast` → BLUE 승, 틱 713, 통계 정상 출력.
@@ -58,10 +59,9 @@
 - 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
 
 다음 실행 제안(TODO)
-- 초고속 모드(객체 풀링/TypedArray) 프로토타입 추가 검토: bullets/tanks를 구조적 공유버퍼로 관리해 GC 압력 저감.
-- 간단 단위테스트 추가: 이동 충돌, 아군 관통, 쿨다운 타이밍, 초기 배치 좌표.
- - HTML 리플레이 뷰어(간이 페이지) 추가 검토: `replay.json` 시각화로 디버깅 편의성 향상.
-  - 구현됨: `simulator/replay_viewer.html` 초기 버전 추가. UI 개선/키보드 단축키/자동 적중 하이라이트 등 확장 여지.
+- 승률 향상을 위한 DNN 출력 혼합계수 튜닝(mixMove/mixFire 범위 조정, 역할별 상수 미세화).
+- 위협탄 판정 반경/시간 근사 조정(타입/크기 반영)과 아군 충돌 회피 각도 분산 더 확대.
+- (선택) 객체 풀링/TypedArray 도입한 초고속 모드 프로토타입 검토.
 
 참고 명령어
 - 단일 경기 + 리플레이: `node simulator/cli.js --red simulator/ai/default_team.js --blue simulator/ai/default_team.js --seed 7 --replay replay.json --recordEvery 5 --fast`
