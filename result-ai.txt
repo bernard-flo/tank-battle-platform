@@ -1,14 +1,68 @@
 // Nemesis AI Team (DNN-guided hybrid policy)
 // 각 로봇: function name(), function type(), function update(tank, enemies, allies, bulletInfo)
 // - update는 모든 파라미터(tank, enemies, allies, bulletInfo)를 활용
-// - 간단한 2층 MLP(DNN)를 통해 움직임/사격 벡터를 조정하며,
-//   안전(총알 회피) · 간격(아군 분산) · 교전(접근/카이팅/측면 이동) 휴리스틱과 혼합
-// - tank_battle_platform.html과 simulator의 bot_loader 규칙에 맞는 텍스트 포맷
+// - 3층 MLP(DNN)로 이동/사격 각도를 예측하고, 휴리스틱(총알 회피/간격/교전)과 혼합
+// - 로더가 각 로봇을 개별 블록으로 분리하므로, 공용 유틸/러너는 블록마다 포함
 
 function name() { return 'Nemesis T1'; }
 function type() { return Type.TANKER; }
 function update(tank, enemies, allies, bulletInfo) {
-  runNemesis(tank, enemies, allies, bulletInfo, { role: 'front', seed: 11 });
+  (function run(cfg){
+    // ===== 유틸 =====
+    function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function ang(a){ a%=360; if(a<0)a+=360; return a; }
+    function deg(x,y){ return Math.atan2(y,x) * 180 / Math.PI; }
+    function pickClosest(arr){ let r=null, d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance; r=e;} } return r; }
+    function isThreat(b){
+      const dx=b.x-tank.x, dy=b.y-tank.y; const sp=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/sp, ny=b.vy/sp;
+      const proj = dx*nx + dy*ny; if(proj <= 0) return false; // 이미 지나감/역방향
+      const px=b.x - proj*nx, py=b.y - proj*ny; // 최근접점
+      const d = Math.hypot(px - tank.x, py - tank.y);
+      const threatRadius = tank.size * 0.8 + 34; // 약간 여유
+      return d < threatRadius;
+    }
+    // ===== 특징 벡터 구성 =====
+    const W=900, H=600;
+    const self=[ tank.x/W, tank.y/H, clamp01(tank.health/160), (tank.type===0)?1:0, (tank.type===1)?1:0, (tank.type===2)?1:0 ];
+    const enemiesK = enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3);
+    const alliesK = allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2);
+    const threats = bulletInfo.filter(isThreat).sort((a,b)=>a.distance-b.distance).slice(0,3);
+    const enemyFeat=[]; for(let i=0;i<3;i++){ const e=enemiesK[i]; if(e){ const dx=(e.x-tank.x)/W, dy=(e.y-tank.y)/H; const d=clamp01(e.distance/1000); const a=Math.atan2(e.y-tank.y,e.x-tank.x); enemyFeat.push(dx,dy,d,Math.cos(a),Math.sin(a),clamp01(e.health/160)); } else enemyFeat.push(0,0,1,1,0,0); }
+    const allyFeat=[]; for(let i=0;i<2;i++){ const a=alliesK[i]; if(a){ const dx=(a.x-tank.x)/W, dy=(a.y-tank.y)/H; allyFeat.push(dx,dy,clamp01(a.distance/800)); } else allyFeat.push(0,0,1); }
+    const bulletFeat=[]; for(let i=0;i<3;i++){ const b=threats[i]; if(b){ const dv=Math.hypot(b.vx,b.vy)||1; bulletFeat.push((b.x-tank.x)/W,(b.y-tank.y)/H,(b.vx/dv),(b.vy/dv),clamp01(b.distance/800)); } else bulletFeat.push(0,0,0,0,1); }
+    const counts=[ clamp01(enemies.length/6), clamp01(allies.length/5), clamp01(bulletInfo.length/12) ];
+    const x = self.concat(enemyFeat, allyFeat, bulletFeat, counts); // 48
+    // ===== MLP 추론 =====
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)%0x100000000; }
+    function Wm(seed, i, o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; }
+    function mv(W,v,b){ const o=new Array(W.length); for(let r=0;r<W.length;r++){ const row=W[r]; let sum=0; for(let c=0;c<row.length;c++) sum+=row[c]*v[c]; o[r]=sum+(b||0); } return o; }
+    function tanh(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
+    const s1=(cfg.seed*73856093)^0x9e3779b9, s2=(cfg.seed*19349663)^0x7f4a7c15, s3=(cfg.seed*83492791)^0x6a09e667;
+    const h1=tanh(mv(Wm(s1,48,32),x,0.0));
+    const h2=tanh(mv(Wm(s2,32,16),h1,0.0));
+    const o=tanh(mv(Wm(s3,16,4),h2,0.0)); // [mcos,msin,fcos,fsin]
+    const nnMove = Math.atan2(o[1],o[0])*180/Math.PI;
+    const nnFire = Math.atan2(o[3],o[2])*180/Math.PI;
+    // ===== 목표/사격 =====
+    const tgt = enemies.length?pickClosest(enemies):null;
+    if(tgt){
+      // 간이 리드샷: 고정 탄속(8px/tick) 가정, 목표가 정지 가정 + 미세 NN 보정
+      const d=tgt.distance; const base=deg(tgt.x-tank.x,tgt.y-tank.y);
+      const lead = base; // 속도 정보를 못받으므로 base 유지
+      const jitter=((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.22;
+      tank.fire(ang(0.7*lead+0.3*nnFire+jitter));
+    }
+    // ===== 이동 =====
+    function tryMove(a){ return tank.move(ang(a)); }
+    // 1) 총알 회피 우선
+    if(threats.length){ const b=threats[0]; const a=deg(b.vx,b.vy); const bias=(cfg.role==='front'?+8:(cfg.role==='flank'?-12:+14)); const C=[a+90+bias,a-90-bias,a+110,a-110]; for(const c of C){ if(tryMove(c)) return; } }
+    // 2) 아군과 간격 유지
+    if(allies.length){ const na=pickClosest(allies); if(na && na.distance<66){ const away=deg(tank.x-na.x,tank.y-na.y); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } }
+    // 3) 교전 전술 + NN 보정
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let baseMove; if(d<185){ baseMove=to+180+(cfg.role==='front'?+8:-12); } else if(d>275){ baseMove=to+(cfg.role==='flank'?+18:0); } else { baseMove=to+(cfg.role==='support'?+24:-18); } const move=ang(0.65*baseMove+0.35*nnMove); if(tryMove(move)) return; if(tryMove(move+25)) return; if(tryMove(move-25)) return; }
+    // 4) NN 이동 또는 기본 분산
+    if(tryMove(nnMove)) return; const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p)) return; }
+  })({ role:'front', seed:11 });
 }
 
 // ===== 다음 로봇 =====
@@ -16,7 +70,28 @@ function update(tank, enemies, allies, bulletInfo) {
 function name() { return 'Nemesis T2'; }
 function type() { return Type.TANKER; }
 function update(tank, enemies, allies, bulletInfo) {
-  runNemesis(tank, enemies, allies, bulletInfo, { role: 'front', seed: 17 });
+  (function run(cfg){
+    function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function ang(a){ a%=360; if(a<0)a+=360; return a; }
+    function deg(x,y){ return Math.atan2(y,x) * 180 / Math.PI; }
+    function pickClosest(arr){ let r=null, d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance; r=e;} } return r; }
+    function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const sp=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/sp, ny=b.vy/sp; const proj = dx*nx + dy*ny; if(proj <= 0) return false; const px=b.x - proj*nx, py=b.y - proj*ny; const d = Math.hypot(px - tank.x, py - tank.y); return d < (tank.size*0.8+34); }
+    const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp01(tank.health/160),(tank.type===0)?1:0,(tank.type===1)?1:0,(tank.type===2)?1:0];
+    const enemiesK=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const alliesK=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const threats=bulletInfo.filter(isThreat).sort((a,b)=>a.distance-b.distance).slice(0,3);
+    const enemyFeat=[]; for(let i=0;i<3;i++){ const e=enemiesK[i]; if(e){ const dx=(e.x-tank.x)/W,dy=(e.y-tank.y)/H; const d=clamp01(e.distance/1000); const a=Math.atan2(e.y-tank.y,e.x-tank.x); enemyFeat.push(dx,dy,d,Math.cos(a),Math.sin(a),clamp01(e.health/160)); } else enemyFeat.push(0,0,1,1,0,0);} 
+    const allyFeat=[]; for(let i=0;i<2;i++){ const a=alliesK[i]; if(a){ const dx=(a.x-tank.x)/W,dy=(a.y-tank.y)/H; allyFeat.push(dx,dy,clamp01(a.distance/800)); } else allyFeat.push(0,0,1);} 
+    const bulletFeat=[]; for(let i=0;i<3;i++){ const b=threats[i]; if(b){ const dv=Math.hypot(b.vx,b.vy)||1; bulletFeat.push((b.x-tank.x)/W,(b.y-tank.y)/H,(b.vx/dv),(b.vy/dv),clamp01(b.distance/800)); } else bulletFeat.push(0,0,0,0,1);} 
+    const x=self.concat(enemyFeat,allyFeat,bulletFeat,[clamp01(enemies.length/6),clamp01(allies.length/5),clamp01(bulletInfo.length/12)]);
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)%0x100000000;} function Wm(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row;} return W;} function mv(W,v,b){ const o=new Array(W.length); for(let r=0;r<W.length;r++){ const row=W[r]; let sum=0; for(let c=0;c<row.length;c++) sum+=row[c]*v[c]; o[r]=sum+(b||0);} return o;} function tanh(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o;}
+    const h1=tanh(mv(Wm((cfg.seed*73856093)^0x9e3779b9,48,32),x,0.0)); const h2=tanh(mv(Wm((cfg.seed*19349663)^0x7f4a7c15,32,16),h1,0.0)); const o=tanh(mv(Wm((cfg.seed*83492791)^0x6a09e667,16,4),h2,0.0));
+    const nnMove=Math.atan2(o[1],o[0])*180/Math.PI; const nnFire=Math.atan2(o[3],o[2])*180/Math.PI;
+    const tgt=enemies.length?pickClosest(enemies):null; if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter=((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.22; tank.fire(ang(0.7*base+0.3*nnFire+jitter)); }
+    function tryMove(a){ return tank.move(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=deg(b.vx,b.vy); const bias=(cfg.role==='front'?+8:(cfg.role==='flank'?-12:+14)); const C=[a+90+bias,a-90-bias,a+110,a-110]; for(const c of C){ if(tryMove(c)) return; } }
+    if(allies.length){ const na=pickClosest(allies); if(na && na.distance<66){ const away=deg(tank.x-na.x,tank.y-na.y); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let baseMove; if(d<185){ baseMove=to+180+(cfg.role==='front'?+8:-12);} else if(d>275){ baseMove=to+(cfg.role==='flank'?+18:0);} else { baseMove=to+(cfg.role==='support'?+24:-18);} const move=ang(0.65*baseMove+0.35*nnMove); if(tryMove(move)) return; if(tryMove(move+25)) return; if(tryMove(move-25)) return; }
+    if(tryMove(nnMove)) return; const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p)) return; }
+  })({ role:'front', seed:17 });
 }
 
 // ===== 다음 로봇 =====
@@ -24,7 +99,28 @@ function update(tank, enemies, allies, bulletInfo) {
 function name() { return 'Nemesis D1'; }
 function type() { return Type.DEALER; }
 function update(tank, enemies, allies, bulletInfo) {
-  runNemesis(tank, enemies, allies, bulletInfo, { role: 'flank', seed: 23 });
+  (function run(cfg){
+    function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function ang(a){ a%=360; if(a<0)a+=360; return a; }
+    function deg(x,y){ return Math.atan2(y,x) * 180 / Math.PI; }
+    function pickClosest(arr){ let r=null, d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance; r=e;} } return r; }
+    function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const sp=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/sp, ny=b.vy/sp; const proj = dx*nx + dy*ny; if(proj <= 0) return false; const px=b.x - proj*nx, py=b.y - proj*ny; const d = Math.hypot(px - tank.x, py - tank.y); return d < (tank.size*0.75+38); }
+    const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp01(tank.health/160),(tank.type===0)?1:0,(tank.type===1)?1:0,(tank.type===2)?1:0];
+    const enemiesK=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const alliesK=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const threats=bulletInfo.filter(isThreat).sort((a,b)=>a.distance-b.distance).slice(0,3);
+    const enemyFeat=[]; for(let i=0;i<3;i++){ const e=enemiesK[i]; if(e){ const dx=(e.x-tank.x)/W,dy=(e.y-tank.y)/H; const d=clamp01(e.distance/1000); const a=Math.atan2(e.y-tank.y,e.x-tank.x); enemyFeat.push(dx,dy,d,Math.cos(a),Math.sin(a),clamp01(e.health/160)); } else enemyFeat.push(0,0,1,1,0,0);} 
+    const allyFeat=[]; for(let i=0;i<2;i++){ const a=alliesK[i]; if(a){ const dx=(a.x-tank.x)/W,dy=(a.y-tank.y)/H; allyFeat.push(dx,dy,clamp01(a.distance/800)); } else allyFeat.push(0,0,1);} 
+    const bulletFeat=[]; for(let i=0;i<3;i++){ const b=threats[i]; if(b){ const dv=Math.hypot(b.vx,b.vy)||1; bulletFeat.push((b.x-tank.x)/W,(b.y-tank.y)/H,(b.vx/dv),(b.vy/dv),clamp01(b.distance/800)); } else bulletFeat.push(0,0,0,0,1);} 
+    const x=self.concat(enemyFeat,allyFeat,bulletFeat,[clamp01(enemies.length/6),clamp01(allies.length/5),clamp01(bulletInfo.length/12)]);
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)%0x100000000;} function Wm(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row;} return W;} function mv(W,v,b){ const o=new Array(W.length); for(let r=0;r<W.length;r++){ const row=W[r]; let sum=0; for(let c=0;c<row.length;c++) sum+=row[c]*v[c]; o[r]=sum+(b||0);} return o;} function tanh(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o;}
+    const h1=tanh(mv(Wm((cfg.seed*73856093)^0x9e3779b9,48,32),x,0.0)); const h2=tanh(mv(Wm((cfg.seed*19349663)^0x7f4a7c15,32,16),h1,0.0)); const o=tanh(mv(Wm((cfg.seed*83492791)^0x6a09e667,16,4),h2,0.0));
+    const nnMove=Math.atan2(o[1],o[0])*180/Math.PI; const nnFire=Math.atan2(o[3],o[2])*180/Math.PI;
+    const tgt=enemies.length?pickClosest(enemies):null; if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter=((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.25; tank.fire(ang(0.68*base+0.32*nnFire+jitter)); }
+    function tryMove(a){ return tank.move(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=deg(b.vx,b.vy); const C=[a+90-8,a-90+8,a+115,a-115]; for(const c of C){ if(tryMove(c)) return; } }
+    if(allies.length){ const na=pickClosest(allies); if(na && na.distance<70){ const away=deg(tank.x-na.x,tank.y-na.y); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let baseMove; if(d<210){ baseMove=to+180-10; } else if(d>300){ baseMove=to+18; } else { baseMove=to-22; } const move=ang(0.6*baseMove+0.4*nnMove); if(tryMove(move)) return; if(tryMove(move+25)) return; if(tryMove(move-25)) return; }
+    if(tryMove(nnMove)) return; const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p)) return; }
+  })({ role:'flank', seed:23 });
 }
 
 // ===== 다음 로봇 =====
@@ -32,7 +128,28 @@ function update(tank, enemies, allies, bulletInfo) {
 function name() { return 'Nemesis D2'; }
 function type() { return Type.DEALER; }
 function update(tank, enemies, allies, bulletInfo) {
-  runNemesis(tank, enemies, allies, bulletInfo, { role: 'flank', seed: 29 });
+  (function run(cfg){
+    function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function ang(a){ a%=360; if(a<0)a+=360; return a; }
+    function deg(x,y){ return Math.atan2(y,x) * 180 / Math.PI; }
+    function pickClosest(arr){ let r=null, d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance; r=e;} } return r; }
+    function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const sp=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/sp, ny=b.vy/sp; const proj = dx*nx + dy*ny; if(proj <= 0) return false; const px=b.x - proj*nx, py=b.y - proj*ny; const d = Math.hypot(px - tank.x, py - tank.y); return d < (tank.size*0.75+38); }
+    const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp01(tank.health/160),(tank.type===0)?1:0,(tank.type===1)?1:0,(tank.type===2)?1:0];
+    const enemiesK=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const alliesK=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const threats=bulletInfo.filter(isThreat).sort((a,b)=>a.distance-b.distance).slice(0,3);
+    const enemyFeat=[]; for(let i=0;i<3;i++){ const e=enemiesK[i]; if(e){ const dx=(e.x-tank.x)/W,dy=(e.y-tank.y)/H; const d=clamp01(e.distance/1000); const a=Math.atan2(e.y-tank.y,e.x-tank.x); enemyFeat.push(dx,dy,d,Math.cos(a),Math.sin(a),clamp01(e.health/160)); } else enemyFeat.push(0,0,1,1,0,0);} 
+    const allyFeat=[]; for(let i=0;i<2;i++){ const a=alliesK[i]; if(a){ const dx=(a.x-tank.x)/W,dy=(a.y-tank.y)/H; allyFeat.push(dx,dy,clamp01(a.distance/800)); } else allyFeat.push(0,0,1);} 
+    const bulletFeat=[]; for(let i=0;i<3;i++){ const b=threats[i]; if(b){ const dv=Math.hypot(b.vx,b.vy)||1; bulletFeat.push((b.x-tank.x)/W,(b.y-tank.y)/H,(b.vx/dv),(b.vy/dv),clamp01(b.distance/800)); } else bulletFeat.push(0,0,0,0,1);} 
+    const x=self.concat(enemyFeat,allyFeat,bulletFeat,[clamp01(enemies.length/6),clamp01(allies.length/5),clamp01(bulletInfo.length/12)]);
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)%0x100000000;} function Wm(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row;} return W;} function mv(W,v,b){ const o=new Array(W.length); for(let r=0;r<W.length;r++){ const row=W[r]; let sum=0; for(let c=0;c<row.length;c++) sum+=row[c]*v[c]; o[r]=sum+(b||0);} return o;} function tanh(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o;}
+    const h1=tanh(mv(Wm((cfg.seed*73856093)^0x9e3779b9,48,32),x,0.0)); const h2=tanh(mv(Wm((cfg.seed*19349663)^0x7f4a7c15,32,16),h1,0.0)); const o=tanh(mv(Wm((cfg.seed*83492791)^0x6a09e667,16,4),h2,0.0));
+    const nnMove=Math.atan2(o[1],o[0])*180/Math.PI; const nnFire=Math.atan2(o[3],o[2])*180/Math.PI;
+    const tgt=enemies.length?pickClosest(enemies):null; if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter=((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.25; tank.fire(ang(0.68*base+0.32*nnFire+jitter)); }
+    function tryMove(a){ return tank.move(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=deg(b.vx,b.vy); const C=[a+90+8,a-90-8,a+115,a-115]; for(const c of C){ if(tryMove(c)) return; } }
+    if(allies.length){ const na=pickClosest(allies); if(na && na.distance<70){ const away=deg(tank.x-na.x,tank.y-na.y); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let baseMove; if(d<210){ baseMove=to+180+10; } else if(d>300){ baseMove=to-18; } else { baseMove=to+22; } const move=ang(0.6*baseMove+0.4*nnMove); if(tryMove(move)) return; if(tryMove(move+25)) return; if(tryMove(move-25)) return; }
+    if(tryMove(nnMove)) return; const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p)) return; }
+  })({ role:'flank', seed:29 });
 }
 
 // ===== 다음 로봇 =====
@@ -40,7 +157,28 @@ function update(tank, enemies, allies, bulletInfo) {
 function name() { return 'Nemesis D3'; }
 function type() { return Type.DEALER; }
 function update(tank, enemies, allies, bulletInfo) {
-  runNemesis(tank, enemies, allies, bulletInfo, { role: 'support', seed: 31 });
+  (function run(cfg){
+    function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function ang(a){ a%=360; if(a<0)a+=360; return a; }
+    function deg(x,y){ return Math.atan2(y,x) * 180 / Math.PI; }
+    function pickClosest(arr){ let r=null, d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance; r=e;} } return r; }
+    function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const sp=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/sp, ny=b.vy/sp; const proj = dx*nx + dy*ny; if(proj <= 0) return false; const px=b.x - proj*nx, py=b.y - proj*ny; const d = Math.hypot(px - tank.x, py - tank.y); return d < (tank.size*0.75+38); }
+    const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp01(tank.health/160),(tank.type===0)?1:0,(tank.type===1)?1:0,(tank.type===2)?1:0];
+    const enemiesK=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const alliesK=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const threats=bulletInfo.filter(isThreat).sort((a,b)=>a.distance-b.distance).slice(0,3);
+    const enemyFeat=[]; for(let i=0;i<3;i++){ const e=enemiesK[i]; if(e){ const dx=(e.x-tank.x)/W,dy=(e.y-tank.y)/H; const d=clamp01(e.distance/1000); const a=Math.atan2(e.y-tank.y,e.x-tank.x); enemyFeat.push(dx,dy,d,Math.cos(a),Math.sin(a),clamp01(e.health/160)); } else enemyFeat.push(0,0,1,1,0,0);} 
+    const allyFeat=[]; for(let i=0;i<2;i++){ const a=alliesK[i]; if(a){ const dx=(a.x-tank.x)/W,dy=(a.y-tank.y)/H; allyFeat.push(dx,dy,clamp01(a.distance/800)); } else allyFeat.push(0,0,1);} 
+    const bulletFeat=[]; for(let i=0;i<3;i++){ const b=threats[i]; if(b){ const dv=Math.hypot(b.vx,b.vy)||1; bulletFeat.push((b.x-tank.x)/W,(b.y-tank.y)/H,(b.vx/dv),(b.vy/dv),clamp01(b.distance/800)); } else bulletFeat.push(0,0,0,0,1);} 
+    const x=self.concat(enemyFeat,allyFeat,bulletFeat,[clamp01(enemies.length/6),clamp01(allies.length/5),clamp01(bulletInfo.length/12)]);
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)%0x100000000;} function Wm(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row;} return W;} function mv(W,v,b){ const o=new Array(W.length); for(let r=0;r<W.length;r++){ const row=W[r]; let sum=0; for(let c=0;c<row.length;c++) sum+=row[c]*v[c]; o[r]=sum+(b||0);} return o;} function tanh(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o;}
+    const h1=tanh(mv(Wm((cfg.seed*73856093)^0x9e3779b9,48,32),x,0.0)); const h2=tanh(mv(Wm((cfg.seed*19349663)^0x7f4a7c15,32,16),h1,0.0)); const o=tanh(mv(Wm((cfg.seed*83492791)^0x6a09e667,16,4),h2,0.0));
+    const nnMove=Math.atan2(o[1],o[0])*180/Math.PI; const nnFire=Math.atan2(o[3],o[2])*180/Math.PI;
+    const tgt=enemies.length?pickClosest(enemies):null; if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter=((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.27; tank.fire(ang(0.7*base+0.3*nnFire+jitter)); }
+    function tryMove(a){ return tank.move(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=deg(b.vx,b.vy); const C=[a+90-10,a-90+10,a+115,a-115]; for(const c of C){ if(tryMove(c)) return; } }
+    if(allies.length){ const na=pickClosest(allies); if(na && na.distance<68){ const away=deg(tank.x-na.x,tank.y-na.y); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let baseMove; if(d<210){ baseMove=to+180-12; } else if(d>300){ baseMove=to+16; } else { baseMove=to-20; } const move=ang(0.6*baseMove+0.4*nnMove); if(tryMove(move)) return; if(tryMove(move+25)) return; if(tryMove(move-25)) return; }
+    if(tryMove(nnMove)) return; const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p)) return; }
+  })({ role:'support', seed:31 });
 }
 
 // ===== 다음 로봇 =====
@@ -48,182 +186,27 @@ function update(tank, enemies, allies, bulletInfo) {
 function name() { return 'Nemesis D4'; }
 function type() { return Type.DEALER; }
 function update(tank, enemies, allies, bulletInfo) {
-  runNemesis(tank, enemies, allies, bulletInfo, { role: 'support', seed: 37 });
-}
-
-// ===== 공용 유틸/러너 =====
-
-function runNemesis(tank, enemies, allies, bulletInfo, cfg) {
-  // 수학/정규화 유틸
-  function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
-  function ang(a){ a%=360; if(a<0)a+=360; return a; }
-  function deg(x,y){ return Math.atan2(y,x) * 180 / Math.PI; }
-  function toUnit(vx, vy){ const m = Math.hypot(vx,vy) || 1; return [vx/m, vy/m]; }
-  function pickClosest(arr){ let r=null, d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance; r=e;} } return r; }
-
-  // 위협 총알 판정: 우리 쪽으로 진행 + 경로 근접
-  function isThreat(b){
-    const dx=b.x-tank.x, dy=b.y-tank.y; const sp=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/sp, ny=b.vy/sp;
-    const proj = dx*nx + dy*ny; if(proj <= 0) return false; // 이미 지나감/역방향
-    const px=b.x - proj*nx, py=b.y - proj*ny; // 최근접점
-    const d = Math.hypot(px - tank.x, py - tank.y);
-    const threatRadius = tank.size * 0.9 + 30; // 여유 포함 근접 임계
-    return d < threatRadius;
-  }
-
-  // 관측 벡터(feature): tank/enemies/allies/bullets 모두 활용
-  const W = 900, H = 600;
-  const self = [
-    tank.x / W, tank.y / H,
-    clamp01(tank.health / 160),
-    tank.type === 0 ? 1 : 0,
-    tank.type === 1 ? 1 : 0,
-    tank.type === 2 ? 1 : 0,
-  ];
-
-  // 최근접 3 적군 요약
-  const sortedEnemies = enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3);
-  const enemyFeat = [];
-  for (let i=0;i<3;i++){
-    const e = sortedEnemies[i];
-    if (e){
-      const dx=(e.x-tank.x)/W, dy=(e.y-tank.y)/H; const d=clamp01(e.distance/1000);
-      const angR = Math.atan2(e.y-tank.y, e.x-tank.x);
-      enemyFeat.push(dx, dy, d, Math.cos(angR), Math.sin(angR), clamp01(e.health/160));
-    } else {
-      enemyFeat.push(0,0,1,1,0,0); // 없는 경우 멀리 있다고 가정
-    }
-  }
-
-  // 최근접 2 아군 요약(본인 제외는 엔진에서 보장)
-  const sortedAllies = allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2);
-  const allyFeat = [];
-  for (let i=0;i<2;i++){
-    const a = sortedAllies[i];
-    if (a){
-      const dx=(a.x-tank.x)/W, dy=(a.y-tank.y)/H; allyFeat.push(dx, dy, clamp01(a.distance/800));
-    } else {
-      allyFeat.push(0,0,1);
-    }
-  }
-
-  // 위협도 높은 3발 탄환
-  const threats = bulletInfo.filter(isThreat).sort((a,b)=>a.distance-b.distance).slice(0,3);
-  const bulletFeat = [];
-  for (let i=0;i<3;i++){
-    const b = threats[i];
-    if (b){
-      const dx=(b.x-tank.x)/W, dy=(b.y-tank.y)/H; const dv = Math.hypot(b.vx,b.vy)||1;
-      bulletFeat.push(dx, dy, (b.vx/dv), (b.vy/dv), clamp01(b.distance/800));
-    } else {
-      bulletFeat.push(0,0,0,0,1);
-    }
-  }
-
-  const counts = [ clamp01(enemies.length/6), clamp01(allies.length/5), clamp01(bulletInfo.length/12) ];
-  const x = self.concat(enemyFeat, allyFeat, bulletFeat, counts); // 48차원
-
-  // 2층 MLP 추론(가벼운 고정 가중치, 각 로봇 seed로 약간 달리함)
-  // 구조: 48 -> 32 -> 16 -> 4 (tanh)
-  // 출력: [mcos, msin, fcos, fsin]
-  function seededRand(s){ // 간단 결정적 PRNG
-    s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)%0x100000000;
-  }
-  function makeWeights(seed, inDim, outDim){
-    let s = seed>>>0; const W = new Array(outDim);
-    for(let o=0;o<outDim;o++){
-      const row = new Array(inDim);
-      for(let i=0;i<inDim;i++){
-        s = seededRand(s);
-        // Xavier-ish scale
-        const r = ((s%2001)/1000 - 1); // [-1,1]
-        row[i] = r * Math.sqrt(2/(inDim+outDim));
-      }
-      W[o] = row;
-    }
-    return W;
-  }
-  function matVec(W, v, bScale){
-    const out = new Array(W.length);
-    for(let o=0;o<W.length;o++){
-      const row=W[o]; let sum=0;
-      for(let i=0;i<row.length;i++) sum+=row[i]*v[i];
-      out[o] = sum + (bScale||0);
-    }
-    return out;
-  }
-  function tanh(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ const x=v[i]; o[i]=Math.tanh(x); } return o; }
-
-  const s1 = (cfg.seed*73856093) ^ 0x9e3779b9;
-  const s2 = (cfg.seed*19349663) ^ 0x7f4a7c15;
-  const s3 = (cfg.seed*83492791) ^ 0x6a09e667;
-  const W1 = makeWeights(s1, 48, 32);
-  const W2 = makeWeights(s2, 32, 16);
-  const W3 = makeWeights(s3, 16, 4);
-  const h1 = tanh(matVec(W1, x, 0.0));
-  const h2 = tanh(matVec(W2, h1, 0.0));
-  const o  = tanh(matVec(W3, h2, 0.0));
-
-  // 네트워크 출력 벡터 → 각도
-  const mcos = o[0], msin = o[1];
-  const fcos = o[2], fsin = o[3];
-  let nnMove = Math.atan2(msin, mcos) * 180 / Math.PI;
-  let nnFire = Math.atan2(fsin, fcos) * 180 / Math.PI;
-
-  // 기본 휴리스틱: 목표 선정
-  const tgt = enemies.length ? pickClosest(enemies) : null;
-  if (tgt) {
-    const direct = deg(tgt.x - tank.x, tgt.y - tank.y);
-    // 사격: NN 출력과 직접 조준을 혼합(네트워크는 미세 조정/흔들림 제공)
-    const jitter = ((tank.x*31 + tank.y*17 + cfg.seed)%23 - 11) * 0.25;
-    const fire = ang(0.65*direct + 0.35*nnFire + jitter);
-    tank.fire(fire);
-  }
-
-  // 이동 우선순위: 총알 회피 > 아군 분산 > 교전 전술(접근/카이팅/측면) + NN 조정
-  let tried = 0; function tryMove(a){ tried++; return tank.move(ang(a)); }
-
-  // 1) 총알 회피: 가장 가까운 위협탄 기준, 진행 벡터 수직 회피
-  if (threats.length) {
-    const b = threats[0];
-    const a = deg(b.vx, b.vy);
-    const bias = (cfg.role==='front'? +10 : (cfg.role==='flank'? -10 : +20));
-    const cand = [a+90+bias, a-90-bias, a+110, a-110];
-    for (const c of cand) { if (tryMove(c)) return; }
-  }
-
-  // 2) 아군과의 간격 유지: 가장 가까운 아군에서 멀어지기
-  if (allies.length) {
-    const nearA = pickClosest(allies);
-    if (nearA && nearA.distance < 65) {
-      const away = deg(tank.x - nearA.x, tank.y - nearA.y);
-      if (tryMove(away)) return; if (tryMove(away+25)) return; if (tryMove(away-25)) return;
-    }
-  }
-
-  // 3) 교전: 거리 기반(접근/카이팅/측면), NN 이동각과 혼합
-  if (tgt) {
-    const d = tgt.distance; const to = deg(tgt.x - tank.x, tgt.y - tank.y);
-    let baseMove;
-    if (d < 180) {
-      // 카이팅: 거리 벌리기(역방향) + 소폭 측면
-      baseMove = to + 180 + (cfg.role==='front'? +10 : -15);
-    } else if (d > 280) {
-      // 접근
-      baseMove = to + (cfg.role==='flank'? +20 : 0);
-    } else {
-      // 측면 유지
-      baseMove = to + (cfg.role==='support' ? +25 : -20);
-    }
-    const mix = 0.35; // NN 보정 가중치(휴리스틱 대비)
-    const move = ang((1-mix)*baseMove + mix*nnMove);
-    if (tryMove(move)) return;
-    if (tryMove(move+25)) return; if (tryMove(move-25)) return;
-  }
-
-  // 4) 마지막 수단: NN 이동각 또는 기본 사분면 선호
-  if (tryMove(nnMove)) return;
-  const pref = [0,90,180,270];
-  for (const p of pref) { if (tryMove(p)) return; }
+  (function run(cfg){
+    function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
+    function ang(a){ a%=360; if(a<0)a+=360; return a; }
+    function deg(x,y){ return Math.atan2(y,x) * 180 / Math.PI; }
+    function pickClosest(arr){ let r=null, d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance; r=e;} } return r; }
+    function isThreat(b){ const dx=b.x-tank.x, dy=b.y-tank.y; const sp=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/sp, ny=b.vy/sp; const proj = dx*nx + dy*ny; if(proj <= 0) return false; const px=b.x - proj*nx, py=b.y - proj*ny; const d = Math.hypot(px - tank.x, py - tank.y); return d < (tank.size*0.75+38); }
+    const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp01(tank.health/160),(tank.type===0)?1:0,(tank.type===1)?1:0,(tank.type===2)?1:0];
+    const enemiesK=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const alliesK=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const threats=bulletInfo.filter(isThreat).sort((a,b)=>a.distance-b.distance).slice(0,3);
+    const enemyFeat=[]; for(let i=0;i<3;i++){ const e=enemiesK[i]; if(e){ const dx=(e.x-tank.x)/W,dy=(e.y-tank.y)/H; const d=clamp01(e.distance/1000); const a=Math.atan2(e.y-tank.y,e.x-tank.x); enemyFeat.push(dx,dy,d,Math.cos(a),Math.sin(a),clamp01(e.health/160)); } else enemyFeat.push(0,0,1,1,0,0);} 
+    const allyFeat=[]; for(let i=0;i<2;i++){ const a=alliesK[i]; if(a){ const dx=(a.x-tank.x)/W,dy=(a.y-tank.y)/H; allyFeat.push(dx,dy,clamp01(a.distance/800)); } else allyFeat.push(0,0,1);} 
+    const bulletFeat=[]; for(let i=0;i<3;i++){ const b=threats[i]; if(b){ const dv=Math.hypot(b.vx,b.vy)||1; bulletFeat.push((b.x-tank.x)/W,(b.y-tank.y)/H,(b.vx/dv),(b.vy/dv),clamp01(b.distance/800)); } else bulletFeat.push(0,0,0,0,1);} 
+    const x=self.concat(enemyFeat,allyFeat,bulletFeat,[clamp01(enemies.length/6),clamp01(allies.length/5),clamp01(bulletInfo.length/12)]);
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)%0x100000000;} function Wm(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row;} return W;} function mv(W,v,b){ const o=new Array(W.length); for(let r=0;r<W.length;r++){ const row=W[r]; let sum=0; for(let c=0;c<row.length;c++) sum+=row[c]*v[c]; o[r]=sum+(b||0);} return o;} function tanh(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o;}
+    const h1=tanh(mv(Wm((cfg.seed*73856093)^0x9e3779b9,48,32),x,0.0)); const h2=tanh(mv(Wm((cfg.seed*19349663)^0x7f4a7c15,32,16),h1,0.0)); const o=tanh(mv(Wm((cfg.seed*83492791)^0x6a09e667,16,4),h2,0.0));
+    const nnMove=Math.atan2(o[1],o[0])*180/Math.PI; const nnFire=Math.atan2(o[3],o[2])*180/Math.PI;
+    const tgt=enemies.length?pickClosest(enemies):null; if(tgt){ const base=deg(tgt.x-tank.x,tgt.y-tank.y); const jitter=((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.27; tank.fire(ang(0.7*base+0.3*nnFire+jitter)); }
+    function tryMove(a){ return tank.move(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=deg(b.vx,b.vy); const C=[a+90+10,a-90-10,a+115,a-115]; for(const c of C){ if(tryMove(c)) return; } }
+    if(allies.length){ const na=pickClosest(allies); if(na && na.distance<68){ const away=deg(tank.x-na.x,tank.y-na.y); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let baseMove; if(d<210){ baseMove=to+180+12; } else if(d>300){ baseMove=to-16; } else { baseMove=to+20; } const move=ang(0.6*baseMove+0.4*nnMove); if(tryMove(move)) return; if(tryMove(move+25)) return; if(tryMove(move-25)) return; }
+    if(tryMove(nnMove)) return; const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p)) return; }
+  })({ role:'support', seed:37 });
 }
 
