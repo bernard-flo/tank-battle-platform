@@ -40,8 +40,10 @@ AI/DNN 학습/생성 파일
  - src/imitation_train.js: 레퍼런스 AI의 행동을 수집(actionHook)하여 지도학습(Adam)으로 64-64 MLP 초기화. 이후 CEM/ES 미세튜닝 권장.
    · CLI 옵션: --matches N --ticks N --epochs N --batch N --lr F --seed S [--fast|--no-fast]
  - src/generate_from_weights.js: result/ai_dnn_weights.json을 읽어 팀 코드를 재생성.
- - src/train_es.js: Evolution Strategies(OpenAI-ES) 기반 블랙박스 최적화. Mirrored sampling과 병렬 워커로 빠르게 gradient 추정 후 가중치 업데이트.
+- src/train_es.js: Evolution Strategies(OpenAI-ES) 기반 블랙박스 최적화. Mirrored sampling과 병렬 워커로 빠르게 gradient 추정 후 가중치 업데이트.
   - src/es_worker.js: ES 평가 워커. 주어진 가중치 벡터로 코드 생성→시뮬레이션→스코어 반환.
+- src/teacher_ai.txt: 모방학습용 Teacher 팀(휴리스틱). 각 로봇 블록 내에 helper 포함(분할 실행 호환). 총알 회피/아군 분리/타겟 추적/스트레이프 조합.
+- src/imitation_train.js: --teacher 옵션 추가(기본은 result/reference-ai.txt). Teacher 코드를 레드팀으로 하여 행동을 수집하고 DNN을 지도학습으로 초기화.
 
 결과물(result)
 - result/reference-ai.txt: 비교용 레퍼런스 AI 코드(여섯 로봇, 휴리스틱 기반).

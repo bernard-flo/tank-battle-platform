@@ -29,3 +29,15 @@
     - 입력에 시간 스택(직전 2~3틱) 추가. update는 여전히 순수 DNN 추론.
     - fireP 게이팅 재활성화를 고려(sigmoid out[6] 기준)해 무의미 사격 감소.
     - 보상에 생존/가까운 적 피해 등 완만한 shaping 추가(정책은 DNN만 사용).
+    - Teacher 모방 초기화: src/teacher_ai.txt를 --teacher로 지정해 행동 수집 후 초기화, 이후 CEM로 미세튜닝.
+
+실행 메모(이번 실행)
+- generate_dnn_team.js: 발사 확률 게이팅(out.fireP>0.5) 적용. 순수 DNN 의사결정 유지.
+- Teacher 팀 추가 및 imitation_train에 --teacher 지원. Teacher 기반 모방학습으로 가중치 초기화.
+- CEM 소/중형 러닝 반복(여러 번 4~6 iters씩). 일부 배치에서는 Draw 위주로 전환했으나 평균 에너지는 여전히 열세.
+
+다음 실행 제안
+- 더 큰 compute 허용 시 CEM 20+ iters, seeds 8~12, pop 80~120으로 확장.
+- ES 러닝을 짧은 구간으로 여러 번 호출(각 120s 한도 내). 예: --iters 2 --pop 50를 5회.
+- 입력 확장: 시간 스택(직전 2틱) 추가 후 가중치 재초기화→모방→CEM.
+- 결과 검증: `node src/eval_vs_reference.js --count 200 --start 9000 --maxTicks 3500 --fast`로 통계적 우세 확인.
