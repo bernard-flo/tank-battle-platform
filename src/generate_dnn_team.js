@@ -159,7 +159,9 @@ function buildFeatures(tank, enemies, allies, bulletInfo){
 function policyStep(tank, enemies, allies, bulletInfo){
   const feat = buildFeatures(tank, enemies, allies, bulletInfo);
   const out = mlpForward(feat);
-  if(out.fireP>0.5){ tank.fire(out.fireAngle); }
+  // 순수 DNN 출력 각도로 발사(쿨다운은 엔진에서 처리)
+  tank.fire(out.fireAngle);
+  // DNN이 제안한 세 방향을 순차 시도
   if(!tank.move(out.mv1)){
     if(!tank.move(out.mv2)){
       tank.move(out.mv3);
@@ -217,4 +219,3 @@ if (require.main === module) {
   const n = saveTeamTo(out, flat);
   console.log(`Generated team code -> ${out} (${n} bytes)`);
 }
-
