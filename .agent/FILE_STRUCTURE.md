@@ -37,11 +37,10 @@
 
 AI 팀 코드 산출물
 - result-ai.txt: tank_battle_platform.html에서 import 가능한 팀 코드(6 로봇).
-  - Prometheus-10x(EchelonNet-XL): DNN(96→64→24→10, tanh) + 전술 스코어 탐색(60방향).
-  - 입력 96차원: self(8) + 적 top4(각 6) + 아군 top3(각 4) + 적탄 top6(각 6) + 집계(7) 패드.
-  - 출력 10차원: moveVec(2), fireVec(2), 게이팅(w_toward/away/strafeL/strafeR), rangeBias, orbitBias.
-  - 사격: 리드샷 + DNN 보정 + 지터. 이동: 탄 위협(TTC/측면/예상), 벽/아군/군집 잠재장, 목표 기하 혼합 스코어 최소화.
-  - 역할 구성: TANKER×2(anchor), NORMAL×2(flank), DEALER×2(backline).
+  - Ares-Edge(AetherNet-M): DNN(64→32→16→8, tanh) + 경량 전술 벡터 합성(탐색 없음, 빠름).
+  - 입력 64차: self + 적 top3 + 아군 top2 + 적탄 top4 + 집계. 출력 8차: moveVec(2), fireVec(2), 게이팅(toward/away/orbit) 등.
+  - 사격: 리드샷(속도 추정) + DNN 보정 + 소량 지터. 이동: 탄 회피/벽 반발/아군 간격 + 목표 접근·이탈·궤도 벡터 합성.
+  - 역할: TANKER×2, NORMAL×2, DEALER×2.
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.

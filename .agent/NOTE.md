@@ -163,6 +163,12 @@
 - tank_battle_platform.html은 절대 수정하지 않음.
 - 모든 파일 변경 시 즉시 git commit 수행.
 
+이번 실행 메모(Ares-Edge)
+- result-ai.txt를 Ares-Edge(DNN 64-32-16-8 + 경량 전술 합성)로 교체. 실행 속도 향상 및 안정적 교전 목표.
+- 빠른 근사 평가: `MAX_TICKS=1000 REPEAT=16 CONCURRENCY=8 node scripts/quick_evaluate_and_update.js`
+- 정밀 배치 평가: `REPEAT=120 CONCURRENCY=8 node scripts/evaluate_and_update.js` (시간 길면 quick로 선별 후 실행)
+- 갱신 기준(권장): 승률 ≥ 0.7 또는 (승률 ≥ 0.6 && 평균 생존/에너지 우세) → reference-ai.txt 갱신.
+
 이번 실행 메모(Nemesis-3)
 - 새 팀(Nemesis-3/AegisNet): 리드샷(요격 각) + 탄 회피(TTC 기반) + 벽 반발 + 아군 간격 유지 + 카이팅/측면 이동.
 - DNN은 64→48→24→6로, 이동/사격 각도 제안과 혼합 계수 산출. 제안은 전술 각과 혼합해 안정성 확보.
