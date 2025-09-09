@@ -26,6 +26,11 @@
 - 최대 틱/시드/JSON 출력:
   node simulator/cli.js --red red.js --blue blue.js --maxTicks 4000 --seed 123 --json out.json
   (시드 적용: 초기 포신 각도만 시드 기반 RNG 사용. 봇 코드 내 Math.random은 브라우저와 동일하게 비결정적.)
+  
+ - 리플레이 덤프(JSON 프레임 기록):
+   node simulator/cli.js --red red.js --blue blue.js --seed 7 --replay replay.json [--recordEvery 2]
+   - 단일 경기(repeat=1)에서만 지원. 프레임마다 탱크/총알 상태와 메타(맵 크기, tickMs, 시드, 플레이어 목록)를 저장.
+   - recordEvery로 프레임 간격을 조절(기본 1 = 매 틱 저장). 파일 크기 절감을 위해 2~5 권장.
 
 - 배치 시뮬레이션(반복 실행)과 통계 집계:
   node simulator/cli.js --red red.js --blue blue.js --repeat 100 --seed 42 --json result.json
@@ -35,6 +40,7 @@
 출력 예시
 - 콘솔 요약: 승자, 틱 수, 각 팀 생존/에너지.
 - JSON 파일(옵션): summary 오브젝트를 기록.
+ - 리플레이 파일(옵션): { meta, frames } 구조로 저장. frames[t]에는 각 틱의 탱크/총알 상태가 포함.
 
 파일 구성
 - engine.js: 물리/룰 엔진과 runMatch 함수 제공.

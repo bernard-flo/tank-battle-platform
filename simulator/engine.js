@@ -120,6 +120,18 @@ class Engine {
     this.bullets = [];
     this.logs = [];
     this.random = createRng(opts.seed);
+    
+    // Recording (replay) options
+    this.record = !!opts.record;
+    this.recordEvery = Math.max(1, opts.recordEvery ? parseInt(opts.recordEvery, 10) || 1 : 1);
+    this.frames = [];
+    this.meta = {
+      width: this.width,
+      height: this.height,
+      tickMs: this.tickMs,
+      seed: opts.seed ?? null,
+      players: [],
+    };
   }
 
   addTank(tank) {
@@ -228,11 +240,46 @@ class Engine {
     }
     this.updateBullets();
     this.timeMs += this.tickMs;
+    if (this.record) this.maybeRecordFrame();
+  }
+
+  maybeRecordFrame() {
+    const tick = Math.floor(this.timeMs / this.tickMs);
+    if (tick % this.recordEvery !== 0) return;
+    this.frames.push(this.snapshot());
+  }
+
+  snapshot() {
+    return {
+      t: this.timeMs,
+      tanks: this.tanks.map((t) => ({
+        id: t.id,
+        team: t.team,
+        x: t.x,
+        y: t.y,
+        angle: t.angle,
+        health: Math.max(0, t.health),
+        energy: t.energy,
+        alive: t.alive,
+        type: t.tankType,
+        size: t.size,
+      })),
+      bullets: this.bullets.map((b) => ({ x: b.x, y: b.y, team: b.team })),
+    };
+  }
+
+  getReplay() {
+    return {
+      meta: this.meta,
+      frames: this.frames,
+    };
   }
 }
 
 function createEngineWithTeams(playerData, opts = {}) {
   const engine = new Engine(opts);
+  // meta players
+  engine.meta.players = playerData.map((p) => ({ id: p.id, name: p.name, team: p.team, type: p.type }));
   // Red team layout
   for (let i = 0; i < 6; i++) {
     const p = playerData[i];
@@ -256,6 +303,8 @@ function createEngineWithTeams(playerData, opts = {}) {
     tank._runner = p.runner;
     engine.addTank(tank);
   }
+  // initial frame at t=0 if recording
+  if (engine.record) engine.frames.push(engine.snapshot());
   return engine;
 }
 
@@ -273,7 +322,11 @@ function runMatch(playerData, opts = {}) {
   let winner = 'draw';
   if (stats.redAlive === 0 && stats.blueAlive > 0) winner = 'blue';
   else if (stats.blueAlive === 0 && stats.redAlive > 0) winner = 'red';
-  return { winner, ticks: Math.floor(engine.timeMs / engine.tickMs), stats, engine };
+  const result = { winner, ticks: Math.floor(engine.timeMs / engine.tickMs), stats, engine };
+  if (engine.record) {
+    result.replay = engine.getReplay();
+  }
+  return result;
 }
 
 function createRng(seed) {

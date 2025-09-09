@@ -41,6 +41,8 @@ async function main() {
   const maxTicks = args.maxTicks ? parseInt(args.maxTicks, 10) : 5000;
   const jsonOut = args.json;
   const repeat = args.repeat ? parseInt(args.repeat, 10) : 1;
+  const replayOut = args.replay; // when set, record replay frames
+  const recordEvery = args.recordEvery ? parseInt(args.recordEvery, 10) : 1;
 
   const redCode = readOrDefault(redFile, 'red');
   const blueCode = readOrDefault(blueFile, 'blue');
@@ -61,9 +63,12 @@ async function main() {
   let redEnergySum = 0;
   let blueEnergySum = 0;
 
+  let lastReplay = null;
   for (let i = 0; i < repeat; i++) {
     const s = typeof baseSeed === 'number' ? baseSeed + i : `${baseSeed}-${i}`;
-    const result = runMatch(players, { seed: s, maxTicks });
+    const wantReplay = !!replayOut && repeat === 1; // only supported for single run
+    const result = runMatch(players, { seed: s, maxTicks, record: wantReplay, recordEvery });
+    if (wantReplay && result.replay) lastReplay = result.replay;
     const summary = {
       seed: s,
       winner: result.winner,
@@ -127,6 +132,16 @@ async function main() {
     } };
     fs.writeFileSync(path.resolve(jsonOut), JSON.stringify(out, null, 2));
     console.log(`Saved JSON -> ${jsonOut}`);
+  }
+
+  if (replayOut) {
+    if (repeat !== 1) {
+      console.warn('Replay output is only supported when --repeat 1; skipping replay save.');
+    } else {
+      const outPath = path.resolve(replayOut);
+      fs.writeFileSync(outPath, JSON.stringify(lastReplay, null, 2));
+      console.log(`Saved Replay -> ${replayOut}`);
+    }
   }
 }
 
