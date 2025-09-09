@@ -1,0 +1,668 @@
+function name(){ return "DNN-1"; }
+function type(){ return Type.DEALER; }
+function update(tank,enemies,allies,bulletInfo){
+  // ===== DNN 기반 정책 =====
+  // 입력: self + 상위 K개의 enemy/allies/bullets 특징
+  // 출력: [move1, move2, move3, move4, fireAngle] (각도: 0~360)
+
+  // 고정 하이퍼파라미터(플랫폼 상수)
+  const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
+  const EN_K=3, AL_K=2, BL_K=3;
+
+  // 특징 벡터 구성
+  function norm(v, s){ return s ? v/s : v; }
+  function angleWrap(a){ a%=360; if(a<0)a+=360; return a; }
+
+  function nearest(arr, k){
+    const tmp = arr.map((e)=>({e, d: e.distance!==undefined? e.distance : Math.hypot((e.x||0)-tank.x,(e.y||0)-tank.y)}));
+    tmp.sort((a,b)=>a.d-b.d);
+    const out=[]; for(let i=0;i<k;i++){ out.push(tmp[i]? tmp[i].e:null); }
+    return out;
+  }
+
+  const xSelf = [
+    norm(tank.x, W),
+    norm(tank.y, H),
+    norm(tank.health, EMAX),
+    norm(tank.energy, EMAX),
+    norm(tank.size, 50),
+    (tank.type===0?1:0),
+    (tank.type===1?1:0),
+    (tank.type===2?1:0),
+  ];
+
+  const ens = nearest(enemies, EN_K);
+  const als = nearest(allies, AL_K);
+  const bls = nearest(bulletInfo, BL_K);
+
+  const xEn = [];
+  for(let i=0;i<EN_K;i++){
+    const e = ens[i];
+    if(e){
+      xEn.push( norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL) );
+    } else {
+      xEn.push(0,0,0,0);
+    }
+  }
+
+  const xAl = [];
+  for(let i=0;i<AL_K;i++){
+    const a = als[i];
+    if(a){
+      xAl.push( norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL) );
+    } else {
+      xAl.push(0,0,0,0);
+    }
+  }
+
+  const xBl = [];
+  for(let i=0;i<BL_K;i++){
+    const b = bls[i];
+    if(b){
+      xBl.push( norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL) );
+    } else {
+      xBl.push(0,0,0,0,0);
+    }
+  }
+
+  const X = new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+
+  // 네트워크 파라미터
+  const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
+  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+
+  function dotRow(mat, cols, r, vec){
+    let s=0, off=r*cols;
+    for(let c=0;c<cols;c++){ s += mat[off+c]*vec[c]; }
+    return s;
+  }
+  function tanh(x){ return Math.tanh(x); }
+
+  const IN=43, H1=24, H2=16, OUT=5;
+  const h1 = new Float64Array(H1);
+  for(let i=0;i<H1;i++){ h1[i] = tanh(dotRow(W1, IN, i, X) + b1[i]); }
+  const h2 = new Float64Array(H2);
+  for(let i=0;i<H2;i++){ h2[i] = tanh(dotRow(W2, H1, i, h1) + b2[i]); }
+  const y = new Float64Array(OUT);
+  for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
+
+  // 각도 변환: y in R -> [0,360)
+  function toDeg(v){ return angleWrap((v*180/Math.PI)%360 + 180); }
+
+  const m1 = toDeg(y[0]);
+  const m2 = toDeg(y[1]);
+  const m3 = toDeg(y[2]);
+  const m4 = toDeg(y[3]);
+  const fA = toDeg(y[4]);
+
+  // 사격 및 이동 시도 (DNN 출력만 사용)
+  tank.fire(fA);
+  if(tank.move(m1)) return;
+  if(tank.move(m2)) return;
+  if(tank.move(m3)) return;
+  if(tank.move(m4)) return;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){ return "DNN-2"; }
+function type(){ return Type.NORMAL; }
+function update(tank,enemies,allies,bulletInfo){
+  // ===== DNN 기반 정책 =====
+  // 입력: self + 상위 K개의 enemy/allies/bullets 특징
+  // 출력: [move1, move2, move3, move4, fireAngle] (각도: 0~360)
+
+  // 고정 하이퍼파라미터(플랫폼 상수)
+  const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
+  const EN_K=3, AL_K=2, BL_K=3;
+
+  // 특징 벡터 구성
+  function norm(v, s){ return s ? v/s : v; }
+  function angleWrap(a){ a%=360; if(a<0)a+=360; return a; }
+
+  function nearest(arr, k){
+    const tmp = arr.map((e)=>({e, d: e.distance!==undefined? e.distance : Math.hypot((e.x||0)-tank.x,(e.y||0)-tank.y)}));
+    tmp.sort((a,b)=>a.d-b.d);
+    const out=[]; for(let i=0;i<k;i++){ out.push(tmp[i]? tmp[i].e:null); }
+    return out;
+  }
+
+  const xSelf = [
+    norm(tank.x, W),
+    norm(tank.y, H),
+    norm(tank.health, EMAX),
+    norm(tank.energy, EMAX),
+    norm(tank.size, 50),
+    (tank.type===0?1:0),
+    (tank.type===1?1:0),
+    (tank.type===2?1:0),
+  ];
+
+  const ens = nearest(enemies, EN_K);
+  const als = nearest(allies, AL_K);
+  const bls = nearest(bulletInfo, BL_K);
+
+  const xEn = [];
+  for(let i=0;i<EN_K;i++){
+    const e = ens[i];
+    if(e){
+      xEn.push( norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL) );
+    } else {
+      xEn.push(0,0,0,0);
+    }
+  }
+
+  const xAl = [];
+  for(let i=0;i<AL_K;i++){
+    const a = als[i];
+    if(a){
+      xAl.push( norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL) );
+    } else {
+      xAl.push(0,0,0,0);
+    }
+  }
+
+  const xBl = [];
+  for(let i=0;i<BL_K;i++){
+    const b = bls[i];
+    if(b){
+      xBl.push( norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL) );
+    } else {
+      xBl.push(0,0,0,0,0);
+    }
+  }
+
+  const X = new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+
+  // 네트워크 파라미터
+  const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
+  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+
+  function dotRow(mat, cols, r, vec){
+    let s=0, off=r*cols;
+    for(let c=0;c<cols;c++){ s += mat[off+c]*vec[c]; }
+    return s;
+  }
+  function tanh(x){ return Math.tanh(x); }
+
+  const IN=43, H1=24, H2=16, OUT=5;
+  const h1 = new Float64Array(H1);
+  for(let i=0;i<H1;i++){ h1[i] = tanh(dotRow(W1, IN, i, X) + b1[i]); }
+  const h2 = new Float64Array(H2);
+  for(let i=0;i<H2;i++){ h2[i] = tanh(dotRow(W2, H1, i, h1) + b2[i]); }
+  const y = new Float64Array(OUT);
+  for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
+
+  // 각도 변환: y in R -> [0,360)
+  function toDeg(v){ return angleWrap((v*180/Math.PI)%360 + 180); }
+
+  const m1 = toDeg(y[0]);
+  const m2 = toDeg(y[1]);
+  const m3 = toDeg(y[2]);
+  const m4 = toDeg(y[3]);
+  const fA = toDeg(y[4]);
+
+  // 사격 및 이동 시도 (DNN 출력만 사용)
+  tank.fire(fA);
+  if(tank.move(m1)) return;
+  if(tank.move(m2)) return;
+  if(tank.move(m3)) return;
+  if(tank.move(m4)) return;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){ return "DNN-3"; }
+function type(){ return Type.DEALER; }
+function update(tank,enemies,allies,bulletInfo){
+  // ===== DNN 기반 정책 =====
+  // 입력: self + 상위 K개의 enemy/allies/bullets 특징
+  // 출력: [move1, move2, move3, move4, fireAngle] (각도: 0~360)
+
+  // 고정 하이퍼파라미터(플랫폼 상수)
+  const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
+  const EN_K=3, AL_K=2, BL_K=3;
+
+  // 특징 벡터 구성
+  function norm(v, s){ return s ? v/s : v; }
+  function angleWrap(a){ a%=360; if(a<0)a+=360; return a; }
+
+  function nearest(arr, k){
+    const tmp = arr.map((e)=>({e, d: e.distance!==undefined? e.distance : Math.hypot((e.x||0)-tank.x,(e.y||0)-tank.y)}));
+    tmp.sort((a,b)=>a.d-b.d);
+    const out=[]; for(let i=0;i<k;i++){ out.push(tmp[i]? tmp[i].e:null); }
+    return out;
+  }
+
+  const xSelf = [
+    norm(tank.x, W),
+    norm(tank.y, H),
+    norm(tank.health, EMAX),
+    norm(tank.energy, EMAX),
+    norm(tank.size, 50),
+    (tank.type===0?1:0),
+    (tank.type===1?1:0),
+    (tank.type===2?1:0),
+  ];
+
+  const ens = nearest(enemies, EN_K);
+  const als = nearest(allies, AL_K);
+  const bls = nearest(bulletInfo, BL_K);
+
+  const xEn = [];
+  for(let i=0;i<EN_K;i++){
+    const e = ens[i];
+    if(e){
+      xEn.push( norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL) );
+    } else {
+      xEn.push(0,0,0,0);
+    }
+  }
+
+  const xAl = [];
+  for(let i=0;i<AL_K;i++){
+    const a = als[i];
+    if(a){
+      xAl.push( norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL) );
+    } else {
+      xAl.push(0,0,0,0);
+    }
+  }
+
+  const xBl = [];
+  for(let i=0;i<BL_K;i++){
+    const b = bls[i];
+    if(b){
+      xBl.push( norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL) );
+    } else {
+      xBl.push(0,0,0,0,0);
+    }
+  }
+
+  const X = new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+
+  // 네트워크 파라미터
+  const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
+  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+
+  function dotRow(mat, cols, r, vec){
+    let s=0, off=r*cols;
+    for(let c=0;c<cols;c++){ s += mat[off+c]*vec[c]; }
+    return s;
+  }
+  function tanh(x){ return Math.tanh(x); }
+
+  const IN=43, H1=24, H2=16, OUT=5;
+  const h1 = new Float64Array(H1);
+  for(let i=0;i<H1;i++){ h1[i] = tanh(dotRow(W1, IN, i, X) + b1[i]); }
+  const h2 = new Float64Array(H2);
+  for(let i=0;i<H2;i++){ h2[i] = tanh(dotRow(W2, H1, i, h1) + b2[i]); }
+  const y = new Float64Array(OUT);
+  for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
+
+  // 각도 변환: y in R -> [0,360)
+  function toDeg(v){ return angleWrap((v*180/Math.PI)%360 + 180); }
+
+  const m1 = toDeg(y[0]);
+  const m2 = toDeg(y[1]);
+  const m3 = toDeg(y[2]);
+  const m4 = toDeg(y[3]);
+  const fA = toDeg(y[4]);
+
+  // 사격 및 이동 시도 (DNN 출력만 사용)
+  tank.fire(fA);
+  if(tank.move(m1)) return;
+  if(tank.move(m2)) return;
+  if(tank.move(m3)) return;
+  if(tank.move(m4)) return;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){ return "DNN-4"; }
+function type(){ return Type.TANKER; }
+function update(tank,enemies,allies,bulletInfo){
+  // ===== DNN 기반 정책 =====
+  // 입력: self + 상위 K개의 enemy/allies/bullets 특징
+  // 출력: [move1, move2, move3, move4, fireAngle] (각도: 0~360)
+
+  // 고정 하이퍼파라미터(플랫폼 상수)
+  const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
+  const EN_K=3, AL_K=2, BL_K=3;
+
+  // 특징 벡터 구성
+  function norm(v, s){ return s ? v/s : v; }
+  function angleWrap(a){ a%=360; if(a<0)a+=360; return a; }
+
+  function nearest(arr, k){
+    const tmp = arr.map((e)=>({e, d: e.distance!==undefined? e.distance : Math.hypot((e.x||0)-tank.x,(e.y||0)-tank.y)}));
+    tmp.sort((a,b)=>a.d-b.d);
+    const out=[]; for(let i=0;i<k;i++){ out.push(tmp[i]? tmp[i].e:null); }
+    return out;
+  }
+
+  const xSelf = [
+    norm(tank.x, W),
+    norm(tank.y, H),
+    norm(tank.health, EMAX),
+    norm(tank.energy, EMAX),
+    norm(tank.size, 50),
+    (tank.type===0?1:0),
+    (tank.type===1?1:0),
+    (tank.type===2?1:0),
+  ];
+
+  const ens = nearest(enemies, EN_K);
+  const als = nearest(allies, AL_K);
+  const bls = nearest(bulletInfo, BL_K);
+
+  const xEn = [];
+  for(let i=0;i<EN_K;i++){
+    const e = ens[i];
+    if(e){
+      xEn.push( norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL) );
+    } else {
+      xEn.push(0,0,0,0);
+    }
+  }
+
+  const xAl = [];
+  for(let i=0;i<AL_K;i++){
+    const a = als[i];
+    if(a){
+      xAl.push( norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL) );
+    } else {
+      xAl.push(0,0,0,0);
+    }
+  }
+
+  const xBl = [];
+  for(let i=0;i<BL_K;i++){
+    const b = bls[i];
+    if(b){
+      xBl.push( norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL) );
+    } else {
+      xBl.push(0,0,0,0,0);
+    }
+  }
+
+  const X = new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+
+  // 네트워크 파라미터
+  const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
+  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+
+  function dotRow(mat, cols, r, vec){
+    let s=0, off=r*cols;
+    for(let c=0;c<cols;c++){ s += mat[off+c]*vec[c]; }
+    return s;
+  }
+  function tanh(x){ return Math.tanh(x); }
+
+  const IN=43, H1=24, H2=16, OUT=5;
+  const h1 = new Float64Array(H1);
+  for(let i=0;i<H1;i++){ h1[i] = tanh(dotRow(W1, IN, i, X) + b1[i]); }
+  const h2 = new Float64Array(H2);
+  for(let i=0;i<H2;i++){ h2[i] = tanh(dotRow(W2, H1, i, h1) + b2[i]); }
+  const y = new Float64Array(OUT);
+  for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
+
+  // 각도 변환: y in R -> [0,360)
+  function toDeg(v){ return angleWrap((v*180/Math.PI)%360 + 180); }
+
+  const m1 = toDeg(y[0]);
+  const m2 = toDeg(y[1]);
+  const m3 = toDeg(y[2]);
+  const m4 = toDeg(y[3]);
+  const fA = toDeg(y[4]);
+
+  // 사격 및 이동 시도 (DNN 출력만 사용)
+  tank.fire(fA);
+  if(tank.move(m1)) return;
+  if(tank.move(m2)) return;
+  if(tank.move(m3)) return;
+  if(tank.move(m4)) return;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){ return "DNN-5"; }
+function type(){ return Type.DEALER; }
+function update(tank,enemies,allies,bulletInfo){
+  // ===== DNN 기반 정책 =====
+  // 입력: self + 상위 K개의 enemy/allies/bullets 특징
+  // 출력: [move1, move2, move3, move4, fireAngle] (각도: 0~360)
+
+  // 고정 하이퍼파라미터(플랫폼 상수)
+  const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
+  const EN_K=3, AL_K=2, BL_K=3;
+
+  // 특징 벡터 구성
+  function norm(v, s){ return s ? v/s : v; }
+  function angleWrap(a){ a%=360; if(a<0)a+=360; return a; }
+
+  function nearest(arr, k){
+    const tmp = arr.map((e)=>({e, d: e.distance!==undefined? e.distance : Math.hypot((e.x||0)-tank.x,(e.y||0)-tank.y)}));
+    tmp.sort((a,b)=>a.d-b.d);
+    const out=[]; for(let i=0;i<k;i++){ out.push(tmp[i]? tmp[i].e:null); }
+    return out;
+  }
+
+  const xSelf = [
+    norm(tank.x, W),
+    norm(tank.y, H),
+    norm(tank.health, EMAX),
+    norm(tank.energy, EMAX),
+    norm(tank.size, 50),
+    (tank.type===0?1:0),
+    (tank.type===1?1:0),
+    (tank.type===2?1:0),
+  ];
+
+  const ens = nearest(enemies, EN_K);
+  const als = nearest(allies, AL_K);
+  const bls = nearest(bulletInfo, BL_K);
+
+  const xEn = [];
+  for(let i=0;i<EN_K;i++){
+    const e = ens[i];
+    if(e){
+      xEn.push( norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL) );
+    } else {
+      xEn.push(0,0,0,0);
+    }
+  }
+
+  const xAl = [];
+  for(let i=0;i<AL_K;i++){
+    const a = als[i];
+    if(a){
+      xAl.push( norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL) );
+    } else {
+      xAl.push(0,0,0,0);
+    }
+  }
+
+  const xBl = [];
+  for(let i=0;i<BL_K;i++){
+    const b = bls[i];
+    if(b){
+      xBl.push( norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL) );
+    } else {
+      xBl.push(0,0,0,0,0);
+    }
+  }
+
+  const X = new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+
+  // 네트워크 파라미터
+  const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
+  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+
+  function dotRow(mat, cols, r, vec){
+    let s=0, off=r*cols;
+    for(let c=0;c<cols;c++){ s += mat[off+c]*vec[c]; }
+    return s;
+  }
+  function tanh(x){ return Math.tanh(x); }
+
+  const IN=43, H1=24, H2=16, OUT=5;
+  const h1 = new Float64Array(H1);
+  for(let i=0;i<H1;i++){ h1[i] = tanh(dotRow(W1, IN, i, X) + b1[i]); }
+  const h2 = new Float64Array(H2);
+  for(let i=0;i<H2;i++){ h2[i] = tanh(dotRow(W2, H1, i, h1) + b2[i]); }
+  const y = new Float64Array(OUT);
+  for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
+
+  // 각도 변환: y in R -> [0,360)
+  function toDeg(v){ return angleWrap((v*180/Math.PI)%360 + 180); }
+
+  const m1 = toDeg(y[0]);
+  const m2 = toDeg(y[1]);
+  const m3 = toDeg(y[2]);
+  const m4 = toDeg(y[3]);
+  const fA = toDeg(y[4]);
+
+  // 사격 및 이동 시도 (DNN 출력만 사용)
+  tank.fire(fA);
+  if(tank.move(m1)) return;
+  if(tank.move(m2)) return;
+  if(tank.move(m3)) return;
+  if(tank.move(m4)) return;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){ return "DNN-6"; }
+function type(){ return Type.TANKER; }
+function update(tank,enemies,allies,bulletInfo){
+  // ===== DNN 기반 정책 =====
+  // 입력: self + 상위 K개의 enemy/allies/bullets 특징
+  // 출력: [move1, move2, move3, move4, fireAngle] (각도: 0~360)
+
+  // 고정 하이퍼파라미터(플랫폼 상수)
+  const W=900, H=600; const EMAX=150, SCL=700; const VX=10, VY=10;
+  const EN_K=3, AL_K=2, BL_K=3;
+
+  // 특징 벡터 구성
+  function norm(v, s){ return s ? v/s : v; }
+  function angleWrap(a){ a%=360; if(a<0)a+=360; return a; }
+
+  function nearest(arr, k){
+    const tmp = arr.map((e)=>({e, d: e.distance!==undefined? e.distance : Math.hypot((e.x||0)-tank.x,(e.y||0)-tank.y)}));
+    tmp.sort((a,b)=>a.d-b.d);
+    const out=[]; for(let i=0;i<k;i++){ out.push(tmp[i]? tmp[i].e:null); }
+    return out;
+  }
+
+  const xSelf = [
+    norm(tank.x, W),
+    norm(tank.y, H),
+    norm(tank.health, EMAX),
+    norm(tank.energy, EMAX),
+    norm(tank.size, 50),
+    (tank.type===0?1:0),
+    (tank.type===1?1:0),
+    (tank.type===2?1:0),
+  ];
+
+  const ens = nearest(enemies, EN_K);
+  const als = nearest(allies, AL_K);
+  const bls = nearest(bulletInfo, BL_K);
+
+  const xEn = [];
+  for(let i=0;i<EN_K;i++){
+    const e = ens[i];
+    if(e){
+      xEn.push( norm(e.x - tank.x, W), norm(e.y - tank.y, H), norm(e.health, EMAX), norm(e.distance, SCL) );
+    } else {
+      xEn.push(0,0,0,0);
+    }
+  }
+
+  const xAl = [];
+  for(let i=0;i<AL_K;i++){
+    const a = als[i];
+    if(a){
+      xAl.push( norm(a.x - tank.x, W), norm(a.y - tank.y, H), norm(a.health, EMAX), norm(a.distance, SCL) );
+    } else {
+      xAl.push(0,0,0,0);
+    }
+  }
+
+  const xBl = [];
+  for(let i=0;i<BL_K;i++){
+    const b = bls[i];
+    if(b){
+      xBl.push( norm(b.x - tank.x, W), norm(b.y - tank.y, H), norm(b.vx, VX), norm(b.vy, VY), norm(b.distance, SCL) );
+    } else {
+      xBl.push(0,0,0,0,0);
+    }
+  }
+
+  const X = new Float64Array([].concat(xSelf, xEn, xAl, xBl));
+
+  // 네트워크 파라미터
+  const W1 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b1 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+  const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
+  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+
+  function dotRow(mat, cols, r, vec){
+    let s=0, off=r*cols;
+    for(let c=0;c<cols;c++){ s += mat[off+c]*vec[c]; }
+    return s;
+  }
+  function tanh(x){ return Math.tanh(x); }
+
+  const IN=43, H1=24, H2=16, OUT=5;
+  const h1 = new Float64Array(H1);
+  for(let i=0;i<H1;i++){ h1[i] = tanh(dotRow(W1, IN, i, X) + b1[i]); }
+  const h2 = new Float64Array(H2);
+  for(let i=0;i<H2;i++){ h2[i] = tanh(dotRow(W2, H1, i, h1) + b2[i]); }
+  const y = new Float64Array(OUT);
+  for(let i=0;i<OUT;i++){ y[i] = dotRow(W3, H2, i, h2) + b3[i]; }
+
+  // 각도 변환: y in R -> [0,360)
+  function toDeg(v){ return angleWrap((v*180/Math.PI)%360 + 180); }
+
+  const m1 = toDeg(y[0]);
+  const m2 = toDeg(y[1]);
+  const m3 = toDeg(y[2]);
+  const m4 = toDeg(y[3]);
+  const fA = toDeg(y[4]);
+
+  // 사격 및 이동 시도 (DNN 출력만 사용)
+  tank.fire(fA);
+  if(tank.move(m1)) return;
+  if(tank.move(m2)) return;
+  if(tank.move(m3)) return;
+  if(tank.move(m4)) return;
+}
