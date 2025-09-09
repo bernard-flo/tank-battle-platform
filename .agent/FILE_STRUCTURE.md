@@ -55,10 +55,10 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(이번 실행)
-- 시뮬레이터로 기존 DNN 팀을 reference-ai.txt와 대조 평가한 결과, 기존 가중치는 크게 열세(0승 200패)로 확인됨.
-- 모방학습(레퍼런스 교사) 60매치·12에폭으로 재학습, 설계형 가중치(design_weights_9 / design_weights_plus) 생성도 시도했으나 아직 reference 대비 성능 미달.
-- 결과물(result/ai_dnn_team.txt, ai_dnn_weights.json) 갱신 및 대조 평가 JSON 저장.
-- tank_battle_platform.html에서 Import 가능한 형식 유지 확인.
+- 설계형 가중치(design_weights_plus)로 DNN 초기화 후 평가 → 레퍼런스에 열세(0승, 평균 틱 단축) 확인.
+- 모방학습(imitation_train.js, 30매치·10에폭) 적용 후 재평가 → 여전히 열세.
+- ES 튜닝(train_es.js) 1회 이터레이션(pop=40, seeds=4) 적용 → 20시드 평가에서 전부 무승부(레드/블루 에너지 차는 블루 우위). 장시간 ES 필요.
+- 결과물(result/ai_dnn_team.txt, ai_dnn_weights.json) 최신화 완료. tank_battle_platform.html에서 Import 가능한 형식 유지.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
