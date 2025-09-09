@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": "2025-0",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-1",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-2",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-3",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-4",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-5",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-6",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-7",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-8",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    },
+    {
+      "seed": "2025-9",
+      "winner": "draw",
+      "ticks": 3000,
+      "redAlive": 3,
+      "blueAlive": 6,
+      "redEnergy": 330,
+      "blueEnergy": 640
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 0,
+    "blueWins": 0,
+    "draws": 10,
+    "avgTicks": 3000,
+    "avgRedAlive": 3,
+    "avgBlueAlive": 6,
+    "avgRedEnergy": 330,
+    "avgBlueEnergy": 640,
+    "baseSeed": "2025",
+    "concurrency": 1
+  }
+}

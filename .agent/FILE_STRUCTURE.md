@@ -53,10 +53,10 @@ AI/DNN 학습/생성 파일
 - 시뮬레이터 출력 JSON(result*.json)과 리플레이(replay*.json)는 .gitignore에 포함됨.
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
-업데이트(현재 실행)
-- generate_dnn_team.js에 범용 genMLPCode(입력76/출력9) 추가, update는 DNN만 사용하도록 고정.
-- 설계형 초기 가중치(design_weights_9.js) 및 모방학습(imitation_train.js) 실행 경로 정비.
-- 빠른 ES 학습(train_es.js, 4x24x3 @2500 ticks) 1회 수행, 팀 코드/가중치 갱신.
+업데이트(이번 실행)
+- 모방학습(imitation_train.js) 수행: 10매치 × 2000틱 × 3에폭.
+- result/ai_dnn_team.txt, result/ai_dnn_weights.json 갱신.
+- baseline 비교 JSON(result/baseline_eval_small.json) 생성.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
