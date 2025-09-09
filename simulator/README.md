@@ -26,6 +26,11 @@
 - 최대 틱/시드/JSON 출력:
   node simulator/cli.js --red red.js --blue blue.js --maxTicks 4000 --seed 123 --json out.json
 
+- 배치 시뮬레이션(반복 실행)과 통계 집계:
+  node simulator/cli.js --red red.js --blue blue.js --repeat 100 --seed 42 --json result.json
+  - 동일한 baseSeed(예: 42)를 기준으로 42,43,44... 순으로 시드를 바꿔 100회 경기
+  - 콘솔에 승/패/무, 평균 틱/생존/에너지 출력, JSON에는 summaries/aggregate 기록
+
 출력 예시
 - 콘솔 요약: 승자, 틱 수, 각 팀 생존/에너지.
 - JSON 파일(옵션): summary 오브젝트를 기록.
@@ -39,4 +44,3 @@
 주의
 - tank_battle_platform.html 파일은 수정하지 않습니다.
 - 브라우저 렌더링 효과(폭발/피탄/체력바)는 생략되지만, 피해/관통/범위 판정은 동일합니다.
-
