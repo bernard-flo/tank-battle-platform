@@ -19,13 +19,18 @@
 - 빠른 비교: `node simulator/cli.js --red result/ai_dnn_team.txt --blue result/reference-ai.txt --repeat 60 --fast --concurrency 8 --maxTicks 3500`
 
 다음 실행 제안(성능 개선 루프)
-- ES 장기 러닝을 2~3세트 반복(각 20~40분 예상)하여 참조 AI 초과 목표:
+- ES 장기 러닝을 2~3세트 반복(각 20~40분 예상)하여 강건성 추가 확보:
   `node src/train_es.js --iters 20 --pop 120 --sigma 0.15 --alpha 0.06 --seeds 8 --ticks 3500 --concurrency 8 --fast`
   · 시간이 부족하면: `--iters 10 --pop 60 --seeds 6 --ticks 3000`
 - CEM 보조 탐색(중간 저장 재개 권장):
   `node src/train_cem.js --resume --iters 12 --pop 60 --elite 0.25 --seed 4242 --seeds 0,1,2,3,4 --maxTicks 3200 --no-fast`
-- 초기 정책 안정화가 필요하면 모방학습(teacher_ai 기준) → ES 미세 조정 순으로 진행:
+- 초기 정책 안정화 필요 시 모방학습(teacher_ai 기준) → ES 미세 조정:
   `node src/imitation_train.js --matches 40 --ticks 2400 --epochs 8 --fast --teacher src/teacher_ai.txt`
+
+검증 체크리스트
+- tank_battle_platform.html에서 result/ai_dnn_team.txt 불러오기 → 6로봇 표시 확인.
+- 타입 순서: NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER.
+- update는 tank/enemies/allies/bulletInfo 모두 사용(DNN 피처 구성 내부 확인).
 
 메모
 - update(tank, enemies, allies, bulletInfo) 전 파라미터를 모두 사용한 DNN 추론만 적용(휴리스틱 없음).
