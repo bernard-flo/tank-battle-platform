@@ -93,9 +93,25 @@ async function main() {
   const maxTicks = parseInt(process.env.DNN_MAXTICKS || '3500', 10);
   const baseSeed = parseInt(process.env.DNN_BASESEED || `${Math.floor(Math.random()*1e9)}`, 10);
 
-  // 초기 평균 가중치: 0 근방 랜덤 편차(바이어스가 모두 0이면 행동이 무기력할 수 있으므로 소량 랜덤)
+  // 초기 평균 가중치: 기존 결과가 있으면 로드, 없으면 소량 랜덤
   let m = zeros(N);
-  for (let i = 0; i < N; i++) m[i] = 0.05 * randn();
+  const prevPath = path.resolve('result/dnn-ai-weights.json');
+  if (fs.existsSync(prevPath)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(prevPath, 'utf8'));
+      const w = prev && Array.isArray(prev.weights) ? prev.weights : null;
+      if (w && w.length === N) {
+        for (let i = 0; i < N; i++) m[i] = +w[i];
+        console.log(`[INIT] loaded previous weights from result/dnn-ai-weights.json`);
+      } else {
+        for (let i = 0; i < N; i++) m[i] = 0.05 * randn();
+      }
+    } catch (_e) {
+      for (let i = 0; i < N; i++) m[i] = 0.05 * randn();
+    }
+  } else {
+    for (let i = 0; i < N; i++) m[i] = 0.05 * randn();
+  }
 
   // 추적
   let bestW = m.slice(0);
@@ -159,4 +175,3 @@ async function main() {
 if (require.main === module) {
   main().catch((e) => { console.error(e); process.exit(1); });
 }
-
