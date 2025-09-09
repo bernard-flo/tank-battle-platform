@@ -135,11 +135,16 @@
   다음 단계: 기본 방어/회피/집중사격 로직 초안 작성 후 시뮬레이터로 반복 검증.
 
 이번 실행(현재 세션 메모)
-- 시뮬레이터는 HTML 규칙을 정밀 모사하며, 효율화 옵션(--fast, --concurrency, secure/fast runner)이 준비됨.
-- 다음 단계: 실제 AI 코드 개발 착수. 추천 절차
-  1) 기준 봇 작성(가장 가까운 적 추적 + 간단 회피)
-  2) 예측 사격(상대 속도·방향 기반) 추가
-  3) 역할 분담(탱커 선두, 딜러 화력 집중, 노멀 지원)과 포지셔닝 전술 실험
-  4) 시드 스윕(--repeat N --seed S)과 병렬 실행(--concurrency)로 통계적 성능 평가
-  5) 리플레이(replay.json)로 패배 사례 살펴보고 보정
-- 참고 실행: `node simulator/cli.js --red simulator/ai/default_team.js --blue simulator/ai/default_team.js --repeat 50 --seed 100 --concurrency 8 --fast --json result.json`
+- Nemesis 팀(result-ai.txt) 초안 추가: DNN(48→32→16→4 tanh) + 휴리스틱 혼합.
+- 각 로봇은 역할(front/flank/support) 구분, 모든 입력(tank/enemies/allies/bulletInfo) 활용.
+- 다음 단계: 성능 비교/튜닝 및 기준(reference-ai.txt) 갱신 조건 검토.
+
+다음 실행 계획(비교/튜닝)
+- 비교 실행(배치): `node simulator/cli.js --red result-ai.txt --blue reference-ai.txt --repeat 100 --seed 1000 --concurrency 8 --fast --json result.json`
+  · 승률 >= 0.7 또는 평균 에너지/생존 지표가 유의미하게 우세하면 reference-ai.txt 갱신.
+- 리플레이 확인(단일): `node simulator/cli.js --red result-ai.txt --blue reference-ai.txt --seed 7 --replay replay.json --recordEvery 3`
+- 튜닝 아이디어: 역할별 bias/혼합계수 조정, 위협탄 판정 반경 미세화, 측면 각도 범위 학습.
+
+메모
+- tank_battle_platform.html은 절대 수정하지 않음.
+- 모든 파일 변경 시 즉시 git commit 수행.
