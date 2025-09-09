@@ -38,11 +38,18 @@
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- DNN 팀 코드 생성 파이프라인 추가:
-  - ai/dnn_codegen.js: 가중치 -> 6로봇 코드 문자열 생성기. update는 DNN 순전파만 수행.
-  - scripts/train_dnn.js: 진화탐색으로 reference-ai.txt 상대로 가중치 탐색, result/dnn-ai.txt 생성.
+- 스크립트 추가: scripts/train_dnn.js
+  - NES(antithetic) 기반 DNN 가중치 탐색.
+  - simulator 엔진을 직접 호출해 reference-ai.txt 상대로 반복 평가.
+  - 결과물을 result/dnn-ai-weights.json, result/dnn-ai.txt로 저장.
+  - 환경변수: DNN_ITERS, DNN_POP, DNN_SEEDS, DNN_SIGMA, DNN_LR, DNN_MAXTICKS, DNN_BASESEED.
+- 코드 생성기: ai/dnn_codegen.js
+  - 가중치 배열 -> 6개 로봇 코드 문자열 생성.
+  - update는 DNN 순전파만 사용, 휴리스틱 미포함.
   - 타입 순서 고정: dealer, normal, dealer, tanker, dealer, tanker.
-  - 출력물: result/dnn-ai.txt, result/dnn-ai-weights.json
+- 결과물(Import용):
+  - result/dnn-ai.txt: tank_battle_platform.html Import 모달에 그대로 붙여넣기 가능.
+  - result/dnn-ai-weights.json: 아키텍처/가중치 스냅샷.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
