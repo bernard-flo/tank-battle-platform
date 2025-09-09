@@ -42,6 +42,10 @@
 - 배치 검증(이전): `node simulator/cli.js --repeat 5 --seed 777 --fast` 실행 결과, Red 2 / Blue 3 / 무 0.
 - 코드 변경 없음(문서만 갱신). 다음 단계로 AI 코드 설계/튜닝 착수 가능.
 
+이번 실행(추가 확인)
+- 기본 실행 재검증: `node simulator/cli.js --repeat 1 --seed 123 --fast` → BLUE 승, 틱 713, 통계 정상 출력.
+- 코드 변경 없음. 시뮬레이터/CLI/샌드박스 동작 이상 없음.
+
 이번 실행(요약)
 - 실행 래퍼 추가: `scripts/simulate.sh` 생성 및 실행 권한 부여.
 - 최상위 README에 빠른 시작 섹션 추가(예시 포함).
