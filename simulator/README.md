@@ -29,10 +29,15 @@
   node simulator/cli.js --red red.js --blue blue.js --maxTicks 4000 --seed 123 --json out.json
   (시드 적용: 초기 포신 각도만 시드 기반 RNG 사용. 봇 코드 내 Math.random은 브라우저와 동일하게 비결정적.)
   
- - 리플레이 덤프(JSON 프레임 기록):
-   node simulator/cli.js --red red.js --blue blue.js --seed 7 --replay replay.json [--recordEvery 2]
-   - 단일 경기(repeat=1)에서만 지원. 프레임마다 탱크/총알 상태와 메타(맵 크기, tickMs, 시드, 플레이어 목록)를 저장.
-   - recordEvery로 프레임 간격을 조절(기본 1 = 매 틱 저장). 파일 크기 절감을 위해 2~5 권장.
+- 리플레이 덤프(JSON 프레임 기록):
+  node simulator/cli.js --red red.js --blue blue.js --seed 7 --replay replay.json [--recordEvery 2]
+  - 단일 경기(repeat=1)에서만 지원. 프레임마다 탱크/총알 상태와 메타(맵 크기, tickMs, 시드, 플레이어 목록)를 저장.
+  - recordEvery로 프레임 간격을 조절(기본 1 = 매 틱 저장). 파일 크기 절감을 위해 2~5 권장.
+  
+  - 리플레이 뷰어(시각 확인):
+    simulator/replay_viewer.html 을 브라우저로 열고 replay.json 파일을 선택하여 재생/일시정지/프레임 슬라이드가 가능합니다.
+    - 이름/체력바 표시 토글, 재생 속도 조절 지원.
+    - tank_battle_platform.html 은 수정하지 않으며, 독립 페이지에서 리플레이만 시각화합니다.
 
 - 배치 시뮬레이션(반복 실행)과 통계 집계:
   node simulator/cli.js --red red.js --blue blue.js --repeat 100 --seed 42 --json result.json
@@ -70,6 +75,7 @@
 - bot_loader.js: 코드 분할/이름·타입 추출/샌드박스 실행기 생성.
 - cli.js: 커맨드 라인 인터페이스.
 - ai/default_team.js: 샘플 팀 코드(텍스트 입력용).
+ - replay_viewer.html: runMatch(record=true)로 생성한 replay.json을 재생하는 간단한 뷰어(독립 HTML).
 
 주의
 - tank_battle_platform.html 파일은 수정하지 않습니다.

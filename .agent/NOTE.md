@@ -41,6 +41,7 @@
 - 반복/시드/JSON: `node simulator/cli.js --repeat 100 --seed 42 --json result.json`
  - 리플레이 저장: `node simulator/cli.js --replay replay.json --seed 7 [--recordEvery 2]`
  - 런너 선택: `node simulator/cli.js --runner secure` 또는 `--runner fast`
+ - 리플레이 시각 확인: `simulator/replay_viewer.html`을 브라우저로 열어 `replay.json` 선택 후 재생.
 
 이번 실행
 - 단일 경기 검증(방금 실행): `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 2`
@@ -60,6 +61,7 @@
 - 초고속 모드(객체 풀링/TypedArray) 프로토타입 추가 검토: bullets/tanks를 구조적 공유버퍼로 관리해 GC 압력 저감.
 - 간단 단위테스트 추가: 이동 충돌, 아군 관통, 쿨다운 타이밍, 초기 배치 좌표.
  - HTML 리플레이 뷰어(간이 페이지) 추가 검토: `replay.json` 시각화로 디버깅 편의성 향상.
+  - 구현됨: `simulator/replay_viewer.html` 초기 버전 추가. UI 개선/키보드 단축키/자동 적중 하이라이트 등 확장 여지.
 
 참고 명령어
 - 단일 경기 + 리플레이: `node simulator/cli.js --red simulator/ai/default_team.js --blue simulator/ai/default_team.js --seed 7 --replay replay.json --recordEvery 5 --fast`

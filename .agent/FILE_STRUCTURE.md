@@ -30,6 +30,7 @@
 - simulator/README.md: 사용법/규칙 매핑/배치 실행 예시.
  - scripts/simulate.sh: 시뮬레이터 실행용 래퍼 스크립트(옵션 그대로 전달).
    - 예: `scripts/simulate.sh --red red.js --blue blue.js --repeat 100 --fast`.
+ - simulator/replay_viewer.html: 리플레이(JSON) 재생용 독립 HTML 뷰어(시각적 확인 전용).
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
@@ -88,3 +89,7 @@
 
 추가 파일
 - scripts/quick_sim.sh: 간편 실행 래퍼. 예) `scripts/quick_sim.sh --replay replay.json --seed 7 --recordEvery 2`.
+
+이번 실행(변경 사항)
+- 추가: `simulator/replay_viewer.html` 리플레이 뷰어 페이지. `simulator/README.md`에 사용법 안내 추가.
+- 기타 코드 변경 없음. tank_battle_platform.html 미변경.

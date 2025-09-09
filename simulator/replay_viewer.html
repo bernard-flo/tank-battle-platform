@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tank Battle Replay Viewer</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+    header { padding: 14px 16px; background: #111827; border-bottom: 1px solid #374151; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    h1 { font-size: 16px; margin: 0 12px 0 0; color: #93c5fd; }
+    .panel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .panel label { font-size: 13px; opacity: 0.9; }
+    .panel input[type="file"] { color: #e5e7eb; }
+    .panel input[type="range"] { width: 140px; }
+    .panel button { background: #2563eb; color: white; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+    .panel button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .panel .muted { color: #9ca3af; margin-left: 6px; font-size: 12px; }
+    main { display: grid; grid-template-columns: auto 300px; gap: 10px; padding: 10px; }
+    #stageWrap { background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 10px; display: inline-block; }
+    #stage { display: block; background: linear-gradient(45deg, #34495e, #2c3e50); border: 2px solid #94a3b8; border-radius: 6px; }
+    aside { background: #0b1220; border: 1px solid #1f2a44; border-radius: 8px; padding: 10px; }
+    .kv { font-size: 13px; line-height: 1.6; }
+    .kv div { display: flex; justify-content: space-between; }
+    .team { margin-top: 8px; }
+    .tankRow { font-size: 12px; padding: 2px 0; display: flex; justify-content: space-between; gap: 6px; }
+    .dead { opacity: 0.45; }
+    footer { padding: 8px 12px; color: #94a3b8; font-size: 12px; border-top: 1px solid #374151; }
+    .barWrap { display: flex; height: 10px; background: #111827; border: 1px solid #334155; border-radius: 6px; overflow: hidden; margin: 8px 0; }
+    .barRed { background: linear-gradient(90deg, #e11d48, #b91c1c); height: 100%; }
+    .barBlue { background: linear-gradient(90deg, #2563eb, #1d4ed8); height: 100%; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Replay Viewer</h1>
+    <div class="panel">
+      <input id="fileInput" type="file" accept="application/json" />
+      <button id="playBtn" disabled>▶ 재생</button>
+      <button id="pauseBtn" disabled>⏸ 정지</button>
+      <label>속도 <input id="speed" type="range" min="0.25" max="4" step="0.25" value="1"> <span id="speedVal" class="muted">1.00x</span></label>
+      <label>프레임 <input id="frame" type="range" min="0" max="0" step="1" value="0" disabled> <span id="frameVal" class="muted">0/0</span></label>
+      <label><input id="showNames" type="checkbox" checked> 이름</label>
+      <label><input id="showHealth" type="checkbox" checked> 체력바</label>
+    </div>
+  </header>
+  <main>
+    <div id="stageWrap">
+      <canvas id="stage" width="900" height="600"></canvas>
+    </div>
+    <aside>
+      <div class="kv">
+        <div><span>크기:</span><span id="metaSize">-</span></div>
+        <div><span>tickMs:</span><span id="metaTick">-</span></div>
+        <div><span>seed:</span><span id="metaSeed">-</span></div>
+        <div><span>프레임:</span><span id="metaFrames">-</span></div>
+      </div>
+      <div class="team">
+        <div>에너지 밸런스</div>
+        <div class="barWrap"><div id="barRed" class="barRed" style="width:50%"></div><div id="barBlue" class="barBlue" style="width:50%"></div></div>
+      </div>
+      <div class="team">
+        <div>Red</div>
+        <div id="listRed"></div>
+      </div>
+      <div class="team">
+        <div>Blue</div>
+        <div id="listBlue"></div>
+      </div>
+    </aside>
+  </main>
+  <footer>
+    - 시뮬레이터 CLI에서 생성한 replay.json을 열어 재생합니다. (meta/frames 구조)
+  </footer>
+  <script>
+    const colors = { red: '#ef4444', blue: '#3b82f6' };
+    let replay = null;
+    let frames = [];
+    let meta = null;
+    let idx = 0;
+    let playing = false;
+    let rafId = null;
+    let lastTs = 0;
+    const cvs = document.getElementById('stage');
+    const ctx = cvs.getContext('2d');
+
+    const fileInput = document.getElementById('fileInput');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const frameSlider = document.getElementById('frame');
+    const frameVal = document.getElementById('frameVal');
+    const speed = document.getElementById('speed');
+    const speedVal = document.getElementById('speedVal');
+    const showNames = document.getElementById('showNames');
+    const showHealth = document.getElementById('showHealth');
+
+    function fmt(n) { return typeof n === 'number' ? n.toFixed(2) : String(n); }
+
+    fileInput.addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const text = await f.text();
+      const json = JSON.parse(text);
+      loadReplay(json);
+    });
+
+    speed.addEventListener('input', () => {
+      speedVal.textContent = (+speed.value).toFixed(2) + 'x';
+    });
+
+    frameSlider.addEventListener('input', () => {
+      idx = +frameSlider.value;
+      frameVal.textContent = `${idx + 1}/${frames.length}`;
+      draw();
+    });
+
+    playBtn.addEventListener('click', () => { if (frames.length) start(); });
+    pauseBtn.addEventListener('click', stop);
+
+    function loadReplay(json) {
+      replay = json;
+      meta = json.meta || {};
+      frames = json.frames || [];
+      idx = 0;
+      cvs.width = meta.width || 900;
+      cvs.height = meta.height || 600;
+      document.getElementById('metaSize').textContent = `${cvs.width}x${cvs.height}`;
+      document.getElementById('metaTick').textContent = meta.tickMs ?? '-';
+      document.getElementById('metaSeed').textContent = meta.seed ?? '-';
+      document.getElementById('metaFrames').textContent = frames.length;
+      frameSlider.max = Math.max(0, frames.length - 1);
+      frameSlider.disabled = frames.length === 0;
+      playBtn.disabled = frames.length === 0;
+      pauseBtn.disabled = frames.length === 0;
+      frameVal.textContent = `${idx + 1}/${frames.length}`;
+      stop();
+      draw();
+    }
+
+    function start() {
+      playing = true;
+      lastTs = performance.now();
+      if (rafId) cancelAnimationFrame(rafId);
+      loop();
+    }
+
+    function stop() {
+      playing = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    function loop(ts) {
+      rafId = requestAnimationFrame(loop);
+      if (!playing) return;
+      const now = ts || performance.now();
+      const dt = now - lastTs;
+      const tickMs = (meta && meta.tickMs) || 50;
+      const speedMul = +speed.value || 1;
+      if (dt >= tickMs / speedMul) {
+        idx = (idx + 1) % frames.length;
+        frameSlider.value = idx;
+        frameVal.textContent = `${idx + 1}/${frames.length}`;
+        lastTs = now;
+        draw();
+      }
+    }
+
+    function sumEnergy(teamTanks) {
+      let s = 0; for (const t of teamTanks) if (t.alive) s += Math.max(0, t.health || 0); return s;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      if (!frames.length) return;
+      const f = frames[idx];
+      // bullets first, then tanks
+      if (f.bullets) {
+        for (const b of f.bullets) {
+          ctx.fillStyle = b.team === 'red' ? colors.red : colors.blue;
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      const tanks = (f.tanks || []).slice().sort((a,b) => (a.alive ? 1 : 0) - (b.alive ? 1 : 0));
+      for (const t of tanks) {
+        const r = (t.size || 35) / 2;
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.rotate(((t.angle || 0) * Math.PI) / 180);
+        ctx.fillStyle = t.team === 'red' ? colors.red : colors.blue;
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.globalAlpha = t.alive ? 1 : 0.35;
+        // draw body (rectangle)
+        const w = r * 2, h = r * 2;
+        ctx.fillRect(-w/2, -h/2, w, h);
+        ctx.strokeRect(-w/2, -h/2, w, h);
+        ctx.restore();
+
+        // name
+        if (showNames.checked) {
+          ctx.fillStyle = '#e2e8f0';
+          ctx.font = '12px ui-sans-serif, system-ui';
+          ctx.textAlign = 'center';
+          ctx.globalAlpha = 1;
+          ctx.fillText(String(t.id || ''), t.x, t.y - r - 8);
+        }
+        // health bar
+        if (showHealth.checked && t.alive) {
+          const max = t.energy || 100, cur = Math.max(0, t.health || 0);
+          const px = 48, py = 6;
+          const ratio = Math.max(0, Math.min(1, cur / max));
+          const x = t.x - px / 2, y = t.y - r - 18;
+          ctx.fillStyle = '#111827';
+          ctx.fillRect(x, y, px, py);
+          const grad = ctx.createLinearGradient(x, y, x + px, y);
+          grad.addColorStop(0, '#22c55e');
+          grad.addColorStop(ratio, '#22c55e');
+          grad.addColorStop(ratio, '#ef4444');
+          grad.addColorStop(1, '#ef4444');
+          ctx.fillStyle = grad;
+          ctx.fillRect(x, y, px * ratio, py);
+        }
+      }
+
+      // side lists
+      const reds = (f.tanks || []).filter(t => t.team === 'red');
+      const blues = (f.tanks || []).filter(t => t.team === 'blue');
+      const rE = sumEnergy(reds), bE = sumEnergy(blues);
+      const total = rE + bE;
+      const rp = total ? (rE / total) * 100 : 50;
+      const bp = total ? (bE / total) * 100 : 50;
+      document.getElementById('barRed').style.width = rp + '%';
+      document.getElementById('barBlue').style.width = bp + '%';
+      const listRed = document.getElementById('listRed');
+      const listBlue = document.getElementById('listBlue');
+      listRed.innerHTML = '';
+      listBlue.innerHTML = '';
+      for (const t of reds) {
+        const row = document.createElement('div'); row.className = 'tankRow' + (t.alive ? '' : ' dead');
+        row.textContent = `${t.id} (${Math.max(0, Math.round(t.health || 0))})`;
+        listRed.appendChild(row);
+      }
+      for (const t of blues) {
+        const row = document.createElement('div'); row.className = 'tankRow' + (t.alive ? '' : ' dead');
+        row.textContent = `${t.id} (${Math.max(0, Math.round(t.health || 0))})`;
+        listBlue.appendChild(row);
+      }
+    }
+  </script>
+</body>
+</html>
+
