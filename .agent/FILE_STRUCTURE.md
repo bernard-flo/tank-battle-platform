@@ -50,6 +50,7 @@ AI 팀 코드 산출물
 업데이트(현재 실행)
 - 병렬 실행 추가: --concurrency N 옵션과 simulator/worker.js 도입으로 반복 경기 병렬 처리 지원.
 - README와 집계 JSON에 concurrency 항목 추가. 기존 규칙/로직 유지, HTML 미변경.
+ - Helios-Edge(result-ai.txt) vs reference-ai.txt 빠른/정밀 평가 수행: reference 유지(우세 미충족).
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
