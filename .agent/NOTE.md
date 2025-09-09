@@ -5,8 +5,9 @@
 – CLI 배치 실행(--repeat)과 JSON 저장(--json) 정상 동작 확인. .gitignore에 result*.json 포함.
 – 시드는 초기 포신 각도에만 적용. 봇 내부 Math.random은 브라우저와 동일하게 비결정적.
 
-보안
-– 샌드박스 강화: window/document뿐 아니라 globalThis/global/process/require/module/Function/eval/setTimeout 등 주요 전역 접근을 차단하여 Node 환경 영향 최소화.
+보안/실행 모드 업데이트
+– secure 런너(vm 샌드박스) 도입: 기본값으로 사용. process/require/global 비공개, Function은 샌드박스 영역으로 한정되어 호스트 탈출 위험 억제.
+– fast 런너(new Function 기반): 성능 우선 테스트용, 보안 강도 낮음. 필요 시 `--runner fast`로 선택.
 
 검증 메모(HTML 대비)
 – 초기 배치 좌표/열 역전, 탱크 크기·속도·공격력·체력 값, 탄환 속도/피격 반경(+2), 이동 실패 처리(안전 여백+5, 틱 내 1회 성공·최대 10회 시도), 승리 조건 모두 동기화 확인.
@@ -35,6 +36,7 @@
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
 - 반복/시드/JSON: `node simulator/cli.js --repeat 100 --seed 42 --json result.json`
  - 리플레이 저장: `node simulator/cli.js --replay replay.json --seed 7 [--recordEvery 2]`
+ - 런너 선택: `node simulator/cli.js --runner secure` 또는 `--runner fast`
 
 이번 실행
 - 단일 경기 검증(방금 실행): `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 2`
