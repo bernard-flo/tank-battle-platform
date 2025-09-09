@@ -73,7 +73,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+  const b3 = new Float64Array([-0.94829693, -0.94829693, -0.94829693, -0.94829693, -0.94829693]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -185,7 +185,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+  const b3 = new Float64Array([-0.94829693, -0.94829693, -0.94829693, -0.94829693, -0.94829693]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -297,7 +297,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+  const b3 = new Float64Array([-0.94829693, -0.94829693, -0.94829693, -0.94829693, -0.94829693]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -409,7 +409,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+  const b3 = new Float64Array([-0.94829693, -0.94829693, -0.94829693, -0.94829693, -0.94829693]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -521,7 +521,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+  const b3 = new Float64Array([-0.94829693, -0.94829693, -0.94829693, -0.94829693, -0.94829693]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
@@ -633,7 +633,7 @@ function update(tank,enemies,allies,bulletInfo){
   const W2 = new Float64Array([NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
   const b2 = new Float64Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   const W3 = new Float64Array([NaN, NaN, NaN, NaN, NaN]);
-  const b3 = new Float64Array([0, 0, 0, 0, 0]);
+  const b3 = new Float64Array([-0.94829693, -0.94829693, -0.94829693, -0.94829693, -0.94829693]);
 
   function dotRow(mat, cols, r, vec){
     let s=0, off=r*cols;
