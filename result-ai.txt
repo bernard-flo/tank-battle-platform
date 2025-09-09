@@ -1,5 +1,5 @@
 // Nemesis AI Team (DNN-guided hybrid policy)
-// 각 로봇: function name(), function type(), function update(tank, enemies, allies, bulletInfo)
+// 각 로봇: 이름/타입/업데이트 함수 블록 6개 형식
 // - update는 모든 파라미터(tank, enemies, allies, bulletInfo)를 활용
 // - 3층 MLP(DNN)로 이동/사격 각도를 예측하고, 휴리스틱(총알 회피/간격/교전)과 혼합
 // - 로더가 각 로봇을 개별 블록으로 분리하므로, 공용 유틸/러너는 블록마다 포함
@@ -209,4 +209,3 @@ function update(tank, enemies, allies, bulletInfo) {
     if(tryMove(nnMove)) return; const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p)) return; }
   })({ role:'support', seed:37 });
 }
-
