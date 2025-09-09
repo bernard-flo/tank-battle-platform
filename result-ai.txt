@@ -1,179 +1,267 @@
-// Nemesis-2 AI Team (DNN + 고급 휴리스틱)
-// - 각 로봇은 동일한 코어 로직을 사용하되 역할/거리 설정만 다릅니다.
-// - update는 tank/enemies/allies/bulletInfo 모든 파라미터를 활용합니다.
-// - DNN(64→32→16→6 tanh MLP) 출력과 탄 회피/집중 사격/카이팅을 혼합합니다.
+// Nemesis-3 (AegisNet) – DNN + 전술 휴리스틱 결합
+// - update는 tank/enemies/allies/bulletInfo 모든 파라미터를 입력으로 사용합니다.
+// - 64→48→24→6 MLP(tanh) 출력으로 이동/사격 제안과 혼합 계수 산출.
+// - 전술: 집중사격(최저 체력 우선), 리드샷, 총알 회피(TTC 기반), 아군 간격 유지, 벽 반발, 카이팅/측면 이동.
 
 // ===== 로봇 #1 =====
-function name(){ return 'Nemesis2 T1'; }
+function name(){ return 'Aegis T1'; }
 function type(){ return Type.TANKER; }
-let __mem_T1 = { lastTarget: null, lastEnemyPos: null };
+let __mem_T1 = { last: {x:0,y:0}, tgt: null };
 function update(tank, enemies, allies, bulletInfo){
   (function run(cfg){
+    // 유틸리티
     function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
     function ang(a){ a%=360; if(a<0)a+=360; return a; }
     function deg(x,y){ return Math.atan2(y,x)*180/Math.PI; }
     function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
-    function closest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
-    function wallRepel(tx,ty){ const W=900,H=600, pad=55; let vx=0,vy=0; if(tx<pad) vx+=(pad-tx)/pad; if(tx>W-pad) vx-=(tx-(W-pad))/pad; if(ty<pad) vy+=(pad-ty)/pad; if(ty>H-pad) vy-=(ty-(H-pad))/pad; return [vx,vy]; }
-    function bulletThreats(){ const threats=[]; const rad=tank.size*0.5+6; for(const b of bulletInfo){ const rx=tank.x-b.x, ry=tank.y-b.y; const bv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/bv, ny=b.vy/bv; const proj=rx*nx+ry*ny; if(proj<=0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/bv; if(nd<rad+30 && ttc<20){ threats.push({b:{x:b.x,y:b.y,vx:b.vx,vy:b.vy}, nd, ttc, a:deg(b.vx,b.vy)}); } } threats.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return threats; }
-    function pickTarget(){ let best=null,bs=1e9; for(const e of enemies){ const s=e.health*0.9 + e.distance*0.35; if(s<bs){bs=s; best=e;} } return best || closest(enemies); }
-    function solveIntercept(dx,dy,txv,tyv,bs){ const A=txv*txv+tyv*tyv-bs*bs; const B=2*(dx*txv+dy*tyv); const C=dx*dx+dy*dy; let t; if(Math.abs(A)<1e-6){ t=(C>0&&B<0)?(-C/B):0; } else { const disc=B*B-4*A*C; if(disc<0) t=Math.max(0,-B/(2*A)); else { const s=Math.sqrt(disc); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+txv*t, py=dy+tyv*t; return deg(px,py); }
-    function leadAngle(target){ if(!target) return null; const bs=8; let vx=0,vy=0; if(__mem_T1.lastTarget && dist(__mem_T1.lastTarget,target)<40 && __mem_T1.lastEnemyPos){ vx=target.x-__mem_T1.lastEnemyPos.x; vy=target.y-__mem_T1.lastEnemyPos.y; } const dx=target.x-tank.x, dy=target.y-tank.y; const a=solveIntercept(dx,dy,vx,vy,bs); __mem_T1.lastEnemyPos={x:target.x,y:target.y}; __mem_T1.lastTarget={x:target.x,y:target.y}; return a; }
-    function buildInput(target, threats){ const W=900,H=600; const self=[tank.x/W, tank.y/H, clamp(tank.health/180,0,1), (tank.type===0?1:0), (tank.type===1?1:0), (tank.type===2?1:0)]; const es=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H, clamp(e.distance/1000,0,1), Math.cos(a), Math.sin(a), clamp(e.health/180,0,1)); } else ef.push(0,0,1,1,0,0);} const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H, clamp(a.distance/900,0,1), clamp(a.health/180,0,1)); } else af.push(0,0,1,0);} const bs=threats.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H, b.vx/v,b.vy/v, clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1);} const counts=[clamp(enemies.length/6,0,1), clamp(allies.length/5,0,1), clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
-    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
-    const ths = bulletThreats(); const tgt = pickTarget(); const x = buildInput(tgt, ths);
-    const h1=tanhV(mv(initW((cfg.seed*73856093)^0x9e3779b9,64,32),x));
-    const h2=tanhV(mv(initW((cfg.seed*19349663)^0x7f4a7c15,32,16),h1));
-    const o = mv(initW((cfg.seed*83492791)^0x6a09e667,16,6),h2); // [mx,my,fx,fy,alpha,beta]
+    function mixAngles(a,b,t){ // slerp-like
+      const da=ang(b-a); let d=da; if(d>180) d-=360; return ang(a + d*clamp(t,0,1));
+    }
+    function wallRepel(x,y){ const W=900,H=600,p=60; let vx=0,vy=0; if(x<p) vx+=(p-x)/p; if(x>W-p) vx-=(x-(W-p))/p; if(y<p) vy+=(p-y)/p; if(y>H-p) vy-=(y-(H-p))/p; return [vx,vy]; }
+    // 위협 탄환 선별: 접근 중 + 경로 근접 + 짧은 TTC 우선
+    function bulletThreats(){ const rad=tank.size*0.5+6; const arr=[]; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=-(dx*nx+dy*ny); if(proj<0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/v; if(nd<rad+34 && ttc<22){ arr.push({b,nd,ttc,a:deg(b.vx,b.vy)}); } } arr.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return arr; }
+    // 팀 전체 집중사격: 최소 체력(동률시 x,y 사전식) 대상 고정
+    function pickTarget(){ if(!enemies.length) return null; let best=enemies[0]; for(const e of enemies){ if(e.health<best.health-0.1 || (Math.abs(e.health-best.health)<0.1 && (e.y<best.y || (e.y===best.y && e.x<best.x)))) best=e; }
+      return best; }
+    // 리드샷 각 계산(탄속 8)
+    function interceptAngle(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_T1.tgt && dist(__mem_T1.tgt,tgt)<40){ vx=tgt.x-__mem_T1.last.x; vy=tgt.y-__mem_T1.last.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; // t 해석적 근사
+      const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } }
+      const px=dx+vx*t, py=dy+vy*t; __mem_T1.last={x:tgt.x,y:tgt.y}; __mem_T1.tgt={x:tgt.x,y:tgt.y}; return deg(px,py); }
+    function nearest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
+    // DNN 입력 구성: self(7) + 적top3(6×3) + 아군top2(4×2) + 위협탄top4(5×4) + 카운트(3) = 55 → 64 패딩
+    function buildInput(tgt,threats){ const W=900,H=600; const self=[tank.x/W, tank.y/H, clamp(tank.health/180,0,1), clamp(tank.energy/200,0,1), (tank.type===0?1:0), (tank.type===1?1:0), (tank.type===2?1:0)];
+      const es=enemies.slice().sort((a,b)=>a.health-b.health||a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H, clamp(e.distance/1000,0,1), Math.cos(a), Math.sin(a), clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H, clamp(a.distance/900,0,1), clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=threats.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H, b.vx/8, b.vy/8, clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1); }
+      const counts=[clamp(enemies.length/6,0,1), clamp(allies.length/5,0,1), clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
+    // 가벼운 고정 가중치 MLP(결정론적, 시드 기반)
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; }
+    function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; }
+    function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; }
+    function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
+
+    // 주요 로직
+    const threats = bulletThreats();
+    const tgt = pickTarget() || nearest(enemies);
+    const x = buildInput(tgt, threats);
+    const h1=tanhV(mv(initW((cfg.seed*1103515245)^0x9e3779b9,64,48),x));
+    const h2=tanhV(mv(initW((cfg.seed*2654435761)^0x7f4a7c15,48,24),h1));
+    const o = mv(initW((cfg.seed*374761393)^0x6a09e667,24,6),h2); // [mx,my,fx,fy,tm,tf]
     const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]);
-    const alpha = 0.95; // 휴리스틱 우선 가중치
-    const beta  = 0.85; // 리드샷 우선 가중치
-    if(tgt){ const base=leadAngle(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); const fireA = ang(beta*base + (1-beta)*nnFire + ((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.15); tank.fire(fireA); }
-    function tryMove(a){ return tank.move(ang(a)); }
-    if(ths.length){ const a=ths[0].a; const bias=(cfg.role==='front'?+6:(cfg.role==='flank'?-10:+12)); const C=[a+90+bias, a-90-bias, a+120, a-120, a+70, a-70]; for(const c of C){ if(tryMove(c)) return; } }
-    if(allies.length){ const A=closest(allies); if(A && A.distance<64){ const away=deg(tank.x-A.x, tank.y-A.y); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; } }
-    { const [rx,ry]=wallRepel(tank.x,tank.y); if(Math.abs(rx)+Math.abs(ry) > 0.05){ const a=deg(rx,ry); if(tryMove(a)) return; } }
-    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let desire; if(d < cfg.range[0]) desire=to+180 + (cfg.role==='front'?+8:-10); else if(d > cfg.range[1]) desire=to + (cfg.role==='flank'?+16:+0); else desire=to + (cfg.role==='support'?+22:-18); const mvA = ang(alpha*desire + (1-alpha)*nnMove); if(tryMove(mvA)) return; if(tryMove(mvA+25)) return; if(tryMove(mvA-25)) return; }
-    if(tryMove(nnMove)) return; const pref=[0,60,120,180,240,300]; for(const p of pref){ if(tryMove(p)) return; }
-  })({ role: 'front', seed: 1337, range: [190, 260] });
+    const tMove=clamp(0.35+0.25*Math.tanh(o[4]),0,0.6); // DNN 가중치(이동)
+    const tFire=clamp(0.25+0.25*Math.tanh(o[5]),0,0.5); // DNN 가중치(사격)
+
+    // 사격 각: 리드샷 우선, DNN 보정, 미세 지터
+    if(tgt){ const base = interceptAngle(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); const aim = mixAngles(base, nnFire, tFire);
+      const jitter = ((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.22; tank.fire(ang(aim + jitter)); }
+
+    // 이동 정책: 총알 회피 > 아군 간격 > 교전(kite/approach/strafe) + 벽 반발 + DNN 보정
+    let moveA = null; const tryAngles=[]; function push(a){ if(tryAngles.length<6) tryAngles.push(ang(a)); }
+    // 1) 총알 회피
+    if(threats.length){ const b=threats[0]; const a=b.a; const dir=((tank.x+tank.y+cfg.seed)&1)?1:-1; push(a+90+dir*20); push(a-90-dir*20); push(a+110); push(a-110); }
+    // 2) 아군 간격 유지
+    if(allies.length){ const al=nearest(allies); if(al && al.distance<65){ const av=deg(tank.x-al.x, tank.y-al.y); push(av); push(av+25); push(av-25); } }
+    // 3) 교전
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
+      const near=cfg.near, far=cfg.far;
+      if(d<near){ push(to+180+cfg.side); push(to+180-cfg.side); }
+      else if(d>far){ push(to); push(to+20); push(to-20); }
+      else { push(to+cfg.side); push(to-cfg.side); }
+    }
+    // 4) 벽 반발 보정 + DNN 이동 각 혼합
+    const [rx,ry]=wallRepel(tank.x,tank.y); const repelA=(Math.abs(rx)+Math.abs(ry)>0.01)?deg(rx,ry):null;
+    let baseMove = tryAngles.length?tryAngles[0]:(repelA!=null?repelA:0);
+    const mixed = mixAngles(baseMove, nnMove, tMove);
+    if(repelA!=null) baseMove = mixAngles(mixed, repelA, 0.25);
+    // 후보 시도
+    const cands=[baseMove, baseMove+20, baseMove-20, baseMove+40, baseMove-40, baseMove+60];
+    for(const a of cands){ if(tank.move(ang(a))) break; }
+  })({ seed: 1337, near: 190, far: 270, side: 18 });
 }
 
 // ===== 로봇 #2 =====
-function name(){ return 'Nemesis2 T2'; }
+function name(){ return 'Aegis T2'; }
 function type(){ return Type.TANKER; }
-let __mem_T2 = { lastTarget: null, lastEnemyPos: null };
+let __mem_T2 = { last: {x:0,y:0}, tgt: null };
 function update(tank, enemies, allies, bulletInfo){
   (function run(cfg){
     function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
     function ang(a){ a%=360; if(a<0)a+=360; return a; }
     function deg(x,y){ return Math.atan2(y,x)*180/Math.PI; }
     function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
-    function closest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
-    function wallRepel(tx,ty){ const W=900,H=600,pad=60; let vx=0,vy=0; if(tx<pad) vx+=(pad-tx)/pad; if(tx>W-pad) vx-=(tx-(W-pad))/pad; if(ty<pad) vy+=(pad-ty)/pad; if(ty>H-pad) vy-=(ty-(H-pad))/pad; return [vx,vy]; }
-    function threats(){ const out=[]; const rad=tank.size*0.5+8; for(const b of bulletInfo){ const rx=tank.x-b.x, ry=tank.y-b.y; const s=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/s, ny=b.vy/s; const proj=rx*nx+ry*ny; if(proj<=0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/s; if(nd<rad+34 && ttc<22) out.push({b:{x:b.x,y:b.y,vx:b.vx,vy:b.vy}, nd, ttc}); } out.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return out; }
-    function pickTarget(){ let best=null,bs=1e9; for(const e of enemies){ const s=e.health*0.9 + e.distance*0.33; if(s<bs){bs=s; best=e;} } return best || closest(enemies); }
-    function lead(target){ if(!target) return null; const bs=8; let vx=0,vy=0; if(__mem_T2.lastTarget && dist(__mem_T2.lastTarget,target)<42 && __mem_T2.lastEnemyPos){ vx=target.x-__mem_T2.lastEnemyPos.x; vy=target.y-__mem_T2.lastEnemyPos.y; } const dx=target.x-tank.x, dy=target.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t; if(Math.abs(A)<1e-6){ t=(C>0&&B<0)?(-C/B):0;} else { const D=B*B-4*A*C; if(D<0) t=Math.max(0,-B/(2*A)); else { const s=Math.sqrt(D); t=Math.max((-B+s)/(2*A),(-B-s)/(2*A),0); } } __mem_T2.lastEnemyPos={x:target.x,y:target.y}; __mem_T2.lastTarget={x:target.x,y:target.y}; return deg(dx+vx*t,dy+vy*t); }
-    function buildInput(target,ths){ const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp(tank.health/180,0,1),(tank.type===0?1:0),(tank.type===1?1:0),(tank.type===2?1:0)]; const es=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H,clamp(e.distance/1000,0,1),Math.cos(a),Math.sin(a),clamp(e.health/180,0,1)); } else ef.push(0,0,1,1,0,0);} const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H,clamp(a.distance/900,0,1),clamp(a.health/180,0,1)); } else af.push(0,0,1,0);} const bs=ths.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H,b.vx/v,b.vy/v,clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1);} const counts=[clamp(enemies.length/6,0,1),clamp(allies.length/5,0,1),clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
-    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=(s%2001)/1000-1; row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; }
-      const ths=threats(); const tgt=pickTarget(); const x=buildInput(tgt, ths); const h1=tanhV(mv(initW((cfg.seed*73856093)^0x9e3779b9,64,32),x)); const h2=tanhV(mv(initW((cfg.seed*19349663)^0x7f4a7c15,32,16),h1)); const o=mv(initW((cfg.seed*83492791)^0x6a09e667,16,6),h2); const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]); const alpha=0.95; const beta=0.85;
-    if(tgt){ const base=lead(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); tank.fire(ang(beta*base + (1-beta)*nnFire + ((tank.x*19+tank.y*23+cfg.seed)%17-8)*0.18)); }
-    function go(a){ return tank.move(ang(a)); }
-      if(ths.length){ const a=Math.atan2(ths[0].b.vy, ths[0].b.vx)*180/Math.PI; const C=[a+90-8,a-90+8,a+120,a-120,a+70,a-70]; for(const c of C){ if(go(c)) return; } }
-    if(allies.length){ const A=closest(allies); if(A && A.distance<66){ const away=deg(tank.x-A.x,tank.y-A.y); if(go(away)) return; if(go(away+25)) return; if(go(away-25)) return; } }
-    { const [rx,ry]=wallRepel(tank.x,tank.y); if(Math.abs(rx)+Math.abs(ry)>0.05){ if(go(deg(rx,ry))) return; } }
-    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let base; if(d<200) base=to+180-10; else if(d>280) base=to+12; else base=to-16; const mvA=ang(alpha*base+(1-alpha)*nnMove); if(go(mvA)) return; if(go(mvA+25)) return; if(go(mvA-25)) return; }
-      if(go(nnMove)) return; for(const p of [0,60,120,180,240,300]) if(go(p)) return;
-  })({ role:'support', seed: 2029, range: [200, 280] });
+    function mixAngles(a,b,t){ const da=ang(b-a); let d=da; if(d>180) d-=360; return ang(a + d*clamp(t,0,1)); }
+    function wallRepel(x,y){ const W=900,H=600,p=60; let vx=0,vy=0; if(x<p) vx+=(p-x)/p; if(x>W-p) vx-=(x-(W-p))/p; if(y<p) vy+=(p-y)/p; if(y>H-p) vy-=(y-(H-p))/p; return [vx,vy]; }
+    function bulletThreats(){ const rad=tank.size*0.5+6; const arr=[]; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=-(dx*nx+dy*ny); if(proj<0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/v; if(nd<rad+34 && ttc<22){ arr.push({b,nd,ttc,a:deg(b.vx,b.vy)}); } } arr.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return arr; }
+    function pickTarget(){ if(!enemies.length) return null; let best=enemies[0]; for(const e of enemies){ if(e.health<best.health-0.1 || (Math.abs(e.health-best.health)<0.1 && (e.y<best.y || (e.y===best.y && e.x<best.x)))) best=e; } return best; }
+    function interceptAngle(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_T2.tgt && dist(__mem_T2.tgt,tgt)<40){ vx=tgt.x-__mem_T2.last.x; vy=tgt.y-__mem_T2.last.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; __mem_T2.last={x:tgt.x,y:tgt.y}; __mem_T2.tgt={x:tgt.x,y:tgt.y}; return deg(px,py); }
+    function nearest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
+    function buildInput(tgt,threats){ const W=900,H=600; const self=[tank.x/W, tank.y/H, clamp(tank.health/180,0,1), clamp(tank.energy/200,0,1), (tank.type===0?1:0), (tank.type===1?1:0), (tank.type===2?1:0)];
+      const es=enemies.slice().sort((a,b)=>a.health-b.health||a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H, clamp(e.distance/1000,0,1), Math.cos(a), Math.sin(a), clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H, clamp(a.distance/900,0,1), clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=threats.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H, b.vx/8, b.vy/8, clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1); }
+      const counts=[clamp(enemies.length/6,0,1), clamp(allies.length/5,0,1), clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
+    const threats = bulletThreats(); const tgt = pickTarget() || nearest(enemies); const x = buildInput(tgt, threats);
+    const h1=tanhV(mv(initW((cfg.seed*1103515245)^0x9e3779b9,64,48),x));
+    const h2=tanhV(mv(initW((cfg.seed*2654435761)^0x7f4a7c15,48,24),h1));
+    const o = mv(initW((cfg.seed*374761393)^0x6a09e667,24,6),h2);
+    const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]);
+    const tMove=clamp(0.35+0.25*Math.tanh(o[4]),0,0.6); const tFire=clamp(0.25+0.25*Math.tanh(o[5]),0,0.5);
+    if(tgt){ const base = interceptAngle(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); const aim = mixAngles(base, nnFire, tFire); const jitter=((tank.x*31+tank.y*17+cfg.seed)%23-11)*0.22; tank.fire(ang(aim + jitter)); }
+    // 이동
+    let tryAngles=[]; function push(a){ if(tryAngles.length<6) tryAngles.push(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=b.a; const dir=((tank.x+tank.y+cfg.seed)&1)?1:-1; push(a+90+dir*15); push(a-90-dir*15); }
+    if(allies.length){ const al=nearest(allies); if(al && al.distance<65){ const av=deg(tank.x-al.x,tank.y-al.y); push(av); push(av+25); push(av-25);} }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<cfg.near){ push(to+180+cfg.side); push(to+180-cfg.side);} else if(d>cfg.far){ push(to); push(to+20); } else { push(to+cfg.side); push(to-cfg.side);} }
+    const [rx,ry]=wallRepel(tank.x,tank.y); const repelA=(Math.abs(rx)+Math.abs(ry)>0.01)?deg(rx,ry):null; let baseMove=tryAngles[0] ?? (repelA??0); const mixed = mixAngles(baseMove, nnMove, tMove); if(repelA!=null) baseMove = mixAngles(mixed, repelA, 0.25); else baseMove = mixed; const cands=[baseMove, baseMove+18, baseMove-18, baseMove+36, baseMove-36, baseMove+54]; for(const a of cands){ if(tank.move(ang(a))) break; }
+  })({ seed: 2029, near: 200, far: 285, side: 16 });
 }
 
 // ===== 로봇 #3 =====
-function name(){ return 'Nemesis2 D1'; }
+function name(){ return 'Aegis D1'; }
 function type(){ return Type.DEALER; }
-let __mem_D1 = { lastTarget:null, lastEnemyPos:null };
+let __mem_D1 = { last: {x:0,y:0}, tgt: null };
 function update(tank, enemies, allies, bulletInfo){
   (function run(cfg){
     function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
     function ang(a){ a%=360; if(a<0)a+=360; return a; }
     function deg(x,y){ return Math.atan2(y,x)*180/Math.PI; }
     function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
-    function closest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
-    function wallRepel(tx,ty){ const W=900,H=600,pad=70; let vx=0,vy=0; if(tx<pad) vx+=(pad-tx)/pad; if(tx>W-pad) vx-=(tx-(W-pad))/pad; if(ty<pad) vy+=(pad-ty)/pad; if(ty>H-pad) vy-=(ty-(H-pad))/pad; return [vx,vy]; }
-    function threats(){ const out=[]; const rad=tank.size*0.5+10; for(const b of bulletInfo){ const rx=tank.x-b.x, ry=tank.y-b.y; const s=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/s, ny=b.vy/s; const proj=rx*nx+ry*ny; if(proj<=0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/s; if(nd<rad+36 && ttc<22) out.push({b:{x:b.x,y:b.y,vx:b.vx,vy:b.vy}, nd, ttc}); } out.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return out; }
-    function pickTarget(){ let best=null,bs=1e9; for(const e of enemies){ const s=e.health*0.8 + e.distance*0.4; if(s<bs){bs=s; best=e;} } return best || closest(enemies); }
-    function lead(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_D1.lastTarget && dist(__mem_D1.lastTarget,tgt)<46 && __mem_D1.lastEnemyPos){ vx=tgt.x-__mem_D1.lastEnemyPos.x; vy=tgt.y-__mem_D1.lastEnemyPos.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t; if(Math.abs(A)<1e-6){ t=(C>0&&B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D<0) t=Math.max(0,-B/(2*A)); else { const s=Math.sqrt(D); t=Math.max((-B+s)/(2*A),(-B-s)/(2*A),0); } } __mem_D1.lastEnemyPos={x:tgt.x,y:tgt.y}; __mem_D1.lastTarget={x:tgt.x,y:tgt.y}; return deg(dx+vx*t, dy+vy*t); }
-    function buildInput(tgt,ths){ const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp(tank.health/160,0,1),(tank.type===0?1:0),(tank.type===1?1:0),(tank.type===2?1:0)]; const es=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H,clamp(e.distance/1000,0,1),Math.cos(a),Math.sin(a),clamp(e.health/160,0,1)); } else ef.push(0,0,1,1,0,0);} const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H,clamp(a.distance/900,0,1),clamp(a.health/160,0,1)); } else af.push(0,0,1,0);} const bs=ths.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H,b.vx/v,b.vy/v,clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1);} const counts=[clamp(enemies.length/6,0,1),clamp(allies.length/5,0,1),clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
-    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=(s%2001)/1000-1; row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; }
-      const ths=threats(); const tgt=pickTarget(); const x=buildInput(tgt,ths); const h1=tanhV(mv(initW((cfg.seed*73856093)^0x9e3779b9,64,32),x)); const h2=tanhV(mv(initW((cfg.seed*19349663)^0x7f4a7c15,32,16),h1)); const o=mv(initW((cfg.seed*83492791)^0x6a09e667,16,6),h2); const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]); const alpha=0.95; const beta=0.85;
-    if(tgt){ const base=lead(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); tank.fire(ang(beta*base + (1-beta)*nnFire + ((tank.x*13+tank.y*37+cfg.seed)%21-10)*0.16)); }
-    function go(a){ return tank.move(ang(a)); }
-      if(ths.length){ const a=Math.atan2(ths[0].b.vy, ths[0].b.vx)*180/Math.PI; const C=[a+90+12,a-90-12,a+130,a-130,a+70,a-70]; for(const c of C){ if(go(c)) return; } }
-    if(allies.length){ const A=closest(allies); if(A && A.distance<70){ const away=deg(tank.x-A.x,tank.y-A.y); if(go(away)) return; if(go(away+25)) return; if(go(away-25)) return; } }
-    { const [rx,ry]=wallRepel(tank.x,tank.y); if(Math.abs(rx)+Math.abs(ry)>0.05){ if(go(deg(rx,ry))) return; } }
-    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let base; if(d<cfg.range[0]) base=to+180+12; else if(d>cfg.range[1]) base=to-8; else base=to+22; const mvA=ang(alpha*base+(1-alpha)*nnMove); if(go(mvA)) return; if(go(mvA+25)) return; if(go(mvA-25)) return; }
-      if(go(nnMove)) return; for(const p of [0,60,120,180,240,300]) if(go(p)) return;
-  })({ role:'flank', seed: 4441, range: [230, 320] });
+    function mixAngles(a,b,t){ const da=ang(b-a); let d=da; if(d>180) d-=360; return ang(a + d*clamp(t,0,1)); }
+    function wallRepel(x,y){ const W=900,H=600,p=70; let vx=0,vy=0; if(x<p) vx+=(p-x)/p; if(x>W-p) vx-=(x-(W-p))/p; if(y<p) vy+=(p-y)/p; if(y>H-p) vy-=(y-(H-p))/p; return [vx,vy]; }
+    function bulletThreats(){ const rad=tank.size*0.5+6; const arr=[]; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=-(dx*nx+dy*ny); if(proj<0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/v; if(nd<rad+40 && ttc<25){ arr.push({b,nd,ttc,a:deg(b.vx,b.vy)}); } } arr.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return arr; }
+    function pickTarget(){ if(!enemies.length) return null; let best=enemies[0]; for(const e of enemies){ if(e.health<best.health-0.1 || (Math.abs(e.health-best.health)<0.1 && (e.y<best.y || (e.y===best.y && e.x<best.x)))) best=e; } return best; }
+    function interceptAngle(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_D1.tgt && dist(__mem_D1.tgt,tgt)<40){ vx=tgt.x-__mem_D1.last.x; vy=tgt.y-__mem_D1.last.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; __mem_D1.last={x:tgt.x,y:tgt.y}; __mem_D1.tgt={x:tgt.x,y:tgt.y}; return deg(px,py); }
+    function nearest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
+    function buildInput(tgt,threats){ const W=900,H=600; const self=[tank.x/W, tank.y/H, clamp(tank.health/180,0,1), clamp(tank.energy/200,0,1), (tank.type===0?1:0), (tank.type===1?1:0), (tank.type===2?1:0)];
+      const es=enemies.slice().sort((a,b)=>a.health-b.health||a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H, clamp(e.distance/1000,0,1), Math.cos(a), Math.sin(a), clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H, clamp(a.distance/900,0,1), clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=threats.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H, b.vx/8, b.vy/8, clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1); }
+      const counts=[clamp(enemies.length/6,0,1), clamp(allies.length/5,0,1), clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
+    const threats = bulletThreats(); const tgt = pickTarget() || nearest(enemies); const x = buildInput(tgt, threats);
+    const h1=tanhV(mv(initW((cfg.seed*1103515245)^0x9e3779b9,64,48),x));
+    const h2=tanhV(mv(initW((cfg.seed*2654435761)^0x7f4a7c15,48,24),h1));
+    const o = mv(initW((cfg.seed*374761393)^0x6a09e667,24,6),h2);
+    const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]);
+    const tMove=clamp(0.35+0.30*Math.tanh(o[4]),0,0.65); const tFire=clamp(0.25+0.30*Math.tanh(o[5]),0,0.55);
+    if(tgt){ const base = interceptAngle(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); const aim = mixAngles(base, nnFire, tFire); const jitter=((tank.x*29+tank.y*13+cfg.seed)%23-11)*0.18; tank.fire(ang(aim + jitter)); }
+    let tryAngles=[]; function push(a){ if(tryAngles.length<6) tryAngles.push(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=b.a; push(a+90+10); push(a-90-10); }
+    if(allies.length){ const al=nearest(allies); if(al && al.distance<68){ const av=deg(tank.x-al.x,tank.y-al.y); push(av); push(av+20); push(av-20);} }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<cfg.near){ push(to+180+cfg.side); push(to+180-cfg.side);} else if(d>cfg.far){ push(to); push(to+15); } else { push(to+cfg.side); push(to-cfg.side);} }
+    const [rx,ry]=wallRepel(tank.x,tank.y); const repelA=(Math.abs(rx)+Math.abs(ry)>0.01)?deg(rx,ry):null; let baseMove=tryAngles[0] ?? (repelA??0); const mixed = mixAngles(baseMove, nnMove, tMove); if(repelA!=null) baseMove = mixAngles(mixed, repelA, 0.3); else baseMove = mixed; const cands=[baseMove, baseMove+16, baseMove-16, baseMove+34, baseMove-34, baseMove+52]; for(const a of cands){ if(tank.move(ang(a))) break; }
+  })({ seed: 3031, near: 220, far: 340, side: 22 });
 }
 
 // ===== 로봇 #4 =====
-function name(){ return 'Nemesis2 D2'; }
+function name(){ return 'Aegis D2'; }
 function type(){ return Type.DEALER; }
-let __mem_D2 = { lastTarget:null, lastEnemyPos:null };
+let __mem_D2 = { last: {x:0,y:0}, tgt: null };
 function update(tank, enemies, allies, bulletInfo){
   (function run(cfg){
     function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
     function ang(a){ a%=360; if(a<0)a+=360; return a; }
     function deg(x,y){ return Math.atan2(y,x)*180/Math.PI; }
     function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
-    function closest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
-    function wallRepel(tx,ty){ const W=900,H=600,pad=70; let vx=0,vy=0; if(tx<pad) vx+=(pad-tx)/pad; if(tx>W-pad) vx-=(tx-(W-pad))/pad; if(ty<pad) vy+=(pad-ty)/pad; if(ty>H-pad) vy-=(ty-(H-pad))/pad; return [vx,vy]; }
-    function threats(){ const out=[]; const rad=tank.size*0.5+10; for(const b of bulletInfo){ const rx=tank.x-b.x, ry=tank.y-b.y; const s=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/s, ny=b.vy/s; const proj=rx*nx+ry*ny; if(proj<=0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/s; if(nd<rad+36 && ttc<22) out.push({b:{x:b.x,y:b.y,vx:b.vx,vy:b.vy}, nd, ttc}); } out.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return out; }
-    function pickTarget(){ let best=null,bs=1e9; for(const e of enemies){ const s=e.health*0.8 + e.distance*0.4; if(s<bs){bs=s; best=e;} } return best || closest(enemies); }
-    function lead(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_D2.lastTarget && dist(__mem_D2.lastTarget,tgt)<46 && __mem_D2.lastEnemyPos){ vx=tgt.x-__mem_D2.lastEnemyPos.x; vy=tgt.y-__mem_D2.lastEnemyPos.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t; if(Math.abs(A)<1e-6){ t=(C>0&&B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D<0) t=Math.max(0,-B/(2*A)); else { const s=Math.sqrt(D); t=Math.max((-B+s)/(2*A),(-B-s)/(2*A),0); } } __mem_D2.lastEnemyPos={x:tgt.x,y:tgt.y}; __mem_D2.lastTarget={x:tgt.x,y:tgt.y}; return deg(dx+vx*t, dy+vy*t); }
-    function buildInput(tgt,ths){ const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp(tank.health/160,0,1),(tank.type===0?1:0),(tank.type===1?1:0),(tank.type===2?1:0)]; const es=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H,clamp(e.distance/1000,0,1),Math.cos(a),Math.sin(a),clamp(e.health/160,0,1)); } else ef.push(0,0,1,1,0,0);} const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H,clamp(a.distance/900,0,1),clamp(a.health/160,0,1)); } else af.push(0,0,1,0);} const bs=ths.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H,b.vx/v,b.vy/v,clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1);} const counts=[clamp(enemies.length/6,0,1),clamp(allies.length/5,0,1),clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
-    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=(s%2001)/1000-1; row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; }
-      const ths=threats(); const tgt=pickTarget(); const x=buildInput(tgt,ths); const h1=tanhV(mv(initW((cfg.seed*73856093)^0x9e3779b9,64,32),x)); const h2=tanhV(mv(initW((cfg.seed*19349663)^0x7f4a7c15,32,16),h1)); const o=mv(initW((cfg.seed*83492791)^0x6a09e667,16,6),h2); const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]); const alpha=0.95; const beta=0.85;
-    if(tgt){ const base=lead(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); tank.fire(ang(beta*base + (1-beta)*nnFire + ((tank.x*41+tank.y*13+cfg.seed)%21-10)*0.16)); }
-    function go(a){ return tank.move(ang(a)); }
-      if(ths.length){ const a=Math.atan2(ths[0].b.vy, ths[0].b.vx)*180/Math.PI; const C=[a+90-12,a-90+12,a+130,a-130,a+70,a-70]; for(const c of C){ if(go(c)) return; } }
-    if(allies.length){ const A=closest(allies); if(A && A.distance<70){ const away=deg(tank.x-A.x,tank.y-A.y); if(go(away)) return; if(go(away+25)) return; if(go(away-25)) return; } }
-    { const [rx,ry]=wallRepel(tank.x,tank.y); if(Math.abs(rx)+Math.abs(ry)>0.05){ if(go(deg(rx,ry))) return; } }
-    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let base; if(d<cfg.range[0]) base=to+180-12; else if(d>cfg.range[1]) base=to+8; else base=to-22; const mvA=ang(alpha*base+(1-alpha)*nnMove); if(go(mvA)) return; if(go(mvA+25)) return; if(go(mvA-25)) return; }
-      if(go(nnMove)) return; for(const p of [0,60,120,180,240,300]) if(go(p)) return;
-  })({ role:'flank', seed: 7789, range: [230, 320] });
+    function mixAngles(a,b,t){ const da=ang(b-a); let d=da; if(d>180) d-=360; return ang(a + d*clamp(t,0,1)); }
+    function wallRepel(x,y){ const W=900,H=600,p=70; let vx=0,vy=0; if(x<p) vx+=(p-x)/p; if(x>W-p) vx-=(x-(W-p))/p; if(y<p) vy+=(p-y)/p; if(y>H-p) vy-=(y-(H-p))/p; return [vx,vy]; }
+    function bulletThreats(){ const rad=tank.size*0.5+6; const arr=[]; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=-(dx*nx+dy*ny); if(proj<0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/v; if(nd<rad+40 && ttc<25){ arr.push({b,nd,ttc,a:deg(b.vx,b.vy)}); } } arr.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return arr; }
+    function pickTarget(){ if(!enemies.length) return null; let best=enemies[0]; for(const e of enemies){ if(e.health<best.health-0.1 || (Math.abs(e.health-best.health)<0.1 && (e.y<best.y || (e.y===best.y && e.x<best.x)))) best=e; } return best; }
+    function interceptAngle(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_D2.tgt && dist(__mem_D2.tgt,tgt)<40){ vx=tgt.x-__mem_D2.last.x; vy=tgt.y-__mem_D2.last.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; __mem_D2.last={x:tgt.x,y:tgt.y}; __mem_D2.tgt={x:tgt.x,y:tgt.y}; return deg(px,py); }
+    function nearest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
+    function buildInput(tgt,threats){ const W=900,H=600; const self=[tank.x/W, tank.y/H, clamp(tank.health/180,0,1), clamp(tank.energy/200,0,1), (tank.type===0?1:0), (tank.type===1?1:0), (tank.type===2?1:0)];
+      const es=enemies.slice().sort((a,b)=>a.health-b.health||a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H, clamp(e.distance/1000,0,1), Math.cos(a), Math.sin(a), clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H, clamp(a.distance/900,0,1), clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=threats.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H, b.vx/8, b.vy/8, clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1); }
+      const counts=[clamp(enemies.length/6,0,1), clamp(allies.length/5,0,1), clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
+    const threats = bulletThreats(); const tgt = pickTarget() || nearest(enemies); const x = buildInput(tgt, threats);
+    const h1=tanhV(mv(initW((cfg.seed*1103515245)^0x9e3779b9,64,48),x));
+    const h2=tanhV(mv(initW((cfg.seed*2654435761)^0x7f4a7c15,48,24),h1));
+    const o = mv(initW((cfg.seed*374761393)^0x6a09e667,24,6),h2);
+    const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]);
+    const tMove=clamp(0.35+0.30*Math.tanh(o[4]),0,0.65); const tFire=clamp(0.25+0.30*Math.tanh(o[5]),0,0.55);
+    if(tgt){ const base = interceptAngle(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); const aim = mixAngles(base, nnFire, tFire); const jitter=((tank.x*29+tank.y*13+cfg.seed)%23-11)*0.18; tank.fire(ang(aim + jitter)); }
+    let tryAngles=[]; function push(a){ if(tryAngles.length<6) tryAngles.push(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=b.a; push(a+90-12); push(a-90+12); }
+    if(allies.length){ const al=nearest(allies); if(al && al.distance<68){ const av=deg(tank.x-al.x,tank.y-al.y); push(av); push(av+20); push(av-20);} }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<cfg.near){ push(to+180+cfg.side); push(to+180-cfg.side);} else if(d>cfg.far){ push(to); push(to+15); } else { push(to+cfg.side); push(to-cfg.side);} }
+    const [rx,ry]=wallRepel(tank.x,tank.y); const repelA=(Math.abs(rx)+Math.abs(ry)>0.01)?deg(rx,ry):null; let baseMove=tryAngles[0] ?? (repelA??0); const mixed = mixAngles(baseMove, nnMove, tMove); if(repelA!=null) baseMove = mixAngles(mixed, repelA, 0.3); else baseMove = mixed; const cands=[baseMove, baseMove+16, baseMove-16, baseMove+34, baseMove-34, baseMove+52]; for(const a of cands){ if(tank.move(ang(a))) break; }
+  })({ seed: 4051, near: 235, far: 355, side: 24 });
 }
 
 // ===== 로봇 #5 =====
-function name(){ return 'Nemesis2 D3'; }
+function name(){ return 'Aegis D3'; }
 function type(){ return Type.DEALER; }
-let __mem_D3 = { lastTarget:null, lastEnemyPos:null };
+let __mem_D3 = { last: {x:0,y:0}, tgt: null };
 function update(tank, enemies, allies, bulletInfo){
   (function run(cfg){
     function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
     function ang(a){ a%=360; if(a<0)a+=360; return a; }
     function deg(x,y){ return Math.atan2(y,x)*180/Math.PI; }
     function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
-    function closest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
-    function wallRepel(tx,ty){ const W=900,H=600,pad=68; let vx=0,vy=0; if(tx<pad) vx+=(pad-tx)/pad; if(tx>W-pad) vx-=(tx-(W-pad))/pad; if(ty<pad) vy+=(pad-ty)/pad; if(ty>H-pad) vy-=(ty-(H-pad))/pad; return [vx,vy]; }
-    function threats(){ const out=[]; const rad=tank.size*0.5+10; for(const b of bulletInfo){ const rx=tank.x-b.x, ry=tank.y-b.y; const s=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/s, ny=b.vy/s; const proj=rx*nx+ry*ny; if(proj<=0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/s; if(nd<rad+36 && ttc<22) out.push({b:{x:b.x,y:b.y,vx:b.vx,vy:b.vy}, nd, ttc}); } out.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return out; }
-    function pickTarget(){ let best=null,bs=1e9; for(const e of enemies){ const s=e.health*0.8 + e.distance*0.4; if(s<bs){bs=s; best=e;} } return best || closest(enemies); }
-    function lead(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_D3.lastTarget && dist(__mem_D3.lastTarget,tgt)<46 && __mem_D3.lastEnemyPos){ vx=tgt.x-__mem_D3.lastEnemyPos.x; vy=tgt.y-__mem_D3.lastEnemyPos.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t; if(Math.abs(A)<1e-6){ t=(C>0&&B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D<0) t=Math.max(0,-B/(2*A)); else { const s=Math.sqrt(D); t=Math.max((-B+s)/(2*A),(-B-s)/(2*A),0); } } __mem_D3.lastEnemyPos={x:tgt.x,y:tgt.y}; __mem_D3.lastTarget={x:tgt.x,y:tgt.y}; return deg(dx+vx*t, dy+vy*t); }
-    function buildInput(tgt,ths){ const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp(tank.health/160,0,1),(tank.type===0?1:0),(tank.type===1?1:0),(tank.type===2?1:0)]; const es=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H,clamp(e.distance/1000,0,1),Math.cos(a),Math.sin(a),clamp(e.health/160,0,1)); } else ef.push(0,0,1,1,0,0);} const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H,clamp(a.distance/900,0,1),clamp(a.health/160,0,1)); } else af.push(0,0,1,0);} const bs=ths.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H,b.vx/v,b.vy/v,clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1);} const counts=[clamp(enemies.length/6,0,1),clamp(allies.length/5,0,1),clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
-    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=(s%2001)/1000-1; row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; }
-      const ths=threats(); const tgt=pickTarget(); const x=buildInput(tgt,ths); const h1=tanhV(mv(initW((cfg.seed*73856093)^0x9e3779b9,64,32),x)); const h2=tanhV(mv(initW((cfg.seed*19349663)^0x7f4a7c15,32,16),h1)); const o=mv(initW((cfg.seed*83492791)^0x6a09e667,16,6),h2); const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]); const alpha=0.95; const beta=0.85;
-    if(tgt){ const base=lead(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); tank.fire(ang(beta*base + (1-beta)*nnFire + ((tank.x*17+tank.y*29+cfg.seed)%21-10)*0.14)); }
-    function go(a){ return tank.move(ang(a)); }
-    if(ths.length){ const a=Math.atan2(ths[0].b.vy, ths[0].b.vx)*180/Math.PI; const C=[a+90+10,a-90-10,a+120,a-120]; for(const c of C){ if(go(c)) return; } }
-    if(allies.length){ const A=closest(allies); if(A && A.distance<70){ const away=deg(tank.x-A.x,tank.y-A.y); if(go(away)) return; if(go(away+25)) return; if(go(away-25)) return; } }
-    { const [rx,ry]=wallRepel(tank.x,tank.y); if(Math.abs(rx)+Math.abs(ry)>0.05){ if(go(deg(rx,ry))) return; } }
-    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let base; if(d<cfg.range[0]) base=to+180+10; else if(d>cfg.range[1]) base=to-10; else base=to+18; const mvA=ang(alpha*base+(1-alpha)*nnMove); if(go(mvA)) return; if(go(mvA+25)) return; if(go(mvA-25)) return; }
-    if(go(nnMove)) return; for(const p of [0,90,180,270]) if(go(p)) return;
-  })({ role:'support', seed: 9137, range: [240, 330] });
+    function mixAngles(a,b,t){ const da=ang(b-a); let d=da; if(d>180) d-=360; return ang(a + d*clamp(t,0,1)); }
+    function wallRepel(x,y){ const W=900,H=600,p=70; let vx=0,vy=0; if(x<p) vx+=(p-x)/p; if(x>W-p) vx-=(x-(W-p))/p; if(y<p) vy+=(p-y)/p; if(y>H-p) vy-=(y-(H-p))/p; return [vx,vy]; }
+    function bulletThreats(){ const rad=tank.size*0.5+6; const arr=[]; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=-(dx*nx+dy*ny); if(proj<0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/v; if(nd<rad+40 && ttc<25){ arr.push({b,nd,ttc,a:deg(b.vx,b.vy)}); } } arr.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return arr; }
+    function pickTarget(){ if(!enemies.length) return null; let best=enemies[0]; for(const e of enemies){ if(e.health<best.health-0.1 || (Math.abs(e.health-best.health)<0.1 && (e.y<best.y || (e.y===best.y && e.x<best.x)))) best=e; } return best; }
+    function interceptAngle(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_D3.tgt && dist(__mem_D3.tgt,tgt)<40){ vx=tgt.x-__mem_D3.last.x; vy=tgt.y-__mem_D3.last.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; __mem_D3.last={x:tgt.x,y:tgt.y}; __mem_D3.tgt={x:tgt.x,y:tgt.y}; return deg(px,py); }
+    function nearest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
+    function buildInput(tgt,threats){ const W=900,H=600; const self=[tank.x/W, tank.y/H, clamp(tank.health/180,0,1), clamp(tank.energy/200,0,1), (tank.type===0?1:0), (tank.type===1?1:0), (tank.type===2?1:0)];
+      const es=enemies.slice().sort((a,b)=>a.health-b.health||a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H, clamp(e.distance/1000,0,1), Math.cos(a), Math.sin(a), clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H, clamp(a.distance/900,0,1), clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=threats.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H, b.vx/8, b.vy/8, clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1); }
+      const counts=[clamp(enemies.length/6,0,1), clamp(allies.length/5,0,1), clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
+    const threats = bulletThreats(); const tgt = pickTarget() || nearest(enemies); const x = buildInput(tgt, threats);
+    const h1=tanhV(mv(initW((cfg.seed*1103515245)^0x9e3779b9,64,48),x));
+    const h2=tanhV(mv(initW((cfg.seed*2654435761)^0x7f4a7c15,48,24),h1));
+    const o = mv(initW((cfg.seed*374761393)^0x6a09e667,24,6),h2);
+    const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]);
+    const tMove=clamp(0.35+0.30*Math.tanh(o[4]),0,0.65); const tFire=clamp(0.25+0.30*Math.tanh(o[5]),0,0.55);
+    if(tgt){ const base = interceptAngle(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); const aim = mixAngles(base, nnFire, tFire); const jitter=((tank.x*29+tank.y*13+cfg.seed)%23-11)*0.18; tank.fire(ang(aim + jitter)); }
+    let tryAngles=[]; function push(a){ if(tryAngles.length<6) tryAngles.push(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=b.a; push(a+90+8); push(a-90-8); }
+    if(allies.length){ const al=nearest(allies); if(al && al.distance<68){ const av=deg(tank.x-al.x,tank.y-al.y); push(av); push(av+20); push(av-20);} }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<cfg.near){ push(to+180+cfg.side); push(to+180-cfg.side);} else if(d>cfg.far){ push(to); push(to+15); } else { push(to+cfg.side); push(to-cfg.side);} }
+    const [rx,ry]=wallRepel(tank.x,tank.y); const repelA=(Math.abs(rx)+Math.abs(ry)>0.01)?deg(rx,ry):null; let baseMove=tryAngles[0] ?? (repelA??0); const mixed = mixAngles(baseMove, nnMove, tMove); if(repelA!=null) baseMove = mixAngles(mixed, repelA, 0.3); else baseMove = mixed; const cands=[baseMove, baseMove+16, baseMove-16, baseMove+34, baseMove-34, baseMove+52]; for(const a of cands){ if(tank.move(ang(a))) break; }
+  })({ seed: 4909, near: 240, far: 360, side: 20 });
 }
 
 // ===== 로봇 #6 =====
-function name(){ return 'Nemesis2 D4'; }
-function type(){ return Type.DEALER; }
-let __mem_D4 = { lastTarget:null, lastEnemyPos:null };
+function name(){ return 'Aegis N1'; }
+function type(){ return Type.NORMAL; }
+let __mem_N1 = { last: {x:0,y:0}, tgt: null };
 function update(tank, enemies, allies, bulletInfo){
   (function run(cfg){
     function clamp(v,min,max){ return v<min?min:(v>max?max:v); }
     function ang(a){ a%=360; if(a<0)a+=360; return a; }
     function deg(x,y){ return Math.atan2(y,x)*180/Math.PI; }
     function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
-    function closest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
-    function wallRepel(tx,ty){ const W=900,H=600,pad=68; let vx=0,vy=0; if(tx<pad) vx+=(pad-tx)/pad; if(tx>W-pad) vx-=(tx-(W-pad))/pad; if(ty<pad) vy+=(pad-ty)/pad; if(ty>H-pad) vy-=(ty-(H-pad))/pad; return [vx,vy]; }
-    function threats(){ const out=[]; const rad=tank.size*0.5+10; for(const b of bulletInfo){ const rx=tank.x-b.x, ry=tank.y-b.y; const s=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/s, ny=b.vy/s; const proj=rx*nx+ry*ny; if(proj<=0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/s; if(nd<rad+36 && ttc<22) out.push({b:{x:b.x,y:b.y,vx:b.vx,vy:b.vy}, nd, ttc}); } out.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return out; }
-    function pickTarget(){ let best=null,bs=1e9; for(const e of enemies){ const s=e.health*0.8 + e.distance*0.4; if(s<bs){bs=s; best=e;} } return best || closest(enemies); }
-    function lead(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_D4.lastTarget && dist(__mem_D4.lastTarget,tgt)<46 && __mem_D4.lastEnemyPos){ vx=tgt.x-__mem_D4.lastEnemyPos.x; vy=tgt.y-__mem_D4.lastEnemyPos.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t; if(Math.abs(A)<1e-6){ t=(C>0&&B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D<0) t=Math.max(0,-B/(2*A)); else { const s=Math.sqrt(D); t=Math.max((-B+s)/(2*A),(-B-s)/(2*A),0); } } __mem_D4.lastEnemyPos={x:tgt.x,y:tgt.y}; __mem_D4.lastTarget={x:tgt.x,y:tgt.y}; return deg(dx+vx*t, dy+vy*t); }
-    function buildInput(tgt,ths){ const W=900,H=600; const self=[tank.x/W,tank.y/H,clamp(tank.health/160,0,1),(tank.type===0?1:0),(tank.type===1?1:0),(tank.type===2?1:0)]; const es=enemies.slice().sort((a,b)=>a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H,clamp(e.distance/1000,0,1),Math.cos(a),Math.sin(a),clamp(e.health/160,0,1)); } else ef.push(0,0,1,1,0,0);} const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H,clamp(a.distance/900,0,1),clamp(a.health/160,0,1)); } else af.push(0,0,1,0);} const bs=ths.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H,b.vx/v,b.vy/v,clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1);} const counts=[clamp(enemies.length/6,0,1),clamp(allies.length/5,0,1),clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
-    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=(s%2001)/1000-1; row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++) o[i]=Math.tanh(v[i]); return o; }
-    const ths=threats(); const tgt=pickTarget(); const x=buildInput(tgt,ths); const h1=tanhV(mv(initW((cfg.seed*73856093)^0x9e3779b9,64,32),x)); const h2=tanhV(mv(initW((cfg.seed*19349663)^0x7f4a7c15,32,16),h1)); const o=mv(initW((cfg.seed*83492791)^0x6a09e667,16,6),h2); const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]); const alpha=clamp((Math.tanh(o[4])+1)/2,0.25,0.9); const beta=clamp((Math.tanh(o[5])+1)/2,0.15,0.9);
-    if(tgt){ const base=lead(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); tank.fire(ang(beta*base + (1-beta)*nnFire + ((tank.x*23+tank.y*31+cfg.seed)%21-10)*0.14)); }
-    function go(a){ return tank.move(ang(a)); }
-      if(ths.length){ const a=Math.atan2(ths[0].b.vy, ths[0].b.vx)*180/Math.PI; const C=[a+90-14,a-90+14,a+120,a-120,a+70,a-70]; for(const c of C){ if(go(c)) return; } }
-    if(allies.length){ const A=closest(allies); if(A && A.distance<70){ const away=deg(tank.x-A.x,tank.y-A.y); if(go(away)) return; if(go(away+25)) return; if(go(away-25)) return; } }
-    { const [rx,ry]=wallRepel(tank.x,tank.y); if(Math.abs(rx)+Math.abs(ry)>0.05){ if(go(deg(rx,ry))) return; } }
-    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); let base; if(d<cfg.range[0]) base=to+180-14; else if(d>cfg.range[1]) base=to+10; else base=to-18; const mvA=ang(alpha*base+(1-alpha)*nnMove); if(go(mvA)) return; if(go(mvA+25)) return; if(go(mvA-25)) return; }
-      if(go(nnMove)) return; for(const p of [0,60,120,180,240,300]) if(go(p)) return;
-  })({ role:'support', seed: 10007, range: [240, 330] });
+    function mixAngles(a,b,t){ const da=ang(b-a); let d=da; if(d>180) d-=360; return ang(a + d*clamp(t,0,1)); }
+    function wallRepel(x,y){ const W=900,H=600,p=65; let vx=0,vy=0; if(x<p) vx+=(p-x)/p; if(x>W-p) vx-=(x-(W-p))/p; if(y<p) vy+=(p-y)/p; if(y>H-p) vy-=(y-(H-p))/p; return [vx,vy]; }
+    function bulletThreats(){ const rad=tank.size*0.5+6; const arr=[]; for(const b of bulletInfo){ const dx=tank.x-b.x, dy=tank.y-b.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=-(dx*nx+dy*ny); if(proj<0) continue; const px=b.x+nx*proj, py=b.y+ny*proj; const nd=Math.hypot(px-tank.x,py-tank.y); const ttc=proj/v; if(nd<rad+36 && ttc<23){ arr.push({b,nd,ttc,a:deg(b.vx,b.vy)}); } } arr.sort((a,b)=>a.ttc-b.ttc||a.nd-b.nd); return arr; }
+    function pickTarget(){ if(!enemies.length) return null; let best=enemies[0]; for(const e of enemies){ if(e.health<best.health-0.1 || (Math.abs(e.health-best.health)<0.1 && (e.y<best.y || (e.y===best.y && e.x<best.x)))) best=e; } return best; }
+    function interceptAngle(tgt){ if(!tgt) return null; const bs=8; let vx=0,vy=0; if(__mem_N1.tgt && dist(__mem_N1.tgt,tgt)<40){ vx=tgt.x-__mem_N1.last.x; vy=tgt.y-__mem_N1.last.y; } const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const A=vx*vx+vy*vy-bs*bs, B=2*(dx*vx+dy*vy), C=dx*dx+dy*dy; let t=0; if(Math.abs(A)<1e-6){ t=(B<0)?(-C/B):0; } else { const D=B*B-4*A*C; if(D>=0){ const s=Math.sqrt(D); const t1=(-B-s)/(2*A), t2=(-B+s)/(2*A); t=Math.max(t1,t2,0); } } const px=dx+vx*t, py=dy+vy*t; __mem_N1.last={x:tgt.x,y:tgt.y}; __mem_N1.tgt={x:tgt.x,y:tgt.y}; return deg(px,py); }
+    function nearest(arr){ let r=null,d=1e9; for(const e of arr){ if(e.distance<d){d=e.distance;r=e;} } return r; }
+    function buildInput(tgt,threats){ const W=900,H=600; const self=[tank.x/W, tank.y/H, clamp(tank.health/180,0,1), clamp(tank.energy/200,0,1), (tank.type===0?1:0), (tank.type===1?1:0), (tank.type===2?1:0)];
+      const es=enemies.slice().sort((a,b)=>a.health-b.health||a.distance-b.distance).slice(0,3); const ef=[]; for(let i=0;i<3;i++){ const e=es[i]; if(e){ const a=Math.atan2(e.y-tank.y,e.x-tank.x); ef.push((e.x-tank.x)/W,(e.y-tank.y)/H, clamp(e.distance/1000,0,1), Math.cos(a), Math.sin(a), clamp(e.health/200,0,1)); } else ef.push(0,0,1,1,0,0); }
+      const as=allies.slice().sort((a,b)=>a.distance-b.distance).slice(0,2); const af=[]; for(let i=0;i<2;i++){ const a=as[i]; if(a){ af.push((a.x-tank.x)/W,(a.y-tank.y)/H, clamp(a.distance/900,0,1), clamp(a.health/200,0,1)); } else af.push(0,0,1,0); }
+      const bs=threats.slice(0,4); const bf=[]; for(let i=0;i<4;i++){ const t=bs[i]; if(t){ const b=t.b; const v=Math.hypot(b.vx,b.vy)||1; bf.push((b.x-tank.x)/W,(b.y-tank.y)/H, b.vx/8, b.vy/8, clamp(t.ttc/25,0,1)); } else bf.push(0,0,0,0,1); }
+      const counts=[clamp(enemies.length/6,0,1), clamp(allies.length/5,0,1), clamp(bulletInfo.length/12,0,1)]; const x=self.concat(ef,af,bf,counts); while(x.length<64) x.push(0); return x; }
+    function sr(s){ s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)>>>0; } function initW(seed,i,o){ let s=seed>>>0; const W=new Array(o); for(let r=0;r<o;r++){ const row=new Array(i); for(let c=0;c<i;c++){ s=sr(s); const r01=((s%2001)/1000-1); row[c]=r01*Math.sqrt(2/(i+o)); } W[r]=row; } return W; } function mv(Wm,v){ const out=new Array(Wm.length); for(let r=0;r<Wm.length;r++){ const row=Wm[r]; let sum=0; for(let c=0;c<row.length;c++){ sum+=row[c]*v[c]; } out[r]=sum; } return out; } function tanhV(v){ const o=new Array(v.length); for(let i=0;i<v.length;i++){ o[i]=Math.tanh(v[i]); } return o; }
+    const threats = bulletThreats(); const tgt = pickTarget() || nearest(enemies); const x = buildInput(tgt, threats);
+    const h1=tanhV(mv(initW((cfg.seed*1103515245)^0x9e3779b9,64,48),x));
+    const h2=tanhV(mv(initW((cfg.seed*2654435761)^0x7f4a7c15,48,24),h1));
+    const o = mv(initW((cfg.seed*374761393)^0x6a09e667,24,6),h2);
+    const nnMove=deg(o[0],o[1]); const nnFire=deg(o[2],o[3]);
+    const tMove=clamp(0.35+0.28*Math.tanh(o[4]),0,0.6); const tFire=clamp(0.25+0.28*Math.tanh(o[5]),0,0.52);
+    if(tgt){ const base = interceptAngle(tgt) ?? deg(tgt.x-tank.x,tgt.y-tank.y); const aim = mixAngles(base, nnFire, tFire); const jitter=((tank.x*23+tank.y*19+cfg.seed)%23-11)*0.18; tank.fire(ang(aim + jitter)); }
+    let tryAngles=[]; function push(a){ if(tryAngles.length<6) tryAngles.push(ang(a)); }
+    if(threats.length){ const b=threats[0]; const a=b.a; push(a+90); push(a-90); }
+    if(allies.length){ const al=nearest(allies); if(al && al.distance<64){ const av=deg(tank.x-al.x,tank.y-al.y); push(av); push(av+20); push(av-20);} }
+    if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y); if(d<cfg.near){ push(to+180+cfg.side); push(to+180-cfg.side);} else if(d>cfg.far){ push(to); push(to+15); } else { push(to+cfg.side); push(to-cfg.side);} }
+    const [rx,ry]=wallRepel(tank.x,tank.y); const repelA=(Math.abs(rx)+Math.abs(ry)>0.01)?deg(rx,ry):null; let baseMove=tryAngles[0] ?? (repelA??0); const mixed = mixAngles(baseMove, nnMove, tMove); if(repelA!=null) baseMove = mixAngles(mixed, repelA, 0.25); else baseMove = mixed; const cands=[baseMove, baseMove+18, baseMove-18, baseMove+36, baseMove-36, baseMove+54]; for(const a of cands){ if(tank.move(ang(a))) break; }
+  })({ seed: 5821, near: 230, far: 350, side: 18 });
 }
+
