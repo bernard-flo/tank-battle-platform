@@ -40,6 +40,7 @@ async function main() {
   const seed = args.seed;
   const maxTicks = args.maxTicks ? parseInt(args.maxTicks, 10) : 5000;
   const jsonOut = args.json;
+  const repeat = args.repeat ? parseInt(args.repeat, 10) : 1;
 
   const redCode = readOrDefault(redFile, 'red');
   const blueCode = readOrDefault(blueFile, 'blue');
@@ -48,26 +49,84 @@ async function main() {
   const blue = compileTeamFromCode(blueCode, 'blue');
   const players = [...red, ...blue];
 
-  const result = runMatch(players, { seed, maxTicks });
+  const baseSeed = seed !== undefined ? seed : Math.floor(Math.random() * 1e9);
 
-  const summary = {
-    winner: result.winner,
-    ticks: result.ticks,
-    redAlive: result.stats.redAlive,
-    blueAlive: result.stats.blueAlive,
-    redEnergy: Math.round(result.stats.redEnergy),
-    blueEnergy: Math.round(result.stats.blueEnergy),
-  };
+  const summaries = [];
+  let redWins = 0;
+  let blueWins = 0;
+  let draws = 0;
+  let ticksSum = 0;
+  let redAliveSum = 0;
+  let blueAliveSum = 0;
+  let redEnergySum = 0;
+  let blueEnergySum = 0;
 
-  console.log('=== Match Result ===');
-  console.log(`Winner: ${summary.winner.toUpperCase()}`);
-  console.log(`Ticks: ${summary.ticks}`);
-  console.log(`Red  - Alive: ${summary.redAlive}, Energy: ${summary.redEnergy}`);
-  console.log(`Blue - Alive: ${summary.blueAlive}, Energy: ${summary.blueEnergy}`);
+  for (let i = 0; i < repeat; i++) {
+    const s = typeof baseSeed === 'number' ? baseSeed + i : `${baseSeed}-${i}`;
+    const result = runMatch(players, { seed: s, maxTicks });
+    const summary = {
+      seed: s,
+      winner: result.winner,
+      ticks: result.ticks,
+      redAlive: result.stats.redAlive,
+      blueAlive: result.stats.blueAlive,
+      redEnergy: Math.round(result.stats.redEnergy),
+      blueEnergy: Math.round(result.stats.blueEnergy),
+    };
+    summaries.push(summary);
+    if (summary.winner === 'red') redWins++;
+    else if (summary.winner === 'blue') blueWins++;
+    else draws++;
+    ticksSum += summary.ticks;
+    redAliveSum += summary.redAlive;
+    blueAliveSum += summary.blueAlive;
+    redEnergySum += summary.redEnergy;
+    blueEnergySum += summary.blueEnergy;
+  }
+
+  if (repeat === 1) {
+    const s = summaries[0];
+    console.log('=== Match Result ===');
+    console.log(`Seed: ${s.seed}`);
+    console.log(`Winner: ${s.winner.toUpperCase()}`);
+    console.log(`Ticks: ${s.ticks}`);
+    console.log(`Red  - Alive: ${s.redAlive}, Energy: ${s.redEnergy}`);
+    console.log(`Blue - Alive: ${s.blueAlive}, Energy: ${s.blueEnergy}`);
+  } else {
+    const agg = {
+      matches: repeat,
+      redWins,
+      blueWins,
+      draws,
+      avgTicks: +(ticksSum / repeat).toFixed(2),
+      avgRedAlive: +(redAliveSum / repeat).toFixed(3),
+      avgBlueAlive: +(blueAliveSum / repeat).toFixed(3),
+      avgRedEnergy: +(redEnergySum / repeat).toFixed(2),
+      avgBlueEnergy: +(blueEnergySum / repeat).toFixed(2),
+      baseSeed,
+    };
+    console.log('=== Batch Result ===');
+    console.log(`Matches: ${agg.matches}, BaseSeed: ${agg.baseSeed}`);
+    console.log(`Wins   - Red: ${agg.redWins}, Blue: ${agg.blueWins}, Draws: ${agg.draws}`);
+    console.log(`Avg    - Ticks: ${agg.avgTicks}, RedAlive: ${agg.avgRedAlive}, BlueAlive: ${agg.avgBlueAlive}`);
+    console.log(`AvgEne - Red: ${agg.avgRedEnergy}, Blue: ${agg.avgBlueEnergy}`);
+  }
 
   if (jsonOut) {
-    fs.writeFileSync(path.resolve(jsonOut), JSON.stringify({ summary }, null, 2));
-    console.log(`Saved JSON summary -> ${jsonOut}`);
+    const out = repeat === 1 ? { summary: summaries[0] } : { summaries, aggregate: {
+      matches: repeat,
+      redWins,
+      blueWins,
+      draws,
+      avgTicks: +(ticksSum / repeat).toFixed(2),
+      avgRedAlive: +(redAliveSum / repeat).toFixed(3),
+      avgBlueAlive: +(blueAliveSum / repeat).toFixed(3),
+      avgRedEnergy: +(redEnergySum / repeat).toFixed(2),
+      avgBlueEnergy: +(blueEnergySum / repeat).toFixed(2),
+      baseSeed,
+    } };
+    fs.writeFileSync(path.resolve(jsonOut), JSON.stringify(out, null, 2));
+    console.log(`Saved JSON -> ${jsonOut}`);
   }
 }
 
@@ -77,4 +136,3 @@ if (require.main === module) {
     process.exit(1);
   });
 }
-
