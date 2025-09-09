@@ -81,3 +81,10 @@
 - 명령: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5 --fast`
 - 결과: RED 승, Ticks 642, Red Alive 1 / Blue Alive 0 (Energy: 5 / 0)
 - 산출물: result.json, replay.json (.gitignore에 의해 미추적)
+
+이번 실행(요약 - 시뮬레이터 준비 완료)
+- HTML 규칙 정합성/효율화(병렬, fast 모드) 재확인.
+- 편의 스크립트 추가: `scripts/quick_sim.sh` (기본 `--json result.json` 적용, 나머지 옵션 전달 가능).
+
+추가 파일
+- scripts/quick_sim.sh: 간편 실행 래퍼. 예) `scripts/quick_sim.sh --replay replay.json --seed 7 --recordEvery 2`.
