@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
   레퍼런스 AI의 행동(이동 각, 사격 시도/각)을 모방학습하여
-  DNN(MLP: 32-32)을 지도학습으로 초기화합니다.
+  DNN(MLP: 64-64, 출력 9)을 지도학습으로 초기화합니다.
 
   - update()에서는 휴리스틱 없이 DNN 추론만 수행
   - 본 스크립트는 레퍼런스 vs 레퍼런스 경기를 돌리며, 각 틱마다 레드팀의 행동을 수집
@@ -239,7 +239,7 @@ async function main(){
   console.log(`[collect] samples: ${samples.length}`);
 
   // 학습 설정
-  const inputSize = 76, h1=64, h2=64, out=5;
+  const inputSize = 76, h1=64, h2=64, out=9;
   const net = createMLP(inputSize, h1, h2, out);
   const { params, forward, backward, adamUpdate } = net;
 

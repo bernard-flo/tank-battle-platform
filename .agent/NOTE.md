@@ -1,9 +1,9 @@
 다음 실행 참고 메모
 
 - 목표: reference-ai.txt를 상대로 안정적 우세 달성.
-- 현재 정책: 공유 MLP(입력 76, 히든 32-32, 출력 5: [move x,y, fire x,y, fire logit])
+- 현재 정책: 공유 MLP(입력 76, 히든 64-64, 출력 9: [mv1x,mv1y,mv2x,mv2y, fx,fy, fire_logit, mv3x,mv3y])
   · 피처: tank(자기 상태), enemies/allies 최근접 K, bulletInfo 최근접 K, 전역 통계.
-  · 액션: fireP>0.5일 때 fire(fireAngle), move(mvAngle) 1회 호출. 휴리스틱 없음.
+  · 액션: fireP>0.5일 때 fire(fireAngle), move는 최대 3회 시도(mv1→mv2→mv3). 휴리스틱 없음.
 - 학습: (1) 모방학습으로 초기화(레퍼런스 행동 수집→Adam 3 epoch) → (2) CEM으로 미세튜닝
   · 보상: (redEnergy - blueEnergy) + 승패 보너스(승 +100, 패 -100)
   · 시간 제한(120s/호출) 때문에 iters를 4~8로 잘게 나눠 반복 실행 권장.
@@ -15,7 +15,7 @@
   · seeds 수를 점진 증가: 이터 후반에 안정적 일반화.
 
 - 실행 메모(이번 실행)
-  · 모방학습으로 초기화 후 CEM 16iters, ES 30iters를 수행. 당장 레퍼런스를 압도하지 못함(무/패 혼재). 추가 이터레이션과 seeds 확대 필요.
+  · 모방학습 스크립트 출력 차원 버그(5→9) 수정. 이후 모방학습으로 초기화하고 CEM/ES로 미세튜닝 예정.
   · 빠른 실험 예:
     - 모방학습: `node src/imitation_train.js`
     - CEM 튜닝: `node src/train_cem.js --iters 16 --pop 60 --elite 12 --seeds 4 --ticks 2500 --fast --runner secure --concurrency 8`

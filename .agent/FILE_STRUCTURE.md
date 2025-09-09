@@ -54,8 +54,9 @@ AI/DNN 학습/생성 파일
 업데이트(현재 실행)
 - 시뮬레이터: actionHook 추가로 AI의 move/fire 시도를 수집 가능(모방학습용). 기존 로직 영향 없음.
 - 학습기: CEM 평가 병렬화(--concurrency) + 모방학습(Adam) 파이프라인 추가. 빠른 초기화 후 CEM으로 미세튜닝 가능.
- - 코드 생성기: DNN fire 확률 게이팅(>0.5일 때 fire) 적용. HTML 미변경.
- - 최적화기: ES(OpenAI-ES) 스크립트 추가. Mirrored sampling으로 분산 감소 및 빠른 업데이트.
+- 코드 생성기: DNN fire 확률 게이팅(>0.5일 때 fire) 적용. HTML 미변경.
+- 최적화기: ES(OpenAI-ES) 스크립트 추가. Mirrored sampling으로 분산 감소 및 빠른 업데이트.
+- 버그 수정: imitation_train.js의 출력 차원(out)을 5→9로 수정하여 정책 생성기(genMLPCode)의 9차원 출력과 일치시킴.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
