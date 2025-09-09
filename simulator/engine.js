@@ -24,7 +24,8 @@ class Tank {
     this.tankType = tankType;
 
     const config = TANK_CONFIGS[tankType];
-    this.angle = Math.random() * 360;
+    // 초기 포신 각도는 시드 기반 RNG 사용(브라우저는 Math.random)
+    this.angle = this.engine.random() * 360;
     this.health = config.energy;
     this.energy = config.energy;
     this.gunAngle = this.angle;
@@ -304,4 +305,3 @@ module.exports = {
   runMatch,
   createEngineWithTeams,
 };
-
