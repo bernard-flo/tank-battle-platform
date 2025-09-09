@@ -10,14 +10,11 @@
 - 점수: 승리 +1000, 생존차*100, 에너지 차 합산.
 
 실행 기록(이번 실행)
-- 팀 코드 재생성(무작위) → reference와 대결 테스트(무승부 다수, 지표 열세)
-- 범용 genMLPCode 추가(입력76/출력9), 설계형 가중치 생성 → 성능 열세 확인
-- 모방학습 8경기×1600틱×3epoch 수행 → 대결 성능 여전히 열세
-- ES 빠른 학습(4×24×seeds3@2500틱) 1회 수행 → 팀/가중치 갱신, 추가 장기 학습 필요
+- 모방학습 20경기×2200틱×5epoch 수행 → 팀/가중치 갱신
+- 다음 단계: ES 장기 튜닝으로 reference 초과 목표
 
 참고
 - 결과물은 result/ai_dnn_team.txt, 가중치는 result/ai_dnn_weights.json에 저장. tank_battle_platform.html에서 Import 가능.
-- 현재 성능은 reference-ai 대비 열세. 장시간 ES 학습 반복 권장.
 - 빠른 비교: `node simulator/cli.js --red result/ai_dnn_team.txt --blue result/reference-ai.txt --repeat 60 --fast --concurrency 8 --maxTicks 3500`
 
 다음 실행 제안(성능 개선 루프)
