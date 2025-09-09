@@ -37,10 +37,10 @@
 
 AI 팀 코드 산출물
 - result-ai.txt: tank_battle_platform.html에서 import 가능한 팀 코드(6 로봇).
-  - Ares-Edge(AetherNet-M): DNN(64→32→16→8, tanh) + 경량 전술 벡터 합성(탐색 없음, 빠름).
-  - 입력 64차: self + 적 top3 + 아군 top2 + 적탄 top4 + 집계. 출력 8차: moveVec(2), fireVec(2), 게이팅(toward/away/orbit) 등.
-  - 사격: 리드샷(속도 추정) + DNN 보정 + 소량 지터. 이동: 탄 회피/벽 반발/아군 간격 + 목표 접근·이탈·궤도 벡터 합성.
-  - 역할: TANKER×2, NORMAL×2, DEALER×2.
+  - Helios-Edge(AegisNet-L): DNN(64→32→16→8, tanh) + 경량 전술 합성. 모든 update 입력 파라미터 활용.
+  - 입력 64차: self + 적 top3 + 아군 top2 + 적탄 top4 + 집계. 출력 8차: moveVec(2), fireVec(2), 게이팅(toward/away/CW/CCW).
+  - 사격: 리드샷(속도 추정) + DNN 보정 각 + 소량 지터. 이동: 탄 회피(TTC/측면), 벽 반발, 아군 간격, 목표 접근/이탈/궤도 벡터 합성.
+  - 역할: TANKER×2(앵커), DEALER×2(카이팅), NORMAL×2(측면).
 
 비고
 - tank_battle_platform.html은 수정하지 않음. 브라우저 렌더링 이펙트만 제외하고 로직은 동일.
@@ -114,3 +114,10 @@ AI 팀 코드 산출물
 - 사용자 요청: 시뮬레이터 구현 및 효율화 확인 → 기존 simulator/*로 충족됨 재확인.
 - 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
 - 빠른 실행 예: `node simulator/cli.js --repeat 10 --concurrency 4 --fast --json result.json`
+
+이번 실행(Helios-Edge 반영)
+- result-ai.txt를 Helios-Edge(AegisNet-L)로 전면 재작성: 경량 DNN(64→32→16→8) + 휴리스틱 합성, 방향 탐색 제거로 성능·속도 균형.
+- 평가 권장:
+  · 빠른 근사: `node scripts/quick_evaluate_and_update.js` (MAX_TICKS=400, REPEAT=12, CONCURRENCY=4)
+  · 정밀 비교: `node simulator/cli.js --red result-ai.txt --blue reference-ai.txt --repeat 16 --concurrency 8 --fast --maxTicks 2000 --json result.json`
+- 갱신 기준: scripts/*의 로직 동일(우세 시 reference-ai.txt 자동 복사). 변경 파일 발생 시 즉시 커밋 필요.
