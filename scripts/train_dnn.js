@@ -1,138 +1,162 @@
-#!/usr/bin/env node
-/* eslint-disable no-console */
-// 간단한 진화탐색 기반 DNN 정책 최적화 스크립트
-// - simulator/engine과 bot_loader를 직접 호출하여 빠르게 평가
-// - 목표: result/reference-ai.txt 상대로 높은 승률/에너지 우위를 갖는 가중치 탐색
+/*
+  DNN 학습 스크립트 (NES/ARS 스타일)
+  - simulator 엔진을 직접 호출하여 빠르게 반복 평가
+  - 목표: reference-ai.txt를 상대로 안정적 우위 확보
+  - 결과물: result/dnn-ai-weights.json, result/dnn-ai.txt
 
+  사용법 예시
+    DNN_ITERS=60 DNN_POP=16 DNN_SEEDS=3 node scripts/train_dnn.js
+*/
+
+/* eslint-disable no-console */
 const fs = require('fs');
 const path = require('path');
 const { runMatch } = require('../simulator/engine');
 const { compileTeamFromCode } = require('../simulator/bot_loader');
 const { buildTeamCode } = require('../ai/dnn_codegen');
 
-// 네트워크 아키텍처(업데이트 코드와 일치)
-const EN_K = 3, AL_K = 2, BL_K = 3;
-const inDim = 8 + EN_K*4 + AL_K*4 + BL_K*5; // self(8) + enemy(3*4) + ally(2*4) + bullets(3*5)
-const arch = { inDim, h1: 24, h2: 16, outDim: 5 };
+// 고정 아키텍처 (HTML/시뮬레이터 입력 특징 설계와 동기화)
+const ARCH = { inDim: 43, h1: 24, h2: 16, outDim: 5 };
 
-function weightCount(a){ return a.inDim*a.h1 + a.h1 + a.h1*a.h2 + a.h2 + a.h2*a.outDim + a.outDim; }
-const WN = weightCount(arch);
+function weightCount(a) {
+  return a.h1 * a.inDim + a.h1 + a.h2 * a.h1 + a.h2 + a.outDim * a.h2 + a.outDim;
+}
 
-function randn(rng){
+function zeros(n) { return new Float64Array(n); }
+function randn() {
   // Box-Muller
-  let u=0, v=0; while(u===0) u=rng(); while(v===0) v=rng();
-  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
-function makeRng(seed) {
-  // xorshift32 기반 결정적 난수
-  let s = seed >>> 0;
-  return function() {
-    s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s >>>= 0;
-    return (s % 0x100000000) / 0x100000000;
-  };
+function add(a, b, out) {
+  const n = a.length; const o = out || new Float64Array(n);
+  for (let i = 0; i < n; i++) o[i] = a[i] + b[i];
+  return o;
+}
+function sub(a, b, out) {
+  const n = a.length; const o = out || new Float64Array(n);
+  for (let i = 0; i < n; i++) o[i] = a[i] - b[i];
+  return o;
+}
+function scal(s, a, out) {
+  const n = a.length; const o = out || new Float64Array(n);
+  for (let i = 0; i < n; i++) o[i] = s * a[i];
+  return o;
 }
 
-function initWeights(rng) {
-  // Xavier/Glorot-like 초기화
-  const w = new Float64Array(WN);
-  let idx = 0;
-  function fill(n, scale) { for (let i=0;i<n;i++) w[idx++] = randn(rng)*scale; }
-  const s1 = Math.sqrt(2/(arch.inDim+arch.h1));
-  fill(arch.inDim*arch.h1, s1); fill(arch.h1, 0.0);
-  const s2 = Math.sqrt(2/(arch.h1+arch.h2));
-  fill(arch.h1*arch.h2, s2); fill(arch.h2, 0.0);
-  const s3 = Math.sqrt(2/(arch.h2+arch.outDim));
-  fill(arch.h2*arch.outDim, s3); fill(arch.outDim, 0.0);
-  return w;
-}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-function mutate(base, rng, sigma) {
-  const out = new Float64Array(base.length);
-  for (let i=0;i<base.length;i++) out[i] = base[i] + randn(rng)*sigma;
-  return out;
-}
-
-function evaluate(weights, refCode, seeds, opts={}) {
-  const teamCode = buildTeamCode(weights, arch);
+// 평가: 가중치 -> 팀 코드 생성 -> reference-ai와 대결 -> 점수
+function evaluate(weights, seeds, opts = {}) {
+  const arch = opts.arch || ARCH;
+  const teamCode = buildTeamCode(Array.from(weights), arch);
+  const refCode = fs.readFileSync(path.resolve('result/reference-ai.txt'), 'utf8');
   const red = compileTeamFromCode(teamCode, 'red', 'secure');
-  const blueRef = compileTeamFromCode(refCode, 'blue', 'secure');
-  const redRef = compileTeamFromCode(refCode, 'red', 'secure');
-  const blue = compileTeamFromCode(teamCode, 'blue', 'secure');
+  const blue = compileTeamFromCode(refCode, 'blue', 'secure');
+  const players = [...red, ...blue];
 
-  let score = 0; // win:+1, draw:0, lose:-1
-  let eneSum = 0; // 에너지 차(정규화)
-  let wins = 0, losses = 0, draws = 0;
-
+  let scoreSum = 0;
+  let wins = 0;
   for (const s of seeds) {
-    // 우리=red vs ref=blue
-    let r1 = runMatch([...red, ...blueRef], { seed: s, maxTicks: opts.maxTicks||3000, fast: true });
-    if (r1.winner === 'red') { score += 1; wins++; }
-    else if (r1.winner === 'blue') { score -= 1; losses++; }
-    else draws++;
-    eneSum += (r1.stats.redEnergy - r1.stats.blueEnergy) / 1000; // 스케일링
-
-    // ref=red vs 우리=blue (사이드 스왑)
-    let r2 = runMatch([...redRef, ...blue], { seed: s+12345, maxTicks: opts.maxTicks||3000, fast: true });
-    if (r2.winner === 'blue') { score += 1; wins++; }
-    else if (r2.winner === 'red') { score -= 1; losses++; }
-    else draws++;
-    eneSum += (r2.stats.blueEnergy - r2.stats.redEnergy) / 1000;
+    const r = runMatch(players, { seed: s, maxTicks: opts.maxTicks || 3500, fast: true });
+    // 보상: 승/패 + 에너지 차 가중합
+    const energyDiff = (r.stats.redEnergy - r.stats.blueEnergy);
+    const aliveDiff = (r.stats.redAlive - r.stats.blueAlive);
+    const winTerm = (r.winner === 'red') ? 1000 : (r.winner === 'blue') ? -1000 : 0;
+    const sc = winTerm + 0.5 * aliveDiff + 0.02 * energyDiff - 0.001 * r.ticks; // 빠른 승리 선호
+    scoreSum += sc;
+    if (r.winner === 'red') wins += 1;
   }
-
-  const fitness = score + eneSum*0.1; // 에너지 우위는 보조지표
-  return { fitness, wins, losses, draws, code: teamCode };
+  return { score: scoreSum / seeds.length, wins };
 }
 
-async function main(){
-  const outPath = path.resolve(__dirname, '..', 'result', 'dnn-ai.txt');
-  const refPath = path.resolve(__dirname, '..', 'result', 'reference-ai.txt');
-  const refCode = fs.readFileSync(refPath, 'utf8');
-  // 보조 상대: 기본 예시 팀
-  const basePath = path.resolve(__dirname, '..', 'simulator', 'ai', 'default_team.js');
-  const baseCode = fs.readFileSync(basePath, 'utf8');
+function saveResult(weights, arch, meta = {}) {
+  const outDir = path.resolve('result');
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+  const payload = { arch, weights: Array.from(weights), meta };
+  fs.writeFileSync(path.join(outDir, 'dnn-ai-weights.json'), JSON.stringify(payload));
+  const code = buildTeamCode(Array.from(weights), arch);
+  fs.writeFileSync(path.join(outDir, 'dnn-ai.txt'), code);
+}
 
-  // 탐색 설정
-  const seedBase = parseInt(process.env.DNN_SEEDBASE || '20250909', 10);
-  const nSeeds = Math.max(1, parseInt(process.env.DNN_SEEDS || '6', 10));
-  const seeds = Array.from({length: nSeeds}, (_,i)=> seedBase + i*97);
-  const rng = makeRng(seedBase);
-
-  let bestW = initWeights(rng);
-  // 혼합 평가: 참조 상대 + 기본 상대를 교대로 사용
-  function evalMixed(w){
-    const A = evaluate(w, refCode, seeds, { maxTicks: parseInt(process.env.DNN_TICKS || '3000', 10) });
-    const B = evaluate(w, baseCode, seeds, { maxTicks: parseInt(process.env.DNN_TICKS || '3000', 10) });
-    // reference 성능에 가중치 2배
-    return { fitness: A.fitness*2 + B.fitness, A, B, code: A.code };
-  }
-  let best = evalMixed(bestW);
-  console.log(`[init] fitness=${best.fitness.toFixed(3)} [ref=${best.A.fitness.toFixed(2)} base=${best.B.fitness.toFixed(2)}]`);
-
-  let sigma = parseFloat(process.env.DNN_SIGMA || '0.6');
+async function main() {
+  // 하이퍼파라미터
+  const N = weightCount(ARCH);
   const iters = parseInt(process.env.DNN_ITERS || '60', 10);
-  for (let t=1;t<=iters;t++){
-    const candW = mutate(bestW, rng, sigma);
-    const cand = evalMixed(candW);
-    const improved = cand.fitness > best.fitness;
-    if (improved) {
-      best = cand; bestW = candW;
-      sigma = Math.max(0.15, sigma*0.98); // 점진적 수렴
-      console.log(`[${t}] improved fitness=${best.fitness.toFixed(3)} [ref=${best.A.fitness.toFixed(2)} base=${best.B.fitness.toFixed(2)}] sigma=${sigma.toFixed(3)}`);
-    } else if (t % 10 === 0) {
-      console.log(`[${t}] keep fitness=${best.fitness.toFixed(3)} [ref=${best.A.fitness.toFixed(2)} base=${best.B.fitness.toFixed(2)}] (sigma=${sigma.toFixed(3)})`);
+  const pop = parseInt(process.env.DNN_POP || '16', 10); // antithetic pairs 수
+  const evalSeeds = parseInt(process.env.DNN_SEEDS || '3', 10);
+  const sigma = parseFloat(process.env.DNN_SIGMA || '0.35');
+  const alpha = parseFloat(process.env.DNN_LR || '0.15');
+  const maxTicks = parseInt(process.env.DNN_MAXTICKS || '3500', 10);
+  const baseSeed = parseInt(process.env.DNN_BASESEED || `${Math.floor(Math.random()*1e9)}`, 10);
+
+  // 초기 평균 가중치: 0 근방 랜덤 편차(바이어스가 모두 0이면 행동이 무기력할 수 있으므로 소량 랜덤)
+  let m = zeros(N);
+  for (let i = 0; i < N; i++) m[i] = 0.05 * randn();
+
+  // 추적
+  let bestW = m.slice(0);
+  let bestScore = -Infinity;
+
+  console.log(`[INIT] dims=${N}, iters=${iters}, pop=${pop}, seeds=${evalSeeds}, sigma=${sigma}, lr=${alpha}`);
+
+  for (let t = 0; t < iters; t++) {
+    // 샘플 생성 (antithetic)
+    const epsList = [];
+    for (let k = 0; k < pop; k++) {
+      const e = zeros(N);
+      for (let i = 0; i < N; i++) e[i] = randn();
+      epsList.push(e);
+    }
+
+    // 시드 구성 다양화
+    const seeds = Array.from({ length: evalSeeds }, (_, i) => baseSeed + t * 1000 + i);
+
+    // 후보 평가
+    const results = [];
+    let grad = zeros(N);
+    for (let k = 0; k < pop; k++) {
+      const e = epsList[k];
+      const wp = add(m, scal(sigma, e));
+      const wm = sub(m, scal(sigma, e));
+      const sp = evaluate(wp, seeds, { arch: ARCH, maxTicks });
+      const sm = evaluate(wm, seeds, { arch: ARCH, maxTicks });
+      const diff = sp.score - sm.score;
+      // 누적 그라디언트(표준화는 간단히 편차 기반 가중)
+      for (let i = 0; i < N; i++) grad[i] += diff * e[i];
+      results.push({ k, sp: sp.score, sm: sm.score, diff });
+    }
+
+    // 스케일 정규화
+    let diffMean = results.reduce((s, r) => s + r.diff, 0) / results.length;
+    let diffStd = Math.sqrt(results.reduce((s, r) => s + (r.diff - diffMean) ** 2, 0) / Math.max(1, results.length - 1)) || 1;
+    const scale = alpha / (pop * sigma * diffStd);
+    m = add(m, scal(scale, grad));
+
+    // 현재 평균 가중치 성능 평가 및 베스트 갱신
+    const cur = evaluate(m, seeds, { arch: ARCH, maxTicks });
+    if (cur.score > bestScore) {
+      bestScore = cur.score; bestW = m.slice(0);
+    }
+
+    console.log(`[${t+1}/${iters}] meanScore=${cur.score.toFixed(2)} (wins:${cur.wins}/${evalSeeds}) best=${bestScore.toFixed(2)} diffStd=${diffStd.toFixed(3)}`);
+
+    // 중간 저장(진행 상황 보존)
+    if ((t + 1) % 5 === 0 || t === iters - 1) {
+      saveResult(bestW, ARCH, { iter: t + 1, pop, evalSeeds, sigma, alpha, baseSeed, maxTicks });
+      console.log(`  -> Saved interim to result/dnn-ai-*. (iter=${t+1})`);
     }
   }
 
-  // 최종 코드 저장
-  fs.writeFileSync(outPath, best.code, 'utf8');
-  // 가중치 백업도 저장
-  const wJson = path.resolve(__dirname, '..', 'result', 'dnn-ai-weights.json');
-  fs.writeFileSync(wJson, JSON.stringify({ arch, WN, weights: Array.from(bestW) }), 'utf8');
-  console.log(`Saved team code -> ${outPath}`);
-  console.log(`Saved weights   -> ${wJson}`);
+  // 최종 저장
+  saveResult(bestW, ARCH, { iter: iters, pop, evalSeeds, sigma, alpha, baseSeed, maxTicks, final: true });
+  console.log('Done. Saved final weights/code to result/.');
 }
 
 if (require.main === module) {
-  main().catch((e)=>{ console.error(e); process.exit(1); });
+  main().catch((e) => { console.error(e); process.exit(1); });
 }
+
