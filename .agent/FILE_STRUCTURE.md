@@ -54,11 +54,13 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 시뮬레이터: actionHook 추가로 AI의 move/fire 시도를 수집 가능(모방학습용). 기존 로직 영향 없음.
-- 학습기: CEM 평가 병렬화(--concurrency) + 모방학습(Adam) 파이프라인 추가. 빠른 초기화 후 CEM으로 미세튜닝 가능.
-- 코드 생성기: DNN fire 확률 게이팅(>0.5일 때 fire) 적용. HTML 미변경.
-- 최적화기: ES(OpenAI-ES) 스크립트 추가. Mirrored sampling으로 분산 감소 및 빠른 업데이트.
-- 버그 수정: imitation_train.js의 출력 차원(out)을 5→9로 수정하여 정책 생성기(genMLPCode)의 9차원 출력과 일치시킴.
+- 시뮬레이터: actionHook으로 move/fire 기록 기능 확인(모방학습용). 엔진 로직 변경 없음.
+- DNN 팀 코드/가중치 생성 파이프라인 확정: result/ai_dnn_team.txt, ai_dnn_weights.json 산출.
+- 빠른 ES 튜닝 수행: pop 20, seeds 2, 1 iter로 초기 튜닝 후 저장/커밋.
+- CEM 소규모 튜닝: pop 20, elite 4, 2 iters 수행 후 저장/커밋.
+- 모방학습 초기화: reference-ai 행동 8매치×4epoch 지도학습으로 초기 가중치 생성 후 저장/커밋.
+- 추가 ES 튜닝: pop 30 기반 3iters 분할 실행(2+1) 후 저장/커밋.
+- 현 평가(예시): 20 seeds, 2800 ticks에서 Draw 다수(레드 에너지 평균 330~560, 블루 640). 더 긴 학습 필요.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
