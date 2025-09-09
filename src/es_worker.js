@@ -7,7 +7,7 @@ function evaluate(weights, cfg){
   const { seeds, maxTicks, runner, fast } = cfg;
   const inputSize = 8 + (4*5) + (3*5) + (5*6) + 3; // 76
   const hidden = [64,64];
-  const outputSize = 5;
+  const outputSize = 9;
   const code = genMLPCode({ inputSize, hiddenSizes: hidden, outputSize, weights: Float64Array.from(weights) });
   const refCode = require('fs').readFileSync(require('path').resolve('result/reference-ai.txt'),'utf8');
   const red = compileTeamFromCode(code, 'red', runner);

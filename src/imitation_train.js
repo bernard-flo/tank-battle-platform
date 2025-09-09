@@ -103,26 +103,34 @@ function createMLP(input, h1, h2, out){
       for(let j=0;j<h2_;j++) s += W3[i*h2_+j]*a2[j];
       o[i]=s;
     }
-    // post
-    const mvx = tanh(o[0]);
-    const mvy = tanh(o[1]);
-    const fx  = tanh(o[2]);
-    const fy  = tanh(o[3]);
-    const fp  = sigmoid(o[4]);
-    return { h1, a1, h2, a2, o, mvx, mvy, fx, fy, fp };
+    // post (9 outputs)
+    const mv1x = tanh(o[0]);
+    const mv1y = tanh(o[1]);
+    const mv2x = tanh(o[2]);
+    const mv2y = tanh(o[3]);
+    const fx   = tanh(o[4]);
+    const fy   = tanh(o[5]);
+    const fp   = sigmoid(o[6]);
+    const mv3x = tanh(o[7]);
+    const mv3y = tanh(o[8]);
+    return { h1, a1, h2, a2, o, mv1x, mv1y, mv2x, mv2y, mv3x, mv3y, fx, fy, fp };
   }
 
   function backward(x, cache, target){
-    // target = { mvx, mvy, fire:0/1, fx, fy }
-    const { h1, a1, h2, a2, o, mvx, mvy, fx, fy, fp } = cache;
-    const { mvx:tmx, mvy:tmy, fire:tf, fx:tfx, fy:tfy } = target;
+    // target = { mv1x,mv1y, mv2x,mv2y, fire:0/1, fx, fy, mv3x,mv3y }
+    const { h1, a1, h2, a2, o, mv1x, mv1y, mv2x, mv2y, mv3x, mv3y, fx, fy, fp } = cache;
+    const { mv1x:tm1x, mv1y:tm1y, mv2x:tm2x, mv2y:tm2y, mv3x:tm3x, mv3y:tm3y, fire:tf, fx:tfx, fy:tfy } = target;
     // losses
-    const dmvx = 2*(mvx - tmx) * d_tanh(mvx); // dL/do0
-    const dmvy = 2*(mvy - tmy) * d_tanh(mvy); // dL/do1
-    const df_x = tf>0.5 ? 2*(fx - tfx) * d_tanh(fx) : 0; // dL/do2
-    const df_y = tf>0.5 ? 2*(fy - tfy) * d_tanh(fy) : 0; // dL/do3
-    const df_p = (fp - tf); // BCE derivative when using sigmoid + CE
-    const dO = [dmvx, dmvy, df_x, df_y, df_p];
+    const dmv1x = 2*(mv1x - tm1x) * d_tanh(mv1x);
+    const dmv1y = 2*(mv1y - tm1y) * d_tanh(mv1y);
+    const dmv2x = 2*(mv2x - tm2x) * d_tanh(mv2x);
+    const dmv2y = 2*(mv2y - tm2y) * d_tanh(mv2y);
+    const df_x  = tf>0.5 ? 2*(fx - tfx) * d_tanh(fx) : 0;
+    const df_y  = tf>0.5 ? 2*(fy - tfy) * d_tanh(fy) : 0;
+    const df_p  = (fp - tf);
+    const dmv3x = 2*(mv3x - tm3x) * d_tanh(mv3x);
+    const dmv3y = 2*(mv3y - tm3y) * d_tanh(mv3y);
+    const dO = [dmv1x, dmv1y, dmv2x, dmv2y, df_x, df_y, df_p, dmv3x, dmv3y];
 
     // dW3, dB3
     const gW3 = new Array(W3.length).fill(0);
@@ -217,10 +225,12 @@ async function main(){
         if(!a) continue; // 행동이 없으면 스킵
         const x = buildFeatures(tank, engine);
         const chosenMove = (a.moveOk!=null ? a.moveOk : a.moveAttempt);
-        const [mvx, mvy] = chosenMove!=null ? toAngles(chosenMove) : [0,0];
+        const [mv1x, mv1y] = a.moveAttempt!=null ? toAngles(a.moveAttempt) : [0,0];
+        const [mv2x, mv2y] = chosenMove!=null ? toAngles(chosenMove) : [0,0];
+        const [mv3x, mv3y] = [0,0];
         const fired = a.fire!=null ? 1 : 0;
         const [fx, fy] = a.fire!=null ? toAngles(a.fire) : [0,0];
-        samples.push({ x, mvx, mvy, fired, fx, fy });
+        samples.push({ x, mv1x, mv1y, mv2x, mv2y, mv3x, mv3y, fired, fx, fy });
       }
       const { redAlive, blueAlive } = engine.getTeamStats();
       if ((redAlive===0 && blueAlive>0) || (blueAlive===0 && redAlive>0)) break;
@@ -246,13 +256,15 @@ async function main(){
       for(let k=0;k<batchSize;k++){
         const s = samples[randInt(samples.length)]; if(!s) continue;
         const c = forward(s.x);
-        const tmvx = s.mvx, tmvy=s.mvy, tf=s.fired, tfx=s.fx, tfy=s.fy;
+        const tm1x=s.mv1x, tm1y=s.mv1y, tm2x=s.mv2x, tm2y=s.mv2y, tm3x=s.mv3x, tm3y=s.mv3y, tf=s.fired, tfx=s.fx, tfy=s.fy;
         // 손실 계산
-        const mvLoss = (c.mvx-tmvx)*(c.mvx-tmvx) + (c.mvy-tmvy)*(c.mvy-tmvy);
+        const mvLoss = (c.mv1x-tm1x)*(c.mv1x-tm1x) + (c.mv1y-tm1y)*(c.mv1y-tm1y)
+                     + (c.mv2x-tm2x)*(c.mv2x-tm2x) + (c.mv2y-tm2y)*(c.mv2y-tm2y)
+                     + (c.mv3x-tm3x)*(c.mv3x-tm3x) + (c.mv3y-tm3y)*(c.mv3y-tm3y);
         const fdirLoss = tf>0.5 ? (c.fx-tfx)*(c.fx-tfx) + (c.fy-tfy)*(c.fy-tfy) : 0;
         const p = c.fp, y=tf; const fprobLoss = -(y*Math.log(p+1e-9)+(1-y)*Math.log(1-p+1e-9));
         loss += mvLoss + fdirLoss + fprobLoss;
-        const g = backward(s.x, c, { mvx:tmvx, mvy:tmvy, fire:tf, fx:tfx, fy:tfy });
+        const g = backward(s.x, c, { mv1x:tm1x, mv1y:tm1y, mv2x:tm2x, mv2y:tm2y, mv3x:tm3x, mv3y:tm3y, fire:tf, fx:tfx, fy:tfy });
         // 누적
         for(let i=0;i<grads.gW1.length;i++) grads.gW1[i]+=g.gW1[i];
         for(let i=0;i<grads.gB1.length;i++) grads.gB1[i]+=g.gB1[i];
@@ -274,10 +286,10 @@ async function main(){
   // 코드/가중치 저장
   const weights = [];
   weights.push(...params.W1, ...params.B1, ...params.W2, ...params.B2, ...params.W3, ...params.B3);
-  const code = genMLPCode({ inputSize, hiddenSizes:[h1,h2], outputSize:5, weights: Float64Array.from(weights) });
+  const code = genMLPCode({ inputSize, hiddenSizes:[h1,h2], outputSize:9, weights: Float64Array.from(weights) });
   const outPath = path.resolve('result/ai_dnn_team.txt');
   fs.writeFileSync(outPath, code, 'utf8');
-  fs.writeFileSync(path.resolve('result/ai_dnn_weights.json'), JSON.stringify({ inputSize, hiddenSizes:[h1,h2], outputSize:5, weights: Array.from(weights) }), 'utf8');
+  fs.writeFileSync(path.resolve('result/ai_dnn_weights.json'), JSON.stringify({ inputSize, hiddenSizes:[h1,h2], outputSize:9, weights: Array.from(weights) }), 'utf8');
   console.log(`[save] ${outPath} 갱신 (imitation)`);
 }
 

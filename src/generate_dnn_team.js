@@ -15,7 +15,7 @@ function genMLPCode(config) {
   const {
     inputSize,
     hiddenSizes, // [h1, h2]
-    outputSize,  // 5: [move_x, move_y, fire_x, fire_y, fire_logit]
+    outputSize,  // 9: [mv1x,mv1y, mv2x,mv2y, fx,fy, fire_logit, mv3x,mv3y]
     weights,     // flat Float64Array
     typesOrder = [0, 2, 1, 2, 1, 2], // NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER
     playerNames = ['DNN-N1','DNN-D1','DNN-T1','DNN-D2','DNN-T2','DNN-D3'],
@@ -59,7 +59,7 @@ function genMLPCode(config) {
 const INPUT_SIZE = ${inputSize};
 const H1 = ${hiddenSizes[0]};
 const H2 = ${hiddenSizes[1]};
-const OUTPUT_SIZE = ${outputSize}; // [mvx, mvy, fx, fy, fire_logit]
+const OUTPUT_SIZE = ${outputSize}; // [mv1x,mv1y,mv2x,mv2y, fx,fy, fire_logit, mv3x,mv3y]
 
 ${arrays}
 
@@ -88,15 +88,21 @@ function mlpForward(x){
     out[i] = s;
   }
   // post-process
-  const mvx = tanh(out[0]);
-  const mvy = tanh(out[1]);
-  const fx  = tanh(out[2]);
-  const fy  = tanh(out[3]);
-  const fireP = sigmoid(out[4]);
+  const mv1x = tanh(out[0]);
+  const mv1y = tanh(out[1]);
+  const mv2x = tanh(out[2]);
+  const mv2y = tanh(out[3]);
+  const fx   = tanh(out[4]);
+  const fy   = tanh(out[5]);
+  const fireP = sigmoid(out[6]);
+  const mv3x = tanh(out[7]);
+  const mv3y = tanh(out[8]);
   // 각도 변환
-  const mvAngle = Math.atan2(mvy, mvx) * 180/Math.PI;
+  const mv1 = Math.atan2(mv1y, mv1x) * 180/Math.PI;
+  const mv2 = Math.atan2(mv2y, mv2x) * 180/Math.PI;
+  const mv3 = Math.atan2(mv3y, mv3x) * 180/Math.PI;
   const fireAngle = Math.atan2(fy, fx) * 180/Math.PI;
-  return { mvAngle, fireAngle, fireP };
+  return { mv1, mv2, mv3, fireAngle, fireP };
 }
 
 function norm(x, a, b){ return (x - a) / (b - a); }
@@ -186,7 +192,11 @@ function policyStep(tank, enemies, allies, bulletInfo){
   const out = mlpForward(feat);
   // 액션 적용: 순수 DNN 출력 기반
   if (out.fireP > 0.5) tank.fire(out.fireAngle);
-  tank.move(out.mvAngle);
+  if (!tank.move(out.mv1)) {
+    if (!tank.move(out.mv2)) {
+      tank.move(out.mv3);
+    }
+  }
 }
 `;
 

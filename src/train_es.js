@@ -62,7 +62,7 @@ function loadMean(dim){
 function saveTeam(weights){
   const inputSize = 8 + (4*5) + (3*5) + (5*6) + 3; // 76
   const hidden = [64,64];
-  const outputSize = 5;
+  const outputSize = 9;
   const code = genMLPCode({ inputSize, hiddenSizes: hidden, outputSize, weights });
   const outPath = path.resolve('result/ai_dnn_team.txt');
   fs.writeFileSync(outPath, code, 'utf8');
@@ -73,7 +73,7 @@ function saveTeam(weights){
 }
 
 function dimOfNet(){
-  const inputSize = 76, h1=64, h2=64, out=5;
+  const inputSize = 76, h1=64, h2=64, out=9;
   return inputSize*h1 + h1 + h1*h2 + h2 + h2*out + out;
 }
 
