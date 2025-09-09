@@ -3,8 +3,8 @@ const path = require('path');
 const { Type } = require('./engine');
 
 function splitRobotCodes(code) {
-  // Same as browser: split by function name()
-  const parts = String(code).split(/(?=function\s+name\s*\(\s*\))/);
+  // Split only when 'function name()' starts at a new line (ignore comments)
+  const parts = String(code).split(/(?=^\s*function\s+name\s*\(\s*\))/m);
   const robots = [];
   for (const part of parts) {
     const trimmed = part.trim();
@@ -86,4 +86,3 @@ module.exports = {
   compileTeamsFromFiles,
   defaultCode,
 };
-
