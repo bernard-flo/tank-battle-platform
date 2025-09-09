@@ -59,7 +59,8 @@ AI 팀 코드 산출물
 이번 실행(Nemesis-4 반영)
 - result-ai.txt를 Nemesis-4(AegisNet-X)로 전면 교체: 64→48→24→6 MLP, 리드샷/탄 회피(TTC)/집중사격/벽 반발/아군 간격/카이팅.
 - 6 로봇 구성: TANKER×2, DEALER×3, NORMAL×1.
-- 다음 단계: `node scripts/evaluate_and_update.js`로 reference-ai.txt 대비 성능 비교 및 자동 갱신 시도.
+- 평가 결과: `REPEAT=120` 기준 승률 87.5% (레드 105 / 블루 15 / 무 0), 평균 생존/에너지 우세.
+- 조치: reference-ai.txt 자동 갱신 완료(난이도 상향).
 
 이번 실행 업데이트
 - 시뮬레이터 동작 재검증: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5` 실행.
