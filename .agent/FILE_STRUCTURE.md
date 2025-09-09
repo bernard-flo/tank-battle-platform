@@ -54,9 +54,9 @@
   - result/dnn-ai-weights.json: ARCH/가중치/메타.
 
 검증(이번 실행)
-- 재검증 배치: `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 50 --concurrency 4 --fast --runner fast`
-  - 결과: 50전 50승(무패), AvgTicks ≈ 758, BlueAlive=0, BlueEnergy=0.
-- 회귀 방지: `scripts/train_dnn.js`는 초기 베이스라인 점수를 기록하고, 그 이하로 떨어지면 저장하지 않도록 구현됨(보호장치 유지).
+- 재검증 배치: `node simulator/cli.js --red result/dnn-ai.txt --blue result/reference-ai.txt --repeat 50 --concurrency 6 --fast --runner fast`
+  - 결과(이번 실행): 50전 50승(무패), AvgTicks ≈ 758, BlueAlive=0, BlueEnergy=0.
+- 회귀 방지: `scripts/train_dnn.js`는 초기 베이스라인 점수를 기록하고, 그 이하로 떨어지면 저장하지 않도록 구현됨(보호장치 유지). 이번 실행에서 6 iter 튜닝 시도(개선 없음) 후 기존 베이스라인 유지.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
