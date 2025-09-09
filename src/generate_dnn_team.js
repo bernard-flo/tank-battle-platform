@@ -190,8 +190,8 @@ function buildFeatures(tank, enemies, allies, bulletInfo){
 function policyStep(tank, enemies, allies, bulletInfo){
   const feat = buildFeatures(tank, enemies, allies, bulletInfo);
   const out = mlpForward(feat);
-  // 액션 적용: 순수 DNN 출력 기반
-  if (out.fireP > 0.5) tank.fire(out.fireAngle);
+  // 액션 적용: 순수 DNN 출력 기반 (게이팅 없이 항상 사격 시도; 쿨다운은 엔진이 처리)
+  tank.fire(out.fireAngle);
   if (!tank.move(out.mv1)) {
     if (!tank.move(out.mv2)) {
       tank.move(out.mv3);
