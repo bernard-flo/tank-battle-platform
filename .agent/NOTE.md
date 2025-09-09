@@ -92,3 +92,7 @@
 - 방금 단일 경기/리플레이 저장 재검증: `node simulator/cli.js --repeat 1 --seed 7 --json result.json --replay replay.json --recordEvery 5`
   → BLUE 승, 약 636틱. 시뮬레이터/JSON/리플레이 정상.
 - 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
+
+추가 메모(병렬화)
+- 반복 시뮬레이션 성능 향상을 위해 --concurrency N 도입. 내부적으로 worker_threads 사용, 시드를 균등 분할.
+- --replay는 단일 경기에서만 지원하므로 병렬 경로와 동시 사용 불가. 배치 통계 산출에 집중.

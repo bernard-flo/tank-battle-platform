@@ -22,9 +22,10 @@
     · secure: process/require/global 비공개, 호스트 탈출 위험 억제.
     · fast: 성능 위주, 내부 테스트에 한정 권장.
 - simulator/cli.js: 커맨드라인 인터페이스.
-  - 인자: --red, --blue, --maxTicks, --seed, --repeat, --json.
-  - 추가 인자: --replay replay.json, --recordEvery N (리플레이 저장/프레임 간격), --fast(고속 모드).
-  - 단일/배치 결과 요약 출력 및 JSON 저장 지원.
+  - 인자: --red, --blue, --maxTicks, --seed, --repeat, --json, --replay, --recordEvery, --runner secure|fast, --fast, --concurrency N.
+  - 단일/배치 결과 요약 출력 및 JSON 저장 지원. --replay는 단일 경기에서만 지원.
+  - --concurrency N: 반복 실행 시 병렬 처리(worker_threads) 사용.
+- simulator/worker.js: 배치 시뮬 병렬 실행용 워커(worker_threads). 시드 청크를 입력받아 일괄 처리 후 요약 반환.
 - simulator/ai/default_team.js: 예시 6로봇 코드(HTML 기본 예제와 동일 로직).
 - simulator/README.md: 사용법/규칙 매핑/배치 실행 예시.
  - scripts/simulate.sh: 시뮬레이터 실행용 래퍼 스크립트(옵션 그대로 전달).
@@ -36,9 +37,8 @@
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 샌드박스 강화 및 런너 모드 추가: 기본 secure(vm) 런너 도입, `--runner secure|fast` 제공.
-- CLI/README 갱신: 런너 선택 문서화. tank_battle_platform.html 미변경 유지.
-- 분할 정규식 동기화: bot_loader.js의 로봇 코드 분리 로직을 HTML 구현과 동일(/(?=function\s+name\s*\(\s*\))/)로 수정.
+- 병렬 실행 추가: --concurrency N 옵션과 simulator/worker.js 도입으로 반복 경기 병렬 처리 지원.
+- README와 집계 JSON에 concurrency 항목 추가. 기존 규칙/로직 유지, HTML 미변경.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
