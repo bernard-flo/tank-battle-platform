@@ -43,6 +43,7 @@ async function main() {
   const repeat = args.repeat ? parseInt(args.repeat, 10) : 1;
   const replayOut = args.replay; // when set, record replay frames
   const recordEvery = args.recordEvery ? parseInt(args.recordEvery, 10) : 1;
+  const fast = !!args.fast;
 
   const redCode = readOrDefault(redFile, 'red');
   const blueCode = readOrDefault(blueFile, 'blue');
@@ -67,7 +68,7 @@ async function main() {
   for (let i = 0; i < repeat; i++) {
     const s = typeof baseSeed === 'number' ? baseSeed + i : `${baseSeed}-${i}`;
     const wantReplay = !!replayOut && repeat === 1; // only supported for single run
-    const result = runMatch(players, { seed: s, maxTicks, record: wantReplay, recordEvery });
+    const result = runMatch(players, { seed: s, maxTicks, record: wantReplay, recordEvery, fast });
     if (wantReplay && result.replay) lastReplay = result.replay;
     const summary = {
       seed: s,
