@@ -47,12 +47,13 @@
 - 코드 변경 없음. 시뮬레이터/CLI/샌드박스 동작 이상 없음.
 
 이번 실행(요약)
-- 헤드리스 시뮬레이터 재검증: 단일 경기/리플레이 저장 성공. HTML 규칙과 일치 확인.
+- 요구된 시뮬레이터 구현 상태 확인: 엔진 규칙/샌드박스/CLI/리플레이/배치 실행 모두 정상.
 - 코드 변경 없음(문서만 갱신). tank_battle_platform.html 미변경.
 
 다음 실행 제안(TODO)
 - 초고속 모드(객체 풀링/TypedArray) 프로토타입 추가 검토: bullets/tanks를 구조적 공유버퍼로 관리해 GC 압력 저감.
 - 간단 단위테스트 추가: 이동 충돌, 아군 관통, 쿨다운 타이밍, 초기 배치 좌표.
+ - HTML 리플레이 뷰어(간이 페이지) 추가 검토: `replay.json` 시각화로 디버깅 편의성 향상.
 
 참고 명령어
 - 단일 경기 + 리플레이: `node simulator/cli.js --red simulator/ai/default_team.js --blue simulator/ai/default_team.js --seed 7 --replay replay.json --recordEvery 5 --fast`

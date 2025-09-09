@@ -33,8 +33,9 @@
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 헤드리스 시뮬레이터 동작 검증 완료: `node simulator/cli.js --repeat 1 --seed 123 --fast --json result.json --replay replay.json --recordEvery 5` 실행으로 요약/JSON/리플레이 생성 확인.
-- 코드 변경 없이 문서 최신화만 수행.
+- 요청 사항에 따라 시뮬레이터 구현 현황 재점검: HTML 규칙과 동기화된 엔진/샌드박스/CLI 이미 준비됨.
+- 빠른 배치 시뮬레이션을 위한 `--fast`, 리플레이 기록 `--replay`, JSON 결과 `--json` 옵션 확인.
+- 코드 변경 없음(문서 최신화만 진행). tank_battle_platform.html 미변경 유지.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
