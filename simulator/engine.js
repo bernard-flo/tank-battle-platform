@@ -120,6 +120,7 @@ class Engine {
     this.bullets = [];
     this.logs = [];
     this.random = createRng(opts.seed);
+    this.fast = !!opts.fast; // fast 모드: Object.freeze 생략 등으로 성능 최적화
     
     // Recording (replay) options
     this.record = !!opts.record;
@@ -154,10 +155,11 @@ class Engine {
     tank.resetMoveFlag();
 
     // Secure data snapshots
+    const freezer = this.fast ? (x) => x : Object.freeze;
     const enemies = this.tanks
       .filter((t) => t.team !== tank.team && t.alive)
       .map((t) =>
-        Object.freeze({
+        freezer({
           x: t.x,
           y: t.y,
           distance: Math.hypot(t.x - tank.x, t.y - tank.y),
@@ -168,17 +170,17 @@ class Engine {
     const allies = this.tanks
       .filter((t) => t.team === tank.team && t.alive && t.id !== tank.id)
       .map((t) =>
-        Object.freeze({ x: t.x, y: t.y, distance: Math.hypot(t.x - tank.x, t.y - tank.y), health: t.health })
+        freezer({ x: t.x, y: t.y, distance: Math.hypot(t.x - tank.x, t.y - tank.y), health: t.health })
       );
     const bulletInfo = this.bullets
       .filter((b) => b.team !== tank.team)
       .map((b) =>
-        Object.freeze({ x: b.x, y: b.y, vx: b.vx, vy: b.vy, distance: Math.hypot(b.x - tank.x, b.y - tank.y) })
+        freezer({ x: b.x, y: b.y, vx: b.vx, vy: b.vy, distance: Math.hypot(b.x - tank.x, b.y - tank.y) })
       );
 
-    const tankAPI = Object.freeze({
-      move: Object.freeze((angle) => tank.move(angle)),
-      fire: Object.freeze((angle) => tank.fire(angle, this.timeMs)),
+    const tankAPI = freezer({
+      move: freezer((angle) => tank.move(angle)),
+      fire: freezer((angle) => tank.fire(angle, this.timeMs)),
       x: tank.x,
       y: tank.y,
       health: tank.health,
@@ -190,7 +192,7 @@ class Engine {
     try {
       // The runner is a precompiled function like the browser's secure Function
       if (typeof tank._runner === 'function') {
-        tank._runner(tankAPI, Object.freeze(enemies), Object.freeze(allies), Object.freeze(bulletInfo));
+        tank._runner(tankAPI, freezer(enemies), freezer(allies), freezer(bulletInfo));
       }
     } catch (err) {
       // Ignore user errors to keep simulation running
