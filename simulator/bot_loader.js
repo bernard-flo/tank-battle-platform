@@ -20,8 +20,13 @@ function splitRobotCodes(code) {
 
 function extractNameType(code, fallbackName) {
   try {
-    const fn = new Function(`${code}\nreturn { name: name(), type: (typeof type === 'function' ? type() : ${Type.NORMAL}) };`);
-    const result = fn();
+    // HTML에서는 전역 Type이 존재하므로 type()에서 Type.NORMAL 등을 사용할 수 있다.
+    // Node 환경에서도 동일 동작을 위해 Type을 인자로 주입한다.
+    const fn = new Function(
+      'Type',
+      `${code}\nreturn { name: name(), type: (typeof type === 'function' ? type() : ${Type.NORMAL}) };`
+    );
+    const result = fn(Type);
     const name = result && result.name ? String(result.name) : fallbackName;
     const type = result && Number.isFinite(result.type) ? result.type : Type.NORMAL;
     return { name, type };
