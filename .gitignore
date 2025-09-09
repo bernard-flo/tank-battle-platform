@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # Editors
 .idea/
+
+# Simulator outputs
+result*.json
