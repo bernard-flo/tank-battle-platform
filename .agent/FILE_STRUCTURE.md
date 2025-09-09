@@ -55,7 +55,7 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(이번 실행)
-- 현재 DNN 팀(result/ai_dnn_team.txt) vs reference 40시드 평가: W:40 L:0 D:0 (maxTicks=3200, fast 실행). 평균 tick≈761, 평균 RedE≈54, BlueE≈0.
+- 현재 DNN 팀(result/ai_dnn_team.txt) vs reference 60시드 평가: W:60 L:0 D:0 (start=3500, maxTicks=3400, fast). 평균 tick≈761, 평균 RedE≈54, BlueE≈0.
 - tank_battle_platform.html에서 Import 가능한 형식 유지 확인.
 - 문서 최신화(.agent/*).
 
