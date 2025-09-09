@@ -15,9 +15,11 @@
   - fast 모드: Object.freeze 생략 등으로 AI 데이터 래핑 비용 절감(--fast).
 - simulator/bot_loader.js: 팀 코드 로더/컴파일러.
   - 입력 텍스트에서 각 로봇을 'function name()' 기준으로 분할.
-  - name()/type() 추출 및 샌드박스 실행기(Function) 생성.
+  - name()/type() 추출 및 샌드박스 실행기 생성.
   - update(tank,enemies,allies,bulletInfo) 시그니처/제한 전역(window/document 등 차단) 준수.
-  - 샌드박스 강화: globalThis/global/process/require/module/Function/eval/setTimeout 등 Node 전역 접근 차단.
+  - 런너 모드 지원: secure(vm 샌드박스, 기본) | fast(new Function 기반).
+    · secure: process/require/global 비공개, 호스트 탈출 위험 억제.
+    · fast: 성능 위주, 내부 테스트에 한정 권장.
 - simulator/cli.js: 커맨드라인 인터페이스.
   - 인자: --red, --blue, --maxTicks, --seed, --repeat, --json.
   - 추가 인자: --replay replay.json, --recordEvery N (리플레이 저장/프레임 간격), --fast(고속 모드).
@@ -33,9 +35,8 @@
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 요청 사항에 따라 시뮬레이터 구현 현황 재점검: HTML 규칙과 동기화된 엔진/샌드박스/CLI 이미 준비됨.
-- 빠른 배치 시뮬레이션을 위한 `--fast`, 리플레이 기록 `--replay`, JSON 결과 `--json` 옵션 확인.
-- 코드 변경 없음(문서 최신화만 진행). tank_battle_platform.html 미변경 유지.
+- 샌드박스 강화 및 런너 모드 추가: 기본 secure(vm) 런너 도입, `--runner secure|fast` 제공.
+- CLI/README 갱신: 런너 선택 문서화. tank_battle_platform.html 미변경 유지.
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
