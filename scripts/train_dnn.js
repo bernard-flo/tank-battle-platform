@@ -88,6 +88,9 @@ async function main(){
   const outPath = path.resolve(__dirname, '..', 'result', 'dnn-ai.txt');
   const refPath = path.resolve(__dirname, '..', 'result', 'reference-ai.txt');
   const refCode = fs.readFileSync(refPath, 'utf8');
+  // 보조 상대: 기본 예시 팀
+  const basePath = path.resolve(__dirname, '..', 'simulator', 'ai', 'default_team.js');
+  const baseCode = fs.readFileSync(basePath, 'utf8');
 
   // 탐색 설정
   const seedBase = parseInt(process.env.DNN_SEEDBASE || '20250909', 10);
@@ -96,21 +99,28 @@ async function main(){
   const rng = makeRng(seedBase);
 
   let bestW = initWeights(rng);
-  let best = evaluate(bestW, refCode, seeds);
-  console.log(`[init] fitness=${best.fitness.toFixed(3)} w/d/l=${best.wins}/${best.draws}/${best.losses}`);
+  // 혼합 평가: 참조 상대 + 기본 상대를 교대로 사용
+  function evalMixed(w){
+    const A = evaluate(w, refCode, seeds, { maxTicks: parseInt(process.env.DNN_TICKS || '3000', 10) });
+    const B = evaluate(w, baseCode, seeds, { maxTicks: parseInt(process.env.DNN_TICKS || '3000', 10) });
+    // reference 성능에 가중치 2배
+    return { fitness: A.fitness*2 + B.fitness, A, B, code: A.code };
+  }
+  let best = evalMixed(bestW);
+  console.log(`[init] fitness=${best.fitness.toFixed(3)} [ref=${best.A.fitness.toFixed(2)} base=${best.B.fitness.toFixed(2)}]`);
 
   let sigma = parseFloat(process.env.DNN_SIGMA || '0.6');
   const iters = parseInt(process.env.DNN_ITERS || '60', 10);
   for (let t=1;t<=iters;t++){
     const candW = mutate(bestW, rng, sigma);
-    const cand = evaluate(candW, refCode, seeds, { maxTicks: parseInt(process.env.DNN_TICKS || '3000', 10) });
+    const cand = evalMixed(candW);
     const improved = cand.fitness > best.fitness;
     if (improved) {
       best = cand; bestW = candW;
       sigma = Math.max(0.15, sigma*0.98); // 점진적 수렴
-      console.log(`[${t}] improved fitness=${best.fitness.toFixed(3)} w/d/l=${best.wins}/${best.draws}/${best.losses} sigma=${sigma.toFixed(3)}`);
+      console.log(`[${t}] improved fitness=${best.fitness.toFixed(3)} [ref=${best.A.fitness.toFixed(2)} base=${best.B.fitness.toFixed(2)}] sigma=${sigma.toFixed(3)}`);
     } else if (t % 10 === 0) {
-      console.log(`[${t}] keep fitness=${best.fitness.toFixed(3)} (sigma=${sigma.toFixed(3)})`);
+      console.log(`[${t}] keep fitness=${best.fitness.toFixed(3)} [ref=${best.A.fitness.toFixed(2)} base=${best.B.fitness.toFixed(2)}] (sigma=${sigma.toFixed(3)})`);
     }
   }
 
