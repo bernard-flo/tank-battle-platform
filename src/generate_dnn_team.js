@@ -52,7 +52,8 @@ function genMLPCode(config) {
   ].join('\n');
 
   // 팀 코드 템플릿
-  // - 순수 MLP 추론으로 move/fire 각도와 발사 의사결정(logit)을 산출
+  // - 순수 MLP 추론으로 move/fire 각도와 발사 확률을 산출
+  // - fire 확률 게이팅으로 발사 여부를 결정(임계값 0.5)
   // - 입력 피처는 update 파라미터들을 전부 사용하여 구성
   const common = `
 const INPUT_SIZE = ${inputSize};
@@ -183,8 +184,8 @@ function buildFeatures(tank, enemies, allies, bulletInfo){
 function policyStep(tank, enemies, allies, bulletInfo){
   const feat = buildFeatures(tank, enemies, allies, bulletInfo);
   const out = mlpForward(feat);
-  // 액션 적용: 순수 DNN 출력 각도를 그대로 사용
-  tank.fire(out.fireAngle);
+  // 액션 적용: 순수 DNN 출력 기반
+  if (out.fireP > 0.5) tank.fire(out.fireAngle);
   tank.move(out.mvAngle);
 }
 `;
