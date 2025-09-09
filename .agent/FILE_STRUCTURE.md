@@ -43,6 +43,10 @@
   - simulator 엔진을 직접 호출해 reference-ai.txt 상대로 반복 평가.
   - 결과물을 result/dnn-ai-weights.json, result/dnn-ai.txt로 저장.
   - 환경변수: DNN_ITERS, DNN_POP, DNN_SEEDS, DNN_SIGMA, DNN_LR, DNN_MAXTICKS, DNN_BASESEED.
+- 스크립트 추가: scripts/imitate_reference.js
+  - reference-ai 행동을 데이터로 수집(사격각+이동 4각).
+  - 2층 DNN(43→24→16→5) 순전파/역전파/Adam 구현으로 지도학습.
+  - 초기 가중치 워밍업 후 NES 파인튜닝 추천.
 - 코드 생성기: ai/dnn_codegen.js
   - 가중치 배열 -> 6개 로봇 코드 문자열 생성.
   - update는 DNN 순전파만 사용, 휴리스틱 미포함.
