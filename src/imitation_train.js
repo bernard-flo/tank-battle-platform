@@ -229,7 +229,7 @@ async function main(){
   console.log(`[collect] samples: ${samples.length}`);
 
   // 학습 설정
-  const inputSize = 76, h1=32, h2=32, out=5;
+  const inputSize = 76, h1=64, h2=64, out=5;
   const net = createMLP(inputSize, h1, h2, out);
   const { params, forward, backward, adamUpdate } = net;
 

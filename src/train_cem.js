@@ -57,7 +57,7 @@ async function evaluatePopulation(population, refCode, opts) {
   const path = require('path');
   const { Worker } = require('worker_threads');
   const inputSize = 8 + (4*5) + (3*5) + (5*6) + 3; // 76
-  const hidden = [32,32];
+  const hidden = [64,64];
   const outputSize = 5;
   const seeds = Array.from({ length: opts.seeds }, (_, i) => 1000 + i);
   const cfg = { inputSize, hidden, outputSize, refCode, seeds, maxTicks: opts.maxTicks, runner: opts.runner, fast: opts.fast };
@@ -102,7 +102,7 @@ async function main(){
   const refCode = fs.readFileSync(refPath, 'utf8');
 
   const inputSize = 8 + (4*5) + (3*5) + (5*6) + 3; // 76
-  const hidden = [32,32];
+  const hidden = [64,64];
   const outputSize = 5;
   const dim = inputSize*hidden[0] + hidden[0] + hidden[0]*hidden[1] + hidden[1] + hidden[1]*outputSize + outputSize;
 
@@ -173,7 +173,7 @@ async function main(){
 
 function saveTeam(weights){
   const inputSize = 8 + (4*5) + (3*5) + (5*6) + 3; // 76
-  const hidden = [32,32];
+  const hidden = [64,64];
   const outputSize = 5;
   const code = genMLPCode({ inputSize, hiddenSizes: hidden, outputSize, weights });
   const outPath = path.resolve('result/ai_dnn_team.txt');
