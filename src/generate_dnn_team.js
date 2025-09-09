@@ -206,10 +206,11 @@ function update(tank, enemies, allies, bulletInfo){
     const nm = playerNames[i] || `DNN-${i+1}`;
     const t = typesOrder[i];
     const typeConst = t === 0 ? 'NORMAL' : (t === 1 ? 'TANKER' : 'DEALER');
-    blocks.push(robotBlock(nm, typeConst));
+    // 각 로봇 블록에 공통 MLP 정의 포함(HTML/Node 분할 로더가 개별 블록만 실행하기 때문)
+    blocks.push(common + '\n' + robotBlock(nm, typeConst));
   }
 
-  return [common, blocks.join('\n// ===== 다음 로봇 =====\n\n')].join('\n');
+  return blocks.join('\n\n// ===== 다음 로봇 =====\n\n');
 }
 
 function initialWeights(inputSize, hiddenSizes, outputSize, sigma=0.5, rng=Math.random){
@@ -234,4 +235,3 @@ module.exports = {
   genMLPCode,
   initialWeights,
 };
-
