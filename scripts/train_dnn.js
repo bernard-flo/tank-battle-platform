@@ -122,6 +122,13 @@ async function main() {
 
   console.log(`[INIT] dims=${N}, iters=${iters}, pop=${pop}, seeds=${evalSeeds}, sigma=${sigma}, lr=${alpha}`);
 
+  // 초기 성능을 best로 등록하여 단기 튜닝에서의 역행을 방지
+  const initSeeds = Array.from({ length: evalSeeds }, (_, i) => baseSeed + i);
+  const initEval = evaluate(m, initSeeds, { arch: ARCH, maxTicks });
+  bestScore = initEval.score;
+  bestW = m.slice(0);
+  console.log(`[INIT] baselineScore=${initEval.score.toFixed(2)} (wins:${initEval.wins}/${evalSeeds})`);
+
   for (let t = 0; t < iters; t++) {
     // 샘플 생성 (antithetic)
     const epsList = [];
