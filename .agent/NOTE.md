@@ -10,13 +10,13 @@
 - 점수: 승리 +1000, 생존차*100, 에너지 차 합산.
 
 실행 기록(이번 실행)
-- 평가: `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3500 --fast`
-  · 결과: W:60 L:0 D:0, avgTicks≈761.0, avgRed≈54.0, avgBlue≈0.0 → reference-ai.txt를 안정적으로 압도
+- 평가: `node src/eval_vs_reference.js --count 200 --start 1 --maxTicks 4000 --fast`
+  · 결과: W:200 L:0 D:0, avgTicks≈761.0, avgRed≈54.0, avgBlue≈0.0 → reference-ai.txt를 안정적으로 압도
   · 현재 팀(result/ai_dnn_team.txt) 유지, 추가 학습 없이도 기준 충족
 
 참고
 - 결과물은 result/ai_dnn_team.txt, 가중치는 result/ai_dnn_weights.json에 저장. tank_battle_platform.html에서 Import 가능.
-- 빠른 비교: `node simulator/cli.js --red result/ai_dnn_team.txt --blue result/reference-ai.txt --repeat 60 --fast --concurrency 8 --maxTicks 3500`
+- 빠른 비교: `node simulator/cli.js --red result/ai_dnn_team.txt --blue result/reference-ai.txt --repeat 200 --fast --concurrency 8 --maxTicks 4000`
 
 다음 실행 제안(성능 개선 루프)
 - ES 장기 러닝을 2~3세트 반복(각 20~40분 예상)하여 강건성 추가 확보:

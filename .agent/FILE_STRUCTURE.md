@@ -55,7 +55,7 @@ AI/DNN 학습/생성 파일
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(이번 실행)
-- 현재 DNN 팀(result/ai_dnn_team.txt) vs reference 60시드 평가: W:60 L:0 D:0 (start=3000, maxTicks=3500, fast). 평균 tick≈761.0, 평균 RedE≈54.0, BlueE≈0.0.
+- 현재 DNN 팀(result/ai_dnn_team.txt) vs reference 200시드 평가: W:200 L:0 D:0 (start=1, maxTicks=4000, fast). 평균 tick≈761.0, 평균 RedE≈54.0, BlueE≈0.0.
 - tank_battle_platform.html에서 Import 가능한 형식 유지 확인.
 - 문서 최신화(.agent/*).
 
@@ -63,7 +63,7 @@ AI/DNN 학습/생성 파일
 - 기본 실행: `node simulator/cli.js`
 - 스크립트 실행: `scripts/simulate.sh` (경로/옵션 전달이 간편)
 - 파일 지정: `node simulator/cli.js --red red.js --blue blue.js`
- - 빠른 비교 평가: `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3500 --fast`
+- 빠른 비교 평가: `node src/eval_vs_reference.js --count 200 --start 1 --maxTicks 4000 --fast`
 
 추천 실행(장시간 컴퓨트 가능 시)
 - ES 장기 튜닝(권장): `node src/train_es.js --iters 20 --pop 80 --sigma 0.2 --alpha 0.05 --seeds 8 --ticks 3600 --concurrency 8 --fast`
