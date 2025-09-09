@@ -38,8 +38,11 @@
 정확화: HTML과 동일하게 경기 시작 직후 첫 발사 즉시 가능. 그 이후 500ms(=10틱) 쿨다운 적용. 판정은 엔진 시간 누적 기반(틱 50ms)으로 수행.
 
 업데이트(현재 실행)
-- 병렬 실행 추가: --concurrency N 옵션과 simulator/worker.js 도입으로 반복 경기 병렬 처리 지원.
-- README와 집계 JSON에 concurrency 항목 추가. 기존 규칙/로직 유지, HTML 미변경.
+- DNN 팀 코드 생성 파이프라인 추가:
+  - ai/dnn_codegen.js: 가중치 -> 6로봇 코드 문자열 생성기. update는 DNN 순전파만 수행.
+  - scripts/train_dnn.js: 진화탐색으로 reference-ai.txt 상대로 가중치 탐색, result/dnn-ai.txt 생성.
+  - 타입 순서 고정: dealer, normal, dealer, tanker, dealer, tanker.
+  - 출력물: result/dnn-ai.txt, result/dnn-ai-weights.json
 
 사용 팁
 - 기본 실행: `node simulator/cli.js`
