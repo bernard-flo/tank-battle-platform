@@ -22,7 +22,9 @@
     - CEM 튜닝(소규모): `node src/train_cem.js --iters 4 --pop 24 --elite 6 --seeds 3 --ticks 2400 --fast --concurrency 8`
     - ES 튜닝(단계적): `node src/train_es.js --iters 2 --pop 30 --sigma 0.25 --alpha 0.07 --seeds 3 --ticks 2600 --concurrency 8 --fast`
   · 평가(예시 커맨드): `node src/eval_vs_reference.js --count 60 --start 3000 --maxTicks 3000 --fast`
-  · 현재 수치(이번 실행 직후): 모방학습 초기화 직후 60 seeds에서 0W/60L/0D로 참조에 열세. ES/CEM 튜닝 필요.
+  · 현재 수치(이번 실행 직후):
+    - 모방학습 초기화 직후 60 seeds에서 0W/60L/0D.
+    - 이후 ES 2 iters(pop 40, ticks 2400) + CEM 3 iters(pop 40, ticks 2400~2800) 적용 후 20 seeds 평가: 0W/0L/20D, 평균 에너지 Red 330, Blue 575 수준. 추가 학습 필요.
 
   · 추가 개선 제안(다음 번):
     - seeds를 8~12로 증가, pop 60~80, iters 20+로 장기 러닝.
@@ -34,7 +36,7 @@
 실행 메모(이번 실행)
 - generate_dnn_team.js: 발사 확률 게이팅(out.fireP>0.5) 적용. 순수 DNN 의사결정 유지.
 - Teacher 팀 추가 및 imitation_train에 --teacher 지원. 이번 실행에서 Teacher 기반 모방학습(10매치×2200틱, 4 epoch)으로 가중치 초기화.
-- 즉시 평가 결과 열세 확인(0W/60L/0D). 후속 ES/CEM 튜닝 예정.
+- ES(2 iters, pop 40, sigma 0.25, alpha 0.06, seeds 3, ticks 2400) → CEM(3 iters, pop 40, elite 8, seeds 3, ticks 2400~2800) 순으로 소규모 튜닝 및 평가.
 
 다음 실행 제안
 - 더 큰 compute 허용 시 CEM 20+ iters, seeds 8~12, pop 80~120으로 확장.
