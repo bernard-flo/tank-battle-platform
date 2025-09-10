@@ -22,15 +22,15 @@ function nowTs() {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}`;
 }
 
-function detectTsFromCwd() {
-  // Work dir is work/<TS>
-  const dir = path.basename(path.resolve('.'));
-  // crude validation
+function detectTsFromScriptDir() {
+  // Script resides in work/<TS>/optimize.js
+  const workDir = path.dirname(__filename);
+  const dir = path.basename(workDir);
   if (/^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/.test(dir)) return dir;
   return nowTs();
 }
 
-const TS = detectTsFromCwd();
+const TS = detectTsFromScriptDir();
 const THIS_WORK_DIR = path.join(REPO_ROOT, 'work', TS);
 const THIS_RESULT_DIR = path.join(REPO_ROOT, 'result', TS);
 
