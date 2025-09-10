@@ -189,3 +189,7 @@
 | result/2025-09-10-12-11/2025-09-10-12-11.txt | 8 | 16 | 0 | 33.3% |
 
 - Total: 624, Wins: 545, Losses: 77, Draws: 2, WinRate: 87.34%
+
+## Refinement
+- Targeted strongest opponents: 2025-09-10-12-11.txt, 2025-09-10-11-58.txt
+- Achieved WinRate vs targets: 66.7%
