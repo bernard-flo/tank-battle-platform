@@ -11,7 +11,7 @@ const WORKDIR = __dirname;
 const TS = path.basename(WORKDIR);
 const RESULTDIR = path.join(ROOT, 'result', TS);
 
-function listOpponentFiles(maxCount = 12) {
+function listOpponentFiles(maxCount = 8) {
   const resDir = path.join(ROOT, 'result');
   const files = [];
   // Root-level .txt
@@ -105,7 +105,7 @@ function main() {
     const candFile = writeTempCandidate(prefix, v.overrides);
     const perOpp = [];
     for (const opp of opponents) {
-      const agg = runBatch(candFile, opp, 60, 98765, 8);
+      const agg = runBatch(candFile, opp, 40, 98765, 8);
       perOpp.push({ opponent: opp, agg });
     }
     const sum = sumResults(perOpp.map(p => p.agg));
@@ -127,7 +127,7 @@ function main() {
   // Build RESULT.md summary
   let md = `# Result Summary for ${TS}\n\n`;
   md += `Final Variant: ${best.key} (winRate ${(best.winRate*100).toFixed(2)}%)\\n`;
-  md += `Opponents evaluated: ${opponents.length}, Matches per opponent: 60\\n\n`;
+  md += `Opponents evaluated: ${opponents.length}, Matches per opponent: 40\\n\n`;
   md += `## Per-opponent aggregate (red=candidate)\\n`;
   for (const p of best.perOpp) {
     const rel = path.relative(ROOT, p.opponent);
@@ -142,4 +142,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
