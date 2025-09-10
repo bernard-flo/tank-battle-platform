@@ -18,7 +18,8 @@ function listOpponents(resultDir, myTs){
 
 function runMatch(redFile, blueFile, repeat=50, seed=777, concurrency=8){
   const jsonOut = path.join(process.cwd(), `.tmp_${path.basename(redFile)}_vs_${path.basename(blueFile)}_${repeat}.json`);
-  const args = [path.join('simulator','cli.js'), '--red', redFile, '--blue', blueFile, '--repeat', String(repeat), '--seed', String(seed), '--fast', '--runner', 'secure', '--concurrency', String(concurrency), '--json', jsonOut];
+  const cliPath = path.resolve(process.cwd(), '..', '..', 'simulator', 'cli.js');
+  const args = [cliPath, '--red', redFile, '--blue', blueFile, '--repeat', String(repeat), '--seed', String(seed), '--fast', '--runner', 'secure', '--concurrency', String(concurrency), '--json', jsonOut];
   execFileSync('node', args, { stdio: ['ignore','pipe','pipe'] });
   const data = JSON.parse(fs.readFileSync(jsonOut, 'utf8'));
   fs.unlinkSync(jsonOut);
