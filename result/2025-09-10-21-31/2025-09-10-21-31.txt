@@ -1,0 +1,324 @@
+function name(){return "Helios-1";}
+function type(){return 1;}
+let __s={last:null,lastVel:null,tick:0,aggr:0};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"rMin":151.37890150304884,"rMax":270.1884407363832,"strafe":24.928215097635984,"threatR":130.6640003202483,"fleeBias":15.66475038882345,"sep":72.9475440531969,"edge":60.953852619975805,"leadCap":15.409172747749835,"leadW":0.833517831619829,"aimJitter":0.10111109104007482,"healthW":1.1832324901409448,"distW":0.2715387796610594,"finisherHP":19.747930077835917,"aggrRemain":4,"aggrIn":21.223976011388004,"aggrOut":20.71337205916643,"bias":-2.0864495057612658};
+  __s.tick=(__s.tick||0)+1; __s.aggr=Math.max(0,__s.aggr-1);
+
+  // Target: weigh health and distance; prefer low HP and closer
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
+  if(tgt){
+    // Predictive fire with smoothed velocity estimate and capped lead time
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){
+      const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y;
+      const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0;
+      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy};
+      const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t;
+    }
+    const jitter=(((__s.tick*31+1)%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
+    __s.last={x:tgt.x,y:tgt.y};
+  }
+
+  // Movement helpers
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  const trySet=(arr)=>{ for(const a of arr){ if(go(a)) return true; } return false; };
+
+  // Bullet avoidance: pick hostile bullet approaching and near closest-approach
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatR){minR=d;hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=((0+1)%2?1:-1)*P.fleeBias + P.bias*0.6; if(trySet([a+90+side,a-90-side,a+130,a-130,a+70,a-70])) return; }
+
+  // Edge avoidance
+  if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
+
+  // Ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near && ad<P.sep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(trySet([away,away+28,away-28])) return; }
+
+  // Engagement ring with adaptive aggression
+  if(tgt){
+    const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance;
+    let minR=P.rMin, maxR=P.rMax;
+    if(tgt.health<P.finisherHP) { __s.aggr=P.aggrRemain; }
+    if(__s.aggr>0) { minR-=P.aggrIn; maxR-=P.aggrOut; }
+    if(d<minR){ if(trySet([to+180+P.bias,to+150,to+210,to+180+P.bias*0.5])) return; }
+    if(d>maxR){ if(trySet([to+P.bias,to+P.bias+20,to+P.bias-20])) return; }
+    const strafe = P.strafe + ((__s.tick>>3)%2?8:-8);
+    if(trySet([to+90+strafe+P.bias, to-90-strafe+P.bias, to+60, to-60])) return;
+  }
+
+  // Fallback wandering
+  const r=((__s.tick*13+3)%360)+P.bias; trySet([r, r+120, r-120]);
+}
+
+function name(){return "Helios-2";}
+function type(){return 1;}
+let __s={last:null,lastVel:null,tick:0,aggr:0};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"rMin":189.13167415186763,"rMax":244.08171583432704,"strafe":25.92352309077978,"threatR":115.15552431577817,"fleeBias":16.619628630578518,"sep":62.358258763328195,"edge":59.555773474276066,"leadCap":14.881049041869119,"leadW":0.8281643388420343,"aimJitter":0.24897279224358498,"healthW":1.0610674174502492,"distW":0.20645845968276264,"finisherHP":22.806148916482925,"aggrRemain":1,"aggrIn":10.221607247367501,"aggrOut":22.419827077537775,"bias":15.551641456782818};
+  __s.tick=(__s.tick||0)+1; __s.aggr=Math.max(0,__s.aggr-1);
+
+  // Target: weigh health and distance; prefer low HP and closer
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
+  if(tgt){
+    // Predictive fire with smoothed velocity estimate and capped lead time
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){
+      const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y;
+      const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0;
+      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy};
+      const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t;
+    }
+    const jitter=(((__s.tick*31+2)%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
+    __s.last={x:tgt.x,y:tgt.y};
+  }
+
+  // Movement helpers
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  const trySet=(arr)=>{ for(const a of arr){ if(go(a)) return true; } return false; };
+
+  // Bullet avoidance: pick hostile bullet approaching and near closest-approach
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatR){minR=d;hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=((1+1)%2?1:-1)*P.fleeBias + P.bias*0.6; if(trySet([a+90+side,a-90-side,a+130,a-130,a+70,a-70])) return; }
+
+  // Edge avoidance
+  if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
+
+  // Ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near && ad<P.sep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(trySet([away,away+28,away-28])) return; }
+
+  // Engagement ring with adaptive aggression
+  if(tgt){
+    const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance;
+    let minR=P.rMin, maxR=P.rMax;
+    if(tgt.health<P.finisherHP) { __s.aggr=P.aggrRemain; }
+    if(__s.aggr>0) { minR-=P.aggrIn; maxR-=P.aggrOut; }
+    if(d<minR){ if(trySet([to+180+P.bias,to+150,to+210,to+180+P.bias*0.5])) return; }
+    if(d>maxR){ if(trySet([to+P.bias,to+P.bias+20,to+P.bias-20])) return; }
+    const strafe = P.strafe + ((__s.tick>>3)%2?8:-8);
+    if(trySet([to+90+strafe+P.bias, to-90-strafe+P.bias, to+60, to-60])) return;
+  }
+
+  // Fallback wandering
+  const r=((__s.tick*13+4)%360)+P.bias; trySet([r, r+120, r-120]);
+}
+
+function name(){return "Helios-3";}
+function type(){return 0;}
+let __s={last:null,lastVel:null,tick:0,aggr:0};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"rMin":197.0167763205245,"rMax":323.7689994368702,"strafe":24.787129271775484,"threatR":132.90059266611934,"fleeBias":24.994633023627102,"sep":58.73293715342879,"edge":60.587294939905405,"leadCap":15.277166753076017,"leadW":0.95,"aimJitter":0.24497865160927176,"healthW":1.1247402211837472,"distW":0.21554812669754028,"finisherHP":31.504314834252,"aggrRemain":2,"aggrIn":12.410234403796494,"aggrOut":10.113871052861214,"bias":3.469729820266366};
+  __s.tick=(__s.tick||0)+1; __s.aggr=Math.max(0,__s.aggr-1);
+
+  // Target: weigh health and distance; prefer low HP and closer
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
+  if(tgt){
+    // Predictive fire with smoothed velocity estimate and capped lead time
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){
+      const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y;
+      const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0;
+      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy};
+      const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t;
+    }
+    const jitter=(((__s.tick*31+3)%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
+    __s.last={x:tgt.x,y:tgt.y};
+  }
+
+  // Movement helpers
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  const trySet=(arr)=>{ for(const a of arr){ if(go(a)) return true; } return false; };
+
+  // Bullet avoidance: pick hostile bullet approaching and near closest-approach
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatR){minR=d;hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=((2+1)%2?1:-1)*P.fleeBias + P.bias*0.6; if(trySet([a+90+side,a-90-side,a+130,a-130,a+70,a-70])) return; }
+
+  // Edge avoidance
+  if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
+
+  // Ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near && ad<P.sep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(trySet([away,away+28,away-28])) return; }
+
+  // Engagement ring with adaptive aggression
+  if(tgt){
+    const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance;
+    let minR=P.rMin, maxR=P.rMax;
+    if(tgt.health<P.finisherHP) { __s.aggr=P.aggrRemain; }
+    if(__s.aggr>0) { minR-=P.aggrIn; maxR-=P.aggrOut; }
+    if(d<minR){ if(trySet([to+180+P.bias,to+150,to+210,to+180+P.bias*0.5])) return; }
+    if(d>maxR){ if(trySet([to+P.bias,to+P.bias+20,to+P.bias-20])) return; }
+    const strafe = P.strafe + ((__s.tick>>3)%2?8:-8);
+    if(trySet([to+90+strafe+P.bias, to-90-strafe+P.bias, to+60, to-60])) return;
+  }
+
+  // Fallback wandering
+  const r=((__s.tick*13+5)%360)+P.bias; trySet([r, r+120, r-120]);
+}
+
+function name(){return "Helios-4";}
+function type(){return 0;}
+let __s={last:null,lastVel:null,tick:0,aggr:0};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"rMin":218.48094859160483,"rMax":315.1185193983838,"strafe":35.37751284241676,"threatR":102.31597290141508,"fleeBias":21.583310378715396,"sep":59.081893837079406,"edge":60.00319729745388,"leadCap":13.674572495510802,"leadW":0.8102446391060948,"aimJitter":0.15880365499295293,"healthW":1.0812488874793054,"distW":0.20739186938852072,"finisherHP":35.374720465391874,"aggrRemain":1,"aggrIn":15.704817492514849,"aggrOut":22.846470188349485,"bias":8.985724974423647};
+  __s.tick=(__s.tick||0)+1; __s.aggr=Math.max(0,__s.aggr-1);
+
+  // Target: weigh health and distance; prefer low HP and closer
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
+  if(tgt){
+    // Predictive fire with smoothed velocity estimate and capped lead time
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){
+      const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y;
+      const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0;
+      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy};
+      const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t;
+    }
+    const jitter=(((__s.tick*31+4)%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
+    __s.last={x:tgt.x,y:tgt.y};
+  }
+
+  // Movement helpers
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  const trySet=(arr)=>{ for(const a of arr){ if(go(a)) return true; } return false; };
+
+  // Bullet avoidance: pick hostile bullet approaching and near closest-approach
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatR){minR=d;hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=((3+1)%2?1:-1)*P.fleeBias + P.bias*0.6; if(trySet([a+90+side,a-90-side,a+130,a-130,a+70,a-70])) return; }
+
+  // Edge avoidance
+  if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
+
+  // Ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near && ad<P.sep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(trySet([away,away+28,away-28])) return; }
+
+  // Engagement ring with adaptive aggression
+  if(tgt){
+    const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance;
+    let minR=P.rMin, maxR=P.rMax;
+    if(tgt.health<P.finisherHP) { __s.aggr=P.aggrRemain; }
+    if(__s.aggr>0) { minR-=P.aggrIn; maxR-=P.aggrOut; }
+    if(d<minR){ if(trySet([to+180+P.bias,to+150,to+210,to+180+P.bias*0.5])) return; }
+    if(d>maxR){ if(trySet([to+P.bias,to+P.bias+20,to+P.bias-20])) return; }
+    const strafe = P.strafe + ((__s.tick>>3)%2?8:-8);
+    if(trySet([to+90+strafe+P.bias, to-90-strafe+P.bias, to+60, to-60])) return;
+  }
+
+  // Fallback wandering
+  const r=((__s.tick*13+6)%360)+P.bias; trySet([r, r+120, r-120]);
+}
+
+function name(){return "Helios-5";}
+function type(){return 2;}
+let __s={last:null,lastVel:null,tick:0,aggr:0};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"rMin":232.58877750020474,"rMax":389.0326066687703,"strafe":39.6745102070272,"threatR":113.37324847001582,"fleeBias":24.371108415536582,"sep":50.13637340813875,"edge":53.07520900294185,"leadCap":13.138346669729799,"leadW":0.7481970491819083,"aimJitter":0.08,"healthW":1.138522592727095,"distW":0.2035435874015093,"finisherHP":23.138555934652686,"aggrRemain":1,"aggrIn":11.895210011862218,"aggrOut":17.333083532750607,"bias":2.2555374410003424};
+  __s.tick=(__s.tick||0)+1; __s.aggr=Math.max(0,__s.aggr-1);
+
+  // Target: weigh health and distance; prefer low HP and closer
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
+  if(tgt){
+    // Predictive fire with smoothed velocity estimate and capped lead time
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){
+      const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y;
+      const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0;
+      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy};
+      const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t;
+    }
+    const jitter=(((__s.tick*31+5)%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
+    __s.last={x:tgt.x,y:tgt.y};
+  }
+
+  // Movement helpers
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  const trySet=(arr)=>{ for(const a of arr){ if(go(a)) return true; } return false; };
+
+  // Bullet avoidance: pick hostile bullet approaching and near closest-approach
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatR){minR=d;hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=((4+1)%2?1:-1)*P.fleeBias + P.bias*0.6; if(trySet([a+90+side,a-90-side,a+130,a-130,a+70,a-70])) return; }
+
+  // Edge avoidance
+  if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
+
+  // Ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near && ad<P.sep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(trySet([away,away+28,away-28])) return; }
+
+  // Engagement ring with adaptive aggression
+  if(tgt){
+    const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance;
+    let minR=P.rMin, maxR=P.rMax;
+    if(tgt.health<P.finisherHP) { __s.aggr=P.aggrRemain; }
+    if(__s.aggr>0) { minR-=P.aggrIn; maxR-=P.aggrOut; }
+    if(d<minR){ if(trySet([to+180+P.bias,to+150,to+210,to+180+P.bias*0.5])) return; }
+    if(d>maxR){ if(trySet([to+P.bias,to+P.bias+20,to+P.bias-20])) return; }
+    const strafe = P.strafe + ((__s.tick>>3)%2?8:-8);
+    if(trySet([to+90+strafe+P.bias, to-90-strafe+P.bias, to+60, to-60])) return;
+  }
+
+  // Fallback wandering
+  const r=((__s.tick*13+7)%360)+P.bias; trySet([r, r+120, r-120]);
+}
+
+function name(){return "Helios-6";}
+function type(){return 2;}
+let __s={last:null,lastVel:null,tick:0,aggr:0};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"rMin":243.9415581151843,"rMax":376.18575552944094,"strafe":33.03645894676447,"threatR":106.26703341724351,"fleeBias":18.944536615163088,"sep":73.28434002585709,"edge":53.831447415053844,"leadCap":16.18300939560868,"leadW":0.854939139187336,"aimJitter":0.08,"healthW":1.0930204708501696,"distW":0.217265461422503,"finisherHP":35.49177511781454,"aggrRemain":1,"aggrIn":19.38246394507587,"aggrOut":18.415629494935274,"bias":19.117506459355354};
+  __s.tick=(__s.tick||0)+1; __s.aggr=Math.max(0,__s.aggr-1);
+
+  // Target: weigh health and distance; prefer low HP and closer
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
+  if(tgt){
+    // Predictive fire with smoothed velocity estimate and capped lead time
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){
+      const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y;
+      const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0;
+      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy};
+      const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t;
+    }
+    const jitter=(((__s.tick*31+6)%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
+    __s.last={x:tgt.x,y:tgt.y};
+  }
+
+  // Movement helpers
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  const trySet=(arr)=>{ for(const a of arr){ if(go(a)) return true; } return false; };
+
+  // Bullet avoidance: pick hostile bullet approaching and near closest-approach
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatR){minR=d;hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=((5+1)%2?1:-1)*P.fleeBias + P.bias*0.6; if(trySet([a+90+side,a-90-side,a+130,a-130,a+70,a-70])) return; }
+
+  // Edge avoidance
+  if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
+
+  // Ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near && ad<P.sep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(trySet([away,away+28,away-28])) return; }
+
+  // Engagement ring with adaptive aggression
+  if(tgt){
+    const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance;
+    let minR=P.rMin, maxR=P.rMax;
+    if(tgt.health<P.finisherHP) { __s.aggr=P.aggrRemain; }
+    if(__s.aggr>0) { minR-=P.aggrIn; maxR-=P.aggrOut; }
+    if(d<minR){ if(trySet([to+180+P.bias,to+150,to+210,to+180+P.bias*0.5])) return; }
+    if(d>maxR){ if(trySet([to+P.bias,to+P.bias+20,to+P.bias-20])) return; }
+    const strafe = P.strafe + ((__s.tick>>3)%2?8:-8);
+    if(trySet([to+90+strafe+P.bias, to-90-strafe+P.bias, to+60, to-60])) return;
+  }
+
+  // Fallback wandering
+  const r=((__s.tick*13+8)%360)+P.bias; trySet([r, r+120, r-120]);
+}
+
