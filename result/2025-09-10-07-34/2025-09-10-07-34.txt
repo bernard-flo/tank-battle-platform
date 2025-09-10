@@ -10,13 +10,13 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1; // deterministic per spawn
   const P={
-    leadCap:12,
+    leadCap:13,
     leadWeight:1,
-    aimJitter:0.22,
-    minRange:165,
-    maxRange:255,
-    strafeAngle:30,
-    threatRadius:74,
+    aimJitter:0.2,
+    minRange:150,
+    maxRange:235,
+    strafeAngle:28,
+    threatRadius:78,
     threatFleeBias:14,
     allySep:62,
     edgeMargin:44,
@@ -112,7 +112,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 function name(){return "Helix-A2";}
-function type(){return Type.NORMAL;}
+function type(){return Type.TANKER;}
 // VM-persistent state per robot
 let __state = { last:null, tick:0, lastD:null };
 function update(tank,enemies,allies,bulletInfo){
@@ -122,13 +122,13 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1; // deterministic per spawn
   const P={
-    leadCap:12,
+    leadCap:13,
     leadWeight:1,
-    aimJitter:0.22,
-    minRange:185,
-    maxRange:285,
-    strafeAngle:30,
-    threatRadius:74,
+    aimJitter:0.2,
+    minRange:150,
+    maxRange:235,
+    strafeAngle:28,
+    threatRadius:78,
     threatFleeBias:14,
     allySep:62,
     edgeMargin:44,
@@ -234,12 +234,12 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1; // deterministic per spawn
   const P={
-    leadCap:12,
+    leadCap:13,
     leadWeight:1,
-    aimJitter:0.22,
-    minRange:185,
-    maxRange:285,
-    strafeAngle:30,
+    aimJitter:0.2,
+    minRange:170,
+    maxRange:260,
+    strafeAngle:28,
     threatRadius:74,
     threatFleeBias:14,
     allySep:62,
@@ -346,12 +346,12 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1; // deterministic per spawn
   const P={
-    leadCap:12,
+    leadCap:13,
     leadWeight:1,
-    aimJitter:0.22,
-    minRange:225,
-    maxRange:335,
-    strafeAngle:30,
+    aimJitter:0.2,
+    minRange:215,
+    maxRange:320,
+    strafeAngle:34,
     threatRadius:74,
     threatFleeBias:14,
     allySep:62,
@@ -458,12 +458,12 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1; // deterministic per spawn
   const P={
-    leadCap:12,
+    leadCap:13,
     leadWeight:1,
-    aimJitter:0.22,
-    minRange:225,
-    maxRange:335,
-    strafeAngle:30,
+    aimJitter:0.2,
+    minRange:215,
+    maxRange:320,
+    strafeAngle:34,
     threatRadius:74,
     threatFleeBias:14,
     allySep:62,
@@ -570,12 +570,12 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1; // deterministic per spawn
   const P={
-    leadCap:12,
+    leadCap:13,
     leadWeight:1,
-    aimJitter:0.22,
-    minRange:225,
-    maxRange:335,
-    strafeAngle:30,
+    aimJitter:0.2,
+    minRange:215,
+    maxRange:320,
+    strafeAngle:34,
     threatRadius:74,
     threatFleeBias:14,
     allySep:62,
