@@ -61,57 +61,57 @@ function buildRobotBlock(botName, botType, P, biasOffset = 0) {
 function type(){return ${botType};}
 let __state={last:null, lastVel:null, tick:0};
 function update(tank,enemies,allies,bulletInfo){
-  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
-  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const hypot=Math.hypot;
-  const P=Object.assign({}, ${Pstr});
-  // mix in per-robot bias to desync patterns
-  P.bias = (P.bias||0) + (${biasOffset}).toFixed ? ${biasOffset} : (${biasOffset}||0);
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot;
+  const P=Object.assign({}, ${Pstr}); P.bias=(P.bias||0)+(${biasOffset}).toFixed?${biasOffset}:((${biasOffset})||0);
   __state.tick=(__state.tick||0)+1;
 
+  // inferred speed by type
+  const selfSpeed = (tank.type===1?3:(tank.type===2?6:5));
+
   // 1) target selection: prioritize low HP then distance
-  let tgt=null, best=1e9;
-  for(const e of enemies){ const key = e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(key<best){best=key; tgt=e;} }
+  let tgt=null, best=1e9; for(const e of enemies){ const key = e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(key<best){best=key; tgt=e;} }
 
-  // 2) predictive aim with simple velocity smoothing
-  if(tgt){
-    let aimX=tgt.x, aimY=tgt.y;
-    if(__state.last){
-      const vx=(tgt.x-__state.last.x); const vy=(tgt.y-__state.last.y);
-      let lvx=__state.lastVel?__state.lastVel.vx:0; let lvy=__state.lastVel?__state.lastVel.vy:0;
-      const svx=lvx*0.5 + vx*0.5; const svy=lvy*0.5 + vy*0.5; __state.lastVel={vx:svx,vy:svy};
-      const d=hypot(tgt.x-tank.x,tgt.y-tank.y); const tLead=clamp(d/8,0,P.leadCap);
-      aimX = tgt.x + svx*P.leadWeight*tLead; aimY = tgt.y + svy*P.leadWeight*tLead;
+  // 2) predictive aim with velocity smoothing
+  if(tgt){ let ax=tgt.x, ay=tgt.y; if(__state.last){ const vx=(tgt.x-__state.last.x); const vy=(tgt.y-__state.last.y); let lvx=__state.lastVel?__state.lastVel.vx:0, lvy=__state.lastVel?__state.lastVel.vy:0; const svx=lvx*0.5+vx*0.5, svy=lvy*0.5+vy*0.5; __state.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const tLead=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*tLead; ay=tgt.y+svy*P.leadWeight*tLead; } const jitter = ((((tank.x*31+tank.y*17)|0)%23)-11)*0.06*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __state.last={x:tgt.x,y:tgt.y}; }
+
+  // Candidate angle scoring
+  function riskForAngle(a){
+    const ar = toRad(a);
+    const dx = Math.cos(ar)*selfSpeed, dy=Math.sin(ar)*selfSpeed;
+    const nx = tank.x + dx, ny = tank.y + dy;
+    let risk=0;
+    // edges
+    if(nx<20||nx>880) risk += 2; if(ny<20||ny>580) risk+=2;
+    // ally proximity
+    for(const al of allies){ const d=H(nx-al.x, ny-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.02; }
+    // bullet danger (peek 3 ticks)
+    for(const b of bulletInfo){ let minD=1e9; for(let t=0;t<3;t++){ const bx=b.x+b.vx*(t+1), by=b.y+b.vy*(t+1); const px=nx+dx*t, py=ny+dy*t; const d=H(px-bx,py-by); if(d<minD) minD=d; }
+      if(minD<P.threatRadius){ risk += (P.threatRadius-minD)*0.08; }
     }
-    // small deterministic jitter to break symmetry
-    const jitter = ((((tank.x*31+tank.y*17)|0)%23)-11)*0.06*P.aimJitter;
-    tank.fire(toDeg(aimX-tank.x,aimY-tank.y)+jitter);
-    __state.last={x:tgt.x,y:tgt.y};
+    // range fit if tgt
+    if(tgt){ const nd = H(nx-tgt.x, ny-tgt.y); let MIN=P.minRange, MAX=P.maxRange; if(tgt.health<=P.finishHp || enemies.length<=P.finishRemain){ MIN-=P.finishMinDelta; MAX-=P.finishMaxDelta; } if(tank.health<P.lowHp) MIN+=P.lowHpPad; if(nd<MIN) risk += (MIN-nd)*0.02; else if(nd>MAX) risk += (nd-MAX)*0.01; }
+    // inertia: prefer continuing direction
+    if(__state.lastMove!==undefined){ const da=Math.abs(norm(a-__state.lastMove)); const turn=Math.min(da,360-da); risk += turn*0.002; }
+    return risk;
   }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  // 3) assemble candidate angles: bullets perpendiculars, to/from target, strafes, sweep
+  const cands=[];
+  // bullet-based
+  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); cands.push(a+90+P.threatFleeBias+P.bias*0.4, a-90-P.threatFleeBias-P.bias*0.4, a+120, a-120, a+70, a-70); }
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); cands.push(to, to+180+P.bias*0.4, to+P.strafeAngle+P.bias*0.5, to-P.strafeAngle-P.bias*0.5); }
+  for(const s of P.sweep){ cands.push(s+P.bias); }
+  // dedupe and clamp
+  const seen={}; const uniq=[]; for(const a of cands){ const aa=norm(Math.round(a)); if(!seen[aa]){seen[aa]=1; uniq.push(aa);} }
+  uniq.sort((a,b)=>riskForAngle(a)-riskForAngle(b));
 
-  // 3) bullet avoidance: respond to nearest projected approach inside radius
-  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=hypot(px-tank.x,py-tank.y); if(d<md && d<P.threatRadius){ md=d; hot=b; } } }
-  if(hot){ const a=toDeg(hot.vx,hot.vy); const side = P.threatFleeBias + P.bias*0.4; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70]; for(const c of cand){ if(go(c)) return; } }
-
-  // 4) edge avoidance (map 900x600)
-  if(tank.x < P.edgeMargin){ if(go(0)) return; } if(tank.x > 900-P.edgeMargin){ if(go(180)) return; } if(tank.y < P.edgeMargin){ if(go(90)) return; } if(tank.y > 600-P.edgeMargin){ if(go(270)) return; }
-
-  // 5) ally separation
-  let near=null, ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
-  if(near && ad < P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+26)) return; if(go(away-26)) return; }
-
-  // 6) spacing + strafing with health-aware aggression
-  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let MIN=P.minRange, MAX=P.maxRange;
-    if(tgt.health<=P.finishHp || enemies.length<=P.finishRemain) { MIN-=P.finishMinDelta; MAX-=P.finishMaxDelta; }
-    if(tank.health< P.lowHp){ MIN+=P.lowHpPad; }
-    if(d<MIN){ const away=to+180 + P.bias*0.4; if(go(away)) return; if(go(away+22)) return; if(go(away-22)) return; }
-    else if(d>MAX){ if(go(to)) return; if(go(to+16)) return; if(go(to-16)) return; }
-    else { const side = to + ((((__state.tick+tank.x+tank.y)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side)) return; if(go(side+16)) return; if(go(side-16)) return; }
-  }
-
-  // 7) fallback sweeping
-  for(const s of P.sweep){ if(go(s+P.bias)) return; }
+  // Try best angles first
+  for(const a of uniq){ if(tank.move(norm(a))){ __state.lastMove=a; return; } }
+  // Fallback random
+  const fallback = norm(((__state.tick*37 + tank.x + tank.y)|0)%360);
+  if(tank.move(fallback)){ __state.lastMove=fallback; return; }
 }
 `;
 }
@@ -340,4 +340,3 @@ async function main() {
 if (require.main === module) {
   main().catch((e)=>{ console.error(e); process.exit(1); });
 }
-
