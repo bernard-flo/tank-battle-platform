@@ -1,23 +1,19 @@
-# 2025-09-10-14-38 - Optimized Team Results
+# 2025-09-10-14-38 - Champion Selection
 
-Generated at: 2025-09-10T15:02:41.717Z
-- Referenced: .agent/SIMULATOR.md mechanics and CLI
+Generated at: 2025-09-10T15:05:27.842Z
+- Opponents considered: 10
+- Repeats per pairing: 6
 
-## Summary
-- Matches: 64 (draws: 0)
-- Wins: 17, Losses: 47
-- WinRate (excl. draws): 26.56%
-- Margin: -30
+Champion: 2025-09-10-14-29.txt | WR 75.93% | Margin 28
 
-## Per-Opponent Breakdown
-- 2025-09-10-14-29.txt: W 1 / L 7 / D 0 | WR 12.50%
-- 2025-09-10-14-22.txt: W 2 / L 6 / D 0 | WR 25.00%
-- 2025-09-10-14-07.txt: W 2 / L 6 / D 0 | WR 25.00%
-- 2025-09-10-13-44.txt: W 2 / L 6 / D 0 | WR 25.00%
-- 2025-09-10-13-39.txt: W 2 / L 6 / D 0 | WR 25.00%
-- 2025-09-10-13-23.txt: W 2 / L 6 / D 0 | WR 25.00%
-- 2025-09-10-13-08.txt: W 5 / L 3 / D 0 | WR 62.50%
-- 2025-09-10-13-02.txt: W 1 / L 7 / D 0 | WR 12.50%
-
-## Import
-- Import: result/2025-09-10-14-38/2025-09-10-14-38.txt
+Leaderboard:
+- 2025-09-10-14-29.txt: WR 75.93% | Margin 28
+- 2025-09-10-14-07.txt: WR 66.67% | Margin 18
+- 2025-09-10-14-22.txt: WR 46.30% | Margin -4
+- 2025-09-10-13-44.txt: WR 46.30% | Margin -4
+- 2025-09-10-13-23.txt: WR 46.30% | Margin -4
+- 2025-09-10-12-49.txt: WR 41.51% | Margin -9
+- 2025-09-10-13-08.txt: WR 22.22% | Margin -30
+- 2025-09-10-13-39.txt: WR 14.81% | Margin -38
+- 2025-09-10-13-02.txt: WR 11.11% | Margin -42
+- 2025-09-10-12-37.txt: WR 11.11% | Margin -42
