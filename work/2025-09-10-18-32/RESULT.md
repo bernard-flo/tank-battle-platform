@@ -87,3 +87,44 @@ Best Candidate: Orion-9
 | 2025-09-10-11-58.txt | -48 | 0 | 48 | 0 |
 | 2025-09-10-11-23.txt | -48 | 0 | 48 | 0 |
 | 2025-09-10-08-18.txt | -48 | 0 | 48 | 0 |
+
+
+# Tank Battle Elite Optimization - 2025-09-10-18-32
+
+Opponents (12):
+- result/2025-09-10-14-22/2025-09-10-14-22.txt
+- result/2025-09-10-14-29/2025-09-10-14-29.txt
+- result/2025-09-10-14-38/2025-09-10-14-38.txt
+- result/2025-09-10-15-08/2025-09-10-15-08.txt
+- result/2025-09-10-15-22/2025-09-10-15-22.txt
+- result/2025-09-10-15-54/2025-09-10-15-54.txt
+- result/2025-09-10-16-08/2025-09-10-16-08.txt
+- result/2025-09-10-16-27/2025-09-10-16-27.txt
+- result/2025-09-10-16-40/2025-09-10-16-40.txt
+- result/2025-09-10-17-16/2025-09-10-17-16.txt
+- result/2025-09-10-17-54/2025-09-10-17-54.txt
+- result/2025-09-10-18-11/2025-09-10-18-11.txt
+
+Best Candidate: Stellar-9
+- Win Rate: 0.54
+- Score: 311.50
+- Knobs: {"aggr":1,"lateral":1,"leadMul":1.08,"aimMul":1.2,"defense":0,"biasAdj":3}
+
+## Per-opponent Summary (wins/total)
+- 2025-09-10-14-22.txt: 32/48 (wr=0.667, draws=0)
+- 2025-09-10-14-29.txt: 24/48 (wr=0.500, draws=0)
+- 2025-09-10-14-38.txt: 24/48 (wr=0.500, draws=0)
+- 2025-09-10-15-08.txt: 24/48 (wr=0.500, draws=0)
+- 2025-09-10-15-22.txt: 40/48 (wr=0.833, draws=0)
+- 2025-09-10-15-54.txt: 8/48 (wr=0.167, draws=0)
+- 2025-09-10-16-08.txt: 15/48 (wr=0.313, draws=1)
+- 2025-09-10-16-27.txt: 24/48 (wr=0.500, draws=0)
+- 2025-09-10-16-40.txt: 29/48 (wr=0.604, draws=0)
+- 2025-09-10-17-16.txt: 19/48 (wr=0.396, draws=0)
+- 2025-09-10-17-54.txt: 48/48 (wr=1.000, draws=0)
+- 2025-09-10-18-11.txt: 24/48 (wr=0.500, draws=0)
+
+## Top Candidates
+- Stellar-9: wr=0.54, score=311.5 knobs={"aggr":1,"lateral":1,"leadMul":1.08,"aimMul":1.2,"defense":0,"biasAdj":3}
+- Stellar-2: wr=0.528, score=308.0 knobs={"aggr":-1,"lateral":0,"leadMul":1.02,"aimMul":1,"defense":4,"biasAdj":-1}
+- Stellar-6: wr=0.49, score=282.5 knobs={"aggr":0,"lateral":1,"leadMul":1.08,"aimMul":1.2,"defense":0,"biasAdj":2}

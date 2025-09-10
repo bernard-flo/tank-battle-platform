@@ -1,11 +1,11 @@
-function name(){return "Stellar-9-T1";}
+function name(){return "Stellar-8-T1";}
 function type(){return Type.TANKER;}
 let __state_0 = { last:null, tick:0, lastVel:null, side: ((0*17)%2?1:-1) };
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":188,"rMax":297,"strafe":25,"threatR":200,"threatH":5,"fleeBias":16,"sep":70,"edge":52,"leadCap":20,"leadW":1.12,"aimJitter":0.17,"healthW":1.25,"distW":0.09,"finisherHP":26,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"bias":-7};
+  const P={"rMin":184,"rMax":289,"strafe":22,"threatR":224,"threatH":5,"fleeBias":16,"sep":78,"edge":60,"leadCap":20,"leadW":1.06,"aimJitter":0.14,"healthW":1.25,"distW":0.09,"finisherHP":26,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"bias":-9};
   const S=__state_0;
   S.tick=(S.tick||0)+1;
 
@@ -107,14 +107,14 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Stellar-9-T2";}
+function name(){return "Stellar-8-T2";}
 function type(){return Type.TANKER;}
 let __state_1 = { last:null, tick:0, lastVel:null, side: ((1*17)%2?1:-1) };
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":194,"rMax":305,"strafe":27,"threatR":200,"threatH":5,"fleeBias":16,"sep":70,"edge":52,"leadCap":20,"leadW":1.12,"aimJitter":0.17,"healthW":1.25,"distW":0.09,"finisherHP":26,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"bias":-7};
+  const P={"rMin":190,"rMax":297,"strafe":24,"threatR":224,"threatH":5,"fleeBias":16,"sep":78,"edge":60,"leadCap":20,"leadW":1.06,"aimJitter":0.14,"healthW":1.25,"distW":0.09,"finisherHP":26,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"bias":-9};
   const S=__state_1;
   S.tick=(S.tick||0)+1;
 
@@ -216,14 +216,14 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Stellar-9-D1";}
+function name(){return "Stellar-8-D1";}
 function type(){return Type.DEALER;}
 let __state_2 = { last:null, tick:0, lastVel:null, side: ((2*17)%2?1:-1) };
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":268,"rMax":422,"strafe":31,"threatR":170,"threatH":6,"fleeBias":14,"sep":64,"edge":56,"leadCap":22,"leadW":1.19,"aimJitter":0.14,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":30,"aggrOut":22,"aimBias":-0.6,"bias":-3};
+  const P={"rMin":264,"rMax":414,"strafe":28,"threatR":194,"threatH":6,"fleeBias":14,"sep":72,"edge":64,"leadCap":22,"leadW":1.12,"aimJitter":0.12,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":30,"aggrOut":22,"aimBias":-0.6,"bias":-5};
   const S=__state_2;
   S.tick=(S.tick||0)+1;
 
@@ -325,14 +325,14 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Stellar-9-D2";}
+function name(){return "Stellar-8-D2";}
 function type(){return Type.DEALER;}
 let __state_3 = { last:null, tick:0, lastVel:null, side: ((3*17)%2?1:-1) };
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":282,"rMax":438,"strafe":31,"threatR":170,"threatH":6,"fleeBias":14,"sep":64,"edge":56,"leadCap":22,"leadW":1.19,"aimJitter":0.14,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":30,"aggrOut":22,"aimBias":-0.6,"bias":-3};
+  const P={"rMin":278,"rMax":430,"strafe":28,"threatR":194,"threatH":6,"fleeBias":14,"sep":72,"edge":64,"leadCap":22,"leadW":1.12,"aimJitter":0.12,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":30,"aggrOut":22,"aimBias":-0.6,"bias":-5};
   const S=__state_3;
   S.tick=(S.tick||0)+1;
 
@@ -434,14 +434,14 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Stellar-9-N1";}
+function name(){return "Stellar-8-N1";}
 function type(){return Type.NORMAL;}
 let __state_4 = { last:null, tick:0, lastVel:null, side: ((4*17)%2?1:-1) };
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":218,"rMax":342,"strafe":27,"threatR":185,"threatH":5,"fleeBias":15,"sep":66,"edge":54,"leadCap":20,"leadW":1.14,"aimJitter":0.17,"healthW":1.22,"distW":0.09,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":20,"bias":5};
+  const P={"rMin":214,"rMax":334,"strafe":24,"threatR":209,"threatH":5,"fleeBias":15,"sep":74,"edge":62,"leadCap":20,"leadW":1.08,"aimJitter":0.14,"healthW":1.22,"distW":0.09,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":20,"bias":3};
   const S=__state_4;
   S.tick=(S.tick||0)+1;
 
@@ -543,14 +543,14 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Stellar-9-N2";}
+function name(){return "Stellar-8-N2";}
 function type(){return Type.NORMAL;}
 let __state_5 = { last:null, tick:0, lastVel:null, side: ((5*17)%2?1:-1) };
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":218,"rMax":342,"strafe":27,"threatR":185,"threatH":5,"fleeBias":15,"sep":66,"edge":54,"leadCap":20,"leadW":1.14,"aimJitter":0.17,"healthW":1.22,"distW":0.09,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":20,"bias":7};
+  const P={"rMin":214,"rMax":334,"strafe":24,"threatR":209,"threatH":5,"fleeBias":15,"sep":74,"edge":62,"leadCap":20,"leadW":1.08,"aimJitter":0.14,"healthW":1.22,"distW":0.09,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":20,"bias":5};
   const S=__state_5;
   S.tick=(S.tick||0)+1;
 
