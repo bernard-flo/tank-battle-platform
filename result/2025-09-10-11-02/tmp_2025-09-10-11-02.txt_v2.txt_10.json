@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": "1999-0",
+      "winner": "blue",
+      "ticks": 1064,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 137
+    },
+    {
+      "seed": "1999-8",
+      "winner": "blue",
+      "ticks": 1768,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 68
+    },
+    {
+      "seed": "1999-1",
+      "winner": "blue",
+      "ticks": 1064,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 137
+    },
+    {
+      "seed": "1999-9",
+      "winner": "blue",
+      "ticks": 1768,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 68
+    },
+    {
+      "seed": "1999-2",
+      "winner": "blue",
+      "ticks": 1064,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 137
+    },
+    {
+      "seed": "1999-3",
+      "winner": "blue",
+      "ticks": 1064,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 137
+    },
+    {
+      "seed": "1999-4",
+      "winner": "blue",
+      "ticks": 1064,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 137
+    },
+    {
+      "seed": "1999-5",
+      "winner": "blue",
+      "ticks": 1064,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 137
+    },
+    {
+      "seed": "1999-6",
+      "winner": "blue",
+      "ticks": 1064,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 137
+    },
+    {
+      "seed": "1999-7",
+      "winner": "blue",
+      "ticks": 763,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 312
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 0,
+    "blueWins": 10,
+    "draws": 0,
+    "avgTicks": 1174.7,
+    "avgRedAlive": 0,
+    "avgBlueAlive": 3,
+    "avgRedEnergy": 0,
+    "avgBlueEnergy": 140.7,
+    "baseSeed": "1999",
+    "concurrency": 8
+  }
+}

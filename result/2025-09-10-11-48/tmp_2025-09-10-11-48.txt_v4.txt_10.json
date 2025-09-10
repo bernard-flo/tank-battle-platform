@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": "1999-0",
+      "winner": "blue",
+      "ticks": 1013,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 80
+    },
+    {
+      "seed": "1999-8",
+      "winner": "blue",
+      "ticks": 1318,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 52
+    },
+    {
+      "seed": "1999-1",
+      "winner": "blue",
+      "ticks": 1013,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 80
+    },
+    {
+      "seed": "1999-9",
+      "winner": "blue",
+      "ticks": 1318,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 52
+    },
+    {
+      "seed": "1999-2",
+      "winner": "blue",
+      "ticks": 1013,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 80
+    },
+    {
+      "seed": "1999-3",
+      "winner": "blue",
+      "ticks": 1013,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 80
+    },
+    {
+      "seed": "1999-4",
+      "winner": "blue",
+      "ticks": 1013,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 80
+    },
+    {
+      "seed": "1999-5",
+      "winner": "blue",
+      "ticks": 3544,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 107
+    },
+    {
+      "seed": "1999-6",
+      "winner": "blue",
+      "ticks": 1013,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 80
+    },
+    {
+      "seed": "1999-7",
+      "winner": "blue",
+      "ticks": 1013,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 80
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 0,
+    "blueWins": 10,
+    "draws": 0,
+    "avgTicks": 1327.1,
+    "avgRedAlive": 0,
+    "avgBlueAlive": 2.7,
+    "avgRedEnergy": 0,
+    "avgBlueEnergy": 77.1,
+    "baseSeed": "1999",
+    "concurrency": 8
+  }
+}
