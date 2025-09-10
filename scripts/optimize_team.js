@@ -76,16 +76,18 @@ function makeParams(tag, base){
 
   const roles = {
     tanker: [
-      common({ minRange: -base.aggr*8 + -10, maxRange: -base.aggr*6 + -10, strafeAngle: base.lateral*2, bias: -12 + base.biasAdj, threatRadius: 78+base.defense*2 }),
-      common({ minRange: -base.aggr*8 + 0,   maxRange: -base.aggr*6 + 0,   strafeAngle: -base.lateral*2, bias: 12 + base.biasAdj, threatRadius: 78+base.defense*2 }),
+      // Longer engagement distance and much higher threat sensitivity
+      common({ minRange: -base.aggr*8 + -10, maxRange: -base.aggr*6 + -10, strafeAngle: base.lateral*2,  bias: -12 + base.biasAdj, threatRadius: 100 + base.defense*10 }),
+      common({ minRange: -base.aggr*8 + 0,   maxRange: -base.aggr*6 + 0,   strafeAngle: -base.lateral*2, bias:  12 + base.biasAdj, threatRadius: 100 + base.defense*10 }),
     ],
     dealer: [
-      common({ minRange: 60 - base.aggr*12, maxRange: 100 - base.aggr*12, strafeAngle: 6+base.lateral*3, bias: -4 + base.biasAdj, threatRadius: 74+base.defense }),
-      common({ minRange: 60 - base.aggr*12, maxRange: 100 - base.aggr*12, strafeAngle: -6-base.lateral*3, bias: 4 + base.biasAdj, threatRadius: 74+base.defense }),
+      // Keep mid engagement; increase threat radius considerably
+      common({ minRange: 60 - base.aggr*12, maxRange: 100 - base.aggr*12, strafeAngle:  6 + base.lateral*3,  bias: -4 + base.biasAdj, threatRadius: 92 + base.defense*8 }),
+      common({ minRange: 60 - base.aggr*12, maxRange: 100 - base.aggr*12, strafeAngle: -6 - base.lateral*3,  bias:  4 + base.biasAdj, threatRadius: 92 + base.defense*8 }),
     ],
     normal: [
-      common({ minRange: 20 - base.aggr*10, maxRange: 40 - base.aggr*10, strafeAngle: 2+base.lateral*2, bias: -6 + base.biasAdj, threatRadius: 76+base.defense }),
-      common({ minRange: 20 - base.aggr*10, maxRange: 40 - base.aggr*10, strafeAngle: -2-base.lateral*2, bias: 6 + base.biasAdj, threatRadius: 76+base.defense }),
+      common({ minRange: 20 - base.aggr*10, maxRange: 40 - base.aggr*10, strafeAngle:  2 + base.lateral*2,  bias: -6 + base.biasAdj, threatRadius: 92 + base.defense*8 }),
+      common({ minRange: 20 - base.aggr*10, maxRange: 40 - base.aggr*10, strafeAngle: -2 - base.lateral*2,  bias:  6 + base.biasAdj, threatRadius: 92 + base.defense*8 }),
     ],
   };
 
@@ -102,13 +104,14 @@ function generateCandidate(tag, knobs){
     leadCap: 14,
     leadWeight: knobs.leadWeight,
     aimJitter: knobs.aimJitter,
-    minRange: 160, // base to be role-adjusted
-    maxRange: 260,
-    strafeAngle: 28,
-    threatRadius: 76,
-    threatFleeBias: 14,
-    allySep: 62,
-    edgeMargin: 46,
+    // Increase base distance and strafing to counter long-range meta
+    minRange: 200, // base to be role-adjusted (tanker uses this + offsets)
+    maxRange: 290,
+    strafeAngle: 34,
+    threatRadius: 96,
+    threatFleeBias: 16,
+    allySep: 66,
+    edgeMargin: 56,
     bias: 0,
     targetHealthWeight: 1.25,
     targetDistWeight: 0.10,
@@ -165,11 +168,12 @@ function main(){
   const pick = opps.slice(-8).filter((p)=>!p.includes(TS));
 
   const knobsList = [];
+  // Broaden search ranges to include more defensive/long-range variants
   const AGGR=[-1,0,1];
   const LAT=[-1,0,1];
-  const LW=[0.98,1.04];
-  const AIM=[0.20,0.24];
-  const DEF=[0,2];
+  const LW=[0.96,1.02,1.08];
+  const AIM=[0.16,0.20,0.24];
+  const DEF=[0,4,8];
   let idx=0;
   for(const aggr of AGGR){
     for(const lateral of LAT){
@@ -181,8 +185,8 @@ function main(){
       }
     }
   }
-  // Trim to reasonable size
-  const candidates = knobsList.slice(0,14);
+  // Keep a moderate number to fit runtime budget
+  const candidates = knobsList.slice(0,18);
 
   const results = [];
   let best = null;
