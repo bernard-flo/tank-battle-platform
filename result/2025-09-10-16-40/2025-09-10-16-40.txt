@@ -1,31 +1,28 @@
 function name(){return "Astra-T1";}
 function type(){return Type.TANKER;}
-let __s={last:null,tick:0,lastVel:null};
+let __S_0={last:null,tick:0,lastVel:null,side:((0*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"healthW":1.3,"distW":0.116,"dealerBias":-11,"tankerBias":10,"velLP":0.49,"leadCap":17.42,"leadW":0.93,"aimJitter":0.13,"aimBias":0.26,"minRange":159,"maxRange":294,"strafe":27,"allySep":61,"edge":65,"threatR":219,"threatH":5,"threatBonus":0,"fleeBias":15,"finisherHP":19,"aggrRemain":3,"aggrIn":23,"aggrOut":19,"bias":-22}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  const P={"healthW":1.21,"distW":0.113,"dealerBias":-11,"tankerBias":7,"velLP":0.58,"leadCap":19.71,"leadW":1.07,"aimJitter":0.2,"aimBias":0.45,"minRange":202,"maxRange":277,"strafe":30,"allySep":70,"edge":64,"threatR":221,"threatH":5,"threatBonus":0,"fleeBias":17,"finisherHP":22,"aggrRemain":3,"aggrIn":26,"aggrOut":13,"bias":-22}; const S=__S_0; S.tick=(S.tick||0)+1;
   // target selection with role bias by inferred size
   let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
-  // predictive fire via quadratic intercept
+  // predictive fire using persistent velocity estimate when available; fallback to direct aim
   if(tgt){
-    const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=H(dx,dy);
-    let vx=0,vy=0; // estimate enemy velocity by comparing to closest other enemy as proxy if any
-    if(enemies.length>1){ let nb=null,bd=1e18; for(const e of enemies){ if(e===tgt) continue; const d=H(e.x-tgt.x,e.y-tgt.y); if(d<bd){bd=d; nb=e;} } if(nb){ vx=(tgt.x-nb.x); vy=(tgt.y-nb.y); const n=H(vx,vy)||1; vx/=n; vy/=n; vx*=P.leadW; vy*=P.leadW; } }
-    const bs=8; // bullet speed
-    // lead factor limited
-    const t=CL(dist/bs,0,P.leadCap); const lx=dx + vx*t, ly=dy + vy*t;
-    let ang=D(lx,ly) + P.aimBias + (Math.random()-0.5)*P.aimJitter*30; ang=N(ang);
-    // aggression finisher bias
-    if(tgt.health<=P.finisherHP){ ang=N(ang + (Math.random()-0.5)*P.aimJitter*40); }
-    tank.fire(ang);
+    let ax=tgt.x, ay=tgt.y; let vx=0, vy=0;
+    if(S.last){ const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0; const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); S.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy-s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } }
+      ax = tgt.x + vx * P.leadW * tHit; ay = tgt.y + vy * P.leadW * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 0*11)%23)-11) * (P.aimJitter||0.12) * 0.07 + (P.aimBias||0);
+    tank.fire(D(ax-tank.x, ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
   }
   // movement helpers
   let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
   // bullet avoidance with time-to-closest weighting
   let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
-  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(S.side||1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
   if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
@@ -42,32 +39,29 @@ function update(tank,enemies,allies,bulletInfo){
 
 function name(){return "Astra-T2";}
 function type(){return Type.TANKER;}
-let __s={last:null,tick:0,lastVel:null};
+let __S_1={last:null,tick:0,lastVel:null,side:((1*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"healthW":1.17,"distW":0.094,"dealerBias":-11,"tankerBias":7,"velLP":0.59,"leadCap":20.33,"leadW":0.96,"aimJitter":0.21,"aimBias":0.43,"minRange":192,"maxRange":303,"strafe":27,"allySep":62,"edge":59,"threatR":208,"threatH":6,"threatBonus":1,"fleeBias":18,"finisherHP":21,"aggrRemain":4,"aggrIn":29,"aggrOut":14,"bias":18}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  const P={"healthW":1.22,"distW":0.091,"dealerBias":-16,"tankerBias":4,"velLP":0.51,"leadCap":18.72,"leadW":1.12,"aimJitter":0.2,"aimBias":-0.03,"minRange":197,"maxRange":256,"strafe":18,"allySep":73,"edge":65,"threatR":176,"threatH":5,"threatBonus":0,"fleeBias":13,"finisherHP":29,"aggrRemain":3,"aggrIn":28,"aggrOut":20,"bias":20}; const S=__S_1; S.tick=(S.tick||0)+1;
   // target selection with role bias by inferred size
   let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
-  // predictive fire via quadratic intercept
+  // predictive fire using persistent velocity estimate when available; fallback to direct aim
   if(tgt){
-    const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=H(dx,dy);
-    let vx=0,vy=0; // estimate enemy velocity by comparing to closest other enemy as proxy if any
-    if(enemies.length>1){ let nb=null,bd=1e18; for(const e of enemies){ if(e===tgt) continue; const d=H(e.x-tgt.x,e.y-tgt.y); if(d<bd){bd=d; nb=e;} } if(nb){ vx=(tgt.x-nb.x); vy=(tgt.y-nb.y); const n=H(vx,vy)||1; vx/=n; vy/=n; vx*=P.leadW; vy*=P.leadW; } }
-    const bs=8; // bullet speed
-    // lead factor limited
-    const t=CL(dist/bs,0,P.leadCap); const lx=dx + vx*t, ly=dy + vy*t;
-    let ang=D(lx,ly) + P.aimBias + (Math.random()-0.5)*P.aimJitter*30; ang=N(ang);
-    // aggression finisher bias
-    if(tgt.health<=P.finisherHP){ ang=N(ang + (Math.random()-0.5)*P.aimJitter*40); }
-    tank.fire(ang);
+    let ax=tgt.x, ay=tgt.y; let vx=0, vy=0;
+    if(S.last){ const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0; const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); S.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy-s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } }
+      ax = tgt.x + vx * P.leadW * tHit; ay = tgt.y + vy * P.leadW * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 1*11)%23)-11) * (P.aimJitter||0.12) * 0.07 + (P.aimBias||0);
+    tank.fire(D(ax-tank.x, ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
   }
   // movement helpers
   let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
   // bullet avoidance with time-to-closest weighting
   let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
-  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(S.side||1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
   if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
@@ -84,32 +78,29 @@ function update(tank,enemies,allies,bulletInfo){
 
 function name(){return "Astra-D3";}
 function type(){return Type.DEALER;}
-let __s={last:null,tick:0,lastVel:null};
+let __S_2={last:null,tick:0,lastVel:null,side:((2*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"healthW":1.27,"distW":0.081,"dealerBias":-9,"tankerBias":3,"velLP":0.56,"leadCap":16.07,"leadW":0.96,"aimJitter":0.17,"aimBias":-0.18,"minRange":283,"maxRange":415,"strafe":28,"allySep":59,"edge":66,"threatR":150,"threatH":4,"threatBonus":-1,"fleeBias":22,"finisherHP":23,"aggrRemain":4,"aggrIn":21,"aggrOut":13,"bias":-29}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  const P={"healthW":1.16,"distW":0.099,"dealerBias":-17,"tankerBias":7,"velLP":0.59,"leadCap":22.82,"leadW":1.02,"aimJitter":0.09,"aimBias":-0.55,"minRange":259,"maxRange":411,"strafe":31,"allySep":70,"edge":62,"threatR":162,"threatH":5,"threatBonus":-1,"fleeBias":15,"finisherHP":31,"aggrRemain":2,"aggrIn":29,"aggrOut":20,"bias":-12}; const S=__S_2; S.tick=(S.tick||0)+1;
   // target selection with role bias by inferred size
   let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
-  // predictive fire via quadratic intercept
+  // predictive fire using persistent velocity estimate when available; fallback to direct aim
   if(tgt){
-    const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=H(dx,dy);
-    let vx=0,vy=0; // estimate enemy velocity by comparing to closest other enemy as proxy if any
-    if(enemies.length>1){ let nb=null,bd=1e18; for(const e of enemies){ if(e===tgt) continue; const d=H(e.x-tgt.x,e.y-tgt.y); if(d<bd){bd=d; nb=e;} } if(nb){ vx=(tgt.x-nb.x); vy=(tgt.y-nb.y); const n=H(vx,vy)||1; vx/=n; vy/=n; vx*=P.leadW; vy*=P.leadW; } }
-    const bs=8; // bullet speed
-    // lead factor limited
-    const t=CL(dist/bs,0,P.leadCap); const lx=dx + vx*t, ly=dy + vy*t;
-    let ang=D(lx,ly) + P.aimBias + (Math.random()-0.5)*P.aimJitter*30; ang=N(ang);
-    // aggression finisher bias
-    if(tgt.health<=P.finisherHP){ ang=N(ang + (Math.random()-0.5)*P.aimJitter*40); }
-    tank.fire(ang);
+    let ax=tgt.x, ay=tgt.y; let vx=0, vy=0;
+    if(S.last){ const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0; const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); S.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy-s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } }
+      ax = tgt.x + vx * P.leadW * tHit; ay = tgt.y + vy * P.leadW * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 2*11)%23)-11) * (P.aimJitter||0.12) * 0.07 + (P.aimBias||0);
+    tank.fire(D(ax-tank.x, ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
   }
   // movement helpers
   let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
   // bullet avoidance with time-to-closest weighting
   let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
-  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(S.side||1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
   if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
@@ -126,32 +117,29 @@ function update(tank,enemies,allies,bulletInfo){
 
 function name(){return "Astra-D4";}
 function type(){return Type.DEALER;}
-let __s={last:null,tick:0,lastVel:null};
+let __S_3={last:null,tick:0,lastVel:null,side:((3*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"healthW":1.21,"distW":0.124,"dealerBias":-17,"tankerBias":8,"velLP":0.5,"leadCap":19.69,"leadW":1.07,"aimJitter":0.14,"aimBias":-0.02,"minRange":265,"maxRange":406,"strafe":31,"allySep":67,"edge":61,"threatR":171,"threatH":5,"threatBonus":-1,"fleeBias":21,"finisherHP":33,"aggrRemain":4,"aggrIn":23,"aggrOut":14,"bias":2}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  const P={"healthW":1.11,"distW":0.124,"dealerBias":-17,"tankerBias":7,"velLP":0.58,"leadCap":18.23,"leadW":1.02,"aimJitter":0.08,"aimBias":0.3,"minRange":259,"maxRange":405,"strafe":34,"allySep":68,"edge":64,"threatR":145,"threatH":5,"threatBonus":0,"fleeBias":20,"finisherHP":31,"aggrRemain":2,"aggrIn":22,"aggrOut":17,"bias":-21}; const S=__S_3; S.tick=(S.tick||0)+1;
   // target selection with role bias by inferred size
   let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
-  // predictive fire via quadratic intercept
+  // predictive fire using persistent velocity estimate when available; fallback to direct aim
   if(tgt){
-    const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=H(dx,dy);
-    let vx=0,vy=0; // estimate enemy velocity by comparing to closest other enemy as proxy if any
-    if(enemies.length>1){ let nb=null,bd=1e18; for(const e of enemies){ if(e===tgt) continue; const d=H(e.x-tgt.x,e.y-tgt.y); if(d<bd){bd=d; nb=e;} } if(nb){ vx=(tgt.x-nb.x); vy=(tgt.y-nb.y); const n=H(vx,vy)||1; vx/=n; vy/=n; vx*=P.leadW; vy*=P.leadW; } }
-    const bs=8; // bullet speed
-    // lead factor limited
-    const t=CL(dist/bs,0,P.leadCap); const lx=dx + vx*t, ly=dy + vy*t;
-    let ang=D(lx,ly) + P.aimBias + (Math.random()-0.5)*P.aimJitter*30; ang=N(ang);
-    // aggression finisher bias
-    if(tgt.health<=P.finisherHP){ ang=N(ang + (Math.random()-0.5)*P.aimJitter*40); }
-    tank.fire(ang);
+    let ax=tgt.x, ay=tgt.y; let vx=0, vy=0;
+    if(S.last){ const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0; const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); S.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy-s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } }
+      ax = tgt.x + vx * P.leadW * tHit; ay = tgt.y + vy * P.leadW * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 3*11)%23)-11) * (P.aimJitter||0.12) * 0.07 + (P.aimBias||0);
+    tank.fire(D(ax-tank.x, ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
   }
   // movement helpers
   let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
   // bullet avoidance with time-to-closest weighting
   let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
-  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(S.side||1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
   if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
@@ -168,32 +156,29 @@ function update(tank,enemies,allies,bulletInfo){
 
 function name(){return "Astra-N5";}
 function type(){return Type.NORMAL;}
-let __s={last:null,tick:0,lastVel:null};
+let __S_4={last:null,tick:0,lastVel:null,side:((4*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"healthW":1.28,"distW":0.107,"dealerBias":-11,"tankerBias":5,"velLP":0.57,"leadCap":16.29,"leadW":1.1,"aimJitter":0.17,"aimBias":0.35,"minRange":230,"maxRange":303,"strafe":26,"allySep":63,"edge":63,"threatR":159,"threatH":6,"threatBonus":-2,"fleeBias":21,"finisherHP":19,"aggrRemain":4,"aggrIn":29,"aggrOut":18,"bias":11}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  const P={"healthW":1.21,"distW":0.121,"dealerBias":-15,"tankerBias":9,"velLP":0.54,"leadCap":16.23,"leadW":1.09,"aimJitter":0.16,"aimBias":0.43,"minRange":206,"maxRange":332,"strafe":29,"allySep":62,"edge":51,"threatR":183,"threatH":4,"threatBonus":-1,"fleeBias":19,"finisherHP":21,"aggrRemain":2,"aggrIn":29,"aggrOut":22,"bias":-6}; const S=__S_4; S.tick=(S.tick||0)+1;
   // target selection with role bias by inferred size
   let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
-  // predictive fire via quadratic intercept
+  // predictive fire using persistent velocity estimate when available; fallback to direct aim
   if(tgt){
-    const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=H(dx,dy);
-    let vx=0,vy=0; // estimate enemy velocity by comparing to closest other enemy as proxy if any
-    if(enemies.length>1){ let nb=null,bd=1e18; for(const e of enemies){ if(e===tgt) continue; const d=H(e.x-tgt.x,e.y-tgt.y); if(d<bd){bd=d; nb=e;} } if(nb){ vx=(tgt.x-nb.x); vy=(tgt.y-nb.y); const n=H(vx,vy)||1; vx/=n; vy/=n; vx*=P.leadW; vy*=P.leadW; } }
-    const bs=8; // bullet speed
-    // lead factor limited
-    const t=CL(dist/bs,0,P.leadCap); const lx=dx + vx*t, ly=dy + vy*t;
-    let ang=D(lx,ly) + P.aimBias + (Math.random()-0.5)*P.aimJitter*30; ang=N(ang);
-    // aggression finisher bias
-    if(tgt.health<=P.finisherHP){ ang=N(ang + (Math.random()-0.5)*P.aimJitter*40); }
-    tank.fire(ang);
+    let ax=tgt.x, ay=tgt.y; let vx=0, vy=0;
+    if(S.last){ const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0; const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); S.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy-s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } }
+      ax = tgt.x + vx * P.leadW * tHit; ay = tgt.y + vy * P.leadW * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 4*11)%23)-11) * (P.aimJitter||0.12) * 0.07 + (P.aimBias||0);
+    tank.fire(D(ax-tank.x, ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
   }
   // movement helpers
   let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
   // bullet avoidance with time-to-closest weighting
   let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
-  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(S.side||1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
   if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
@@ -210,32 +195,29 @@ function update(tank,enemies,allies,bulletInfo){
 
 function name(){return "Astra-N6";}
 function type(){return Type.NORMAL;}
-let __s={last:null,tick:0,lastVel:null};
+let __S_5={last:null,tick:0,lastVel:null,side:((5*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"healthW":1.28,"distW":0.102,"dealerBias":-11,"tankerBias":6,"velLP":0.61,"leadCap":21.42,"leadW":1.06,"aimJitter":0.14,"aimBias":0.19,"minRange":197,"maxRange":313,"strafe":22,"allySep":63,"edge":60,"threatR":141,"threatH":5,"threatBonus":0,"fleeBias":16,"finisherHP":29,"aggrRemain":4,"aggrIn":28,"aggrOut":21,"bias":35}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  const P={"healthW":1.25,"distW":0.098,"dealerBias":-13,"tankerBias":6,"velLP":0.6,"leadCap":17.33,"leadW":1.02,"aimJitter":0.14,"aimBias":0,"minRange":219,"maxRange":303,"strafe":29,"allySep":73,"edge":58,"threatR":151,"threatH":5,"threatBonus":0,"fleeBias":18,"finisherHP":29,"aggrRemain":2,"aggrIn":19,"aggrOut":16,"bias":-7}; const S=__S_5; S.tick=(S.tick||0)+1;
   // target selection with role bias by inferred size
   let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
-  // predictive fire via quadratic intercept
+  // predictive fire using persistent velocity estimate when available; fallback to direct aim
   if(tgt){
-    const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=H(dx,dy);
-    let vx=0,vy=0; // estimate enemy velocity by comparing to closest other enemy as proxy if any
-    if(enemies.length>1){ let nb=null,bd=1e18; for(const e of enemies){ if(e===tgt) continue; const d=H(e.x-tgt.x,e.y-tgt.y); if(d<bd){bd=d; nb=e;} } if(nb){ vx=(tgt.x-nb.x); vy=(tgt.y-nb.y); const n=H(vx,vy)||1; vx/=n; vy/=n; vx*=P.leadW; vy*=P.leadW; } }
-    const bs=8; // bullet speed
-    // lead factor limited
-    const t=CL(dist/bs,0,P.leadCap); const lx=dx + vx*t, ly=dy + vy*t;
-    let ang=D(lx,ly) + P.aimBias + (Math.random()-0.5)*P.aimJitter*30; ang=N(ang);
-    // aggression finisher bias
-    if(tgt.health<=P.finisherHP){ ang=N(ang + (Math.random()-0.5)*P.aimJitter*40); }
-    tank.fire(ang);
+    let ax=tgt.x, ay=tgt.y; let vx=0, vy=0;
+    if(S.last){ const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0; const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); S.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy-s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } }
+      ax = tgt.x + vx * P.leadW * tHit; ay = tgt.y + vy * P.leadW * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 5*11)%23)-11) * (P.aimJitter||0.12) * 0.07 + (P.aimBias||0);
+    tank.fire(D(ax-tank.x, ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
   }
   // movement helpers
   let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
   // bullet avoidance with time-to-closest weighting
   let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
-  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(S.side||1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
   if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
