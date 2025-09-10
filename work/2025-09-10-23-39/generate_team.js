@@ -56,7 +56,7 @@ let __s${seedOffset}={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const P=${PLIT};
-  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot;
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const rnd=((tank.x*97+tank.y*131+${seedOffset})|0)%2?1:-1; __s${seedOffset}.tick=(__s${seedOffset}.tick||0)+1;
 
@@ -147,4 +147,3 @@ function main(){
 if (require.main === module) main();
 
 module.exports = { buildTeam };
-
