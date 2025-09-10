@@ -1,0 +1,737 @@
+{
+  "summaries": [
+    {
+      "seed": "9150-0",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-8",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-16",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-24",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-32",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-40",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-48",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-56",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-64",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-72",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-1",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-9",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-17",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-25",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-33",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-41",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-49",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-57",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-65",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-73",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-2",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-10",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-18",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-26",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-34",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-42",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-50",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-58",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-66",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-74",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-3",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-11",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-19",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-27",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-35",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-43",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-51",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-59",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-67",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-75",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-4",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-12",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-20",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-28",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-36",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-44",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-52",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-60",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-68",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-76",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-5",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-13",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-21",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-29",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-37",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-45",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-53",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-61",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-69",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-77",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-6",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-14",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-22",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-30",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-38",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-46",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-54",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-62",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-70",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-78",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-7",
+      "winner": "blue",
+      "ticks": 572,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 98
+    },
+    {
+      "seed": "9150-15",
+      "winner": "blue",
+      "ticks": 429,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 351
+    },
+    {
+      "seed": "9150-23",
+      "winner": "red",
+      "ticks": 598,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 132,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-31",
+      "winner": "red",
+      "ticks": 432,
+      "redAlive": 5,
+      "blueAlive": 0,
+      "redEnergy": 213,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-39",
+      "winner": "red",
+      "ticks": 842,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 152,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-47",
+      "winner": "blue",
+      "ticks": 645,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 73
+    },
+    {
+      "seed": "9150-55",
+      "winner": "blue",
+      "ticks": 933,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 13
+    },
+    {
+      "seed": "9150-63",
+      "winner": "blue",
+      "ticks": 1001,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 251
+    },
+    {
+      "seed": "9150-71",
+      "winner": "red",
+      "ticks": 755,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 194,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "9150-79",
+      "winner": "red",
+      "ticks": 784,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 196,
+      "blueEnergy": 0
+    }
+  ],
+  "aggregate": {
+    "matches": 80,
+    "redWins": 40,
+    "blueWins": 40,
+    "draws": 0,
+    "avgTicks": 699.1,
+    "avgRedAlive": 1.6,
+    "avgBlueAlive": 1.5,
+    "avgRedEnergy": 88.7,
+    "avgBlueEnergy": 78.6,
+    "baseSeed": "9150",
+    "concurrency": 8
+  }
+}

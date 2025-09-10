@@ -191,7 +191,7 @@ function main() {
     const params = makeParams(styles[i]);
     const candPath = path.join(WORK_DIR, `candidate_port_${i+1}.js`);
     writeTeam(candPath, params);
-    const agg = aggregateAgainstOpponents(candPath, opponents, `p${i+1}`, 160, 777, 8);
+    const agg = aggregateAgainstOpponents(candPath, opponents, `p${i+1}`, 80, 777, 8);
     portfolio.push({ key: styles[i].key, path: candPath, ...agg, style: styles[i] });
     console.log(`[portfolio] ${styles[i].key} -> winRate=${(agg.winRate*100).toFixed(1)} minOpp=${(agg.minOppRate*100).toFixed(1)}`);
   }
@@ -200,9 +200,9 @@ function main() {
 
   // 2) Random local search around the best two styles
   const seeds = portfolio.slice(0, 2).map(p => p.style);
-  const searchRounds = 20; // iterations
-  const variantsPerRound = 4;
-  const quickRepeat = 80; // faster eval per side
+  const searchRounds = 10; // iterations (reduced for runtime)
+  const variantsPerRound = 3;
+  const quickRepeat = 60; // faster eval per side
   for (let r = 0; r < searchRounds; r++) {
     for (let s = 0; s < seeds.length; s++) {
       for (let v = 0; v < variantsPerRound; v++) {
@@ -222,7 +222,7 @@ function main() {
 
   // 3) Final robust evaluation with higher repeats
   const finalPath = best.path;
-  const finalAgg = aggregateAgainstOpponents(finalPath, opponents, 'final', 200, 12345, 8);
+  const finalAgg = aggregateAgainstOpponents(finalPath, opponents, 'final', 120, 12345, 8);
   const final = { ...best, ...finalAgg };
 
   // 4) Save best to nested result directory: result/<workdir>/<workdir>.txt
@@ -264,4 +264,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
