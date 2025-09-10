@@ -187,16 +187,8 @@ function update(tank,enemies,allies,bulletInfo){
 `;
 }
 
-function main() {
-  const args = parseArgs(process.argv);
-  const out = args.out || 'team.txt';
-  const teamName = args.name || 'Nova';
-  let params;
-  if (args.params && fs.existsSync(args.params)) params = JSON.parse(fs.readFileSync(args.params, 'utf8'));
-
-  const seed = args.seed ? parseInt(args.seed, 10) : 1;
+function generateTeamCode({ seed = 1, teamName = 'Nova', params = null } = {}) {
   const rnd = rng(seed);
-
   const roles = (params && params.roles) || ['TANKER','TANKER','DEALER','DEALER','NORMAL','NORMAL'];
   const base = (params && params.base) || {
     rMin: 210,
@@ -237,11 +229,22 @@ function main() {
     segments.push(block);
     if (i !== 5) segments.push('\n\n// ===== 다음 로봇 =====\n\n');
   }
+  return segments.join('');
+}
 
+function main() {
+  const args = parseArgs(process.argv);
+  const out = args.out || 'team.txt';
+  const teamName = args.name || 'Nova';
+  let params;
+  if (args.params && fs.existsSync(args.params)) params = JSON.parse(fs.readFileSync(args.params, 'utf8'));
+
+  const seed = args.seed ? parseInt(args.seed, 10) : 1;
+  const code = generateTeamCode({ seed, teamName, params });
   const outPath = path.resolve(out);
-  fs.writeFileSync(outPath, segments.join(''), 'utf8');
+  fs.writeFileSync(outPath, code, 'utf8');
   console.log(`Generated team -> ${outPath}`);
 }
 
 if (require.main === module) main();
-
+module.exports = { generateTeamCode };
