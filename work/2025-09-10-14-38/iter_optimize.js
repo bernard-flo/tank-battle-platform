@@ -197,11 +197,12 @@ async function currentChampion(opponentFiles) {
   // Evaluate a subset (newest K) to estimate the current best
   const K = Math.min(opponentFiles.length, 10);
   const subset = opponentFiles.slice(0, K);
+  const CHAMP_REP = process.env.CHAMP_REP ? parseInt(process.env.CHAMP_REP, 10) : 14;
   let best = null;
   for (let i = 0; i < subset.length; i++) {
     const file = subset[i];
     const others = subset.filter((x) => x.path !== file.path);
-    const r = await evaluateExistingTeam(file, others, 14);
+    const r = await evaluateExistingTeam(file, others, CHAMP_REP);
     if (!best || r.wr > best.wr) best = r;
   }
   return best; // {file, wins, losses, draws, tests, wr, margin}
