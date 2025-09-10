@@ -227,7 +227,7 @@ function run() {
 
   // Write RESULT.md with comparison summary
   let md = `# Result ${RUNID}\n\n`;
-  md += `Average win rate vs recent opponents: ${(bestScore*100).toFixed(2)}%\\n\n`;
+  md += `Average win rate vs recent opponents: ${(bestAvgWR*100).toFixed(2)}%\\n\n`;
   md += `## Opponent Breakdown\\n`;
   for (const d of best.details) {
     md += `- ${d.opp}: ${(d.winRate*100).toFixed(1)}% over ${d.matches} games\\n`;
