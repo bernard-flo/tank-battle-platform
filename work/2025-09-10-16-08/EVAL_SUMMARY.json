@@ -1,0 +1,231 @@
+{
+  "table": {
+    "/project/work/2025-09-10-16-08/candidate_helix_v1.txt": {
+      "winRate": 0.4775,
+      "totalWins": 191,
+      "totalMatches": 400,
+      "totalDraws": 1,
+      "perOpp": [
+        {
+          "opponent": "/project/result/2025-09-10-15-54/2025-09-10-15-54.txt",
+          "redWins": 8,
+          "blueWins": 0,
+          "draws": 1
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+          "redWins": 9,
+          "blueWins": 16,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+          "redWins": 13,
+          "blueWins": 15,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+          "redWins": 8,
+          "blueWins": 16,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+          "redWins": 8,
+          "blueWins": 16,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+          "redWins": 8,
+          "blueWins": 25,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+          "redWins": 0,
+          "blueWins": 16,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+          "redWins": 8,
+          "blueWins": 25,
+          "draws": 0
+        }
+      ]
+    },
+    "/project/work/2025-09-10-16-08/candidate_helix_v2.txt": {
+      "winRate": 0.595,
+      "totalWins": 238,
+      "totalMatches": 400,
+      "totalDraws": 0,
+      "perOpp": [
+        {
+          "opponent": "/project/result/2025-09-10-15-54/2025-09-10-15-54.txt",
+          "redWins": 0,
+          "blueWins": 9,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+          "redWins": 17,
+          "blueWins": 25,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+          "redWins": 8,
+          "blueWins": 16,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+          "redWins": 16,
+          "blueWins": 17,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+          "redWins": 16,
+          "blueWins": 16,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+          "redWins": 16,
+          "blueWins": 16,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+          "redWins": 17,
+          "blueWins": 17,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+          "redWins": 16,
+          "blueWins": 16,
+          "draws": 0
+        }
+      ]
+    },
+    "/project/work/2025-09-10-16-08/candidate_helix_v3.txt": {
+      "winRate": 0.615,
+      "totalWins": 246,
+      "totalMatches": 400,
+      "totalDraws": 8,
+      "perOpp": [
+        {
+          "opponent": "/project/result/2025-09-10-15-54/2025-09-10-15-54.txt",
+          "redWins": 9,
+          "blueWins": 11,
+          "draws": 6
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+          "redWins": 19,
+          "blueWins": 24,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+          "redWins": 14,
+          "blueWins": 14,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+          "redWins": 16,
+          "blueWins": 13,
+          "draws": 2
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+          "redWins": 15,
+          "blueWins": 18,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+          "redWins": 19,
+          "blueWins": 14,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+          "redWins": 15,
+          "blueWins": 15,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+          "redWins": 15,
+          "blueWins": 15,
+          "draws": 0
+        }
+      ]
+    }
+  },
+  "best": {
+    "path": "/project/work/2025-09-10-16-08/candidate_helix_v3.txt",
+    "stats": {
+      "winRate": 0.615,
+      "totalWins": 246,
+      "totalMatches": 400,
+      "totalDraws": 8,
+      "perOpp": [
+        {
+          "opponent": "/project/result/2025-09-10-15-54/2025-09-10-15-54.txt",
+          "redWins": 9,
+          "blueWins": 11,
+          "draws": 6
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+          "redWins": 19,
+          "blueWins": 24,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+          "redWins": 14,
+          "blueWins": 14,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+          "redWins": 16,
+          "blueWins": 13,
+          "draws": 2
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+          "redWins": 15,
+          "blueWins": 18,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+          "redWins": 19,
+          "blueWins": 14,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+          "redWins": 15,
+          "blueWins": 15,
+          "draws": 0
+        },
+        {
+          "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+          "redWins": 15,
+          "blueWins": 15,
+          "draws": 0
+        }
+      ]
+    }
+  }
+}
