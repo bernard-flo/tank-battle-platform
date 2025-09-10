@@ -2,7 +2,7 @@
 /*
   Optimizer for tank_battle_platform bots.
   - Generates a family of 6-bot teams with tunable parameters.
-  - Simulates versus recent opponents found in result/*/*.txt.
+  - Simulates versus recent opponents found in result/<any-subdir>/*.txt.
   - Picks the best variant and writes final team code to result/<TS>/team.js and <TS>.txt.
   - Saves a summary to work/<TS>/RESULT.md.
 
@@ -222,4 +222,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
