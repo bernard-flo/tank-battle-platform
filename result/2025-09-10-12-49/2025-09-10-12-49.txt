@@ -1,0 +1,188 @@
+function name(){return "Nova-6-T1";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const H=Math.hypot;
+  const S=(update.__s||(update.__s={last:null,vel:{vx:0,vy:0},tick:0}));
+  S.tick=(S.tick||0)+1;
+  const P={minR:205,maxR:300,strafe:32,edge:58,allySep:66,threat:196,avoidBias:14,
+           leadCap:14,leadW:1.08,aimJitter:0.18,finHP:22,finRemain:3,finMin:35,finMax:25,
+           typeBias:{0:0,1:12,2:-20}}; // prefer DEALER
+
+  // target selection (health focus + type bias + distance)
+  let tgt=null, best=1e9;
+  for(const e of enemies){
+    const tb=P.typeBias[(e.type!==undefined?e.type:0)]||0;
+    const key=e.health*1.25 + e.distance*0.10 + tb;
+    if(key<best){best=key; tgt=e;}
+  }
+
+  // predictive aim using last seen velocity if available
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    if(S.last){
+      const vx=tgt.x-S.last.x, vy=tgt.y-S.last.y;
+      S.vel.vx=S.vel.vx*0.5+vx*0.5; S.vel.vy=S.vel.vy*0.5+vy*0.5;
+      const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap);
+      ax=tgt.x+S.vel.vx*P.leadW*t; ay=tgt.y+S.vel.vy*P.leadW*t;
+    }
+    const jitter=(((tank.x*29+tank.y*17)%23)-11)*0.06*P.aimJitter;
+    tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+
+  // bullet avoidance: perpendicular dodge weighted by time-to-closest approach
+  let hot=null,minD=1e9; for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v;
+    const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y);
+      if(d<minD && d<P.threat){ minD=d; hot=b; }
+    }
+  }
+  if(hot){
+    const a=toDeg(hot.vx,hot.vy); const side=P.avoidBias;
+    for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70]){ if(go(c)) return; }
+  }
+
+  // edge keep-in
+  if(tank.x<P.edge){ if(go(0)) return; }
+  if(tank.x>900-P.edge){ if(go(180)) return; }
+  if(tank.y<P.edge){ if(go(90)) return; }
+  if(tank.y>600-P.edge){ if(go(270)) return; }
+
+  // ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y);
+    if(go(away)) return; if(go(away+28)) return; if(go(away-28)) return; }
+
+  if(tgt){
+    const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance;
+    let minR=P.minR, maxR=P.maxR; const remain=enemies.length;
+    if((tgt.health<=P.finHP) || remain<=P.finRemain){ minR-=P.finMin; maxR-=P.finMax; }
+    if(d<minR){ const away=to+180+10; if(go(away)) return; if(go(away+24)) return; if(go(away-24)) return; }
+    else if(d>maxR){ if(go(to)) return; if(go(to+16)) return; if(go(to-16)) return; }
+    else { const side=to+(((tank.x*13+tank.y*7)%2)?P.strafe:-P.strafe)-6; if(go(side)) return; if(go(side+16)) return; if(go(side-16)) return; }
+  }
+
+  for(const s of [0,60,120,180,240,300]){ if(go(s-6)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-D1";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const S=(update.__s||(update.__s={last:null,vel:{vx:0,vy:0},tick:0})); S.tick=(S.tick||0)+1;
+  const P={minR:280,maxR:430,strafe:40,edge:56,allySep:64,threat:188,avoidBias:18,
+           leadCap:15,leadW:1.10,aimJitter:0.16,finHP:24,finRemain:3,finMin:42,finMax:34,
+           typeBias:{0:0,1:6,2:-22}, bias: -8};
+
+  let tgt=null,best=1e9; for(const e of enemies){ const tb=P.typeBias[(e.type!==undefined?e.type:0)]||0; const key=e.health*1.3 + e.distance*0.08 + tb; if(key<best){best=key; tgt=e;} }
+  if(tgt){ let ax=tgt.x,ay=tgt.y; if(S.last){ const vx=tgt.x-S.last.x, vy=tgt.y-S.last.y; S.vel.vx=S.vel.vx*0.4+vx*0.6; S.vel.vy=S.vel.vy*0.4+vy*0.6; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+S.vel.vx*P.leadW*t; ay=tgt.y+S.vel.vy*P.leadW*t; }
+    const jitter=(((tank.x*31+tank.y*19)%23)-11)*0.06*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter+P.bias); S.last={x:tgt.x,y:tgt.y}; }
+
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let hot=null,minD=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v,ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx,py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minD && d<P.threat){ minD=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); for(const c of [a+92+P.avoidBias,a-92-P.avoidBias,a+120,a-120]){ if(go(c)) return; } }
+  if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+28)) return; if(go(away-28)) return; }
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let minR=P.minR,maxR=P.maxR; const remain=enemies.length; if((tgt.health<=P.finHP)||remain<=P.finRemain){ minR-=P.finMin; maxR-=P.finMax; }
+    if(d<minR){ const away=to+180-6; if(go(away)) return; if(go(away+24)) return; if(go(away-24)) return; } else if(d>maxR){ if(go(to)) return; if(go(to+18)) return; if(go(to-18)) return; } else { const side=to+(((tank.x*7+tank.y*19)%2)?P.strafe:-P.strafe)-6; if(go(side)) return; if(go(side+18)) return; if(go(side-18)) return; } }
+  for(const s of [0,50,100,150,200,250,300,350]){ if(go(s-6)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-D2";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const S=(update.__s||(update.__s={last:null,vel:{vx:0,vy:0}}));
+  const P={minR:286,maxR:438,strafe:38,edge:58,allySep:62,threat:186,avoidBias:-12,leadCap:15,leadW:1.10,aimJitter:0.14,finHP:24,finRemain:3,finMin:42,finMax:34,typeBias:{0:0,1:8,2:-24}};
+  let tgt=null,best=1e9; for(const e of enemies){ const tb=P.typeBias[(e.type!==undefined?e.type:0)]||0; const key=e.health*1.3 + e.distance*0.08 + tb; if(key<best){best=key; tgt=e;} }
+  if(tgt){ let ax=tgt.x,ay=tgt.y; if(S.last){ const vx=tgt.x-S.last.x, vy=tgt.y-S.last.y; S.vel.vx=S.vel.vx*0.35+vx*0.65; S.vel.vy=S.vel.vy*0.35+vy*0.65; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+S.vel.vx*P.leadW*t; ay=tgt.y+S.vel.vy*P.leadW*t; } tank.fire(toDeg(ax-tank.x,ay-tank.y)-4); S.last={x:tgt.x,y:tgt.y}; }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));}; let hot=null,minD=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v,ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx,py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minD && d<P.threat){ minD=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); for(const c of [a+95+P.avoidBias,a-95-P.avoidBias,a+120,a-120]){ if(go(c)) return; } }
+  if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+28)) return; if(go(away-28)) return; }
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let minR=P.minR,maxR=P.maxR; const remain=enemies.length; if((tgt.health<=P.finHP)||remain<=P.finRemain){ minR-=P.finMin; maxR-=P.finMax; } if(d<minR){ const away=to+180-4; if(go(away)) return; if(go(away+24)) return; if(go(away-24)) return; } else if(d>maxR){ if(go(to)) return; if(go(to+18)) return; if(go(to-18)) return; } else { const side=to+(((tank.x*11+tank.y*5)%2)?P.strafe:-P.strafe)-4; if(go(side)) return; if(go(side+18)) return; if(go(side-18)) return; } }
+  for(const s of [0,45,90,135,180,225,270,315]){ if(go(s-4)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-N1";}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const S=(update.__s||(update.__s={last:null,vel:{vx:0,vy:0}}));
+  const P={minR:240,maxR:360,strafe:36,edge:56,allySep:66,threat:188,avoidBias:-10,leadCap:14,leadW:1.06,aimJitter:0.18,finHP:22,finRemain:3,finMin:35,finMax:28,typeBias:{0:-2,1:4,2:-18}};
+  let tgt=null,best=1e9; for(const e of enemies){ const tb=P.typeBias[(e.type!==undefined?e.type:0)]||0; const key=e.health*1.27 + e.distance*0.09 + tb; if(key<best){best=key; tgt=e;} }
+  if(tgt){ let ax=tgt.x,ay=tgt.y; if(S.last){ const vx=tgt.x-S.last.x, vy=tgt.y-S.last.y; S.vel.vx=S.vel.vx*0.45+vx*0.55; S.vel.vy=S.vel.vy*0.45+vy*0.55; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+S.vel.vx*P.leadW*t; ay=tgt.y+S.vel.vy*P.leadW*t; } const jitter=(((tank.x*23+tank.y*29)%21)-10)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); S.last={x:tgt.x,y:tgt.y}; }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));}; let hot=null,minD=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v,ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx,py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minD && d<P.threat){ minD=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); for(const c of [a+92+P.avoidBias,a-92-P.avoidBias,a+120,a-120]){ if(go(c)) return; } }
+  if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+28)) return; if(go(away-28)) return; }
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let minR=P.minR,maxR=P.maxR; const remain=enemies.length; if((tgt.health<=P.finHP)||remain<=P.finRemain){ minR-=P.finMin; maxR-=P.finMax; } if(d<minR){ const away=to+180; if(go(away)) return; if(go(away+24)) return; if(go(away-24)) return; } else if(d>maxR){ if(go(to)) return; if(go(to+18)) return; if(go(to-18)) return; } else { const side=to+(((tank.x*13+tank.y*11)%2)?P.strafe:-P.strafe); if(go(side)) return; if(go(side+18)) return; if(go(side-18)) return; } }
+  for(const s of [0,60,120,180,240,300]){ if(go(s)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-N2";}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const S=(update.__s||(update.__s={last:null,vel:{vx:0,vy:0}}));
+  const P={minR:236,maxR:352,strafe:34,edge:56,allySep:66,threat:188,avoidBias:12,leadCap:14,leadW:1.06,aimJitter:0.18,finHP:22,finRemain:3,finMin:35,finMax:28,typeBias:{0:-2,1:4,2:-18}};
+  let tgt=null,best=1e9; for(const e of enemies){ const tb=P.typeBias[(e.type!==undefined?e.type:0)]||0; const key=e.health*1.27 + e.distance*0.09 + tb; if(key<best){best=key; tgt=e;} }
+  if(tgt){ let ax=tgt.x,ay=tgt.y; if(S.last){ const vx=tgt.x-S.last.x, vy=tgt.y-S.last.y; S.vel.vx=S.vel.vx*0.45+vx*0.55; S.vel.vy=S.vel.vy*0.45+vy*0.55; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+S.vel.vx*P.leadW*t; ay=tgt.y+S.vel.vy*P.leadW*t; } tank.fire(toDeg(ax-tank.x,ay-tank.y)+4); S.last={x:tgt.x,y:tgt.y}; }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));}; let hot=null,minD=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v,ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx,py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minD && d<P.threat){ minD=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); for(const c of [a+92+P.avoidBias,a-92-P.avoidBias,a+120,a-120]){ if(go(c)) return; } }
+  if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+28)) return; if(go(away-28)) return; }
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let minR=P.minR,maxR=P.maxR; const remain=enemies.length; if((tgt.health<=P.finHP)||remain<=P.finRemain){ minR-=P.finMin; maxR-=P.finMax; } if(d<minR){ const away=to+180; if(go(away)) return; if(go(away+24)) return; if(go(away-24)) return; } else if(d>maxR){ if(go(to)) return; if(go(to+18)) return; if(go(to-18)) return; } else { const side=to+(((tank.x*13+tank.y*11)%2)?P.strafe:-P.strafe); if(go(side)) return; if(go(side+18)) return; if(go(side-18)) return; } }
+  for(const s of [0,60,120,180,240,300]){ if(go(s+4)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-T2";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const S=(update.__s||(update.__s={last:null,vel:{vx:0,vy:0}}));
+  const P={minR:210,maxR:305,strafe:30,edge:62,allySep:66,threat:198,avoidBias:-16,leadCap:14,leadW:1.06,aimJitter:0.2,finHP:22,finRemain:3,finMin:35,finMax:25,typeBias:{0:0,1:10,2:-18}};
+  let tgt=null,best=1e9; for(const e of enemies){ const tb=P.typeBias[(e.type!==undefined?e.type:0)]||0; const key=e.health*1.26 + e.distance*0.10 + tb; if(key<best){best=key; tgt=e;} }
+  if(tgt){ let ax=tgt.x,ay=tgt.y; if(S.last){ const vx=tgt.x-S.last.x, vy=tgt.y-S.last.y; S.vel.vx=S.vel.vx*0.5+vx*0.5; S.vel.vy=S.vel.vy*0.5+vy*0.5; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+S.vel.vx*P.leadW*t; ay=tgt.y+S.vel.vy*P.leadW*t; } const jitter=(((tank.x*17+tank.y*13)%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); S.last={x:tgt.x,y:tgt.y}; }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));}; let hot=null,minD=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v,ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx,py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minD && d<P.threat){ minD=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); for(const c of [a+90+P.avoidBias,a-90-P.avoidBias,a+120,a-120,a+70,a-70]){ if(go(c)) return; } }
+  if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+28)) return; if(go(away-28)) return; }
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let minR=P.minR,maxR=P.maxR; const remain=enemies.length; if((tgt.health<=P.finHP)||remain<=P.finRemain){ minR-=P.finMin; maxR-=P.finMax; } if(d<minR){ const away=to+180+6; if(go(away)) return; if(go(away+24)) return; if(go(away-24)) return; } else if(d>maxR){ if(go(to)) return; if(go(to+16)) return; if(go(to-16)) return; } else { const side=to+(((tank.x*13+tank.y*7)%2)?P.strafe:-P.strafe)+6; if(go(side)) return; if(go(side+16)) return; if(go(side-16)) return; } }
+  for(const s of [0,60,120,180,240,300]){ if(go(s+6)) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-D3";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const S=(update.__s||(update.__s={last:null,vel:{vx:0,vy:0}}));
+  const P={minR:275,maxR:420,strafe:44,edge:58,allySep:64,threat:190,avoidBias:14,leadCap:15,leadW:1.08,aimJitter:0.14,finHP:24,finRemain:3,finMin:42,finMax:34,typeBias:{0:0,1:6,2:-24}};
+  let tgt=null,best=1e9; for(const e of enemies){ const tb=P.typeBias[(e.type!==undefined?e.type:0)]||0; const key=e.health*1.28 + e.distance*0.08 + tb; if(key<best){best=key; tgt=e;} }
+  if(tgt){ let ax=tgt.x,ay=tgt.y; if(S.last){ const vx=tgt.x-S.last.x, vy=tgt.y-S.last.y; S.vel.vx=S.vel.vx*0.5+vx*0.5; S.vel.vy=S.vel.vy*0.5+vy*0.5; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+S.vel.vx*P.leadW*t; ay=tgt.y+S.vel.vy*P.leadW*t; } tank.fire(toDeg(ax-tank.x,ay-tank.y)); S.last={x:tgt.x,y:tgt.y}; }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));}; let hot=null,minD=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v,ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx,py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minD && d<P.threat){ minD=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); for(const c of [a+92+P.avoidBias,a-92-P.avoidBias,a+120,a-120]){ if(go(c)) return; } }
+  if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+28)) return; if(go(away-28)) return; }
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let minR=P.minR,maxR=P.maxR; const remain=enemies.length; if((tgt.health<=P.finHP)||remain<=P.finRemain){ minR-=P.finMin; maxR-=P.finMax; } if(d<minR){ const away=to+180; if(go(away)) return; if(go(away+24)) return; if(go(away-24)) return; } else if(d>maxR){ if(go(to)) return; if(go(to+18)) return; if(go(to-18)) return; } else { const side=to+(((tank.x*5+tank.y*13)%2)?P.strafe:-P.strafe); if(go(side)) return; if(go(side+18)) return; if(go(side-18)) return; } }
+  for(const s of [0,45,90,135,180,225,270,315]){ if(go(s)) return; }
+}
+
