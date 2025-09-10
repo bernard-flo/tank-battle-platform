@@ -50,9 +50,11 @@ let best=null;
 for(const cand of candidates){
   const code=codeForParams(cand.P);
   fs.writeFileSync(teamOut, code);
-  // commit change per requirement
+  // commit change per requirement (only if changed)
   execSync(`git add ${JSON.stringify(teamOut)}`);
-  execSync(`git commit -m ${JSON.stringify(`tune: candidate ${cand.name} -> ${path.relative('.',teamOut)}`)}`);
+  try {
+    execSync(`git diff --cached --quiet || git commit -m ${JSON.stringify(`tune: candidate ${cand.name} -> ${path.relative('.',teamOut)}`)}`);
+  } catch {}
 
   let wins=0,total=0;
   for(const opp of opponents){
