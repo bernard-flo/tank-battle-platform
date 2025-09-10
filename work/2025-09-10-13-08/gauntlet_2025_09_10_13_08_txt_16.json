@@ -111,20 +111,20 @@
     {
       "seed": "20245152-6",
       "winner": "blue",
-      "ticks": 588,
+      "ticks": 1124,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 286
+      "blueEnergy": 132
     },
     {
       "seed": "20245152-14",
       "winner": "blue",
-      "ticks": 454,
+      "ticks": 1132,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 1,
       "redEnergy": 0,
-      "blueEnergy": 365
+      "blueEnergy": 49
     },
     {
       "seed": "20245152-7",
@@ -150,11 +150,11 @@
     "redWins": 0,
     "blueWins": 16,
     "draws": 0,
-    "avgTicks": 1052.13,
+    "avgTicks": 1128,
     "avgRedAlive": 0,
-    "avgBlueAlive": 2.375,
+    "avgBlueAlive": 2,
     "avgRedEnergy": 0,
-    "avgBlueEnergy": 119.88,
+    "avgBlueEnergy": 90.5,
     "baseSeed": "20245152",
     "concurrency": 8
   }
