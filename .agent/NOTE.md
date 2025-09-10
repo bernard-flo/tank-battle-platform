@@ -28,6 +28,17 @@
 - 모방학습 데이터 확대(레퍼런스/teacher 혼합) 후 ES 미세 조정:
   `node src/imitation_train.js --matches 120 --ticks 2600 --epochs 20 --fast --teacher result/reference-ai.txt`
 
+단기 권장 절차(빠른 반복용)
+- 1) 모방 40~60매치, 10~12에폭: `node src/imitation_train.js --matches 60 --ticks 2600 --epochs 12 --fast`
+- 2) ES 6~10 iter, pop 60~80: `node src/train_es.js --iters 8 --pop 80 --sigma 0.22 --alpha 0.06 --seeds 6 --ticks 3200 --concurrency 8 --fast`
+- 3) 200전 양진영 평가: 
+  · `node simulator/cli.js --red result/ai_dnn_team.txt --blue result/reference-ai.txt --repeat 200 --fast --maxTicks 4000 --concurrency 8`
+  · `node simulator/cli.js --red result/reference-ai.txt --blue result/ai_dnn_team.txt --repeat 200 --fast --maxTicks 4000 --concurrency 8`
+
+주의
+- update는 순수 DNN만 사용(휴리스틱 분기/임계값 없음). 네트워크 입력은 tank/enemies/allies/bulletInfo 전체 반영(76차원).
+- 타입 순서는 [NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER] 고정.
+
 검증 체크리스트
 - tank_battle_platform.html에서 result/ai_dnn_team.txt 불러오기 → 6로봇 표시 확인.
 - 타입 순서: NORMAL, DEALER, TANKER, DEALER, TANKER, DEALER.
