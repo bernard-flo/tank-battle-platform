@@ -53,17 +53,19 @@ function jitter(x, pct) {
 
 function makeCandidate(i, base) {
   // Randomize around base with small perturbations; bigger for distances/strafe
-  const scale = (k, s) => jitter(base[k], s);
-  const mk = (obj) => ({
-    rMin: scale('rMin', 0.10), rMax: scale('rMax', 0.10),
-    strafe: scale('strafe', 0.20), threatR: scale('threatR', 0.10), threatH: scale('threatH', 0.08),
-    fleeBias: scale('fleeBias', 0.20), sep: scale('sep', 0.10), edge: scale('edge', 0.10),
-    leadCap: scale('leadCap', 0.10), leadW: scale('leadW', 0.06), aimJ: scale('aimJ', 0.10),
-    healthW: scale('healthW', 0.06), distW: scale('distW', 0.08), finHP: scale('finHP', 0.12),
-    aggrRemain: Math.max(2, Math.round(scale('aggrRemain', 0.0))), aggrIn: scale('aggrIn', 0.20), aggrOut: scale('aggrOut', 0.20),
-    bias: 0, smooth: scale('smooth', 0.08), openTicks: Math.max(12, Math.round(scale('openTicks', 0.0))), sideFlip: 240,
-    redBias: base.redBias, alignW: scale('alignW', 0.20)
-  });
+  const mk = (obj) => {
+    const scale = (k, s) => jitter(obj[k], s);
+    return {
+      rMin: scale('rMin', 0.10), rMax: scale('rMax', 0.10),
+      strafe: scale('strafe', 0.20), threatR: scale('threatR', 0.10), threatH: scale('threatH', 0.08),
+      fleeBias: scale('fleeBias', 0.20), sep: scale('sep', 0.10), edge: scale('edge', 0.10),
+      leadCap: scale('leadCap', 0.10), leadW: scale('leadW', 0.06), aimJ: scale('aimJ', 0.10),
+      healthW: scale('healthW', 0.06), distW: scale('distW', 0.08), finHP: scale('finHP', 0.12),
+      aggrRemain: Math.max(2, Math.round(scale('aggrRemain', 0.0))), aggrIn: scale('aggrIn', 0.20), aggrOut: scale('aggrOut', 0.20),
+      bias: 0, smooth: scale('smooth', 0.08), openTicks: Math.max(12, Math.round(scale('openTicks', 0.0))), sideFlip: 240,
+      redBias: obj.redBias ?? 6, alignW: scale('alignW', 0.20)
+    };
+  };
   return {
     tanker: mk(base.tanker),
     dealer: mk(base.dealer),
@@ -118,6 +120,12 @@ function main() {
   const tmpDir = fs.mkdtempSync(path.join(WD, 'tmp_'));
   const trials = 8; // coarse search
   let best = { params: base, wr: -1, wins:0, losses:0, draws:0 };
+  // include baseline first
+  {
+    const evalRes = evaluateCandidate(base, opponents, fs.mkdtempSync(path.join(WD, 'tmp_base_')));
+    best = { params: base, ...evalRes };
+    console.log(`Baseline: WR=${(evalRes.wr*100).toFixed(1)}% (W:${evalRes.wins} L:${evalRes.losses} D:${evalRes.draws})`);
+  }
   for (let i=0;i<trials;i++) {
     const cand = makeCandidate(i+1, base);
     const evalRes = evaluateCandidate(cand, opponents, tmpDir);
