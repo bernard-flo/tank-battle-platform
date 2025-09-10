@@ -124,6 +124,7 @@ function profileParams(profile) {
     leadWeight: 1.05,
     aimJitter: 0.18,
     aimBias: 0,
+    aimMul: 1.0,
     // bullet avoidance
     threatRadius: 78,
     threatHorizon: 18,
@@ -144,8 +145,12 @@ function profileParams(profile) {
 
   const variants = {
     'astra-v1': { ...base },
-    'astra-v2': { ...base, leadCap: 14, aimJitter: 0.14, distWeight: 0.10, threatRadius: 82 },
+    'astra-v2': { ...base, leadCap: 14, aimJitter: 0.14, distWeight: 0.10, threatRadius: 82, aimMul: 0.8 },
     'astra-v3': { ...base, leadWeight: 1.12, strafeAngle: 34, aggrTighten: 28, threatHorizon: 16 },
+    // Anti-Nova/Vanguard leaning: tighter dodge, higher lead, longer horizon
+    'astra-v4': { ...base, leadCap: 14, leadWeight: 1.10, aimJitter: 0.12, threatRadius: 84, threatHorizon: 20, distWeight: 0.11, finishHP: 26, aggrTighten: 32, aimMul: 0.55 },
+    // Kite-heavy dealer bias, smaller ring to keep distance; lower jitter
+    'astra-v5': { ...base, leadCap: 15, leadWeight: 1.08, aimJitter: 0.10, minRange: 210, maxRange: 320, strafeAngle: 36, threatRadius: 80, threatHorizon: 18, finishHP: 24, aggrRemain: 4, aggrTighten: 30, aimMul: 0.45 },
   };
   return variants[(profile||'astra-v1').toLowerCase()] || variants['astra-v1'];
 }
@@ -154,12 +159,12 @@ function buildTeam(profile) {
   const P = profileParams(profile);
   // 6 robots: 2 tankers(front), 3 dealers(DPS), 1 normal(support)
   const bots = [
-    { name: 'Astra-T1', type: 'Type.TANKER', bias: -12, min: 160, max: 255, strafe: 26, aim: -0.8 },
-    { name: 'Astra-T2', type: 'Type.TANKER', bias: 12,  min: 160, max: 255, strafe: 26, aim: 0.7 },
-    { name: 'Astra-D1', type: 'Type.DEALER', bias: -6,  min: 220, max: 330, strafe: 34, aim: -0.3 },
-    { name: 'Astra-D2', type: 'Type.DEALER', bias: 6,   min: 220, max: 330, strafe: 34, aim: 0.3 },
-    { name: 'Astra-D3', type: 'Type.DEALER', bias: -3,  min: 220, max: 330, strafe: 32, aim: 0.0 },
-    { name: 'Astra-N1', type: 'Type.NORMAL', bias: 3,   min: 185, max: 295, strafe: 28, aim: 0.0 },
+    { name: 'Astra-T1', type: 'Type.TANKER', bias: -12, min: 160, max: 255, strafe: 26, aim: -0.6 },
+    { name: 'Astra-T2', type: 'Type.TANKER', bias: 12,  min: 160, max: 255, strafe: 26, aim: 0.6 },
+    { name: 'Astra-D1', type: 'Type.DEALER', bias: -6,  min: 225, max: 335, strafe: 34, aim: -0.25 },
+    { name: 'Astra-D2', type: 'Type.DEALER', bias: 6,   min: 225, max: 335, strafe: 34, aim: 0.25 },
+    { name: 'Astra-D3', type: 'Type.DEALER', bias: -3,  min: 225, max: 335, strafe: 32, aim: 0.0 },
+    { name: 'Astra-N1', type: 'Type.NORMAL', bias: 3,   min: 185, max: 300, strafe: 28, aim: 0.0 },
   ];
 
   const pieces = bots.map((b) => buildRobotCode({
@@ -171,7 +176,7 @@ function buildTeam(profile) {
       minRange: b.min,
       maxRange: b.max,
       strafeAngle: b.strafe,
-      aimBias: b.aim,
+      aimBias: (P.aimMul||1.0) * b.aim,
     },
   }));
   return pieces.join('\n\n// ===== 다음 로봇 =====\n\n');
@@ -183,4 +188,3 @@ if (require.main === module) {
 }
 
 module.exports = { buildTeam };
-
