@@ -10,7 +10,7 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
 
   // Tunables (merged per profile and role)
-  const P = {"healthWeight":1.25,"distWeight":0.1,"tieBias":0.0005,"leadCap":14,"leadWeight":1.05,"aimJitter":0.14,"aimBias":-0.48,"aimMul":0.8,"threatRadius":82,"threatHorizon":18,"threatFleeBias":14,"minRange":160,"maxRange":255,"strafeAngle":26,"allySep":62,"edgeMargin":44,"finishHP":22,"aggrRemain":3,"aggrTighten":35,"bias":-12};
+  const P = {"healthWeight":1.25,"distWeight":0.12,"tieBias":0.0005,"leadCap":15,"leadWeight":1.08,"aimJitter":0.1,"aimBias":-0.27,"aimMul":0.45,"threatRadius":80,"threatHorizon":18,"threatFleeBias":14,"minRange":160,"maxRange":255,"strafeAngle":26,"allySep":62,"edgeMargin":44,"finishHP":24,"aggrRemain":4,"aggrTighten":30,"bias":-12};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -110,7 +110,7 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
 
   // Tunables (merged per profile and role)
-  const P = {"healthWeight":1.25,"distWeight":0.1,"tieBias":0.0005,"leadCap":14,"leadWeight":1.05,"aimJitter":0.14,"aimBias":0.48,"aimMul":0.8,"threatRadius":82,"threatHorizon":18,"threatFleeBias":14,"minRange":160,"maxRange":255,"strafeAngle":26,"allySep":62,"edgeMargin":44,"finishHP":22,"aggrRemain":3,"aggrTighten":35,"bias":12};
+  const P = {"healthWeight":1.25,"distWeight":0.12,"tieBias":0.0005,"leadCap":15,"leadWeight":1.08,"aimJitter":0.1,"aimBias":0.27,"aimMul":0.45,"threatRadius":80,"threatHorizon":18,"threatFleeBias":14,"minRange":160,"maxRange":255,"strafeAngle":26,"allySep":62,"edgeMargin":44,"finishHP":24,"aggrRemain":4,"aggrTighten":30,"bias":12};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -210,7 +210,7 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
 
   // Tunables (merged per profile and role)
-  const P = {"healthWeight":1.25,"distWeight":0.1,"tieBias":0.0005,"leadCap":14,"leadWeight":1.05,"aimJitter":0.14,"aimBias":-0.2,"aimMul":0.8,"threatRadius":82,"threatHorizon":18,"threatFleeBias":14,"minRange":225,"maxRange":335,"strafeAngle":34,"allySep":62,"edgeMargin":44,"finishHP":22,"aggrRemain":3,"aggrTighten":35,"bias":-6};
+  const P = {"healthWeight":1.25,"distWeight":0.12,"tieBias":0.0005,"leadCap":15,"leadWeight":1.08,"aimJitter":0.1,"aimBias":-0.1125,"aimMul":0.45,"threatRadius":80,"threatHorizon":18,"threatFleeBias":14,"minRange":225,"maxRange":335,"strafeAngle":34,"allySep":62,"edgeMargin":44,"finishHP":24,"aggrRemain":4,"aggrTighten":30,"bias":-6};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -310,7 +310,7 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
 
   // Tunables (merged per profile and role)
-  const P = {"healthWeight":1.25,"distWeight":0.1,"tieBias":0.0005,"leadCap":14,"leadWeight":1.05,"aimJitter":0.14,"aimBias":0.2,"aimMul":0.8,"threatRadius":82,"threatHorizon":18,"threatFleeBias":14,"minRange":225,"maxRange":335,"strafeAngle":34,"allySep":62,"edgeMargin":44,"finishHP":22,"aggrRemain":3,"aggrTighten":35,"bias":6};
+  const P = {"healthWeight":1.25,"distWeight":0.12,"tieBias":0.0005,"leadCap":15,"leadWeight":1.08,"aimJitter":0.1,"aimBias":0.1125,"aimMul":0.45,"threatRadius":80,"threatHorizon":18,"threatFleeBias":14,"minRange":225,"maxRange":335,"strafeAngle":34,"allySep":62,"edgeMargin":44,"finishHP":24,"aggrRemain":4,"aggrTighten":30,"bias":6};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -410,7 +410,7 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
 
   // Tunables (merged per profile and role)
-  const P = {"healthWeight":1.25,"distWeight":0.1,"tieBias":0.0005,"leadCap":14,"leadWeight":1.05,"aimJitter":0.14,"aimBias":0,"aimMul":0.8,"threatRadius":82,"threatHorizon":18,"threatFleeBias":14,"minRange":225,"maxRange":335,"strafeAngle":32,"allySep":62,"edgeMargin":44,"finishHP":22,"aggrRemain":3,"aggrTighten":35,"bias":-3};
+  const P = {"healthWeight":1.25,"distWeight":0.12,"tieBias":0.0005,"leadCap":15,"leadWeight":1.08,"aimJitter":0.1,"aimBias":0,"aimMul":0.45,"threatRadius":80,"threatHorizon":18,"threatFleeBias":14,"minRange":225,"maxRange":335,"strafeAngle":32,"allySep":62,"edgeMargin":44,"finishHP":24,"aggrRemain":4,"aggrTighten":30,"bias":-3};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -510,7 +510,7 @@ function update(tank,enemies,allies,bulletInfo){
   const hypot=Math.hypot;
 
   // Tunables (merged per profile and role)
-  const P = {"healthWeight":1.25,"distWeight":0.1,"tieBias":0.0005,"leadCap":14,"leadWeight":1.05,"aimJitter":0.14,"aimBias":0,"aimMul":0.8,"threatRadius":82,"threatHorizon":18,"threatFleeBias":14,"minRange":185,"maxRange":300,"strafeAngle":28,"allySep":62,"edgeMargin":44,"finishHP":22,"aggrRemain":3,"aggrTighten":35,"bias":3};
+  const P = {"healthWeight":1.25,"distWeight":0.12,"tieBias":0.0005,"leadCap":15,"leadWeight":1.08,"aimJitter":0.1,"aimBias":0,"aimMul":0.45,"threatRadius":80,"threatHorizon":18,"threatFleeBias":14,"minRange":185,"maxRange":300,"strafeAngle":28,"allySep":62,"edgeMargin":44,"finishHP":24,"aggrRemain":4,"aggrTighten":30,"bias":3};
 
   __state.tick = (__state.tick||0) + 1;
 

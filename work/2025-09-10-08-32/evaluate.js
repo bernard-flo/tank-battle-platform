@@ -17,7 +17,7 @@ const SIM = path.join(ROOT, 'simulator', 'cli.js');
 const RESULT_DIR = path.join(ROOT, 'result');
 const WORK_DIR = __dirname;
 
-const PROFILES = ['astra-v1','astra-v2','astra-v3','astra-v4','astra-v5'];
+const PROFILES = ['astra-v1','astra-v2','astra-v3','astra-v4','astra-v5','astra-v6'];
 
 function listOpponentFiles() {
   const files = [];
