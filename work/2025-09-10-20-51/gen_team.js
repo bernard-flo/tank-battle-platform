@@ -166,6 +166,11 @@ function main(){
     { name: 'ares_v6', profile: { tankMin:155, tankMax:255, dealerMin:215, dealerMax:325, threat:69, strafe:27, bias:11 } },
     { name: 'ares_v7', profile: { tankMin:160, tankMax:255, dealerMin:215, dealerMax:330, threat:73, strafe:31, bias:7 } },
     { name: 'ares_v8', profile: { tankMin:175, tankMax:275, dealerMin:235, dealerMax:345, threat:75, strafe:33, bias:5 } },
+    // Focused counter-variants for fast strafers (e.g., Vanguard)
+    { name: 'ares_v9',  profile: { tankMin:165, tankMax:255, dealerMin:210, dealerMax:320, threat:72, strafe:24, bias:4 } },
+    { name: 'ares_v10', profile: { tankMin:165, tankMax:255, dealerMin:210, dealerMax:320, threat:70, strafe:22, bias:0 } },
+    { name: 'ares_v11', profile: { tankMin:160, tankMax:250, dealerMin:205, dealerMax:315, threat:74, strafe:26, bias:3 } },
+    { name: 'ares_v12', profile: { tankMin:170, tankMax:260, dealerMin:215, dealerMax:325, threat:76, strafe:28, bias:-2 } },
   ];
 
   const outputs = [];
