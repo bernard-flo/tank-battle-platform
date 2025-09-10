@@ -9,7 +9,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":15.946551242415557,"leadWeight":0.957930562219012,"aimJitter":0.055070524875040244,"fireBias":0,"minRange":167.1232981271883,"maxRange":330.5101670008815,"strafeAngle":29.41285028868553,"threatRadius":154.62574515217568,"threatTime":37.99733660296982,"threatTight":90.53772762673417,"threatFleeBias":16.307933191567344,"allySep":66.44473946488411,"edgeMargin":52.086784453353864,"bias":-26.08087028029451,"sidePref":-2.121805854615147,"targetHealthWeight":1.5788849578216757,"targetDistWeight":0.11685143201669763,"finishHp":22.734512400995673,"finishRemain":2.9908850582479225,"finishMinDelta":31.606879220225792,"finishMaxDelta":26.01559342580961,"velEma":0.4978698640801528};
+  const P={"leadCap":15.676916168731015,"leadWeight":0.9995450453768621,"aimJitter":0.0834837715426419,"fireBias":0,"minRange":183.88608431385734,"maxRange":339.36953017020755,"strafeAngle":13.864193389598315,"threatRadius":132.51962967821177,"threatTime":40.64430784177308,"threatTight":130.68653083043557,"threatFleeBias":18.57581516867509,"allySep":55.229255271729535,"edgeMargin":44.22783004808092,"bias":-24.398002038401224,"sidePref":-7.725521910796602,"targetHealthWeight":1.3472801577874314,"targetDistWeight":0.08714086769886026,"finishHp":33.13811926702413,"finishRemain":2.331053500433496,"finishMinDelta":19.845395146831414,"finishMaxDelta":23.546306827984118,"velEma":0.5489524197814892};
 
   __state.tick=(__state.tick||0)+1;
 
@@ -132,7 +132,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":17.618356550409914,"leadWeight":1.0471451328154264,"aimJitter":0.06692304108068753,"fireBias":0,"minRange":211.70210781513987,"maxRange":265.3428428710787,"strafeAngle":13.772421647936044,"threatRadius":197.8692274522415,"threatTime":21.501349731146664,"threatTight":120.39208034561929,"threatFleeBias":10.798910363152233,"allySep":68.95522841209056,"edgeMargin":44.25637164033119,"bias":4.126668377837587,"sidePref":4.431154297914916,"targetHealthWeight":1.2248037497316837,"targetDistWeight":0.10939447599574592,"finishHp":20.543210371373178,"finishRemain":3.013464694396099,"finishMinDelta":36.34614634232857,"finishMaxDelta":31.91983064698124,"velEma":0.4668265564279935};
+  const P={"leadCap":15.216901865309747,"leadWeight":1.0757858256110524,"aimJitter":0.02347481897777925,"fireBias":0,"minRange":213.7766242063501,"maxRange":324.2537232902036,"strafeAngle":22.56619248918432,"threatRadius":154.88417627732375,"threatTime":47.14700207305677,"threatTight":65.98455618948714,"threatFleeBias":9.269634039371065,"allySep":66.55565498934537,"edgeMargin":45.88267915555945,"bias":2.1556163655345015,"sidePref":0.41265077498546077,"targetHealthWeight":1.292427323030717,"targetDistWeight":0.09105241002600978,"finishHp":23.29626706032365,"finishRemain":2.9962496257032947,"finishMinDelta":27.84507416536026,"finishMaxDelta":31.636326375367556,"velEma":0.5080343574238716};
 
   __state.tick=(__state.tick||0)+1;
 
@@ -255,7 +255,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":18.74396164541799,"leadWeight":1.0127601863457503,"aimJitter":0.06494223378139001,"fireBias":0,"minRange":206.56723433353199,"maxRange":399.1673509898634,"strafeAngle":48.54807413977366,"threatRadius":162.23283953553792,"threatTime":30.95477160447258,"threatTight":141.8904273278358,"threatFleeBias":17.336108783021565,"allySep":58.67144427185525,"edgeMargin":46.89000886791535,"bias":-4.2417631029844625,"sidePref":3.922906550278575,"targetHealthWeight":1.4284289847995526,"targetDistWeight":0.06971753769929338,"finishHp":26.5369689360062,"finishRemain":2.6154079617386072,"finishMinDelta":29.947188563807018,"finishMaxDelta":27.258337769172844,"velEma":0.4615696826993929};
+  const P={"leadCap":21.04689159910872,"leadWeight":1.0279579671792196,"aimJitter":0.1272280915119191,"fireBias":0,"minRange":372.41359674346114,"maxRange":677.4921279907262,"strafeAngle":29.081776148997747,"threatRadius":190.12507364765813,"threatTime":28.810815565037984,"threatTight":126.36300922133027,"threatFleeBias":14.84899971320019,"allySep":55.469159005689086,"edgeMargin":48.658980614221555,"bias":-2.047781293486346,"sidePref":0.979082737796844,"targetHealthWeight":1.4632578780274579,"targetDistWeight":0.0937913031532986,"finishHp":21.638483984800896,"finishRemain":3.4653870661133603,"finishMinDelta":32.133468625507135,"finishMaxDelta":23.16434089995471,"velEma":0.39619757441740894};
 
   __state.tick=(__state.tick||0)+1;
 
@@ -378,7 +378,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":16.496039498537254,"leadWeight":1.0586870503264678,"aimJitter":0.03775106320220393,"fireBias":0,"minRange":217.03918062568113,"maxRange":441.3373442296392,"strafeAngle":25.343951852386994,"threatRadius":162.26504429435025,"threatTime":23.51662443508011,"threatTight":94.01115401417616,"threatFleeBias":16.265793810350324,"allySep":64.05534913929326,"edgeMargin":50.515149371844856,"bias":0.9166248108698065,"sidePref":-8.253002704589242,"targetHealthWeight":1.418279195076647,"targetDistWeight":0.06253960511484723,"finishHp":21.27633733122494,"finishRemain":3.3066188478315572,"finishMinDelta":25.64056251458872,"finishMaxDelta":26.04116879536645,"velEma":0.5227589394602925};
+  const P={"leadCap":14.650950143457042,"leadWeight":0.981589886295489,"aimJitter":0.021290794918943336,"fireBias":0,"minRange":202.7797467626697,"maxRange":483.11482643995834,"strafeAngle":36.29641011701985,"threatRadius":197.16112446848746,"threatTime":24.758615661910703,"threatTight":85.69382812171823,"threatFleeBias":10.186070784591722,"allySep":60.630187867875584,"edgeMargin":47.890901576971544,"bias":0.4269458994460829,"sidePref":-1.3605922404363198,"targetHealthWeight":1.278263426716324,"targetDistWeight":0.059551447031538696,"finishHp":23.49098736537828,"finishRemain":3.075232713425834,"finishMinDelta":44.57998436348687,"finishMaxDelta":14.420476565443122,"velEma":0.45951944151128116};
 
   __state.tick=(__state.tick||0)+1;
 
@@ -501,7 +501,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":18.889677382895798,"leadWeight":1.0127622121864737,"aimJitter":0.1291216581927188,"fireBias":0,"minRange":243.0075216041648,"maxRange":473.59556994950566,"strafeAngle":53.103362950410876,"threatRadius":169.30690980903913,"threatTime":29.68620969709042,"threatTight":80.35130274422936,"threatFleeBias":18.90650585008867,"allySep":62.72731753490679,"edgeMargin":41.73675290042385,"bias":-0.5426506504880291,"sidePref":17.14413101823782,"targetHealthWeight":1.3926080055802712,"targetDistWeight":0.08190111921130658,"finishHp":18.771957793941592,"finishRemain":2.843197870964718,"finishMinDelta":20.387333132664406,"finishMaxDelta":25.702639712006825,"velEma":0.41376447239494096};
+  const P={"leadCap":16.551180697276408,"leadWeight":1.0555193080360792,"aimJitter":0.06297462379989763,"fireBias":0,"minRange":173.83808448105458,"maxRange":384.3584732139317,"strafeAngle":16.19253800911788,"threatRadius":151.20372361254417,"threatTime":14.615421926405753,"threatTight":96.11057241224242,"threatFleeBias":20.912162964189566,"allySep":64.64452661164097,"edgeMargin":39.81137325440359,"bias":-1.9611940113752344,"sidePref":21.60573237965032,"targetHealthWeight":1.1491900837258469,"targetDistWeight":0.08313123772704129,"finishHp":10.70120240723458,"finishRemain":3.9981819224839414,"finishMinDelta":15.107753363097082,"finishMaxDelta":20.87382098421336,"velEma":0.3674958397882491};
 
   __state.tick=(__state.tick||0)+1;
 
@@ -624,7 +624,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":16.6057811944082,"leadWeight":1.0508442410651935,"aimJitter":0.10689803665466166,"fireBias":0,"minRange":228.0785505362067,"maxRange":407.20864388431505,"strafeAngle":27.047134552597917,"threatRadius":192.54342115018693,"threatTime":35.96364510611472,"threatTight":115.19985576222628,"threatFleeBias":11.890377860269512,"allySep":57.88042916433844,"edgeMargin":45.70924531611548,"bias":2.005111946560816,"sidePref":11.410401714655935,"targetHealthWeight":1.4182529241459785,"targetDistWeight":0.09890382841934424,"finishHp":26.965374894681702,"finishRemain":2.7228334546575743,"finishMinDelta":28.140175221773735,"finishMaxDelta":30.29546480314562,"velEma":0.5329255435883875};
+  const P={"leadCap":17.56836067580666,"leadWeight":0.9981220183792341,"aimJitter":0.0629543828416898,"fireBias":0,"minRange":187.39321953059425,"maxRange":263.5094681874885,"strafeAngle":40.38159953719995,"threatRadius":168.6322521554045,"threatTime":42.3297295088797,"threatTight":118.94551562440286,"threatFleeBias":11.085404137366691,"allySep":57.57300648303753,"edgeMargin":50.087601110239696,"bias":0.2903168171892822,"sidePref":20.306462611563813,"targetHealthWeight":1.0856009275270013,"targetDistWeight":0.11382009234714512,"finishHp":36.337757780527895,"finishRemain":3.2201832331303026,"finishMinDelta":30.592314230257777,"finishMaxDelta":16.866750924108192,"velEma":0.695961347482607};
 
   __state.tick=(__state.tick||0)+1;
 
