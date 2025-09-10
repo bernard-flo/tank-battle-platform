@@ -240,7 +240,8 @@ async function writeOutputs(bestCode, evalRes) {
 
 async function main() {
   console.log(`[${now()}] Listing opponents in result/ ...`);
-  const opponents = await listResultTeams(24);
+  const OPP_LIMIT = process.env.OPP_LIMIT ? parseInt(process.env.OPP_LIMIT, 10) : 24;
+  const opponents = await listResultTeams(OPP_LIMIT);
   if (opponents.length === 0) {
     console.error('No opponent files in result/. Add at least one .txt team.');
     process.exit(1);
@@ -248,20 +249,31 @@ async function main() {
   console.log(`Found ${opponents.length} opponents (newest first).`);
 
   console.log(`[${now()}] Estimating current champion among latest set ...`);
-  const champ = await currentChampion(opponents);
+  const CHAMP_SAMPLE = process.env.CHAMP_SAMPLE ? parseInt(process.env.CHAMP_SAMPLE, 10) : 10;
+  const champ = await currentChampion(opponents.slice(0, CHAMP_SAMPLE));
   console.log(`Champion approx: ${path.basename(champ.file)} | WR ${(champ.wr * 100).toFixed(2)}% vs recent peers`);
 
   // Iterative candidate search
   let globalBest = null;
   const teamLabel = 'Astra';
 
-  for (let round = 1; round <= 3; round++) {
-    const candidateCount = round === 1 ? 14 : 10;
-    const repeatScreen = round === 1 ? 18 : 24;
+  const ROUNDS = process.env.ROUNDS ? parseInt(process.env.ROUNDS, 10) : 3;
+  const CAND0 = process.env.CAND0 ? parseInt(process.env.CAND0, 10) : 14;
+  const CANDN = process.env.CANDN ? parseInt(process.env.CANDN, 10) : 10;
+  const REP_SCREEN0 = process.env.REP_SCREEN0 ? parseInt(process.env.REP_SCREEN0, 10) : 18;
+  const REP_SCREENN = process.env.REP_SCREENN ? parseInt(process.env.REP_SCREENN, 10) : 24;
+  const FINALISTS = process.env.FINALISTS ? parseInt(process.env.FINALISTS, 10) : 3;
+  const REP_FULL = process.env.REP_FULL ? parseInt(process.env.REP_FULL, 10) : 26;
+  const STOP_DW = process.env.STOP_DW ? parseFloat(process.env.STOP_DW) : 0.01; // stop when best wr > champ.wr+STOP_DW
+
+  for (let round = 1; round <= ROUNDS; round++) {
+    const candidateCount = round === 1 ? CAND0 : CANDN;
+    const repeatScreen = round === 1 ? REP_SCREEN0 : REP_SCREENN;
     console.log(`[${now()}] Round ${round}: generating ${candidateCount} candidates ...`);
 
     const screened = [];
-    const screenOpps = opponents.slice(0, 8); // screen on newest 8 to reduce cost
+    const SCREEN_OPP = process.env.SCREEN_OPP ? parseInt(process.env.SCREEN_OPP, 10) : 8;
+    const screenOpps = opponents.slice(0, SCREEN_OPP); // screen on newest subset to reduce cost
     for (let i = 0; i < candidateCount; i++) {
       const code = buildTeamCode(teamLabel, i * 37 + round * 101);
       const res = await evaluateAgainstOpponents(code, screenOpps, repeatScreen);
@@ -269,11 +281,11 @@ async function main() {
       console.log(`  cand#${i} WR=${(res.total.wr * 100).toFixed(1)}% (+${res.total.margin}) on screen set`);
     }
     screened.sort((a, b) => b.score - a.score);
-    const finalists = screened.slice(0, Math.min(3, screened.length));
+    const finalists = screened.slice(0, Math.min(FINALISTS, screened.length));
 
     console.log(`[${now()}] Final evaluation of top ${finalists.length} vs full set ...`);
     for (const f of finalists) {
-      const full = await evaluateAgainstOpponents(f.code, opponents, 26);
+      const full = await evaluateAgainstOpponents(f.code, opponents, REP_FULL);
       const score = full.total.wr + 1e-4 * full.total.margin;
       if (!globalBest || score > globalBest.score) {
         globalBest = { code: f.code, res: full, score };
@@ -281,7 +293,7 @@ async function main() {
       console.log(`  finalist#${f.idx} -> WR ${(full.total.wr * 100).toFixed(2)}% (+${full.total.margin})`);
     }
 
-    if (globalBest && globalBest.res.total.wr > champ.wr + 0.01) {
+    if (globalBest && globalBest.res.total.wr > champ.wr + STOP_DW) {
       console.log(`[${now()}] Surpassed champion WR ${(champ.wr * 100).toFixed(2)}% with ${(globalBest.res.total.wr * 100).toFixed(2)}%. Stopping.`);
       break;
     } else {
@@ -303,4 +315,3 @@ async function main() {
 if (require.main === module) {
   main().catch((err) => { console.error(err); process.exit(1); });
 }
-
