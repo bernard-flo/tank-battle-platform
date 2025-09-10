@@ -25,7 +25,7 @@ function sh(cmd, opts={}) {
   return cp.execSync(cmd, { stdio: 'pipe', encoding: 'utf8', ...opts });
 }
 
-function listCompetitors(limitSample=12) {
+function listCompetitors(limitSample=10) {
   const entries = [];
   const dirs = fs.readdirSync(RESULT_DIR).filter(d => /\d{4}-\d{2}-\d{2}-\d{2}-\d{2}/.test(d));
   for (const d of dirs) {
@@ -89,7 +89,7 @@ function evaluateCandidate(params, opponents, tmpDir) {
   fs.writeFileSync(tmpFile, code);
   let wins=0, losses=0, draws=0;
   for (const opp of opponents) {
-    const { red, blue, draws:dr } = runBatch(tmpFile, opp);
+    const { red, blue, draws:dr } = runBatch(tmpFile, opp, 40, Math.max(2, Math.min(os.cpus().length, 8)));
     wins += red; losses += blue; draws += dr;
   }
   fs.unlinkSync(tmpFile);

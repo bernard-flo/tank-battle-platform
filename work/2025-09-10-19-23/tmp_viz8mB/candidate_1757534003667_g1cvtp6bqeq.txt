@@ -1,0 +1,369 @@
+function name(){return "Helios-T1";}
+function type(){return Type.TANKER;}
+var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":197.33,"rMax":309.831,"strafe":25.494,"threatR":232.548,"threatH":6,"fleeBias":17.101,"sep":67.743,"edge":62.381,"leadCap":23.74,"leadW":1.053,"aimJ":0.113,"healthW":1.247,"distW":0.096,"finHP":29.651,"aggrRemain":3,"aggrIn":36.584,"aggrOut":21.197,"bias":0,"smooth":0.495,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.11};
+  const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
+  if((S.tick%240)===0) S.side*=-1;
+  const BIAS = (S.isRed? 6 : -6);
+
+  // 1) Target selection: health-weighted distance + angle alignment bonus
+  let tgt=null,b=1e18; for(const e of enemies){
+    const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.11;
+    const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
+  }
+
+  // 2) Aiming: smoothed velocity estimate + ballistic intercept (bullet speed=8)
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y, vx=0, vy=0;
+    if(S.last){
+      const lv=S.lastV||{vx:0,vy:0};
+      const ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; // instant velocity
+      vx=lv.vx*(1-P.smooth)+ivx*P.smooth; vy=lv.vy*(1-P.smooth)+ivy*P.smooth; S.lastV={vx,vy};
+      const rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64, aa=vx*vx+vy*vy-s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry; let t=0;
+      if(Math.abs(aa)<1e-6){ t = bb!==0?CL(-cc/bb,0,P.leadCap):0; }
+      else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc), t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = CL((t1>0&&t2>0?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0))),0,P.leadCap);} else { t=CL(H(rx,ry)/8,0,P.leadCap);} }
+      ax = tgt.x + vx*P.leadW*t; ay = tgt.y + vy*P.leadW*t;
+    }
+    const j = ((((S.tick*13 + ((tank.x*7+tank.y*3)|0) )%23)-11)*P.aimJ*0.08) + (P.aimBias||0);
+    const aim = D(ax-tank.x,ay-tank.y)+j; S.lastAim = aim; tank.fire(aim); S.last={x:tgt.x,y:tgt.y};
+  }
+
+  // 3) Movement helpers
+  let mv=0; const go=(a)=>{ if(mv>20) return true; mv++; return tank.move(N(a)); };
+
+  // 3a) Bullet dodge: perpendicular + flee bias + time-to-impact weighting
+  let hot=null,sc=1e18; for(const b of bulletInfo){
+    const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1, nx=b.vx/v, ny=b.vy/v, proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx,py=b.y-proj*ny, dist=H(px-tank.x,py-tank.y), tt=proj/v, s=dist+tt*P.threatH; if(dist<P.threatR&&s<sc){sc=s;hot=b;}
+    }
+  }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
+
+  // 3b) Edge avoidance (map 900x600)
+  if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
+
+  // 3c) Ally separation
+  let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
+
+  // 3d) Opening drift to mitigate spawn bias
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
+
+  // 3e) Range control + strafing
+  if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
+
+  // 3f) Sweeping fallback
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Helios-T2";}
+function type(){return Type.TANKER;}
+var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":197.33,"rMax":309.831,"strafe":25.494,"threatR":232.548,"threatH":6,"fleeBias":17.101,"sep":67.743,"edge":62.381,"leadCap":23.74,"leadW":1.053,"aimJ":0.113,"healthW":1.247,"distW":0.096,"finHP":29.651,"aggrRemain":3,"aggrIn":36.584,"aggrOut":21.197,"bias":0,"smooth":0.495,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.11};
+  const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
+  if((S.tick%240)===0) S.side*=-1;
+  const BIAS = (S.isRed? 6 : -6);
+
+  // 1) Target selection: health-weighted distance + angle alignment bonus
+  let tgt=null,b=1e18; for(const e of enemies){
+    const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.11;
+    const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
+  }
+
+  // 2) Aiming: smoothed velocity estimate + ballistic intercept (bullet speed=8)
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y, vx=0, vy=0;
+    if(S.last){
+      const lv=S.lastV||{vx:0,vy:0};
+      const ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; // instant velocity
+      vx=lv.vx*(1-P.smooth)+ivx*P.smooth; vy=lv.vy*(1-P.smooth)+ivy*P.smooth; S.lastV={vx,vy};
+      const rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64, aa=vx*vx+vy*vy-s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry; let t=0;
+      if(Math.abs(aa)<1e-6){ t = bb!==0?CL(-cc/bb,0,P.leadCap):0; }
+      else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc), t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = CL((t1>0&&t2>0?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0))),0,P.leadCap);} else { t=CL(H(rx,ry)/8,0,P.leadCap);} }
+      ax = tgt.x + vx*P.leadW*t; ay = tgt.y + vy*P.leadW*t;
+    }
+    const j = ((((S.tick*13 + ((tank.x*7+tank.y*3)|0) )%23)-11)*P.aimJ*0.08) + (P.aimBias||0);
+    const aim = D(ax-tank.x,ay-tank.y)+j; S.lastAim = aim; tank.fire(aim); S.last={x:tgt.x,y:tgt.y};
+  }
+
+  // 3) Movement helpers
+  let mv=0; const go=(a)=>{ if(mv>20) return true; mv++; return tank.move(N(a)); };
+
+  // 3a) Bullet dodge: perpendicular + flee bias + time-to-impact weighting
+  let hot=null,sc=1e18; for(const b of bulletInfo){
+    const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1, nx=b.vx/v, ny=b.vy/v, proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx,py=b.y-proj*ny, dist=H(px-tank.x,py-tank.y), tt=proj/v, s=dist+tt*P.threatH; if(dist<P.threatR&&s<sc){sc=s;hot=b;}
+    }
+  }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
+
+  // 3b) Edge avoidance (map 900x600)
+  if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
+
+  // 3c) Ally separation
+  let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
+
+  // 3d) Opening drift to mitigate spawn bias
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
+
+  // 3e) Range control + strafing
+  if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
+
+  // 3f) Sweeping fallback
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Helios-D1";}
+function type(){return Type.DEALER;}
+var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":289.221,"rMax":352.985,"strafe":35.375,"threatR":179.576,"threatH":5.945,"fleeBias":21.25,"sep":80.468,"edge":63.727,"leadCap":22.022,"leadW":1.31,"aimJ":0.158,"healthW":1.22,"distW":0.094,"finHP":23.034,"aggrRemain":3,"aggrIn":37.075,"aggrOut":21.185,"bias":0,"smooth":0.586,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.088};
+  const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
+  if((S.tick%240)===0) S.side*=-1;
+  const BIAS = (S.isRed? 6 : -6);
+
+  // 1) Target selection: health-weighted distance + angle alignment bonus
+  let tgt=null,b=1e18; for(const e of enemies){
+    const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.088;
+    const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
+  }
+
+  // 2) Aiming: smoothed velocity estimate + ballistic intercept (bullet speed=8)
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y, vx=0, vy=0;
+    if(S.last){
+      const lv=S.lastV||{vx:0,vy:0};
+      const ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; // instant velocity
+      vx=lv.vx*(1-P.smooth)+ivx*P.smooth; vy=lv.vy*(1-P.smooth)+ivy*P.smooth; S.lastV={vx,vy};
+      const rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64, aa=vx*vx+vy*vy-s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry; let t=0;
+      if(Math.abs(aa)<1e-6){ t = bb!==0?CL(-cc/bb,0,P.leadCap):0; }
+      else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc), t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = CL((t1>0&&t2>0?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0))),0,P.leadCap);} else { t=CL(H(rx,ry)/8,0,P.leadCap);} }
+      ax = tgt.x + vx*P.leadW*t; ay = tgt.y + vy*P.leadW*t;
+    }
+    const j = ((((S.tick*13 + ((tank.x*7+tank.y*3)|0) )%23)-11)*P.aimJ*0.08) + (P.aimBias||0);
+    const aim = D(ax-tank.x,ay-tank.y)+j; S.lastAim = aim; tank.fire(aim); S.last={x:tgt.x,y:tgt.y};
+  }
+
+  // 3) Movement helpers
+  let mv=0; const go=(a)=>{ if(mv>20) return true; mv++; return tank.move(N(a)); };
+
+  // 3a) Bullet dodge: perpendicular + flee bias + time-to-impact weighting
+  let hot=null,sc=1e18; for(const b of bulletInfo){
+    const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1, nx=b.vx/v, ny=b.vy/v, proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx,py=b.y-proj*ny, dist=H(px-tank.x,py-tank.y), tt=proj/v, s=dist+tt*P.threatH; if(dist<P.threatR&&s<sc){sc=s;hot=b;}
+    }
+  }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
+
+  // 3b) Edge avoidance (map 900x600)
+  if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
+
+  // 3c) Ally separation
+  let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
+
+  // 3d) Opening drift to mitigate spawn bias
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
+
+  // 3e) Range control + strafing
+  if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
+
+  // 3f) Sweeping fallback
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Helios-D2";}
+function type(){return Type.DEALER;}
+var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":289.221,"rMax":352.985,"strafe":35.375,"threatR":179.576,"threatH":5.945,"fleeBias":21.25,"sep":80.468,"edge":63.727,"leadCap":22.022,"leadW":1.31,"aimJ":0.158,"healthW":1.22,"distW":0.094,"finHP":23.034,"aggrRemain":3,"aggrIn":37.075,"aggrOut":21.185,"bias":0,"smooth":0.586,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.088};
+  const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
+  if((S.tick%240)===0) S.side*=-1;
+  const BIAS = (S.isRed? 6 : -6);
+
+  // 1) Target selection: health-weighted distance + angle alignment bonus
+  let tgt=null,b=1e18; for(const e of enemies){
+    const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.088;
+    const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
+  }
+
+  // 2) Aiming: smoothed velocity estimate + ballistic intercept (bullet speed=8)
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y, vx=0, vy=0;
+    if(S.last){
+      const lv=S.lastV||{vx:0,vy:0};
+      const ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; // instant velocity
+      vx=lv.vx*(1-P.smooth)+ivx*P.smooth; vy=lv.vy*(1-P.smooth)+ivy*P.smooth; S.lastV={vx,vy};
+      const rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64, aa=vx*vx+vy*vy-s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry; let t=0;
+      if(Math.abs(aa)<1e-6){ t = bb!==0?CL(-cc/bb,0,P.leadCap):0; }
+      else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc), t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = CL((t1>0&&t2>0?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0))),0,P.leadCap);} else { t=CL(H(rx,ry)/8,0,P.leadCap);} }
+      ax = tgt.x + vx*P.leadW*t; ay = tgt.y + vy*P.leadW*t;
+    }
+    const j = ((((S.tick*13 + ((tank.x*7+tank.y*3)|0) )%23)-11)*P.aimJ*0.08) + (P.aimBias||0);
+    const aim = D(ax-tank.x,ay-tank.y)+j; S.lastAim = aim; tank.fire(aim); S.last={x:tgt.x,y:tgt.y};
+  }
+
+  // 3) Movement helpers
+  let mv=0; const go=(a)=>{ if(mv>20) return true; mv++; return tank.move(N(a)); };
+
+  // 3a) Bullet dodge: perpendicular + flee bias + time-to-impact weighting
+  let hot=null,sc=1e18; for(const b of bulletInfo){
+    const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1, nx=b.vx/v, ny=b.vy/v, proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx,py=b.y-proj*ny, dist=H(px-tank.x,py-tank.y), tt=proj/v, s=dist+tt*P.threatH; if(dist<P.threatR&&s<sc){sc=s;hot=b;}
+    }
+  }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
+
+  // 3b) Edge avoidance (map 900x600)
+  if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
+
+  // 3c) Ally separation
+  let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
+
+  // 3d) Opening drift to mitigate spawn bias
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
+
+  // 3e) Range control + strafing
+  if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
+
+  // 3f) Sweeping fallback
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Helios-N1";}
+function type(){return Type.NORMAL;}
+var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":214.957,"rMax":351.988,"strafe":30.032,"threatR":190.476,"threatH":6.413,"fleeBias":12.926,"sep":60.497,"edge":61.972,"leadCap":22.048,"leadW":1.116,"aimJ":0.136,"healthW":1.292,"distW":0.084,"finHP":25.684,"aggrRemain":3,"aggrIn":21.163,"aggrOut":20.957,"bias":0,"smooth":0.531,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.102};
+  const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
+  if((S.tick%240)===0) S.side*=-1;
+  const BIAS = (S.isRed? 6 : -6);
+
+  // 1) Target selection: health-weighted distance + angle alignment bonus
+  let tgt=null,b=1e18; for(const e of enemies){
+    const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.102;
+    const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
+  }
+
+  // 2) Aiming: smoothed velocity estimate + ballistic intercept (bullet speed=8)
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y, vx=0, vy=0;
+    if(S.last){
+      const lv=S.lastV||{vx:0,vy:0};
+      const ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; // instant velocity
+      vx=lv.vx*(1-P.smooth)+ivx*P.smooth; vy=lv.vy*(1-P.smooth)+ivy*P.smooth; S.lastV={vx,vy};
+      const rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64, aa=vx*vx+vy*vy-s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry; let t=0;
+      if(Math.abs(aa)<1e-6){ t = bb!==0?CL(-cc/bb,0,P.leadCap):0; }
+      else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc), t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = CL((t1>0&&t2>0?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0))),0,P.leadCap);} else { t=CL(H(rx,ry)/8,0,P.leadCap);} }
+      ax = tgt.x + vx*P.leadW*t; ay = tgt.y + vy*P.leadW*t;
+    }
+    const j = ((((S.tick*13 + ((tank.x*7+tank.y*3)|0) )%23)-11)*P.aimJ*0.08) + (P.aimBias||0);
+    const aim = D(ax-tank.x,ay-tank.y)+j; S.lastAim = aim; tank.fire(aim); S.last={x:tgt.x,y:tgt.y};
+  }
+
+  // 3) Movement helpers
+  let mv=0; const go=(a)=>{ if(mv>20) return true; mv++; return tank.move(N(a)); };
+
+  // 3a) Bullet dodge: perpendicular + flee bias + time-to-impact weighting
+  let hot=null,sc=1e18; for(const b of bulletInfo){
+    const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1, nx=b.vx/v, ny=b.vy/v, proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx,py=b.y-proj*ny, dist=H(px-tank.x,py-tank.y), tt=proj/v, s=dist+tt*P.threatH; if(dist<P.threatR&&s<sc){sc=s;hot=b;}
+    }
+  }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
+
+  // 3b) Edge avoidance (map 900x600)
+  if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
+
+  // 3c) Ally separation
+  let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
+
+  // 3d) Opening drift to mitigate spawn bias
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
+
+  // 3e) Range control + strafing
+  if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
+
+  // 3f) Sweeping fallback
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Helios-N2";}
+function type(){return Type.NORMAL;}
+var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":214.957,"rMax":351.988,"strafe":30.032,"threatR":190.476,"threatH":6.413,"fleeBias":12.926,"sep":60.497,"edge":61.972,"leadCap":22.048,"leadW":1.116,"aimJ":0.136,"healthW":1.292,"distW":0.084,"finHP":25.684,"aggrRemain":3,"aggrIn":21.163,"aggrOut":20.957,"bias":0,"smooth":0.531,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.102};
+  const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
+  if((S.tick%240)===0) S.side*=-1;
+  const BIAS = (S.isRed? 6 : -6);
+
+  // 1) Target selection: health-weighted distance + angle alignment bonus
+  let tgt=null,b=1e18; for(const e of enemies){
+    const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.102;
+    const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
+  }
+
+  // 2) Aiming: smoothed velocity estimate + ballistic intercept (bullet speed=8)
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y, vx=0, vy=0;
+    if(S.last){
+      const lv=S.lastV||{vx:0,vy:0};
+      const ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; // instant velocity
+      vx=lv.vx*(1-P.smooth)+ivx*P.smooth; vy=lv.vy*(1-P.smooth)+ivy*P.smooth; S.lastV={vx,vy};
+      const rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64, aa=vx*vx+vy*vy-s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry; let t=0;
+      if(Math.abs(aa)<1e-6){ t = bb!==0?CL(-cc/bb,0,P.leadCap):0; }
+      else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc), t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = CL((t1>0&&t2>0?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0))),0,P.leadCap);} else { t=CL(H(rx,ry)/8,0,P.leadCap);} }
+      ax = tgt.x + vx*P.leadW*t; ay = tgt.y + vy*P.leadW*t;
+    }
+    const j = ((((S.tick*13 + ((tank.x*7+tank.y*3)|0) )%23)-11)*P.aimJ*0.08) + (P.aimBias||0);
+    const aim = D(ax-tank.x,ay-tank.y)+j; S.lastAim = aim; tank.fire(aim); S.last={x:tgt.x,y:tgt.y};
+  }
+
+  // 3) Movement helpers
+  let mv=0; const go=(a)=>{ if(mv>20) return true; mv++; return tank.move(N(a)); };
+
+  // 3a) Bullet dodge: perpendicular + flee bias + time-to-impact weighting
+  let hot=null,sc=1e18; for(const b of bulletInfo){
+    const dx=b.x-tank.x,dy=b.y-tank.y; const v=H(b.vx,b.vy)||1, nx=b.vx/v, ny=b.vy/v, proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx,py=b.y-proj*ny, dist=H(px-tank.x,py-tank.y), tt=proj/v, s=dist+tt*P.threatH; if(dist<P.threatR&&s<sc){sc=s;hot=b;}
+    }
+  }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
+
+  // 3b) Edge avoidance (map 900x600)
+  if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
+
+  // 3c) Ally separation
+  let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
+
+  // 3d) Opening drift to mitigate spawn bias
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
+
+  // 3e) Range control + strafing
+  if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
+
+  // 3f) Sweeping fallback
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
+}
