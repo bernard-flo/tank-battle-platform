@@ -30,7 +30,7 @@ function parseArgs(argv) {
   return args;
 }
 
-function findOpponentTxt(limit = 10, excludeStamp = null) {
+function findOpponentTxt(limit = 10, excludeStamp = null, order = 'desc') {
   const resultDir = path.resolve('../../result');
   const dirs = fs.readdirSync(resultDir).filter((d) => fs.statSync(path.join(resultDir, d)).isDirectory());
   // prefer recent, filter those with a .txt whose name matches directory
@@ -48,7 +48,8 @@ function findOpponentTxt(limit = 10, excludeStamp = null) {
     }
     entries.push({ dir: d, file: pick, path: path.join(resultDir, d, pick), size: bestSize });
   }
-  entries.sort((a, b) => (a.dir < b.dir ? 1 : -1)); // reverse chronological by name
+  entries.sort((a, b) => (a.dir < b.dir ? 1 : -1)); // default: reverse chronological by name
+  if (order === 'asc') entries.reverse();
   return entries.slice(0, limit);
 }
 
@@ -90,7 +91,7 @@ async function main() {
   const oppLimit = Math.max(2, parseInt(args.oppLimit || '8', 10));
   const baseSeed = Math.floor(Math.random() * 1e9);
 
-  const opponents = findOpponentTxt(oppLimit, stamp);
+  const opponents = findOpponentTxt(oppLimit, stamp, args.oldest ? 'asc' : 'desc');
   if (opponents.length === 0) {
     console.error('No opponents found in result/. Exiting.');
     process.exit(1);
@@ -146,4 +147,3 @@ async function main() {
 if (require.main === module) {
   main().catch((e) => { console.error(e); process.exit(1); });
 }
-
