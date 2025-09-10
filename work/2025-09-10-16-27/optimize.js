@@ -49,9 +49,11 @@ function teamCode(params, tag) {
     const P = { ...base };
     // Slight deterministic jitter per bot
     const j = (k, f, lo = -1, hi = 1) => {
-      const seed = (i * 131 + k * 73 + tag.length * 17) % 997;
-      const r = ((seed * 6364136223846793005n) % 1000n) / 1000n; // pseudo
-      const rv = Number(r);
+      // Simple deterministic LCG based on index and tag length
+      let s = (i * 131 + k * 73 + tag.length * 17) >>> 0;
+      // LCG step
+      s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+      const rv = (s >>> 0) / 4294967296; // [0,1)
       const delta = (lo + (hi - lo) * rv) * f;
       return delta;
     };
@@ -193,4 +195,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
