@@ -218,13 +218,14 @@ function summaryScore(res) {
 
 async function main() {
   const FAST = process.env.FAST === '1';
-  const OPP_LIMIT = FAST ? 16 : 9999;
-  const BASELINE_LIMIT = FAST ? 2 : 3;
-  const CANDS = FAST ? 8 : 16;
-  const TOPK = FAST ? 3 : 4;
-  const BASE_REP = FAST ? 12 : 24;
-  const FULL_REP = FAST ? 16 : 28;
-  const ROUNDS = FAST ? 2 : 3;
+  const num = (v, d) => (v !== undefined ? Number(v) : d);
+  const OPP_LIMIT = num(process.env.OPP_LIMIT, FAST ? 16 : 9999);
+  const BASELINE_LIMIT = num(process.env.BASELINE_LIMIT, FAST ? 2 : 3);
+  const CANDS = num(process.env.CANDS, FAST ? 8 : 16);
+  const TOPK = num(process.env.TOPK, FAST ? 3 : 4);
+  const BASE_REP = num(process.env.BASE_REP, FAST ? 12 : 24);
+  const FULL_REP = num(process.env.FULL_REP, FAST ? 16 : 28);
+  const ROUNDS = num(process.env.ROUNDS, FAST ? 2 : 3);
 
   console.log(`[${now()}] Listing opponents...`);
   const opponents = await listOpponentFiles(OPP_LIMIT);
