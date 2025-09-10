@@ -1,0 +1,548 @@
+function name(){return "Nova-1-T";}
+function type(){return Type.TANKER;}
+let __state_0 = { last:null, tick:0, lastVel:null, side: (0*17)%2?1:-1 };
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":219.87116556353868,"rMax":361.77962946295736,"strafe":28.707303564064205,"threatR":206.39852524693123,"threatH":7.315872637857683,"fleeBias":21.754301411565393,"sep":71.79002286591567,"edge":54.573982739448546,"leadCap":20.460625432245433,"leadW":1.2459945938619785,"aimJitter":0.11958828272670508,"healthW":1.243284905552864,"distW":0.10325246381247416,"finisherHP":23.97843557074666,"aggrRemain":3,"aggrIn":28.43508058488369,"aggrOut":22.1266241742298,"aimBias":-0.19388972361106427,"bias":-6.320309009542688};
+  const S=__state_0;
+  S.tick=(S.tick||0)+1;
+
+  // 1) Target selection (weighted by health and distance)
+  let tgt=null, best=1e18;
+  for(const e of enemies){
+    const k = e.health*1.243 + e.distance*0.103;
+    if(k<best){best=k; tgt=e;}
+  }
+
+  // 2) Predictive aim with quadratic intercept
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    let vx=0, vy=0;
+    if(S.last){
+      const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0;
+      const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y);
+      vx = lvx*0.5 + ivx*0.5; vy = lvy*0.5 + ivy*0.5; // low-pass blend
+      S.lastVel={vx,vy};
+      const rx = tgt.x - tank.x, ry = tgt.y - tank.y;
+      const s2 = 64; // bullet speed^2 (8^2)
+      const aa = vx*vx + vy*vy - s2; const bb = 2*(rx*vx + ry*vy); const cc = rx*rx + ry*ry;
+      let tHit = 0;
+      if (Math.abs(aa) < 1e-6) { tHit = bb !== 0 ? CL(-cc / bb, 0, 20.460625432245433) : 0; }
+      else {
+        const disc = bb*bb - 4*aa*cc;
+        if (disc >= 0) {
+          const sd=Math.sqrt(disc); const t1=(-bb - sd)/(2*aa); const t2=(-bb + sd)/(2*aa);
+          const tc = t1>0 && t2>0 ? Math.min(t1,t2) : (t1>0?t1:(t2>0?t2:0));
+          tHit = CL(tc, 0, 20.460625432245433);
+        } else { const d=H(rx,ry); tHit = CL(d/8, 0, 20.460625432245433); }
+      }
+      ax = tgt.x + vx * 1.246 * tHit;
+      ay = tgt.y + vy * 1.246 * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 1*11)%23)-11) * 0.120 * 0.07 + -0.19388972361106427;
+    tank.fire(D(ax-tank.x,ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  let moved=0; const go=(a)=>{ if(moved>20) return true; moved++; return tank.move(N(a)); };
+
+  // 3) Bullet avoidance (distance to path + time weighting)
+  let hot=null,score=1e18;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny;
+    if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s = dist + tt*7.315872637857683;
+      if(dist<206.39852524693123 && s<score){ score=s; hot=b; }
+    }
+  }
+  if(hot){
+    const a=D(hot.vx,hot.vy);
+    const side=(S.side||-1)*21.754301411565393 + -6.320309009542688*0.5;
+    const options=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150];
+    for(const c of options){ if(go(c)) return; }
+  }
+
+  // 4) Edge avoidance
+  if(tank.x < 54.573982739448546){ if(go(0)) return; }
+  if(tank.x > 900-54.573982739448546){ if(go(180)) return; }
+  if(tank.y < 54.573982739448546){ if(go(90)) return; }
+  if(tank.y > 600-54.573982739448546){ if(go(270)) return; }
+
+  // 5) Ally separation
+  let near=null, ad=1e18; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad < 71.79002286591567){ const away=D(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+
+  // 6) Range control + strafing
+  if(tgt){
+    const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance;
+    let r0=219.87116556353868, r1=361.77962946295736;
+    if((tgt.health<=23.97843557074666)||enemies.length<=3){ r0=Math.max(120,r0-(28.43508058488369)); r1=Math.max(160,r1-(22.1266241742298)); }
+    if(d<r0){ const aw=to+180+(-6.320309009542688)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; }
+    else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; }
+    else { const s=to + ((S.side||-1) * 28.707303564064205) + (-6.320309009542688)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; }
+  }
+
+  // 7) Fallback sweep
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(-6.320309009542688))) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-2-T";}
+function type(){return Type.TANKER;}
+let __state_1 = { last:null, tick:0, lastVel:null, side: (1*17)%2?1:-1 };
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":218.16040350683033,"rMax":332.95483001172545,"strafe":22.129178850818427,"threatR":214.05144081469626,"threatH":7.445049604750238,"fleeBias":20.780787656549364,"sep":80.95906572877429,"edge":71.77259302735328,"leadCap":24.456519234739243,"leadW":1.14922215199098,"aimJitter":0.11644872259162366,"healthW":1.1619971475303172,"distW":0.10033907741960138,"finisherHP":25.2857805756852,"aggrRemain":3,"aggrIn":33.75344103351235,"aggrOut":24.52690812237561,"aimBias":-0.1942664187308401,"bias":-5.349787148879841};
+  const S=__state_1;
+  S.tick=(S.tick||0)+1;
+
+  // 1) Target selection (weighted by health and distance)
+  let tgt=null, best=1e18;
+  for(const e of enemies){
+    const k = e.health*1.162 + e.distance*0.100;
+    if(k<best){best=k; tgt=e;}
+  }
+
+  // 2) Predictive aim with quadratic intercept
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    let vx=0, vy=0;
+    if(S.last){
+      const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0;
+      const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y);
+      vx = lvx*0.5 + ivx*0.5; vy = lvy*0.5 + ivy*0.5; // low-pass blend
+      S.lastVel={vx,vy};
+      const rx = tgt.x - tank.x, ry = tgt.y - tank.y;
+      const s2 = 64; // bullet speed^2 (8^2)
+      const aa = vx*vx + vy*vy - s2; const bb = 2*(rx*vx + ry*vy); const cc = rx*rx + ry*ry;
+      let tHit = 0;
+      if (Math.abs(aa) < 1e-6) { tHit = bb !== 0 ? CL(-cc / bb, 0, 24.456519234739243) : 0; }
+      else {
+        const disc = bb*bb - 4*aa*cc;
+        if (disc >= 0) {
+          const sd=Math.sqrt(disc); const t1=(-bb - sd)/(2*aa); const t2=(-bb + sd)/(2*aa);
+          const tc = t1>0 && t2>0 ? Math.min(t1,t2) : (t1>0?t1:(t2>0?t2:0));
+          tHit = CL(tc, 0, 24.456519234739243);
+        } else { const d=H(rx,ry); tHit = CL(d/8, 0, 24.456519234739243); }
+      }
+      ax = tgt.x + vx * 1.149 * tHit;
+      ay = tgt.y + vy * 1.149 * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 2*11)%23)-11) * 0.116 * 0.07 + -0.1942664187308401;
+    tank.fire(D(ax-tank.x,ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  let moved=0; const go=(a)=>{ if(moved>20) return true; moved++; return tank.move(N(a)); };
+
+  // 3) Bullet avoidance (distance to path + time weighting)
+  let hot=null,score=1e18;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny;
+    if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s = dist + tt*7.445049604750238;
+      if(dist<214.05144081469626 && s<score){ score=s; hot=b; }
+    }
+  }
+  if(hot){
+    const a=D(hot.vx,hot.vy);
+    const side=(S.side||1)*20.780787656549364 + -5.349787148879841*0.5;
+    const options=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150];
+    for(const c of options){ if(go(c)) return; }
+  }
+
+  // 4) Edge avoidance
+  if(tank.x < 71.77259302735328){ if(go(0)) return; }
+  if(tank.x > 900-71.77259302735328){ if(go(180)) return; }
+  if(tank.y < 71.77259302735328){ if(go(90)) return; }
+  if(tank.y > 600-71.77259302735328){ if(go(270)) return; }
+
+  // 5) Ally separation
+  let near=null, ad=1e18; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad < 80.95906572877429){ const away=D(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+
+  // 6) Range control + strafing
+  if(tgt){
+    const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance;
+    let r0=218.16040350683033, r1=332.95483001172545;
+    if((tgt.health<=25.2857805756852)||enemies.length<=3){ r0=Math.max(120,r0-(33.75344103351235)); r1=Math.max(160,r1-(24.52690812237561)); }
+    if(d<r0){ const aw=to+180+(-5.349787148879841)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; }
+    else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; }
+    else { const s=to + ((S.side||1) * 22.129178850818427) + (-5.349787148879841)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; }
+  }
+
+  // 7) Fallback sweep
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(-5.349787148879841))) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-3-D";}
+function type(){return Type.DEALER;}
+let __state_2 = { last:null, tick:0, lastVel:null, side: (2*17)%2?1:-1 };
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":289.9525415781885,"rMax":472.8572675436735,"strafe":34.2230395374354,"threatR":243.69902676567435,"threatH":5.976650389004499,"fleeBias":16.09704751870595,"sep":76.13962781103328,"edge":55.94909927099943,"leadCap":21.65994765367359,"leadW":1.1244400991834702,"aimJitter":0.12638770685251802,"healthW":1.4323888674553018,"distW":0.07358875611424447,"finisherHP":29.595555485924706,"aggrRemain":3,"aggrIn":36.140251737181096,"aggrOut":27.164503576187418,"aimBias":-0.6043543114000931,"bias":-1.7176067114807665};
+  const S=__state_2;
+  S.tick=(S.tick||0)+1;
+
+  // 1) Target selection (weighted by health and distance)
+  let tgt=null, best=1e18;
+  for(const e of enemies){
+    const k = e.health*1.432 + e.distance*0.074;
+    if(k<best){best=k; tgt=e;}
+  }
+
+  // 2) Predictive aim with quadratic intercept
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    let vx=0, vy=0;
+    if(S.last){
+      const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0;
+      const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y);
+      vx = lvx*0.5 + ivx*0.5; vy = lvy*0.5 + ivy*0.5; // low-pass blend
+      S.lastVel={vx,vy};
+      const rx = tgt.x - tank.x, ry = tgt.y - tank.y;
+      const s2 = 64; // bullet speed^2 (8^2)
+      const aa = vx*vx + vy*vy - s2; const bb = 2*(rx*vx + ry*vy); const cc = rx*rx + ry*ry;
+      let tHit = 0;
+      if (Math.abs(aa) < 1e-6) { tHit = bb !== 0 ? CL(-cc / bb, 0, 21.65994765367359) : 0; }
+      else {
+        const disc = bb*bb - 4*aa*cc;
+        if (disc >= 0) {
+          const sd=Math.sqrt(disc); const t1=(-bb - sd)/(2*aa); const t2=(-bb + sd)/(2*aa);
+          const tc = t1>0 && t2>0 ? Math.min(t1,t2) : (t1>0?t1:(t2>0?t2:0));
+          tHit = CL(tc, 0, 21.65994765367359);
+        } else { const d=H(rx,ry); tHit = CL(d/8, 0, 21.65994765367359); }
+      }
+      ax = tgt.x + vx * 1.124 * tHit;
+      ay = tgt.y + vy * 1.124 * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 3*11)%23)-11) * 0.126 * 0.07 + -0.6043543114000931;
+    tank.fire(D(ax-tank.x,ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  let moved=0; const go=(a)=>{ if(moved>20) return true; moved++; return tank.move(N(a)); };
+
+  // 3) Bullet avoidance (distance to path + time weighting)
+  let hot=null,score=1e18;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny;
+    if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s = dist + tt*5.976650389004499;
+      if(dist<243.69902676567435 && s<score){ score=s; hot=b; }
+    }
+  }
+  if(hot){
+    const a=D(hot.vx,hot.vy);
+    const side=(S.side||-1)*16.09704751870595 + -1.7176067114807665*0.5;
+    const options=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150];
+    for(const c of options){ if(go(c)) return; }
+  }
+
+  // 4) Edge avoidance
+  if(tank.x < 55.94909927099943){ if(go(0)) return; }
+  if(tank.x > 900-55.94909927099943){ if(go(180)) return; }
+  if(tank.y < 55.94909927099943){ if(go(90)) return; }
+  if(tank.y > 600-55.94909927099943){ if(go(270)) return; }
+
+  // 5) Ally separation
+  let near=null, ad=1e18; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad < 76.13962781103328){ const away=D(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+
+  // 6) Range control + strafing
+  if(tgt){
+    const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance;
+    let r0=289.9525415781885, r1=472.8572675436735;
+    if((tgt.health<=29.595555485924706)||enemies.length<=3){ r0=Math.max(120,r0-(36.140251737181096)); r1=Math.max(160,r1-(27.164503576187418)); }
+    if(d<r0){ const aw=to+180+(-1.7176067114807665)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; }
+    else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; }
+    else { const s=to + ((S.side||-1) * 34.2230395374354) + (-1.7176067114807665)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; }
+  }
+
+  // 7) Fallback sweep
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(-1.7176067114807665))) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-4-D";}
+function type(){return Type.DEALER;}
+let __state_3 = { last:null, tick:0, lastVel:null, side: (3*17)%2?1:-1 };
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":309.09090279117225,"rMax":426.65176977813246,"strafe":29.246018598787487,"threatR":199.19504115097226,"threatH":6.263515012711286,"fleeBias":17.425506095867604,"sep":79.66851960355416,"edge":59.06025006175041,"leadCap":22.860911588184536,"leadW":1.0738865703432823,"aimJitter":0.09722128366190008,"healthW":1.3341673530521803,"distW":0.06805931992456317,"finisherHP":28.11390960179269,"aggrRemain":3,"aggrIn":32.568311700457706,"aggrOut":29.7408399914857,"aimBias":-0.6222816771129146,"bias":-1.9687141820788383};
+  const S=__state_3;
+  S.tick=(S.tick||0)+1;
+
+  // 1) Target selection (weighted by health and distance)
+  let tgt=null, best=1e18;
+  for(const e of enemies){
+    const k = e.health*1.334 + e.distance*0.068;
+    if(k<best){best=k; tgt=e;}
+  }
+
+  // 2) Predictive aim with quadratic intercept
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    let vx=0, vy=0;
+    if(S.last){
+      const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0;
+      const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y);
+      vx = lvx*0.5 + ivx*0.5; vy = lvy*0.5 + ivy*0.5; // low-pass blend
+      S.lastVel={vx,vy};
+      const rx = tgt.x - tank.x, ry = tgt.y - tank.y;
+      const s2 = 64; // bullet speed^2 (8^2)
+      const aa = vx*vx + vy*vy - s2; const bb = 2*(rx*vx + ry*vy); const cc = rx*rx + ry*ry;
+      let tHit = 0;
+      if (Math.abs(aa) < 1e-6) { tHit = bb !== 0 ? CL(-cc / bb, 0, 22.860911588184536) : 0; }
+      else {
+        const disc = bb*bb - 4*aa*cc;
+        if (disc >= 0) {
+          const sd=Math.sqrt(disc); const t1=(-bb - sd)/(2*aa); const t2=(-bb + sd)/(2*aa);
+          const tc = t1>0 && t2>0 ? Math.min(t1,t2) : (t1>0?t1:(t2>0?t2:0));
+          tHit = CL(tc, 0, 22.860911588184536);
+        } else { const d=H(rx,ry); tHit = CL(d/8, 0, 22.860911588184536); }
+      }
+      ax = tgt.x + vx * 1.074 * tHit;
+      ay = tgt.y + vy * 1.074 * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 4*11)%23)-11) * 0.097 * 0.07 + -0.6222816771129146;
+    tank.fire(D(ax-tank.x,ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  let moved=0; const go=(a)=>{ if(moved>20) return true; moved++; return tank.move(N(a)); };
+
+  // 3) Bullet avoidance (distance to path + time weighting)
+  let hot=null,score=1e18;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny;
+    if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s = dist + tt*6.263515012711286;
+      if(dist<199.19504115097226 && s<score){ score=s; hot=b; }
+    }
+  }
+  if(hot){
+    const a=D(hot.vx,hot.vy);
+    const side=(S.side||1)*17.425506095867604 + -1.9687141820788383*0.5;
+    const options=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150];
+    for(const c of options){ if(go(c)) return; }
+  }
+
+  // 4) Edge avoidance
+  if(tank.x < 59.06025006175041){ if(go(0)) return; }
+  if(tank.x > 900-59.06025006175041){ if(go(180)) return; }
+  if(tank.y < 59.06025006175041){ if(go(90)) return; }
+  if(tank.y > 600-59.06025006175041){ if(go(270)) return; }
+
+  // 5) Ally separation
+  let near=null, ad=1e18; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad < 79.66851960355416){ const away=D(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+
+  // 6) Range control + strafing
+  if(tgt){
+    const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance;
+    let r0=309.09090279117225, r1=426.65176977813246;
+    if((tgt.health<=28.11390960179269)||enemies.length<=3){ r0=Math.max(120,r0-(32.568311700457706)); r1=Math.max(160,r1-(29.7408399914857)); }
+    if(d<r0){ const aw=to+180+(-1.9687141820788383)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; }
+    else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; }
+    else { const s=to + ((S.side||1) * 29.246018598787487) + (-1.9687141820788383)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; }
+  }
+
+  // 7) Fallback sweep
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(-1.9687141820788383))) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-5-N";}
+function type(){return Type.NORMAL;}
+let __state_4 = { last:null, tick:0, lastVel:null, side: (4*17)%2?1:-1 };
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":247.65435007475315,"rMax":375.0335302188993,"strafe":28.157890003314243,"threatR":231.5194512840826,"threatH":6.859350858349353,"fleeBias":19.166647783387454,"sep":81.51015372527763,"edge":71.37357298731804,"leadCap":23.973250614479184,"leadW":0.9705695564905182,"aimJitter":0.10230877521447837,"healthW":1.2173649074684363,"distW":0.07168480977602304,"finisherHP":28.114944930188358,"aggrRemain":3,"aggrIn":30.826996136456728,"aggrOut":22.720192077197133,"aimBias":-0.19175478102639318,"bias":4.077764355856925};
+  const S=__state_4;
+  S.tick=(S.tick||0)+1;
+
+  // 1) Target selection (weighted by health and distance)
+  let tgt=null, best=1e18;
+  for(const e of enemies){
+    const k = e.health*1.217 + e.distance*0.072;
+    if(k<best){best=k; tgt=e;}
+  }
+
+  // 2) Predictive aim with quadratic intercept
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    let vx=0, vy=0;
+    if(S.last){
+      const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0;
+      const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y);
+      vx = lvx*0.5 + ivx*0.5; vy = lvy*0.5 + ivy*0.5; // low-pass blend
+      S.lastVel={vx,vy};
+      const rx = tgt.x - tank.x, ry = tgt.y - tank.y;
+      const s2 = 64; // bullet speed^2 (8^2)
+      const aa = vx*vx + vy*vy - s2; const bb = 2*(rx*vx + ry*vy); const cc = rx*rx + ry*ry;
+      let tHit = 0;
+      if (Math.abs(aa) < 1e-6) { tHit = bb !== 0 ? CL(-cc / bb, 0, 23.973250614479184) : 0; }
+      else {
+        const disc = bb*bb - 4*aa*cc;
+        if (disc >= 0) {
+          const sd=Math.sqrt(disc); const t1=(-bb - sd)/(2*aa); const t2=(-bb + sd)/(2*aa);
+          const tc = t1>0 && t2>0 ? Math.min(t1,t2) : (t1>0?t1:(t2>0?t2:0));
+          tHit = CL(tc, 0, 23.973250614479184);
+        } else { const d=H(rx,ry); tHit = CL(d/8, 0, 23.973250614479184); }
+      }
+      ax = tgt.x + vx * 0.971 * tHit;
+      ay = tgt.y + vy * 0.971 * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 5*11)%23)-11) * 0.102 * 0.07 + -0.19175478102639318;
+    tank.fire(D(ax-tank.x,ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  let moved=0; const go=(a)=>{ if(moved>20) return true; moved++; return tank.move(N(a)); };
+
+  // 3) Bullet avoidance (distance to path + time weighting)
+  let hot=null,score=1e18;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny;
+    if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s = dist + tt*6.859350858349353;
+      if(dist<231.5194512840826 && s<score){ score=s; hot=b; }
+    }
+  }
+  if(hot){
+    const a=D(hot.vx,hot.vy);
+    const side=(S.side||-1)*19.166647783387454 + 4.077764355856925*0.5;
+    const options=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150];
+    for(const c of options){ if(go(c)) return; }
+  }
+
+  // 4) Edge avoidance
+  if(tank.x < 71.37357298731804){ if(go(0)) return; }
+  if(tank.x > 900-71.37357298731804){ if(go(180)) return; }
+  if(tank.y < 71.37357298731804){ if(go(90)) return; }
+  if(tank.y > 600-71.37357298731804){ if(go(270)) return; }
+
+  // 5) Ally separation
+  let near=null, ad=1e18; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad < 81.51015372527763){ const away=D(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+
+  // 6) Range control + strafing
+  if(tgt){
+    const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance;
+    let r0=247.65435007475315, r1=375.0335302188993;
+    if((tgt.health<=28.114944930188358)||enemies.length<=3){ r0=Math.max(120,r0-(30.826996136456728)); r1=Math.max(160,r1-(22.720192077197133)); }
+    if(d<r0){ const aw=to+180+(4.077764355856925)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; }
+    else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; }
+    else { const s=to + ((S.side||-1) * 28.157890003314243) + (4.077764355856925)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; }
+  }
+
+  // 7) Fallback sweep
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(4.077764355856925))) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-N";}
+function type(){return Type.NORMAL;}
+let __state_5 = { last:null, tick:0, lastVel:null, side: (5*17)%2?1:-1 };
+function update(tank,enemies,allies,bulletInfo){
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const CL=(v,l,h)=>v<l?l:v>h?h:v;
+  const P={"rMin":238.73213214464485,"rMax":379.14607037454846,"strafe":25.391611103666946,"threatR":247.25227120169438,"threatH":5.365336708305404,"fleeBias":17.766973809711637,"sep":69.61504478305578,"edge":67.73540708422661,"leadCap":24.339246672950686,"leadW":1.0704797276388855,"aimJitter":0.1261868726145476,"healthW":1.2048264334443957,"distW":0.06917105943523348,"finisherHP":25.275320630241186,"aggrRemain":3,"aggrIn":29.55627574175596,"aggrOut":23.027836448885502,"aimBias":-0.20343101830687374,"bias":3.930031320080161};
+  const S=__state_5;
+  S.tick=(S.tick||0)+1;
+
+  // 1) Target selection (weighted by health and distance)
+  let tgt=null, best=1e18;
+  for(const e of enemies){
+    const k = e.health*1.205 + e.distance*0.069;
+    if(k<best){best=k; tgt=e;}
+  }
+
+  // 2) Predictive aim with quadratic intercept
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    let vx=0, vy=0;
+    if(S.last){
+      const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0;
+      const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y);
+      vx = lvx*0.5 + ivx*0.5; vy = lvy*0.5 + ivy*0.5; // low-pass blend
+      S.lastVel={vx,vy};
+      const rx = tgt.x - tank.x, ry = tgt.y - tank.y;
+      const s2 = 64; // bullet speed^2 (8^2)
+      const aa = vx*vx + vy*vy - s2; const bb = 2*(rx*vx + ry*vy); const cc = rx*rx + ry*ry;
+      let tHit = 0;
+      if (Math.abs(aa) < 1e-6) { tHit = bb !== 0 ? CL(-cc / bb, 0, 24.339246672950686) : 0; }
+      else {
+        const disc = bb*bb - 4*aa*cc;
+        if (disc >= 0) {
+          const sd=Math.sqrt(disc); const t1=(-bb - sd)/(2*aa); const t2=(-bb + sd)/(2*aa);
+          const tc = t1>0 && t2>0 ? Math.min(t1,t2) : (t1>0?t1:(t2>0?t2:0));
+          tHit = CL(tc, 0, 24.339246672950686);
+        } else { const d=H(rx,ry); tHit = CL(d/8, 0, 24.339246672950686); }
+      }
+      ax = tgt.x + vx * 1.070 * tHit;
+      ay = tgt.y + vy * 1.070 * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + 6*11)%23)-11) * 0.126 * 0.07 + -0.20343101830687374;
+    tank.fire(D(ax-tank.x,ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  let moved=0; const go=(a)=>{ if(moved>20) return true; moved++; return tank.move(N(a)); };
+
+  // 3) Bullet avoidance (distance to path + time weighting)
+  let hot=null,score=1e18;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny;
+    if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s = dist + tt*5.365336708305404;
+      if(dist<247.25227120169438 && s<score){ score=s; hot=b; }
+    }
+  }
+  if(hot){
+    const a=D(hot.vx,hot.vy);
+    const side=(S.side||1)*17.766973809711637 + 3.930031320080161*0.5;
+    const options=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150];
+    for(const c of options){ if(go(c)) return; }
+  }
+
+  // 4) Edge avoidance
+  if(tank.x < 67.73540708422661){ if(go(0)) return; }
+  if(tank.x > 900-67.73540708422661){ if(go(180)) return; }
+  if(tank.y < 67.73540708422661){ if(go(90)) return; }
+  if(tank.y > 600-67.73540708422661){ if(go(270)) return; }
+
+  // 5) Ally separation
+  let near=null, ad=1e18; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad < 69.61504478305578){ const away=D(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+
+  // 6) Range control + strafing
+  if(tgt){
+    const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance;
+    let r0=238.73213214464485, r1=379.14607037454846;
+    if((tgt.health<=25.275320630241186)||enemies.length<=3){ r0=Math.max(120,r0-(29.55627574175596)); r1=Math.max(160,r1-(23.027836448885502)); }
+    if(d<r0){ const aw=to+180+(3.930031320080161)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; }
+    else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; }
+    else { const s=to + ((S.side||1) * 25.391611103666946) + (3.930031320080161)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; }
+  }
+
+  // 7) Fallback sweep
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(3.930031320080161))) return; }
+}
