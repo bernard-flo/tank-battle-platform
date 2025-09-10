@@ -25,6 +25,7 @@ function update(tank,enemies,allies,bulletInfo){
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
+  const clamp=(v,lo,hi)=>v<lo?lo:(v>hi?hi:v);
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
 
   // 1) Target selection: health-weighted then distance
@@ -155,4 +156,3 @@ function saveTeam(filePath, code) {
 }
 
 module.exports = { buildTeam, saveTeam };
-

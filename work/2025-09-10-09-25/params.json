@@ -1,0 +1,23 @@
+{
+  "leadCap": 14,
+  "leadWeight": 1,
+  "aimJitter": 0.18,
+  "velSmooth": 0.6,
+  "minRange": 150,
+  "maxRange": 260,
+  "strafeAngle": 28,
+  "strafeSpread": 18,
+  "approachSpread": 16,
+  "escapeSpread": 22,
+  "threatRadius": 165,
+  "threatFleeBias": 14,
+  "allySep": 62,
+  "edgeMargin": 44,
+  "bias": 10,
+  "targetHealthWeight": 1.25,
+  "targetDistWeight": 0.11,
+  "finishHp": 24,
+  "finishRemain": 3,
+  "finishMinDelta": 32,
+  "finishMaxDelta": 24
+}
