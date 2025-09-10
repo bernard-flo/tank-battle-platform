@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  Tuning and evaluation script.
- - Discovers competitor team files in result/*/*.txt (excluding our timestamp).
+ - Discovers competitor team files in result/<timestamp>/*.txt (excluding our timestamp).
  - Generates candidate Helios parameter sets (randomized around defaults).
  - Evaluates candidates vs sampled competitors via simulator/cli.js in batch mode.
  - Selects best params, re-evaluates broadly, writes final team to result/<TS>/<TS>.txt
@@ -165,4 +165,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
