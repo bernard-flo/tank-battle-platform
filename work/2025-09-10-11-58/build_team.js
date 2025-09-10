@@ -99,16 +99,35 @@ function update(tank,enemies,allies,bulletInfo){
 `;
 }
 
-function buildTeam() {
+function buildTeam(variant = 'base') {
   // Roles: 0,1,2,3,4,5
-  const roles = [
-    { name: 'ZephyrX-T1', type: 'Type.TANKER', P: { rMin:170, rMax:265, strafe:22, threatR:190, threatH:4, fleeBias:18, sep:70, edge:52, leadCap:16, leadW:0.96, aimJitter:0.14, healthW:1.25, distW:0.10, finisherHP:26, aggrRemain:3, aggrIn:26, aggrOut:16, bias:-10 } },
-    { name: 'ZephyrX-D1', type: 'Type.DEALER', P: { rMin:210, rMax:330, strafe:30, threatR:170, threatH:5, fleeBias:16, sep:64, edge:56, leadCap:18, leadW:1.08, aimJitter:0.12, healthW:1.20, distW:0.08, finisherHP:22, aggrRemain:2, aggrIn:35, aggrOut:24, bias:-8, aimBias:-0.6 } },
-    { name: 'ZephyrX-N1', type: 'Type.NORMAL', P: { rMin:180, rMax:290, strafe:26, threatR:180, threatH:4, fleeBias:16, sep:66, edge:50, leadCap:16, leadW:1.02, aimJitter:0.16, healthW:1.25, distW:0.10, finisherHP:24, aggrRemain:3, aggrIn:28, aggrOut:18, bias:-6 } },
-    { name: 'ZephyrX-T2', type: 'Type.TANKER', P: { rMin:165, rMax:260, strafe:22, threatR:190, threatH:4, fleeBias:20, sep:72, edge:52, leadCap:16, leadW:0.98, aimJitter:0.16, healthW:1.30, distW:0.10, finisherHP:26, aggrRemain:3, aggrIn:26, aggrOut:16, bias:10 } },
-    { name: 'ZephyrX-D2', type: 'Type.DEALER', P: { rMin:215, rMax:335, strafe:30, threatR:170, threatH:5, fleeBias:16, sep:64, edge:56, leadCap:18, leadW:1.08, aimJitter:0.12, healthW:1.20, distW:0.08, finisherHP:22, aggrRemain:2, aggrIn:35, aggrOut:24, bias:8, aimBias:0.6 } },
-    { name: 'ZephyrX-N2', type: 'Type.NORMAL', P: { rMin:180, rMax:290, strafe:26, threatR:180, threatH:4, fleeBias:16, sep:66, edge:50, leadCap:16, leadW:1.02, aimJitter:0.16, healthW:1.25, distW:0.10, finisherHP:24, aggrRemain:3, aggrIn:28, aggrOut:18, bias:6 } },
-  ];
+  const sets = {
+    base: [
+      { name: 'ZephyrX-T1', type: 'Type.TANKER', P: { rMin:170, rMax:265, strafe:22, threatR:190, threatH:4, fleeBias:18, sep:70, edge:52, leadCap:16, leadW:0.96, aimJitter:0.14, healthW:1.25, distW:0.10, finisherHP:26, aggrRemain:3, aggrIn:26, aggrOut:16, bias:-10 } },
+      { name: 'ZephyrX-D1', type: 'Type.DEALER', P: { rMin:210, rMax:330, strafe:30, threatR:170, threatH:5, fleeBias:16, sep:64, edge:56, leadCap:18, leadW:1.08, aimJitter:0.12, healthW:1.20, distW:0.08, finisherHP:22, aggrRemain:2, aggrIn:35, aggrOut:24, bias:-8, aimBias:-0.6 } },
+      { name: 'ZephyrX-N1', type: 'Type.NORMAL', P: { rMin:180, rMax:290, strafe:26, threatR:180, threatH:4, fleeBias:16, sep:66, edge:50, leadCap:16, leadW:1.02, aimJitter:0.16, healthW:1.25, distW:0.10, finisherHP:24, aggrRemain:3, aggrIn:28, aggrOut:18, bias:-6 } },
+      { name: 'ZephyrX-T2', type: 'Type.TANKER', P: { rMin:165, rMax:260, strafe:22, threatR:190, threatH:4, fleeBias:20, sep:72, edge:52, leadCap:16, leadW:0.98, aimJitter:0.16, healthW:1.30, distW:0.10, finisherHP:26, aggrRemain:3, aggrIn:26, aggrOut:16, bias:10 } },
+      { name: 'ZephyrX-D2', type: 'Type.DEALER', P: { rMin:215, rMax:335, strafe:30, threatR:170, threatH:5, fleeBias:16, sep:64, edge:56, leadCap:18, leadW:1.08, aimJitter:0.12, healthW:1.20, distW:0.08, finisherHP:22, aggrRemain:2, aggrIn:35, aggrOut:24, bias:8, aimBias:0.6 } },
+      { name: 'ZephyrX-N2', type: 'Type.NORMAL', P: { rMin:180, rMax:290, strafe:26, threatR:180, threatH:4, fleeBias:16, sep:66, edge:50, leadCap:16, leadW:1.02, aimJitter:0.16, healthW:1.25, distW:0.10, finisherHP:24, aggrRemain:3, aggrIn:28, aggrOut:18, bias:6 } },
+    ],
+    aggro: [
+      { name: 'ZephyrX-T1a', type: 'Type.TANKER', P: { rMin:155, rMax:245, strafe:24, threatR:185, threatH:4, fleeBias:16, sep:68, edge:50, leadCap:16, leadW:1.0, aimJitter:0.12, healthW:1.25, distW:0.08, finisherHP:28, aggrRemain:4, aggrIn:34, aggrOut:20, bias:-8 } },
+      { name: 'ZephyrX-D1a', type: 'Type.DEALER', P: { rMin:200, rMax:320, strafe:32, threatR:165, threatH:5, fleeBias:14, sep:62, edge:54, leadCap:18, leadW:1.10, aimJitter:0.10, healthW:1.15, distW:0.08, finisherHP:24, aggrRemain:3, aggrIn:40, aggrOut:28, bias:-6, aimBias:-0.4 } },
+      { name: 'ZephyrX-N1a', type: 'Type.NORMAL', P: { rMin:170, rMax:280, strafe:28, threatR:175, threatH:4, fleeBias:16, sep:64, edge:50, leadCap:16, leadW:1.04, aimJitter:0.14, healthW:1.25, distW:0.10, finisherHP:26, aggrRemain:3, aggrIn:32, aggrOut:20, bias:-4 } },
+      { name: 'ZephyrX-T2a', type: 'Type.TANKER', P: { rMin:155, rMax:245, strafe:24, threatR:185, threatH:4, fleeBias:18, sep:70, edge:50, leadCap:16, leadW:1.0, aimJitter:0.12, healthW:1.30, distW:0.10, finisherHP:28, aggrRemain:4, aggrIn:34, aggrOut:20, bias:8 } },
+      { name: 'ZephyrX-D2a', type: 'Type.DEALER', P: { rMin:200, rMax:320, strafe:32, threatR:165, threatH:5, fleeBias:14, sep:62, edge:54, leadCap:18, leadW:1.10, aimJitter:0.10, healthW:1.15, distW:0.08, finisherHP:24, aggrRemain:3, aggrIn:40, aggrOut:28, bias:6, aimBias:0.4 } },
+      { name: 'ZephyrX-N2a', type: 'Type.NORMAL', P: { rMin:170, rMax:280, strafe:28, threatR:175, threatH:4, fleeBias:16, sep:64, edge:50, leadCap:16, leadW:1.04, aimJitter:0.14, healthW:1.25, distW:0.10, finisherHP:26, aggrRemain:3, aggrIn:32, aggrOut:20, bias:4 } },
+    ],
+    kite: [
+      { name: 'ZephyrX-T1k', type: 'Type.TANKER', P: { rMin:180, rMax:280, strafe:20, threatR:195, threatH:5, fleeBias:20, sep:72, edge:56, leadCap:16, leadW:0.95, aimJitter:0.16, healthW:1.30, distW:0.12, finisherHP:24, aggrRemain:2, aggrIn:22, aggrOut:16, bias:-10 } },
+      { name: 'ZephyrX-D1k', type: 'Type.DEALER', P: { rMin:230, rMax:350, strafe:34, threatR:175, threatH:6, fleeBias:18, sep:66, edge:60, leadCap:18, leadW:1.06, aimJitter:0.12, healthW:1.20, distW:0.08, finisherHP:22, aggrRemain:2, aggrIn:30, aggrOut:22, bias:-8, aimBias:-0.8 } },
+      { name: 'ZephyrX-N1k', type: 'Type.NORMAL', P: { rMin:190, rMax:305, strafe:28, threatR:185, threatH:5, fleeBias:18, sep:68, edge:54, leadCap:16, leadW:1.0, aimJitter:0.16, healthW:1.25, distW:0.10, finisherHP:24, aggrRemain:2, aggrIn:26, aggrOut:18, bias:-6 } },
+      { name: 'ZephyrX-T2k', type: 'Type.TANKER', P: { rMin:180, rMax:280, strafe:20, threatR:195, threatH:5, fleeBias:20, sep:72, edge:56, leadCap:16, leadW:0.95, aimJitter:0.16, healthW:1.30, distW:0.12, finisherHP:24, aggrRemain:2, aggrIn:22, aggrOut:16, bias:10 } },
+      { name: 'ZephyrX-D2k', type: 'Type.DEALER', P: { rMin:230, rMax:350, strafe:34, threatR:175, threatH:6, fleeBias:18, sep:66, edge:60, leadCap:18, leadW:1.06, aimJitter:0.12, healthW:1.20, distW:0.08, finisherHP:22, aggrRemain:2, aggrIn:30, aggrOut:22, bias:8, aimBias:0.8 } },
+      { name: 'ZephyrX-N2k', type: 'Type.NORMAL', P: { rMin:190, rMax:305, strafe:28, threatR:185, threatH:5, fleeBias:18, sep:68, edge:54, leadCap:16, leadW:1.0, aimJitter:0.16, healthW:1.25, distW:0.10, finisherHP:24, aggrRemain:2, aggrIn:26, aggrOut:18, bias:6 } },
+    ],
+  };
+  const roles = sets[variant] || sets.base;
 
   const parts = roles.map((r, i) => botBlock(r.name, r.type, i, r.P));
   return parts.join("\n\n// ===== 다음 로봇 =====\n\n");
@@ -116,10 +135,10 @@ function buildTeam() {
 
 function main() {
   const outFile = process.argv[2] || path.resolve(__dirname, 'team_v1.txt');
-  const code = buildTeam();
+  const variant = process.env.VARIANT || 'base';
+  const code = buildTeam(variant);
   fs.writeFileSync(outFile, code);
   console.log('Wrote team to', outFile);
 }
 
 if (require.main === module) main();
-
