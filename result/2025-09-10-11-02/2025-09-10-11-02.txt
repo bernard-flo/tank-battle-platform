@@ -4,7 +4,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+1)|0)%2?1:-1; const P={"rMin":159.67445727437735,"rMax":263.46742341294885,"strafe":25.743606224656105,"threatR":156.29189959727228,"fleeBias":20.0887259086594,"sep":64.27167159505188,"edge":50.7998910471797,"leadCap":13.518281355500221,"leadW":0.9043781122379004,"aimJitter":0.12677066355943678,"healthW":1.1466516523808241,"distW":0.18986687999218702,"finisherHP":27.73847915418446,"aggrRemain":2,"aggrIn":10.857271677814424,"aggrOut":11.548710457980633,"bias":19.300956139340997};
+  const rnd=((tank.x*97+tank.y*131+1)|0)%2?1:-1; const P={"rMin":189.32430628687143,"rMax":243.3704822929576,"strafe":21.747549325227737,"threatR":125.51898385863751,"fleeBias":17.884779521264136,"sep":65.05136245302856,"edge":49.67489932477474,"leadCap":14.450432445155457,"leadW":0.8260451732762157,"aimJitter":0.1602305302582681,"healthW":1.0313947031646968,"distW":0.17329092353582382,"finisherHP":22.57599652931094,"aggrRemain":4,"aggrIn":22.669246569275856,"aggrOut":24.81180775165558,"bias":-0.2740338910371065};
   __state.tick=(__state.tick||0)+1;
   // Target: weigh health and distance; prefer low HP and closer
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
@@ -44,7 +44,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+2)|0)%2?1:-1; const P={"rMin":153.5641395766288,"rMax":287.2801652364433,"strafe":20.153401102870703,"threatR":154.0503741009161,"fleeBias":12.916818507015705,"sep":51.55448045395315,"edge":54.55949769169092,"leadCap":13.429651071783155,"leadW":0.8620286587812006,"aimJitter":0.11725646338425576,"healthW":0.9799715062044562,"distW":0.17546171218156814,"finisherHP":37.13761789910495,"aggrRemain":2,"aggrIn":27.58167963474989,"aggrOut":12.229750633239746,"bias":14.822801644913852};
+  const rnd=((tank.x*97+tank.y*131+2)|0)%2?1:-1; const P={"rMin":186.80209080222994,"rMax":276.60261751152575,"strafe":22.174720734357834,"threatR":153.25093457940966,"fleeBias":14.715416951104999,"sep":53.34549747221172,"edge":53.546489510685205,"leadCap":12.756744746584445,"leadW":0.9487552045658231,"aimJitter":0.2425883303117007,"healthW":1.0903706625290215,"distW":0.2310252607241273,"finisherHP":19.414517564699054,"aggrRemain":3,"aggrIn":12.316315053030849,"aggrOut":10.862399857491255,"bias":10.764411662239581};
   __state.tick=(__state.tick||0)+1;
   // Target: weigh health and distance; prefer low HP and closer
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
@@ -84,7 +84,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+3)|0)%2?1:-1; const P={"rMin":173.2121883984655,"rMax":295.04194310400635,"strafe":33.356607373803854,"threatR":110.9457111149095,"fleeBias":21.387100785039365,"sep":60.479335060343146,"edge":48.86654844880104,"leadCap":16.208801893517375,"leadW":0.8686884355731308,"aimJitter":0.1110936355497688,"healthW":1.0302735922113062,"distW":0.17549736611545086,"finisherHP":32.1271033231169,"aggrRemain":3,"aggrIn":20.21345272194594,"aggrOut":17.96973915025592,"bias":-13.598375371657312};
+  const rnd=((tank.x*97+tank.y*131+3)|0)%2?1:-1; const P={"rMin":197.2700017876923,"rMax":316.8890644283965,"strafe":25.04602300748229,"threatR":138.17579241469502,"fleeBias":24.90921117644757,"sep":73.99757299758494,"edge":51.41783981397748,"leadCap":15.300752769690007,"leadW":0.9126199345290661,"aimJitter":0.208184736892581,"healthW":0.9829101008176804,"distW":0.15662709672003983,"finisherHP":34.45845718216151,"aggrRemain":4,"aggrIn":19.22183266840875,"aggrOut":19.238202888518572,"bias":7.973393972497433};
   __state.tick=(__state.tick||0)+1;
   // Target: weigh health and distance; prefer low HP and closer
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
@@ -124,7 +124,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+4)|0)%2?1:-1; const P={"rMin":178.713791500777,"rMax":276.412194496952,"strafe":24.27798520028591,"threatR":100.52081218920648,"fleeBias":24.869125861674547,"sep":57.145746383816004,"edge":50.306911908090115,"leadCap":15.22659998969175,"leadW":0.95,"aimJitter":0.11068075668998062,"healthW":1.0812143029086292,"distW":0.22828078113496303,"finisherHP":36.145637679845095,"aggrRemain":1,"aggrIn":18.72914059087634,"aggrOut":17.68875490128994,"bias":-15.497398341540247};
+  const rnd=((tank.x*97+tank.y*131+4)|0)%2?1:-1; const P={"rMin":193.17046494223177,"rMax":329.40135912504047,"strafe":26.953724287450314,"threatR":99.70749327214435,"fleeBias":20.716542588546872,"sep":57.69603005051613,"edge":59.151365116238594,"leadCap":12.96785734128207,"leadW":0.8169480444304645,"aimJitter":0.21017202345654368,"healthW":1.1388327511958778,"distW":0.1819352562353015,"finisherHP":28.980914207175374,"aggrRemain":4,"aggrIn":18.22440712247044,"aggrOut":10.288094833493233,"bias":-14.953820605296642};
   __state.tick=(__state.tick||0)+1;
   // Target: weigh health and distance; prefer low HP and closer
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
@@ -164,7 +164,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+5)|0)%2?1:-1; const P={"rMin":257.8846203535795,"rMax":360.96433038823307,"strafe":35.45021018758416,"threatR":135.261637349613,"fleeBias":20.925830647349358,"sep":73.16910815797746,"edge":46.17912086844444,"leadCap":14.291399432113394,"leadW":0.9274701527692377,"aimJitter":0.14823442686349153,"healthW":1.0112463660724462,"distW":0.20282328236848116,"finisherHP":42.49427498690784,"aggrRemain":3,"aggrIn":25.861262842081487,"aggrOut":23.045734025537968,"bias":19.483617669902742};
+  const rnd=((tank.x*97+tank.y*131+5)|0)%2?1:-1; const P={"rMin":225.09266761131585,"rMax":342.36520560923964,"strafe":34.474848952144384,"threatR":121.40742743387818,"fleeBias":14.716938706114888,"sep":57.11531237512827,"edge":56.58218855783343,"leadCap":12.580402069725096,"leadW":0.8290035264380275,"aimJitter":0.20318898915313185,"healthW":1.130693254005164,"distW":0.24817684590816497,"finisherHP":33.030065790750086,"aggrRemain":3,"aggrIn":17.036770042032003,"aggrOut":10.043158818036318,"bias":-21.200539905112237};
   __state.tick=(__state.tick||0)+1;
   // Target: weigh health and distance; prefer low HP and closer
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
@@ -204,7 +204,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+6)|0)%2?1:-1; const P={"rMin":265.57708892505616,"rMax":354.53988649416715,"strafe":35.71253141760826,"threatR":106.3723318791017,"fleeBias":20.296695028431714,"sep":65.1132961846888,"edge":51.21845877170563,"leadCap":16.87469164491631,"leadW":0.8707289843074977,"aimJitter":0.08,"healthW":1.017793044280261,"distW":0.18507947109639644,"finisherHP":34.20567773655057,"aggrRemain":2,"aggrIn":19.341831081546843,"aggrOut":23.223627634346485,"bias":-14.651147439144552};
+  const rnd=((tank.x*97+tank.y*131+6)|0)%2?1:-1; const P={"rMin":262.51624858472496,"rMax":339.4872904708609,"strafe":40.57706072553992,"threatR":103.36968899238855,"fleeBias":19.89693177677691,"sep":52.19097464904189,"edge":52.99448860064149,"leadCap":12.750918486854061,"leadW":0.9424708495289087,"aimJitter":0.08,"healthW":1.0542837409302592,"distW":0.17846931133419275,"finisherHP":29.942045816220343,"aggrRemain":5,"aggrIn":29.637617487460375,"aggrOut":12.979473896324635,"bias":-21.092806640081108};
   __state.tick=(__state.tick||0)+1;
   // Target: weigh health and distance; prefer low HP and closer
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
