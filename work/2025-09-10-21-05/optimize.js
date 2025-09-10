@@ -173,6 +173,20 @@ function main() {
       dealer: { minR:260, maxR:380, strafe:40, threat:88, sep:62, edge:46, bias:-14, jA:17, jB:13, jM:25, jH:12, jF:0.11, leadCap:12, leadW:1.00, hW:1.60, dW:0.09, finN:26, finX:18, lastN:32, lastX:32, minCap:180 },
       normal: { minR:220, maxR:340, strafe:38, threat:86, sep:64, edge:46, bias:-12, jA:19, jB:29, jM:27, jH:13, jF:0.12, leadCap:11, leadW:0.96, hW:1.55, dW:0.10, finN:28, finX:18, lastN:34, lastX:34, minCap:170 },
     },
+    {
+      key: 'stellar-counter', namesPrefix: 'NovaS',
+      tanker: { minR:175, maxR:285, strafe:28, threat:200, threatH:6, sep:70, edge:52, bias:-9, jF:0.12, aimBias:0, leadCap:20, leadW:1.12, hW:1.25, dW:0.09, finHP:26, aggrIn:28, aggrOut:18, lastN2:3, minCap:140, fleeBias:16 },
+      tanker2: { minR:182, maxR:295, strafe:27, threat:200, threatH:6, sep:70, edge:52, bias:-9, jF:0.12, aimBias:0, leadCap:20, leadW:1.12, hW:1.25, dW:0.09, finHP:26, aggrIn:28, aggrOut:18, lastN2:3, minCap:140, fleeBias:16 },
+      dealer: { minR:252, maxR:398, strafe:31, threat:170, threatH:6, sep:64, edge:56, bias:-5, jF:0.10, aimBias:-0.6, leadCap:22, leadW:1.19, hW:1.20, dW:0.08, finHP:22, aggrIn:30, aggrOut:22, lastN2:2, minCap:170, fleeBias:14 },
+      dealer2: { minR:266, maxR:414, strafe:31, threat:170, threatH:6, sep:64, edge:56, bias:-5, jF:0.10, aimBias:-0.6, leadCap:22, leadW:1.19, hW:1.20, dW:0.08, finHP:22, aggrIn:30, aggrOut:22, lastN2:2, minCap:170, fleeBias:14 },
+      normal: { minR:220, maxR:340, strafe:32, threat:180, threatH:6, sep:66, edge:54, bias:-8, jF:0.11, aimBias:-0.2, leadCap:20, leadW:1.10, hW:1.30, dW:0.09, finHP:24, aggrIn:28, aggrOut:20, lastN2:3, minCap:160, fleeBias:15 },
+    },
+    {
+      key: 'sniper', namesPrefix: 'NovaZ',
+      tanker: { minR:200, maxR:320, strafe:26, threat:180, threatH:5, sep:64, edge:50, bias:-10, jF:0.10, aimBias:0, leadCap:18, leadW:1.05, hW:1.35, dW:0.10, finHP:24, aggrIn:26, aggrOut:18, lastN2:3, minCap:160, fleeBias:14 },
+      dealer: { minR:280, maxR:420, strafe:38, threat:170, threatH:6, sep:60, edge:52, bias:-12, jF:0.09, aimBias:-0.4, leadCap:20, leadW:1.15, hW:1.25, dW:0.08, finHP:20, aggrIn:28, aggrOut:22, lastN2:2, minCap:180, fleeBias:14 },
+      normal: { minR:240, maxR:360, strafe:34, threat:175, threatH:6, sep:62, edge:52, bias:-11, jF:0.10, aimBias:-0.2, leadCap:19, leadW:1.08, hW:1.30, dW:0.09, finHP:22, aggrIn:28, aggrOut:20, lastN2:3, minCap:170, fleeBias:14 },
+    },
   ];
 
   const candidateFile = path.join(THIS_WORK_DIR, 'candidate.js');
