@@ -1,0 +1,566 @@
+{
+  "totalWins": 125,
+  "totalLosses": 194,
+  "totalDraws": 53,
+  "opponents": 62,
+  "sample": [
+    {
+      "opponent": "/project/result/2025-09-10-06-00.txt",
+      "redWins": 4,
+      "blueWins": 0,
+      "draws": 2,
+      "avgTicks": 2184.83,
+      "avgRedEnergy": 90.2,
+      "avgBlueEnergy": 53.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-07-21.txt",
+      "redWins": 5,
+      "blueWins": 0,
+      "draws": 1,
+      "avgTicks": 1849.83,
+      "avgRedEnergy": 100.8,
+      "avgBlueEnergy": 1.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-07-27/2025-09-10-07-27.txt",
+      "redWins": 5,
+      "blueWins": 0,
+      "draws": 1,
+      "avgTicks": 1481,
+      "avgRedEnergy": 228.4,
+      "avgBlueEnergy": 12.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-07-34/2025-09-10-07-34.txt",
+      "redWins": 4,
+      "blueWins": 0,
+      "draws": 2,
+      "avgTicks": 2046.17,
+      "avgRedEnergy": 177.8,
+      "avgBlueEnergy": 18.5
+    },
+    {
+      "opponent": "/project/result/2025-09-10-07-47/2025-09-10-07-47.txt",
+      "redWins": 2,
+      "blueWins": 2,
+      "draws": 2,
+      "avgTicks": 2434.17,
+      "avgRedEnergy": 80.8,
+      "avgBlueEnergy": 55.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-08-10/2025-09-10-08-10.txt",
+      "redWins": 1,
+      "blueWins": 3,
+      "draws": 2,
+      "avgTicks": 2511.17,
+      "avgRedEnergy": 12.5,
+      "avgBlueEnergy": 140.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-08-18/2025-09-10-08-18.txt",
+      "redWins": 4,
+      "blueWins": 1,
+      "draws": 1,
+      "avgTicks": 2369.67,
+      "avgRedEnergy": 123,
+      "avgBlueEnergy": 14.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-08-25/2025-09-10-08-25.txt",
+      "redWins": 1,
+      "blueWins": 3,
+      "draws": 2,
+      "avgTicks": 2511.17,
+      "avgRedEnergy": 12.5,
+      "avgBlueEnergy": 140.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-08-32/2025-09-10-08-32.txt",
+      "redWins": 2,
+      "blueWins": 3,
+      "draws": 1,
+      "avgTicks": 2004.67,
+      "avgRedEnergy": 66,
+      "avgBlueEnergy": 56.2
+    },
+    {
+      "opponent": "/project/result/2025-09-10-08-46/2025-09-10-08-46.txt",
+      "redWins": 1,
+      "blueWins": 3,
+      "draws": 2,
+      "avgTicks": 2511.17,
+      "avgRedEnergy": 12.5,
+      "avgBlueEnergy": 140.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-08-54/2025-09-10-08-54.txt",
+      "redWins": 3,
+      "blueWins": 1,
+      "draws": 2,
+      "avgTicks": 2023,
+      "avgRedEnergy": 122.9,
+      "avgBlueEnergy": 39.6
+    },
+    {
+      "opponent": "/project/result/2025-09-10-09-11/2025-09-10-09-11.txt",
+      "redWins": 3,
+      "blueWins": 3,
+      "draws": 0,
+      "avgTicks": 1084.83,
+      "avgRedEnergy": 111.3,
+      "avgBlueEnergy": 107.4
+    },
+    {
+      "opponent": "/project/result/2025-09-10-09-15/2025-09-10-09-15.txt",
+      "redWins": 3,
+      "blueWins": 3,
+      "draws": 0,
+      "avgTicks": 1084.83,
+      "avgRedEnergy": 111.3,
+      "avgBlueEnergy": 107.4
+    },
+    {
+      "opponent": "/project/result/2025-09-10-09-25/2025-09-10-09-25.txt",
+      "redWins": 5,
+      "blueWins": 1,
+      "draws": 0,
+      "avgTicks": 1210,
+      "avgRedEnergy": 171.6,
+      "avgBlueEnergy": 5.6
+    },
+    {
+      "opponent": "/project/result/2025-09-10-09-59/2025-09-10-09-59.txt",
+      "redWins": 3,
+      "blueWins": 2,
+      "draws": 1,
+      "avgTicks": 1699.83,
+      "avgRedEnergy": 79.2,
+      "avgBlueEnergy": 87.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-10-02/2025-09-10-10-02.txt",
+      "redWins": 1,
+      "blueWins": 2,
+      "draws": 3,
+      "avgTicks": 2679.5,
+      "avgRedEnergy": 87.8,
+      "avgBlueEnergy": 109.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-10-19/2025-09-10-10-19.txt",
+      "redWins": 0,
+      "blueWins": 4,
+      "draws": 2,
+      "avgTicks": 1997.5,
+      "avgRedEnergy": 11.8,
+      "avgBlueEnergy": 164.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-10-26/2025-09-10-10-26.txt",
+      "redWins": 3,
+      "blueWins": 1,
+      "draws": 2,
+      "avgTicks": 2147,
+      "avgRedEnergy": 136.8,
+      "avgBlueEnergy": 48.2
+    },
+    {
+      "opponent": "/project/result/2025-09-10-11-02/2025-09-10-11-02.txt",
+      "redWins": 3,
+      "blueWins": 3,
+      "draws": 0,
+      "avgTicks": 1165.33,
+      "avgRedEnergy": 46.4,
+      "avgBlueEnergy": 76.5
+    },
+    {
+      "opponent": "/project/result/2025-09-10-11-10/2025-09-10-11-10.txt",
+      "redWins": 2,
+      "blueWins": 3,
+      "draws": 1,
+      "avgTicks": 1767.83,
+      "avgRedEnergy": 53.6,
+      "avgBlueEnergy": 52.1
+    },
+    {
+      "opponent": "/project/result/2025-09-10-11-16/2025-09-10-11-16.txt",
+      "redWins": 2,
+      "blueWins": 4,
+      "draws": 0,
+      "avgTicks": 1348.33,
+      "avgRedEnergy": 9.8,
+      "avgBlueEnergy": 49.7
+    },
+    {
+      "opponent": "/project/result/2025-09-10-11-23/2025-09-10-11-23.txt",
+      "redWins": 3,
+      "blueWins": 3,
+      "draws": 0,
+      "avgTicks": 1532.67,
+      "avgRedEnergy": 53.2,
+      "avgBlueEnergy": 94.6
+    },
+    {
+      "opponent": "/project/result/2025-09-10-11-35/2025-09-10-11-35.txt",
+      "redWins": 3,
+      "blueWins": 3,
+      "draws": 0,
+      "avgTicks": 1665.17,
+      "avgRedEnergy": 53.3,
+      "avgBlueEnergy": 31.1
+    },
+    {
+      "opponent": "/project/result/2025-09-10-11-48/2025-09-10-11-48.txt",
+      "redWins": 2,
+      "blueWins": 2,
+      "draws": 2,
+      "avgTicks": 2293.17,
+      "avgRedEnergy": 122.4,
+      "avgBlueEnergy": 27.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-11-58/2025-09-10-11-58.txt",
+      "redWins": 0,
+      "blueWins": 6,
+      "draws": 0,
+      "avgTicks": 875.83,
+      "avgRedEnergy": 0,
+      "avgBlueEnergy": 223.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-12-11/2025-09-10-12-11.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 1267.67,
+      "avgRedEnergy": 7.3,
+      "avgBlueEnergy": 155.5
+    },
+    {
+      "opponent": "/project/result/2025-09-10-12-19/2025-09-10-12-19.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 934.17,
+      "avgRedEnergy": 6.9,
+      "avgBlueEnergy": 261.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-12-32/2025-09-10-12-32.txt",
+      "redWins": 2,
+      "blueWins": 4,
+      "draws": 0,
+      "avgTicks": 1188.5,
+      "avgRedEnergy": 48.3,
+      "avgBlueEnergy": 167.2
+    },
+    {
+      "opponent": "/project/result/2025-09-10-12-37/2025-09-10-12-37.txt",
+      "redWins": 2,
+      "blueWins": 4,
+      "draws": 0,
+      "avgTicks": 1188.5,
+      "avgRedEnergy": 48.3,
+      "avgBlueEnergy": 167.2
+    },
+    {
+      "opponent": "/project/result/2025-09-10-12-49/2025-09-10-12-49.txt",
+      "redWins": 2,
+      "blueWins": 4,
+      "draws": 0,
+      "avgTicks": 1410,
+      "avgRedEnergy": 31.4,
+      "avgBlueEnergy": 71.6
+    },
+    {
+      "opponent": "/project/result/2025-09-10-13-02/2025-09-10-13-02.txt",
+      "redWins": 2,
+      "blueWins": 4,
+      "draws": 0,
+      "avgTicks": 1188.5,
+      "avgRedEnergy": 48.3,
+      "avgBlueEnergy": 167.2
+    },
+    {
+      "opponent": "/project/result/2025-09-10-13-08/2025-09-10-13-08.txt",
+      "redWins": 5,
+      "blueWins": 1,
+      "draws": 0,
+      "avgTicks": 1646.17,
+      "avgRedEnergy": 85.3,
+      "avgBlueEnergy": 46.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-13-23/2025-09-10-13-23.txt",
+      "redWins": 0,
+      "blueWins": 6,
+      "draws": 0,
+      "avgTicks": 1216.67,
+      "avgRedEnergy": 0,
+      "avgBlueEnergy": 166.4
+    },
+    {
+      "opponent": "/project/result/2025-09-10-13-39/2025-09-10-13-39.txt",
+      "redWins": 3,
+      "blueWins": 3,
+      "draws": 0,
+      "avgTicks": 1754,
+      "avgRedEnergy": 37.3,
+      "avgBlueEnergy": 31.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+      "redWins": 0,
+      "blueWins": 6,
+      "draws": 0,
+      "avgTicks": 1216.67,
+      "avgRedEnergy": 0,
+      "avgBlueEnergy": 166.4
+    },
+    {
+      "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+      "redWins": 1,
+      "blueWins": 3,
+      "draws": 2,
+      "avgTicks": 2487.33,
+      "avgRedEnergy": 19.4,
+      "avgBlueEnergy": 97.4
+    },
+    {
+      "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+      "redWins": 0,
+      "blueWins": 6,
+      "draws": 0,
+      "avgTicks": 1216.67,
+      "avgRedEnergy": 0,
+      "avgBlueEnergy": 166.4
+    },
+    {
+      "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+      "redWins": 1,
+      "blueWins": 4,
+      "draws": 1,
+      "avgTicks": 1692.83,
+      "avgRedEnergy": 42,
+      "avgBlueEnergy": 106.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+      "redWins": 1,
+      "blueWins": 4,
+      "draws": 1,
+      "avgTicks": 1692.83,
+      "avgRedEnergy": 42,
+      "avgBlueEnergy": 106.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+      "redWins": 5,
+      "blueWins": 1,
+      "draws": 0,
+      "avgTicks": 1210.17,
+      "avgRedEnergy": 137.2,
+      "avgBlueEnergy": 14.5
+    },
+    {
+      "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+      "redWins": 3,
+      "blueWins": 0,
+      "draws": 3,
+      "avgTicks": 2712.83,
+      "avgRedEnergy": 170.4,
+      "avgBlueEnergy": 25.2
+    },
+    {
+      "opponent": "/project/result/2025-09-10-15-54/2025-09-10-15-54.txt",
+      "redWins": 2,
+      "blueWins": 1,
+      "draws": 3,
+      "avgTicks": 2980.5,
+      "avgRedEnergy": 38.6,
+      "avgBlueEnergy": 90.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-16-08/2025-09-10-16-08.txt",
+      "redWins": 2,
+      "blueWins": 3,
+      "draws": 1,
+      "avgTicks": 2101.83,
+      "avgRedEnergy": 38.8,
+      "avgBlueEnergy": 86.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-16-27/2025-09-10-16-27.txt",
+      "redWins": 2,
+      "blueWins": 3,
+      "draws": 1,
+      "avgTicks": 1618.5,
+      "avgRedEnergy": 61.7,
+      "avgBlueEnergy": 95.6
+    },
+    {
+      "opponent": "/project/result/2025-09-10-16-40/2025-09-10-16-40.txt",
+      "redWins": 2,
+      "blueWins": 3,
+      "draws": 1,
+      "avgTicks": 1390.17,
+      "avgRedEnergy": 35,
+      "avgBlueEnergy": 134.6
+    },
+    {
+      "opponent": "/project/result/2025-09-10-17-16/2025-09-10-17-16.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 1147.33,
+      "avgRedEnergy": 17,
+      "avgBlueEnergy": 151.2
+    },
+    {
+      "opponent": "/project/result/2025-09-10-17-54/2025-09-10-17-54.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 2361,
+      "avgRedEnergy": 13.7,
+      "avgBlueEnergy": 119.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-18-11/2025-09-10-18-11.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 1313.33,
+      "avgRedEnergy": 22.1,
+      "avgBlueEnergy": 202.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-18-32/2025-09-10-18-32.txt",
+      "redWins": 0,
+      "blueWins": 6,
+      "draws": 0,
+      "avgTicks": 1690.17,
+      "avgRedEnergy": 0,
+      "avgBlueEnergy": 142.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-18-54/2025-09-10-18-54.txt",
+      "redWins": 0,
+      "blueWins": 6,
+      "draws": 0,
+      "avgTicks": 984.83,
+      "avgRedEnergy": 0,
+      "avgBlueEnergy": 140.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-19-13/2025-09-10-19-13.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 863.83,
+      "avgRedEnergy": 39.5,
+      "avgBlueEnergy": 162.9
+    },
+    {
+      "opponent": "/project/result/2025-09-10-19-23/2025-09-10-19-23.txt",
+      "redWins": 3,
+      "blueWins": 3,
+      "draws": 0,
+      "avgTicks": 985.33,
+      "avgRedEnergy": 84.1,
+      "avgBlueEnergy": 62.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-20-12/2025-09-10-20-12.txt",
+      "redWins": 1,
+      "blueWins": 4,
+      "draws": 1,
+      "avgTicks": 1597.83,
+      "avgRedEnergy": 21,
+      "avgBlueEnergy": 178.7
+    },
+    {
+      "opponent": "/project/result/2025-09-10-20-20/2025-09-10-20-20.txt",
+      "redWins": 0,
+      "blueWins": 5,
+      "draws": 1,
+      "avgTicks": 1403.17,
+      "avgRedEnergy": 5.6,
+      "avgBlueEnergy": 228.4
+    },
+    {
+      "opponent": "/project/result/2025-09-10-20-38/2025-09-10-20-38.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 1143,
+      "avgRedEnergy": 37.9,
+      "avgBlueEnergy": 216.5
+    },
+    {
+      "opponent": "/project/result/2025-09-10-20-51/2025-09-10-20-51.txt",
+      "redWins": 5,
+      "blueWins": 0,
+      "draws": 1,
+      "avgTicks": 1608,
+      "avgRedEnergy": 206.9,
+      "avgBlueEnergy": 11.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-20-51.txt",
+      "redWins": 5,
+      "blueWins": 0,
+      "draws": 1,
+      "avgTicks": 1608,
+      "avgRedEnergy": 206.9,
+      "avgBlueEnergy": 11.8
+    },
+    {
+      "opponent": "/project/result/2025-09-10-21-05/2025-09-10-21-05.txt",
+      "redWins": 1,
+      "blueWins": 5,
+      "draws": 0,
+      "avgTicks": 996.67,
+      "avgRedEnergy": 1.3,
+      "avgBlueEnergy": 166.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-21-06/2025-09-10-21-06.txt",
+      "redWins": 2,
+      "blueWins": 1,
+      "draws": 3,
+      "avgTicks": 3025.67,
+      "avgRedEnergy": 100.3,
+      "avgBlueEnergy": 68.3
+    },
+    {
+      "opponent": "/project/result/2025-09-10-21-09/2025-09-10-21-09.txt",
+      "redWins": 1,
+      "blueWins": 3,
+      "draws": 2,
+      "avgTicks": 2226.83,
+      "avgRedEnergy": 33.1,
+      "avgBlueEnergy": 80.5
+    },
+    {
+      "opponent": "/project/result/2025-09-10-21-31/2025-09-10-21-31.txt",
+      "redWins": 0,
+      "blueWins": 5,
+      "draws": 1,
+      "avgTicks": 1452.33,
+      "avgRedEnergy": 1.9,
+      "avgBlueEnergy": 217.7
+    },
+    {
+      "opponent": "/project/result/2025-09-10-21-40/2025-09-10-21-40.txt",
+      "redWins": 0,
+      "blueWins": 5,
+      "draws": 1,
+      "avgTicks": 2118.17,
+      "avgRedEnergy": 2.6,
+      "avgBlueEnergy": 176.6
+    }
+  ]
+}

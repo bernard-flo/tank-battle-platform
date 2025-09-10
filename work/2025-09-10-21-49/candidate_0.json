@@ -1,0 +1,64 @@
+{
+  "aggScore": -466.50800000000004,
+  "wins": 59,
+  "losses": 104,
+  "draws": 17,
+  "cfg": {
+    "names": [
+      "Aegis-1",
+      "Aegis-2",
+      "Aegis-3",
+      "Aegis-4",
+      "Aegis-5",
+      "Aegis-6"
+    ],
+    "layout": [
+      "TANKER",
+      "TANKER",
+      "NORMAL",
+      "NORMAL",
+      "DEALER",
+      "DEALER"
+    ],
+    "biases": [
+      -10,
+      10,
+      -6,
+      6,
+      -3,
+      3
+    ],
+    "params": {
+      "TANKER": {
+        "minRange": 170,
+        "maxRange": 290,
+        "strafeAngle": 24,
+        "threatRadius": 170,
+        "leadWeight": 0.98,
+        "aimJitter": 0.12,
+        "targetHealthWeight": 1.25,
+        "targetDistWeight": 0.1
+      },
+      "NORMAL": {
+        "minRange": 190,
+        "maxRange": 310,
+        "strafeAngle": 28,
+        "threatRadius": 162,
+        "leadWeight": 0.98,
+        "aimJitter": 0.15,
+        "targetHealthWeight": 1.25,
+        "targetDistWeight": 0.1
+      },
+      "DEALER": {
+        "minRange": 235,
+        "maxRange": 380,
+        "strafeAngle": 34,
+        "threatRadius": 155,
+        "leadWeight": 0.99,
+        "aimJitter": 0.1,
+        "targetHealthWeight": 1.25,
+        "targetDistWeight": 0.1
+      }
+    }
+  }
+}

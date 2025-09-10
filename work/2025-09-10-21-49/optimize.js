@@ -92,7 +92,8 @@ function main(){
     console.error('No opponents found in result/.');
     process.exit(1);
   }
-  const sampleOpp = pickSample(opponents, 18);
+  const SAMPLE = process.env.OPT_SAMPLE ? parseInt(process.env.OPT_SAMPLE,10) : 18;
+  const sampleOpp = pickSample(opponents, SAMPLE);
 
   const baseConfig = {
     names: ['Aegis-1','Aegis-2','Aegis-3','Aegis-4','Aegis-5','Aegis-6'],
@@ -109,14 +110,15 @@ function main(){
   let bestScore = -1e9;
   let bestDetail = null;
 
-  const tries = 12;
+  const tries = process.env.OPT_TRIES ? parseInt(process.env.OPT_TRIES,10) : 12;
+  const repeatOpt = process.env.OPT_REPEAT ? parseInt(process.env.OPT_REPEAT,10) : 10;
   for(let t=0;t<tries;t++){
     const cfg = t===0? baseConfig : mutateParams(best);
     const code = generateTeamCode(cfg);
     let aggScore=0; let wins=0, losses=0, draws=0;
     for(const opp of sampleOpp){
       const blueCode = fs.readFileSync(opp, 'utf8');
-      const r = runSeriesBattles(code, blueCode, 10, true);
+      const r = runSeriesBattles(code, blueCode, repeatOpt, true);
       const sc = scoreResult(r);
       aggScore += sc;
       wins += r.redWins; losses += r.blueWins; draws += r.draws;
