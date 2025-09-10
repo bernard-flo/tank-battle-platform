@@ -3,7 +3,7 @@ function type(){return Type.TANKER;}
 var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":174.692,"rMax":282.63,"strafe":29.032,"threatR":191.056,"threatH":5.375,"fleeBias":17.074,"sep":73.845,"edge":52.976,"leadCap":23.787,"leadW":1.039,"aimJ":0.132,"healthW":1.222,"distW":0.095,"finHP":28.998,"aggrRemain":3,"aggrIn":28.552,"aggrOut":19.379,"bias":0,"smooth":0.523,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.101};
+  const P={"rMin":151.375,"rMax":293.518,"strafe":21.279,"threatR":267.462,"threatH":4.83,"fleeBias":23.596,"sep":69.747,"edge":60.044,"leadCap":25.358,"leadW":1.106,"aimJ":0.139,"healthW":1.256,"distW":0.095,"finHP":21.654,"aggrRemain":3,"aggrIn":23.097,"aggrOut":15.028,"bias":0,"smooth":0.437,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.06};
   const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
   if((S.tick%240)===0) S.side*=-1;
   const BIAS = (S.isRed? 6 : -6);
@@ -11,7 +11,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 1) Target selection: health-weighted distance + angle alignment bonus
   let tgt=null,b=1e18; for(const e of enemies){
     const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
-    const align = 1 + Math.min(ang,360-ang)/180 * 0.101;
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.06;
     const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
   }
 
@@ -65,7 +65,7 @@ function type(){return Type.TANKER;}
 var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":174.692,"rMax":282.63,"strafe":29.032,"threatR":191.056,"threatH":5.375,"fleeBias":17.074,"sep":73.845,"edge":52.976,"leadCap":23.787,"leadW":1.039,"aimJ":0.132,"healthW":1.222,"distW":0.095,"finHP":28.998,"aggrRemain":3,"aggrIn":28.552,"aggrOut":19.379,"bias":0,"smooth":0.523,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.101};
+  const P={"rMin":151.375,"rMax":293.518,"strafe":21.279,"threatR":267.462,"threatH":4.83,"fleeBias":23.596,"sep":69.747,"edge":60.044,"leadCap":25.358,"leadW":1.106,"aimJ":0.139,"healthW":1.256,"distW":0.095,"finHP":21.654,"aggrRemain":3,"aggrIn":23.097,"aggrOut":15.028,"bias":0,"smooth":0.437,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.06};
   const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
   if((S.tick%240)===0) S.side*=-1;
   const BIAS = (S.isRed? 6 : -6);
@@ -73,7 +73,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 1) Target selection: health-weighted distance + angle alignment bonus
   let tgt=null,b=1e18; for(const e of enemies){
     const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
-    const align = 1 + Math.min(ang,360-ang)/180 * 0.101;
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.06;
     const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
   }
 
@@ -127,7 +127,7 @@ function type(){return Type.DEALER;}
 var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":224.744,"rMax":406.662,"strafe":33.663,"threatR":173.518,"threatH":6.046,"fleeBias":21.635,"sep":68.372,"edge":61.189,"leadCap":22.613,"leadW":1.159,"aimJ":0.143,"healthW":1.242,"distW":0.095,"finHP":19.434,"aggrRemain":3,"aggrIn":24.962,"aggrOut":27.566,"bias":0,"smooth":0.495,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.106};
+  const P={"rMin":235.857,"rMax":363.493,"strafe":29.987,"threatR":183.31,"threatH":6.121,"fleeBias":16.975,"sep":78.469,"edge":59.148,"leadCap":26.583,"leadW":1.11,"aimJ":0.137,"healthW":1.361,"distW":0.097,"finHP":19.963,"aggrRemain":3,"aggrIn":22.817,"aggrOut":26.189,"bias":0,"smooth":0.488,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.137};
   const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
   if((S.tick%240)===0) S.side*=-1;
   const BIAS = (S.isRed? 6 : -6);
@@ -135,7 +135,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 1) Target selection: health-weighted distance + angle alignment bonus
   let tgt=null,b=1e18; for(const e of enemies){
     const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
-    const align = 1 + Math.min(ang,360-ang)/180 * 0.106;
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.137;
     const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
   }
 
@@ -189,7 +189,7 @@ function type(){return Type.DEALER;}
 var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":224.744,"rMax":406.662,"strafe":33.663,"threatR":173.518,"threatH":6.046,"fleeBias":21.635,"sep":68.372,"edge":61.189,"leadCap":22.613,"leadW":1.159,"aimJ":0.143,"healthW":1.242,"distW":0.095,"finHP":19.434,"aggrRemain":3,"aggrIn":24.962,"aggrOut":27.566,"bias":0,"smooth":0.495,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.106};
+  const P={"rMin":235.857,"rMax":363.493,"strafe":29.987,"threatR":183.31,"threatH":6.121,"fleeBias":16.975,"sep":78.469,"edge":59.148,"leadCap":26.583,"leadW":1.11,"aimJ":0.137,"healthW":1.361,"distW":0.097,"finHP":19.963,"aggrRemain":3,"aggrIn":22.817,"aggrOut":26.189,"bias":0,"smooth":0.488,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.137};
   const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
   if((S.tick%240)===0) S.side*=-1;
   const BIAS = (S.isRed? 6 : -6);
@@ -197,7 +197,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 1) Target selection: health-weighted distance + angle alignment bonus
   let tgt=null,b=1e18; for(const e of enemies){
     const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
-    const align = 1 + Math.min(ang,360-ang)/180 * 0.106;
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.137;
     const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
   }
 
@@ -251,7 +251,7 @@ function type(){return Type.NORMAL;}
 var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":193.784,"rMax":342.258,"strafe":25.257,"threatR":204.371,"threatH":6.14,"fleeBias":12.998,"sep":71.738,"edge":49.478,"leadCap":23.065,"leadW":1.097,"aimJ":0.144,"healthW":1.219,"distW":0.094,"finHP":21.187,"aggrRemain":3,"aggrIn":29.832,"aggrOut":20.303,"bias":0,"smooth":0.476,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.1};
+  const P={"rMin":193.59,"rMax":341.022,"strafe":31.296,"threatR":175.805,"threatH":5.586,"fleeBias":17.76,"sep":66.287,"edge":49.671,"leadCap":22.713,"leadW":1.077,"aimJ":0.141,"healthW":1.253,"distW":0.096,"finHP":28.746,"aggrRemain":3,"aggrIn":20.451,"aggrOut":19.905,"bias":0,"smooth":0.476,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.088};
   const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
   if((S.tick%240)===0) S.side*=-1;
   const BIAS = (S.isRed? 6 : -6);
@@ -259,7 +259,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 1) Target selection: health-weighted distance + angle alignment bonus
   let tgt=null,b=1e18; for(const e of enemies){
     const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
-    const align = 1 + Math.min(ang,360-ang)/180 * 0.1;
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.088;
     const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
   }
 
@@ -313,7 +313,7 @@ function type(){return Type.NORMAL;}
 var __S = (typeof __S !== 'undefined') ? __S : {tick:0,last:null,lastV:null,side:1,initX:null,isRed:null,top:null};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI, N=(a)=>{a%=360;if(a<0)a+=360;return a;}, CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":193.784,"rMax":342.258,"strafe":25.257,"threatR":204.371,"threatH":6.14,"fleeBias":12.998,"sep":71.738,"edge":49.478,"leadCap":23.065,"leadW":1.097,"aimJ":0.144,"healthW":1.219,"distW":0.094,"finHP":21.187,"aggrRemain":3,"aggrIn":29.832,"aggrOut":20.303,"bias":0,"smooth":0.476,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.1};
+  const P={"rMin":193.59,"rMax":341.022,"strafe":31.296,"threatR":175.805,"threatH":5.586,"fleeBias":17.76,"sep":66.287,"edge":49.671,"leadCap":22.713,"leadW":1.077,"aimJ":0.141,"healthW":1.253,"distW":0.096,"finHP":28.746,"aggrRemain":3,"aggrIn":20.451,"aggrOut":19.905,"bias":0,"smooth":0.476,"openTicks":18,"sideFlip":240,"redBias":6,"alignW":0.088};
   const S=__S; S.tick=(S.tick||0)+1; if(S.initX===null){ S.initX=tank.x; S.isRed = S.initX < 450; S.top = tank.y < 300; S.side = ((tank.x*97+tank.y*131)|0)%2?1:-1; }
   if((S.tick%240)===0) S.side*=-1;
   const BIAS = (S.isRed? 6 : -6);
@@ -321,7 +321,7 @@ function update(tank,enemies,allies,bulletInfo){
   // 1) Target selection: health-weighted distance + angle alignment bonus
   let tgt=null,b=1e18; for(const e of enemies){
     const dx=e.x-tank.x, dy=e.y-tank.y, ang=Math.abs(N(D(dx,dy))-N(S.lastAim||0));
-    const align = 1 + Math.min(ang,360-ang)/180 * 0.1;
+    const align = 1 + Math.min(ang,360-ang)/180 * 0.088;
     const k=e.health*P.healthW + e.distance*P.distW * align; if(k<b){b=k;tgt=e;}
   }
 
