@@ -1,7 +1,7 @@
 // Team builder: generates 6-bot team code compatible with tank_battle_platform.html and simulator
 // Output is a single string: 6 robot blocks delimited by "function name()" markers
 
-function buildBot({ botName, role }) {
+function buildBot({ botName, role, overrides }) {
   // Role presets
   const presets = {
     TANKER: {
@@ -69,7 +69,8 @@ function buildBot({ botName, role }) {
     },
   };
 
-  const P = presets[role];
+  const base = presets[role];
+  const P = Object.assign({}, base, overrides || {});
   const typeExpr = role === 'TANKER' ? 'Type.TANKER' : role === 'DEALER' ? 'Type.DEALER' : 'Type.NORMAL';
 
   // Single-bot code block. Use only standard language constructs compatible with browser and simulator.
@@ -126,16 +127,16 @@ function update(tank,enemies,allies,bulletInfo){
 }`;
 }
 
-function buildTeamCode(teamNamePrefix = 'Hyperion-6') {
+function buildTeamCode(teamNamePrefix = 'Hyperion-6', roleOverrides = {}) {
   const bots = [
-    { botName: `${teamNamePrefix}-T1`, role: 'TANKER' },
-    { botName: `${teamNamePrefix}-T2`, role: 'TANKER' },
-    { botName: `${teamNamePrefix}-D1`, role: 'DEALER' },
-    { botName: `${teamNamePrefix}-D2`, role: 'DEALER' },
-    { botName: `${teamNamePrefix}-N1`, role: 'NORMAL' },
-    { botName: `${teamNamePrefix}-N2`, role: 'NORMAL' },
+    { botName: `${teamNamePrefix}-T1`, role: 'TANKER', overrides: roleOverrides.TANKER },
+    { botName: `${teamNamePrefix}-T2`, role: 'TANKER', overrides: roleOverrides.TANKER },
+    { botName: `${teamNamePrefix}-D1`, role: 'DEALER', overrides: roleOverrides.DEALER },
+    { botName: `${teamNamePrefix}-D2`, role: 'DEALER', overrides: roleOverrides.DEALER },
+    { botName: `${teamNamePrefix}-N1`, role: 'NORMAL', overrides: roleOverrides.NORMAL },
+    { botName: `${teamNamePrefix}-N2`, role: 'NORMAL', overrides: roleOverrides.NORMAL },
   ];
-  return bots.map(buildBot).join('\n\n// ===== 다음 로봇 =====\n\n');
+  return bots.map((b)=>buildBot(b)).join('\n\n// ===== 다음 로봇 =====\n\n');
 }
 
 module.exports = { buildTeamCode };
@@ -144,4 +145,3 @@ if (require.main === module) {
   const code = buildTeamCode(process.argv[2] || 'Hyperion-6');
   process.stdout.write(code);
 }
-
