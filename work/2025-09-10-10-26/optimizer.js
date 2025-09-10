@@ -92,7 +92,7 @@ async function main() {
 
   const compFiles = listCompetitorTeams(RESULT_DIR)
     .filter((f) => /\d{4}-\d{2}-\d{2}-\d{2}-\d{2}\.txt$/.test(f))
-    .slice(0, 6); // prioritize latest 6 teams
+    .slice(0, 4); // focus on latest/top 4 teams for speed
   if (compFiles.length === 0) {
     console.error('No competitor teams found in result/.');
     process.exit(1);
@@ -105,7 +105,7 @@ async function main() {
   const candidates = [];
   const baseRoster = defaultRoster('Ares');
   candidates.push({ name: 'base', code: baseTeam, roster: baseRoster });
-  const NUM_CAND = 7;
+  const NUM_CAND = 28;
   for (let i = 0; i < NUM_CAND; i++) {
     const roster = makeCandidateRoster('Ares', baseRoster);
     const code = buildTeamCode({ roster });
@@ -113,7 +113,7 @@ async function main() {
   }
 
   // Evaluate each candidate vs all competitors
-  const repeat = 30; // moderate sample for speed
+  const repeat = 40; // stronger sample while still reasonable
   let best = null;
   for (const cand of candidates) {
     let totalWR = 0;
@@ -168,4 +168,3 @@ async function main() {
 if (require.main === module) {
   main().catch((e) => { console.error(e); process.exit(1); });
 }
-
