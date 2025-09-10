@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": 840197717,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    },
+    {
+      "seed": 840197725,
+      "winner": "blue",
+      "ticks": 1051,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 160
+    },
+    {
+      "seed": 840197718,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    },
+    {
+      "seed": 840197726,
+      "winner": "blue",
+      "ticks": 1051,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 160
+    },
+    {
+      "seed": 840197719,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    },
+    {
+      "seed": 840197720,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    },
+    {
+      "seed": 840197721,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    },
+    {
+      "seed": 840197722,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    },
+    {
+      "seed": 840197723,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    },
+    {
+      "seed": 840197724,
+      "winner": "blue",
+      "ticks": 1421,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 296
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 0,
+    "blueWins": 10,
+    "draws": 0,
+    "avgTicks": 1347,
+    "avgRedAlive": 0,
+    "avgBlueAlive": 3.6,
+    "avgRedEnergy": 0,
+    "avgBlueEnergy": 268.8,
+    "baseSeed": 840197717,
+    "concurrency": 8
+  }
+}

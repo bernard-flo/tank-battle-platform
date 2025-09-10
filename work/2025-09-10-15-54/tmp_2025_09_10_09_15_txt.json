@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": 958948968,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    },
+    {
+      "seed": 958948976,
+      "winner": "blue",
+      "ticks": 3111,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 58
+    },
+    {
+      "seed": 958948969,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    },
+    {
+      "seed": 958948977,
+      "winner": "blue",
+      "ticks": 3111,
+      "redAlive": 0,
+      "blueAlive": 1,
+      "redEnergy": 0,
+      "blueEnergy": 58
+    },
+    {
+      "seed": 958948970,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    },
+    {
+      "seed": 958948971,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    },
+    {
+      "seed": 958948972,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    },
+    {
+      "seed": 958948973,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    },
+    {
+      "seed": 958948974,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    },
+    {
+      "seed": 958948975,
+      "winner": "blue",
+      "ticks": 1823,
+      "redAlive": 0,
+      "blueAlive": 2,
+      "redEnergy": 0,
+      "blueEnergy": 46
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 0,
+    "blueWins": 10,
+    "draws": 0,
+    "avgTicks": 2080.6,
+    "avgRedAlive": 0,
+    "avgBlueAlive": 1.8,
+    "avgRedEnergy": 0,
+    "avgBlueEnergy": 48.4,
+    "baseSeed": 958948968,
+    "concurrency": 8
+  }
+}

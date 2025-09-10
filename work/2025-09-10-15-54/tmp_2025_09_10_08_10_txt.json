@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": 404746684,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 404746692,
+      "winner": "blue",
+      "ticks": 1923,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 143
+    },
+    {
+      "seed": 404746685,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 404746693,
+      "winner": "blue",
+      "ticks": 1923,
+      "redAlive": 0,
+      "blueAlive": 3,
+      "redEnergy": 0,
+      "blueEnergy": 143
+    },
+    {
+      "seed": 404746686,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 404746687,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 404746688,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 404746689,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 404746690,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 404746691,
+      "winner": "red",
+      "ticks": 608,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 301,
+      "blueEnergy": 0
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 8,
+    "blueWins": 2,
+    "draws": 0,
+    "avgTicks": 871,
+    "avgRedAlive": 3.2,
+    "avgBlueAlive": 0.6,
+    "avgRedEnergy": 240.8,
+    "avgBlueEnergy": 28.6,
+    "baseSeed": 404746684,
+    "concurrency": 8
+  }
+}

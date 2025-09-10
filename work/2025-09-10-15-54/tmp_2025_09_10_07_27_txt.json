@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": 4016244,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016252,
+      "winner": "red",
+      "ticks": 772,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016245,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016253,
+      "winner": "red",
+      "ticks": 772,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016246,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016247,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016248,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016249,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016250,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 4016251,
+      "winner": "red",
+      "ticks": 438,
+      "redAlive": 6,
+      "blueAlive": 0,
+      "redEnergy": 457,
+      "blueEnergy": 0
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 10,
+    "blueWins": 0,
+    "draws": 0,
+    "avgTicks": 504.8,
+    "avgRedAlive": 5.4,
+    "avgBlueAlive": 0,
+    "avgRedEnergy": 407.8,
+    "avgBlueEnergy": 0,
+    "baseSeed": 4016244,
+    "concurrency": 8
+  }
+}

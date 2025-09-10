@@ -1,0 +1,2123 @@
+{
+  "ARES-alpha": {
+    "total": {
+      "matches": 410,
+      "redWins": 121,
+      "blueWins": 287,
+      "draws": 2
+    },
+    "vs": [
+      {
+        "opponent": "/project/result/2025-09-10-07-21.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1239.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 1.4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 59.2,
+          "baseSeed": 245735822,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-27/2025-09-10-07-27.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 636.3,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 108.7,
+          "baseSeed": 901902397,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-59/2025-09-10-09-59.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 892.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 1,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 17.4,
+          "baseSeed": 630710053,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-02/2025-09-10-10-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 763.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 56.6,
+          "baseSeed": 44273836,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-26/2025-09-10-10-26.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 588.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 277,
+          "baseSeed": 900540285,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-16/2025-09-10-11-16.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1132.2,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 36.8,
+          "baseSeed": 382319962,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-23/2025-09-10-11-23.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1015.4,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.3,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 48.3,
+          "baseSeed": 353725836,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-35/2025-09-10-11-35.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 652,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 59.6,
+          "baseSeed": 705482133,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-58/2025-09-10-11-58.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1089,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 55.7,
+          "baseSeed": 382523927,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-11/2025-09-10-12-11.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 798.4,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 133.8,
+          "baseSeed": 323661173,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-19/2025-09-10-12-19.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 739.2,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 138.2,
+          "baseSeed": 22814584,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-49/2025-09-10-12-49.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 972,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 97.4,
+          "baseSeed": 227660786,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-08/2025-09-10-13-08.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 734.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 40.2,
+          "baseSeed": 642110454,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-23/2025-09-10-13-23.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 748,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 94,
+          "baseSeed": 581358199,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 748,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 94,
+          "baseSeed": 502360528,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 791,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4.4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 143.8,
+          "baseSeed": 487414463,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 748,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 94,
+          "baseSeed": 601855526,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1197,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 1.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 38.2,
+          "baseSeed": 481055724,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1197,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 1.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 38.2,
+          "baseSeed": 961399950,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 864.6,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 127.4,
+          "baseSeed": 785949504,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 873.3,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.5,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 56.8,
+          "baseSeed": 405578046,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-37/2025-09-10-12-37.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 1,
+          "blueWins": 9,
+          "draws": 0,
+          "avgTicks": 772.4,
+          "avgRedAlive": 0.3,
+          "avgBlueAlive": 1.8,
+          "avgRedEnergy": 19,
+          "avgBlueEnergy": 38.1,
+          "baseSeed": 437612117,
+          "concurrency": 8
+        },
+        "winRate": 0.1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-32/2025-09-10-08-32.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 758.6,
+          "avgRedAlive": 0.8,
+          "avgBlueAlive": 3.2,
+          "avgRedEnergy": 43,
+          "avgBlueEnergy": 69.6,
+          "baseSeed": 674089649,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-54/2025-09-10-08-54.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 700.8,
+          "avgRedAlive": 0.6,
+          "avgBlueAlive": 1.6,
+          "avgRedEnergy": 37,
+          "avgBlueEnergy": 104,
+          "baseSeed": 200776722,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-48/2025-09-10-11-48.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 1282.6,
+          "avgRedAlive": 0.2,
+          "avgBlueAlive": 2.4,
+          "avgRedEnergy": 9.4,
+          "avgBlueEnergy": 80.8,
+          "baseSeed": 545490652,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-32/2025-09-10-12-32.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 828.6,
+          "avgRedAlive": 0.6,
+          "avgBlueAlive": 0.8,
+          "avgRedEnergy": 38,
+          "avgBlueEnergy": 8.8,
+          "baseSeed": 38265044,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-02/2025-09-10-13-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 828.6,
+          "avgRedAlive": 0.6,
+          "avgBlueAlive": 0.8,
+          "avgRedEnergy": 38,
+          "avgBlueEnergy": 8.8,
+          "baseSeed": 757307600,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-39/2025-09-10-13-39.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 912.2,
+          "avgRedAlive": 0.4,
+          "avgBlueAlive": 1.6,
+          "avgRedEnergy": 30.6,
+          "avgBlueEnergy": 42.4,
+          "baseSeed": 168209516,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-19/2025-09-10-10-19.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 3,
+          "blueWins": 7,
+          "draws": 0,
+          "avgTicks": 1337.6,
+          "avgRedAlive": 1.1,
+          "avgBlueAlive": 1.4,
+          "avgRedEnergy": 40.1,
+          "avgBlueEnergy": 63.8,
+          "baseSeed": 103201106,
+          "concurrency": 8
+        },
+        "winRate": 0.3
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-10/2025-09-10-11-10.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 6,
+          "blueWins": 2,
+          "draws": 2,
+          "avgTicks": 1530.4,
+          "avgRedAlive": 3,
+          "avgBlueAlive": 0.9,
+          "avgRedEnergy": 205.2,
+          "avgBlueEnergy": 48.7,
+          "baseSeed": 723907095,
+          "concurrency": 8
+        },
+        "winRate": 0.6
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-18/2025-09-10-08-18.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 7,
+          "blueWins": 3,
+          "draws": 0,
+          "avgTicks": 706.5,
+          "avgRedAlive": 0.7,
+          "avgBlueAlive": 1.2,
+          "avgRedEnergy": 66.5,
+          "avgBlueEnergy": 32.1,
+          "baseSeed": 997088307,
+          "concurrency": 8
+        },
+        "winRate": 0.7
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-34/2025-09-10-07-34.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 938.8,
+          "avgRedAlive": 1.6,
+          "avgBlueAlive": 0.2,
+          "avgRedEnergy": 124.8,
+          "avgBlueEnergy": 10.6,
+          "baseSeed": 949453804,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-47/2025-09-10-07-47.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 881.2,
+          "avgRedAlive": 2.4,
+          "avgBlueAlive": 0.4,
+          "avgRedEnergy": 108.8,
+          "avgBlueEnergy": 15.8,
+          "baseSeed": 122364963,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-11/2025-09-10-09-11.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 782,
+          "avgRedAlive": 2.3,
+          "avgBlueAlive": 0.5,
+          "avgRedEnergy": 146.4,
+          "avgBlueEnergy": 18.9,
+          "baseSeed": 694441532,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-25/2025-09-10-09-25.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 1484,
+          "avgRedAlive": 1.6,
+          "avgBlueAlive": 0.2,
+          "avgRedEnergy": 58.4,
+          "avgBlueEnergy": 5.8,
+          "baseSeed": 269275874,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-06-00.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1239,
+          "avgRedAlive": 2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 54,
+          "avgBlueEnergy": 0,
+          "baseSeed": 717420860,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-10/2025-09-10-08-10.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 682.6,
+          "avgRedAlive": 4.4,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 299.4,
+          "avgBlueEnergy": 0,
+          "baseSeed": 473286246,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-25/2025-09-10-08-25.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 682.6,
+          "avgRedAlive": 4.4,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 299.4,
+          "avgBlueEnergy": 0,
+          "baseSeed": 787302567,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-46/2025-09-10-08-46.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 682.6,
+          "avgRedAlive": 4.4,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 299.4,
+          "avgBlueEnergy": 0,
+          "baseSeed": 347840452,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-15/2025-09-10-09-15.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 655.4,
+          "avgRedAlive": 2.8,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 178.2,
+          "avgBlueEnergy": 0,
+          "baseSeed": 992773684,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-02/2025-09-10-11-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1415.6,
+          "avgRedAlive": 1,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 18.2,
+          "avgBlueEnergy": 0,
+          "baseSeed": 343058293,
+          "concurrency": 8
+        },
+        "winRate": 1
+      }
+    ]
+  },
+  "ARES-beta": {
+    "total": {
+      "matches": 410,
+      "redWins": 76,
+      "blueWins": 328,
+      "draws": 6
+    },
+    "vs": [
+      {
+        "opponent": "/project/result/2025-09-10-06-00.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 636.9,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 211.2,
+          "baseSeed": 631834676,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-21.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 870.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 118.4,
+          "baseSeed": 341234482,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-34/2025-09-10-07-34.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 2476.7,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 233.5,
+          "baseSeed": 723889577,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-47/2025-09-10-07-47.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 898.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 5,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 260.6,
+          "baseSeed": 414376344,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-10/2025-09-10-08-10.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 860.2,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 118.8,
+          "baseSeed": 105885805,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-46/2025-09-10-08-46.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 860.2,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 118.8,
+          "baseSeed": 681797479,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-54/2025-09-10-08-54.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1116.5,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.3,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 174.9,
+          "baseSeed": 54629476,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-11/2025-09-10-09-11.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1701,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 1,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 34.2,
+          "baseSeed": 213656443,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-19/2025-09-10-10-19.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1068.4,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.7,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 181.7,
+          "baseSeed": 910879355,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-26/2025-09-10-10-26.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 937,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 224.4,
+          "baseSeed": 802679673,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-02/2025-09-10-11-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 821.2,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 81.6,
+          "baseSeed": 639316949,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-10/2025-09-10-11-10.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1017.8,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 71,
+          "baseSeed": 280072139,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-23/2025-09-10-11-23.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 816.6,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4.4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 229,
+          "baseSeed": 981195540,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-58/2025-09-10-11-58.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 8,
+          "draws": 2,
+          "avgTicks": 1570.1,
+          "avgRedAlive": 0.5,
+          "avgBlueAlive": 3.8,
+          "avgRedEnergy": 34.5,
+          "avgBlueEnergy": 210.3,
+          "baseSeed": 181712796,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-11/2025-09-10-12-11.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 589,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 248.2,
+          "baseSeed": 695819910,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-32/2025-09-10-12-32.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 673,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 151.6,
+          "baseSeed": 293209530,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-37/2025-09-10-12-37.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 673,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 151.6,
+          "baseSeed": 922249021,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-02/2025-09-10-13-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 673,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4.2,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 151.6,
+          "baseSeed": 333105910,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-08/2025-09-10-13-08.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1026.6,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 236.4,
+          "baseSeed": 627817053,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-23/2025-09-10-13-23.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 887.6,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 188,
+          "baseSeed": 26501437,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-39/2025-09-10-13-39.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 886.4,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 38.8,
+          "baseSeed": 322819400,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 887.6,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 188,
+          "baseSeed": 621586048,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 878.5,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 203.2,
+          "baseSeed": 711353845,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 707,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.4,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 248.8,
+          "baseSeed": 799508661,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-25/2025-09-10-08-25.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 1,
+          "blueWins": 7,
+          "draws": 2,
+          "avgTicks": 1683.5,
+          "avgRedAlive": 0.6,
+          "avgBlueAlive": 2.7,
+          "avgRedEnergy": 41.7,
+          "avgBlueEnergy": 122,
+          "baseSeed": 958015234,
+          "concurrency": 8
+        },
+        "winRate": 0.1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-15/2025-09-10-09-15.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 1,
+          "blueWins": 9,
+          "draws": 0,
+          "avgTicks": 1313.6,
+          "avgRedAlive": 0.4,
+          "avgBlueAlive": 1.6,
+          "avgRedEnergy": 29.3,
+          "avgBlueEnergy": 67.6,
+          "baseSeed": 897668532,
+          "concurrency": 8
+        },
+        "winRate": 0.1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-27/2025-09-10-07-27.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 666.8,
+          "avgRedAlive": 0.6,
+          "avgBlueAlive": 2.4,
+          "avgRedEnergy": 48.8,
+          "avgBlueEnergy": 116,
+          "baseSeed": 183857169,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-18/2025-09-10-08-18.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 1642.8,
+          "avgRedAlive": 0.2,
+          "avgBlueAlive": 0.8,
+          "avgRedEnergy": 8.8,
+          "avgBlueEnergy": 45.6,
+          "baseSeed": 648328518,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-16/2025-09-10-11-16.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 840.6,
+          "avgRedAlive": 0.2,
+          "avgBlueAlive": 4.8,
+          "avgRedEnergy": 26.8,
+          "avgBlueEnergy": 172,
+          "baseSeed": 747495272,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-35/2025-09-10-11-35.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 813.2,
+          "avgRedAlive": 0.6,
+          "avgBlueAlive": 2.4,
+          "avgRedEnergy": 33.4,
+          "avgBlueEnergy": 101.6,
+          "baseSeed": 912592169,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-48/2025-09-10-11-48.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 988,
+          "avgRedAlive": 0.2,
+          "avgBlueAlive": 3.2,
+          "avgRedEnergy": 2.4,
+          "avgBlueEnergy": 204,
+          "baseSeed": 609479207,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-49/2025-09-10-12-49.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 782.2,
+          "avgRedAlive": 0.6,
+          "avgBlueAlive": 1.6,
+          "avgRedEnergy": 23.4,
+          "avgBlueEnergy": 87.2,
+          "baseSeed": 828996934,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 737.6,
+          "avgRedAlive": 0.2,
+          "avgBlueAlive": 4,
+          "avgRedEnergy": 2.4,
+          "avgBlueEnergy": 231.2,
+          "baseSeed": 459657522,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 737.6,
+          "avgRedAlive": 0.2,
+          "avgBlueAlive": 4,
+          "avgRedEnergy": 2.4,
+          "avgBlueEnergy": 231.2,
+          "baseSeed": 681992889,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 6,
+          "blueWins": 4,
+          "draws": 0,
+          "avgTicks": 915.4,
+          "avgRedAlive": 1.2,
+          "avgBlueAlive": 1.8,
+          "avgRedEnergy": 84,
+          "avgBlueEnergy": 91.5,
+          "baseSeed": 603999191,
+          "concurrency": 8
+        },
+        "winRate": 0.6
+      },
+      {
+        "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 6,
+          "blueWins": 2,
+          "draws": 2,
+          "avgTicks": 1554.8,
+          "avgRedAlive": 1.6,
+          "avgBlueAlive": 1.3,
+          "avgRedEnergy": 128.4,
+          "avgBlueEnergy": 89.6,
+          "baseSeed": 187406809,
+          "concurrency": 8
+        },
+        "winRate": 0.6
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-32/2025-09-10-08-32.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 978,
+          "avgRedAlive": 0.8,
+          "avgBlueAlive": 0.4,
+          "avgRedEnergy": 75.2,
+          "avgBlueEnergy": 5.6,
+          "baseSeed": 723706281,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-19/2025-09-10-12-19.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 975,
+          "avgRedAlive": 1.6,
+          "avgBlueAlive": 0.4,
+          "avgRedEnergy": 59.2,
+          "avgBlueEnergy": 22.6,
+          "baseSeed": 573899869,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-25/2025-09-10-09-25.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1065.4,
+          "avgRedAlive": 1.2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 88,
+          "avgBlueEnergy": 0,
+          "baseSeed": 847083028,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-59/2025-09-10-09-59.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 647.6,
+          "avgRedAlive": 3,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 230.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 400603851,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-02/2025-09-10-10-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1310.2,
+          "avgRedAlive": 2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 38.4,
+          "avgBlueEnergy": 0,
+          "baseSeed": 938043444,
+          "concurrency": 8
+        },
+        "winRate": 1
+      }
+    ]
+  },
+  "ARES-gamma": {
+    "total": {
+      "matches": 410,
+      "redWins": 268,
+      "blueWins": 127,
+      "draws": 15
+    },
+    "vs": [
+      {
+        "opponent": "/project/result/2025-09-10-09-11/2025-09-10-09-11.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 2080.6,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 1.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 48.4,
+          "baseSeed": 975860200,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-15/2025-09-10-09-15.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 2080.6,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 1.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 48.4,
+          "baseSeed": 958948968,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-02/2025-09-10-11-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1347,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 3.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 268.8,
+          "baseSeed": 840197717,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-11/2025-09-10-12-11.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1195.2,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.8,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 190.2,
+          "baseSeed": 982189841,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-23/2025-09-10-13-23.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1732.4,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 149.4,
+          "baseSeed": 734515625,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-44/2025-09-10-13-44.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1732.4,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 149.4,
+          "baseSeed": 739565952,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-22/2025-09-10-14-22.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 0,
+          "blueWins": 10,
+          "draws": 0,
+          "avgTicks": 1732.4,
+          "avgRedAlive": 0,
+          "avgBlueAlive": 2.6,
+          "avgRedEnergy": 0,
+          "avgBlueEnergy": 149.4,
+          "baseSeed": 779757926,
+          "concurrency": 8
+        },
+        "winRate": 0
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-47/2025-09-10-07-47.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 1136.6,
+          "avgRedAlive": 0.4,
+          "avgBlueAlive": 2.4,
+          "avgRedEnergy": 9.8,
+          "avgBlueEnergy": 140,
+          "baseSeed": 452330705,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-25/2025-09-10-09-25.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 519.6,
+          "avgRedAlive": 1,
+          "avgBlueAlive": 2.3,
+          "avgRedEnergy": 84.8,
+          "avgBlueEnergy": 207.7,
+          "baseSeed": 355751694,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-10/2025-09-10-11-10.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 1404.8,
+          "avgRedAlive": 0.5,
+          "avgBlueAlive": 1.5,
+          "avgRedEnergy": 40.4,
+          "avgBlueEnergy": 77.7,
+          "baseSeed": 455938429,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-58/2025-09-10-11-58.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 0,
+          "draws": 8,
+          "avgTicks": 4199.8,
+          "avgRedAlive": 1.2,
+          "avgBlueAlive": 0.8,
+          "avgRedEnergy": 105.4,
+          "avgBlueEnergy": 37.6,
+          "baseSeed": 902422183,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-39/2025-09-10-13-39.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 1390.6,
+          "avgRedAlive": 0.4,
+          "avgBlueAlive": 1.6,
+          "avgRedEnergy": 15.4,
+          "avgBlueEnergy": 26.4,
+          "baseSeed": 629773952,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-15-08/2025-09-10-15-08.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 2,
+          "blueWins": 8,
+          "draws": 0,
+          "avgTicks": 747.2,
+          "avgRedAlive": 0.8,
+          "avgBlueAlive": 3.2,
+          "avgRedEnergy": 59.4,
+          "avgBlueEnergy": 41.6,
+          "baseSeed": 877755778,
+          "concurrency": 8
+        },
+        "winRate": 0.2
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-02/2025-09-10-10-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 3,
+          "blueWins": 0,
+          "draws": 7,
+          "avgTicks": 3902.1,
+          "avgRedAlive": 1.6,
+          "avgBlueAlive": 0.7,
+          "avgRedEnergy": 62.9,
+          "avgBlueEnergy": 53.9,
+          "baseSeed": 78919621,
+          "concurrency": 8
+        },
+        "winRate": 0.3
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-10/2025-09-10-08-10.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 871,
+          "avgRedAlive": 3.2,
+          "avgBlueAlive": 0.6,
+          "avgRedEnergy": 240.8,
+          "avgBlueEnergy": 28.6,
+          "baseSeed": 404746684,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-25/2025-09-10-08-25.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 871,
+          "avgRedAlive": 3.2,
+          "avgBlueAlive": 0.6,
+          "avgRedEnergy": 240.8,
+          "avgBlueEnergy": 28.6,
+          "baseSeed": 293846960,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-32/2025-09-10-08-32.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 733.6,
+          "avgRedAlive": 2.4,
+          "avgBlueAlive": 0.2,
+          "avgRedEnergy": 232.8,
+          "avgBlueEnergy": 2,
+          "baseSeed": 166064445,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-46/2025-09-10-08-46.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 871,
+          "avgRedAlive": 3.2,
+          "avgBlueAlive": 0.6,
+          "avgRedEnergy": 240.8,
+          "avgBlueEnergy": 28.6,
+          "baseSeed": 381882131,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-26/2025-09-10-10-26.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 1920,
+          "avgRedAlive": 2.4,
+          "avgBlueAlive": 0.2,
+          "avgRedEnergy": 89.6,
+          "avgBlueEnergy": 0.4,
+          "baseSeed": 44743655,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-48/2025-09-10-11-48.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 704,
+          "avgRedAlive": 3.2,
+          "avgBlueAlive": 0.8,
+          "avgRedEnergy": 296.8,
+          "avgBlueEnergy": 50.6,
+          "baseSeed": 79683444,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-19/2025-09-10-12-19.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 1472.2,
+          "avgRedAlive": 0.8,
+          "avgBlueAlive": 0.4,
+          "avgRedEnergy": 14.4,
+          "avgBlueEnergy": 19.8,
+          "baseSeed": 377449715,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-07/2025-09-10-14-07.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 8,
+          "blueWins": 2,
+          "draws": 0,
+          "avgTicks": 1424.6,
+          "avgRedAlive": 1.4,
+          "avgBlueAlive": 0.6,
+          "avgRedEnergy": 70,
+          "avgBlueEnergy": 56,
+          "baseSeed": 388895398,
+          "concurrency": 8
+        },
+        "winRate": 0.8
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-35/2025-09-10-11-35.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 9,
+          "blueWins": 1,
+          "draws": 0,
+          "avgTicks": 1365.4,
+          "avgRedAlive": 2.1,
+          "avgBlueAlive": 0.2,
+          "avgRedEnergy": 105,
+          "avgBlueEnergy": 0.5,
+          "baseSeed": 473086380,
+          "concurrency": 8
+        },
+        "winRate": 0.9
+      },
+      {
+        "opponent": "/project/result/2025-09-10-06-00.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 2696.4,
+          "avgRedAlive": 2.4,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 39,
+          "avgBlueEnergy": 0,
+          "baseSeed": 730388422,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-21.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 842.6,
+          "avgRedAlive": 2.8,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 304.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 86663599,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-27/2025-09-10-07-27.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 504.8,
+          "avgRedAlive": 5.4,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 407.8,
+          "avgBlueEnergy": 0,
+          "baseSeed": 4016244,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-07-34/2025-09-10-07-34.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 599.8,
+          "avgRedAlive": 2.2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 222,
+          "avgBlueEnergy": 0,
+          "baseSeed": 428489890,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-18/2025-09-10-08-18.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1476.7,
+          "avgRedAlive": 2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 50.5,
+          "avgBlueEnergy": 0,
+          "baseSeed": 836693855,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-08-54/2025-09-10-08-54.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 772.8,
+          "avgRedAlive": 3.8,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 252.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 86414531,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-09-59/2025-09-10-09-59.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 787.2,
+          "avgRedAlive": 4.2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 262.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 131108427,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-10-19/2025-09-10-10-19.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1002.3,
+          "avgRedAlive": 3.7,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 259.1,
+          "avgBlueEnergy": 0,
+          "baseSeed": 71914013,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-16/2025-09-10-11-16.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 794.4,
+          "avgRedAlive": 3.8,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 161.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 443978983,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-11-23/2025-09-10-11-23.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1548.4,
+          "avgRedAlive": 2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 68.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 337829423,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-32/2025-09-10-12-32.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 761.7,
+          "avgRedAlive": 2.8,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 187.3,
+          "avgBlueEnergy": 0,
+          "baseSeed": 396724526,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-37/2025-09-10-12-37.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 570.6,
+          "avgRedAlive": 2.8,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 218,
+          "avgBlueEnergy": 0,
+          "baseSeed": 170417053,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-12-49/2025-09-10-12-49.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 806.2,
+          "avgRedAlive": 3.2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 223,
+          "avgBlueEnergy": 0,
+          "baseSeed": 619730991,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-02/2025-09-10-13-02.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 570.6,
+          "avgRedAlive": 2.8,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 218,
+          "avgBlueEnergy": 0,
+          "baseSeed": 774742151,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-13-08/2025-09-10-13-08.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1374,
+          "avgRedAlive": 1.4,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 28.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 654272511,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-29/2025-09-10-14-29.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 880.6,
+          "avgRedAlive": 3.6,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 239.4,
+          "avgBlueEnergy": 0,
+          "baseSeed": 892450903,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-14-38/2025-09-10-14-38.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 880.6,
+          "avgRedAlive": 3.6,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 239.4,
+          "avgBlueEnergy": 0,
+          "baseSeed": 955773423,
+          "concurrency": 8
+        },
+        "winRate": 1
+      },
+      {
+        "opponent": "/project/result/2025-09-10-15-22/2025-09-10-15-22.txt",
+        "aggregate": {
+          "matches": 10,
+          "redWins": 10,
+          "blueWins": 0,
+          "draws": 0,
+          "avgTicks": 1204.6,
+          "avgRedAlive": 2.2,
+          "avgBlueAlive": 0,
+          "avgRedEnergy": 112.6,
+          "avgBlueEnergy": 0,
+          "baseSeed": 278425495,
+          "concurrency": 8
+        },
+        "winRate": 1
+      }
+    ]
+  }
+}

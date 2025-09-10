@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": 170417053,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417061,
+      "winner": "red",
+      "ticks": 737,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 246,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417054,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417062,
+      "winner": "red",
+      "ticks": 737,
+      "redAlive": 2,
+      "blueAlive": 0,
+      "redEnergy": 246,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417055,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417056,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417057,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417058,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417059,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    },
+    {
+      "seed": 170417060,
+      "winner": "red",
+      "ticks": 529,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 211,
+      "blueEnergy": 0
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 10,
+    "blueWins": 0,
+    "draws": 0,
+    "avgTicks": 570.6,
+    "avgRedAlive": 2.8,
+    "avgBlueAlive": 0,
+    "avgRedEnergy": 218,
+    "avgBlueEnergy": 0,
+    "baseSeed": 170417053,
+    "concurrency": 8
+  }
+}
