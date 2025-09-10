@@ -137,23 +137,26 @@ function run() {
   for (let i=0;i<8;i++) candidates.push(randomize(base, 1.0));
 
   let best = null;
-  let bestScore = -1;
   let bestParams = null;
+  let bestMinWR = -1;
+  let bestAvgWR = -1;
 
   for (let i=0;i<candidates.length;i++) {
     const p = candidates[i];
     const code = buildTeam(p, 'Helios');
     const tf = path.join(WKDIR, `cand_${i}.js`);
     saveTeam(tf, code);
-    let sum = 0; let totalPairs=0; const details=[];
+    let sum = 0; let totalPairs=0; const details=[]; const wrs=[];
     for (const opp of opps) {
       const { winRate, total } = evaluate(tf, opp, { repeat: 25, concurrency: 8, fast: true });
-      sum += winRate; totalPairs += 1; details.push({ opp: path.basename(opp), winRate, matches: total });
+      sum += winRate; totalPairs += 1; details.push({ opp: path.basename(opp), winRate, matches: total }); wrs.push(winRate);
       console.log(`[cand ${i}] vs ${path.basename(opp)} => winRate=${(winRate*100).toFixed(1)}%`);
     }
-    const score = sum / totalPairs;
-    if (score > bestScore) { bestScore = score; best = { file: tf, details }; bestParams = p; }
-    console.log(`Candidate ${i} avg winRate = ${(score*100).toFixed(2)}%`);
+    const avg = sum / totalPairs; const minWR = wrs.length?Math.min(...wrs):0;
+    if (minWR > bestMinWR || (minWR === bestMinWR && avg > bestAvgWR)) {
+      bestMinWR = minWR; bestAvgWR = avg; best = { file: tf, details }; bestParams = p;
+    }
+    console.log(`Candidate ${i} avg=${(avg*100).toFixed(2)}% min=${(minWR*100).toFixed(1)}%`);
   }
 
   // Local refinement around best
@@ -162,15 +165,17 @@ function run() {
     const code = buildTeam(p, 'Helios');
     const tf = path.join(WKDIR, `refine_${i}.js`);
     saveTeam(tf, code);
-    let sum = 0; let totalPairs=0; const details=[];
+    let sum = 0; let totalPairs=0; const details=[]; const wrs=[];
     for (const opp of opps) {
       const { winRate, total } = evaluate(tf, opp, { repeat: 25, concurrency: 8, fast: true });
-      sum += winRate; totalPairs += 1; details.push({ opp: path.basename(opp), winRate, matches: total });
+      sum += winRate; totalPairs += 1; details.push({ opp: path.basename(opp), winRate, matches: total }); wrs.push(winRate);
       console.log(`[ref ${i}] vs ${path.basename(opp)} => winRate=${(winRate*100).toFixed(1)}%`);
     }
-    const score = sum / totalPairs;
-    if (score > bestScore) { bestScore = score; best = { file: tf, details }; bestParams = p; }
-    console.log(`Refined ${i} avg winRate = ${(score*100).toFixed(2)}%`);
+    const avg = sum / totalPairs; const minWR = wrs.length?Math.min(...wrs):0;
+    if (minWR > bestMinWR || (minWR === bestMinWR && avg > bestAvgWR)) {
+      bestMinWR = minWR; bestAvgWR = avg; best = { file: tf, details }; bestParams = p;
+    }
+    console.log(`Refined ${i} avg=${(avg*100).toFixed(2)}% min=${(minWR*100).toFixed(1)}%`);
   }
 
   // Identify toughest opponents (lowest winRate) and focus fine-tuning
@@ -202,14 +207,16 @@ function run() {
   }
   if (focusedBest.score > 0) {
     // Evaluate the focused-best against all opponents to see overall performance
-    let sum=0; let totalPairs=0; const details=[];
+    let sum=0; let totalPairs=0; const details=[]; const wrs=[];
     for (const opp of opps) {
       const { winRate, total } = evaluate(focusedBest.file, opp, { repeat: 25, concurrency: 8, fast: true });
-      sum += winRate; totalPairs += 1; details.push({ opp: path.basename(opp), winRate, matches: total });
+      sum += winRate; totalPairs += 1; details.push({ opp: path.basename(opp), winRate, matches: total }); wrs.push(winRate);
     }
-    const score = sum / totalPairs;
-    if (score > bestScore) { bestScore = score; best = { file: focusedBest.file, details }; bestParams = focusedBest.params; }
-    console.log(`Focused best avg winRate = ${(score*100).toFixed(2)}%`);
+    const avg = sum / totalPairs; const minWR = wrs.length?Math.min(...wrs):0;
+    if (minWR > bestMinWR || (minWR === bestMinWR && avg > bestAvgWR)) {
+      bestMinWR = minWR; bestAvgWR = avg; best = { file: focusedBest.file, details }; bestParams = focusedBest.params;
+    }
+    console.log(`Focused best avg=${(avg*100).toFixed(2)}% min=${(minWR*100).toFixed(1)}%`);
   }
 
   // Save final team code to result dir
