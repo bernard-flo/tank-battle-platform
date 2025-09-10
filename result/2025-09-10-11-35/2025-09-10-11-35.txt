@@ -4,7 +4,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+1)|0)%2?1:-1; const P={"rMin":145,"rMax":240,"strafe":30,"threatR":170,"fleeBias":14,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":36,"aggrRemain":3,"aggrIn":34,"aggrOut":24,"bias":-10};
+  const rnd=((tank.x*97+tank.y*131+1)|0)%2?1:-1; const P={"rMin":168,"rMax":268,"strafe":28,"threatR":185,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":-8};
   __state.tick=(__state.tick||0)+1;
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
   if(tgt){ let ax=tgt.x, ay=tgt.y; if(__state.last){ const vx=tgt.x-__state.last.x, vy=tgt.y-__state.last.y; const lvx=__state.lastVel?__state.lastVel.vx:0, lvy=__state.lastVel?__state.lastVel.vy:0; const svx=lvx*0.55+vx*0.45, svy=lvy*0.55+vy*0.45; __state.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; } const jitter=((((tank.x*31+tank.y*17+1)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __state.last={x:tgt.x,y:tgt.y}; }
@@ -26,7 +26,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+2)|0)%2?1:-1; const P={"rMin":150,"rMax":246,"strafe":30,"threatR":170,"fleeBias":14,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":36,"aggrRemain":3,"aggrIn":34,"aggrOut":24,"bias":12};
+  const rnd=((tank.x*97+tank.y*131+2)|0)%2?1:-1; const P={"rMin":176,"rMax":276,"strafe":28,"threatR":190,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":12};
   __state.tick=(__state.tick||0)+1;
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
   if(tgt){ let ax=tgt.x, ay=tgt.y; if(__state.last){ const vx=tgt.x-__state.last.x, vy=tgt.y-__state.last.y; const lvx=__state.lastVel?__state.lastVel.vx:0, lvy=__state.lastVel?__state.lastVel.vy:0; const svx=lvx*0.55+vx*0.45, svy=lvy*0.55+vy*0.45; __state.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; } const jitter=((((tank.x*31+tank.y*17+2)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __state.last={x:tgt.x,y:tgt.y}; }
@@ -48,7 +48,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+3)|0)%2?1:-1; const P={"rMin":172,"rMax":282,"strafe":28,"threatR":170,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":-6};
+  const rnd=((tank.x*97+tank.y*131+3)|0)%2?1:-1; const P={"rMin":190,"rMax":300,"strafe":26,"threatR":170,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":-6};
   __state.tick=(__state.tick||0)+1;
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
   if(tgt){ let ax=tgt.x, ay=tgt.y; if(__state.last){ const vx=tgt.x-__state.last.x, vy=tgt.y-__state.last.y; const lvx=__state.lastVel?__state.lastVel.vx:0, lvy=__state.lastVel?__state.lastVel.vy:0; const svx=lvx*0.55+vx*0.45, svy=lvy*0.55+vy*0.45; __state.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; } const jitter=((((tank.x*31+tank.y*17+3)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __state.last={x:tgt.x,y:tgt.y}; }
@@ -70,7 +70,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+4)|0)%2?1:-1; const P={"rMin":178,"rMax":288,"strafe":28,"threatR":170,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":8};
+  const rnd=((tank.x*97+tank.y*131+4)|0)%2?1:-1; const P={"rMin":196,"rMax":306,"strafe":26,"threatR":170,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":8};
   __state.tick=(__state.tick||0)+1;
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
   if(tgt){ let ax=tgt.x, ay=tgt.y; if(__state.last){ const vx=tgt.x-__state.last.x, vy=tgt.y-__state.last.y; const lvx=__state.lastVel?__state.lastVel.vx:0, lvy=__state.lastVel?__state.lastVel.vy:0; const svx=lvx*0.55+vx*0.45, svy=lvy*0.55+vy*0.45; __state.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; } const jitter=((((tank.x*31+tank.y*17+4)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __state.last={x:tgt.x,y:tgt.y}; }
@@ -92,7 +92,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+5)|0)%2?1:-1; const P={"rMin":220,"rMax":340,"strafe":34,"threatR":130,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":-12};
+  const rnd=((tank.x*97+tank.y*131+5)|0)%2?1:-1; const P={"rMin":240,"rMax":360,"strafe":32,"threatR":140,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.12,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":-12};
   __state.tick=(__state.tick||0)+1;
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
   if(tgt){ let ax=tgt.x, ay=tgt.y; if(__state.last){ const vx=tgt.x-__state.last.x, vy=tgt.y-__state.last.y; const lvx=__state.lastVel?__state.lastVel.vx:0, lvy=__state.lastVel?__state.lastVel.vy:0; const svx=lvx*0.55+vx*0.45, svy=lvy*0.55+vy*0.45; __state.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; } const jitter=((((tank.x*31+tank.y*17+5)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __state.last={x:tgt.x,y:tgt.y}; }
@@ -114,7 +114,7 @@ let __state={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
-  const rnd=((tank.x*97+tank.y*131+6)|0)%2?1:-1; const P={"rMin":228,"rMax":348,"strafe":34,"threatR":130,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.16,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":10};
+  const rnd=((tank.x*97+tank.y*131+6)|0)%2?1:-1; const P={"rMin":246,"rMax":368,"strafe":32,"threatR":145,"fleeBias":16,"sep":62,"edge":50,"leadCap":14,"leadW":0.95,"aimJitter":0.12,"healthW":1.23,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":24,"aggrOut":16,"bias":10};
   __state.tick=(__state.tick||0)+1;
   let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.healthW + e.distance*P.distW; if(k<b){b=k;tgt=e;} }
   if(tgt){ let ax=tgt.x, ay=tgt.y; if(__state.last){ const vx=tgt.x-__state.last.x, vy=tgt.y-__state.last.y; const lvx=__state.lastVel?__state.lastVel.vx:0, lvy=__state.lastVel?__state.lastVel.vy:0; const svx=lvx*0.55+vx*0.45, svy=lvy*0.55+vy*0.45; __state.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; } const jitter=((((tank.x*31+tank.y*17+6)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __state.last={x:tgt.x,y:tgt.y}; }
