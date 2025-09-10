@@ -9,6 +9,7 @@ const SIM = path.join(ROOT, 'simulator', 'cli.js');
 const CANDIDATES = [
   { name: 'ARES-alpha', file: path.join(__dirname, 'ares_alpha.txt') },
   { name: 'ARES-beta',  file: path.join(__dirname, 'ares_beta.txt')  },
+  { name: 'ARES-gamma', file: path.join(__dirname, 'ares_gamma.txt') },
 ];
 
 function findCompetitors() {
