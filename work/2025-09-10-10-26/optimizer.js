@@ -155,7 +155,7 @@ async function main() {
   lines.push('Competitors evaluated:');
   for (const f of compFiles) lines.push(`- ${path.basename(path.dirname(f))}/${path.basename(f)}`);
   lines.push('');
-  lines.push('Per-competitor performance (repeat=30):');
+  lines.push(`Per-competitor performance (repeat=${repeat}):`);
   for (const agg of best.perComp) {
     lines.push(`- winRate=${agg.winRate}, redWins=${agg.redWins}, blueWins=${agg.blueWins}, draws=${agg.draws}, avgTicks=${agg.avgTicks}`);
   }
