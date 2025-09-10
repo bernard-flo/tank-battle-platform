@@ -114,35 +114,32 @@ function genParamsByRole(role) {
   };
 }
 
-function buildBotBlock(label, typeLiteral, P) {
+function buildBotBlock(label, typeLiteral, P, idx) {
   return `function name(){return "${label}";}
 function type(){return ${typeLiteral};}
-let __s={last:null,tick:0,lastVel:null};
+let __S_${idx}={last:null,tick:0,lastVel:null,side:((${idx}*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P=${JSON.stringify(P)}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  const P=${JSON.stringify(P)}; const S=__S_${idx}; S.tick=(S.tick||0)+1;
   // target selection with role bias by inferred size
   let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
-  // predictive fire via quadratic intercept
+  // predictive fire using persistent velocity estimate when available; fallback to direct aim
   if(tgt){
-    const dx=tgt.x-tank.x, dy=tgt.y-tank.y; const dist=H(dx,dy);
-    let vx=0,vy=0; // estimate enemy velocity by comparing to closest other enemy as proxy if any
-    if(enemies.length>1){ let nb=null,bd=1e18; for(const e of enemies){ if(e===tgt) continue; const d=H(e.x-tgt.x,e.y-tgt.y); if(d<bd){bd=d; nb=e;} } if(nb){ vx=(tgt.x-nb.x); vy=(tgt.y-nb.y); const n=H(vx,vy)||1; vx/=n; vy/=n; vx*=P.leadW; vy*=P.leadW; } }
-    const bs=8; // bullet speed
-    // lead factor limited
-    const t=CL(dist/bs,0,P.leadCap); const lx=dx + vx*t, ly=dy + vy*t;
-    let ang=D(lx,ly) + P.aimBias + (Math.random()-0.5)*P.aimJitter*30; ang=N(ang);
-    // aggression finisher bias
-    if(tgt.health<=P.finisherHP){ ang=N(ang + (Math.random()-0.5)*P.aimJitter*40); }
-    tank.fire(ang);
+    let ax=tgt.x, ay=tgt.y; let vx=0, vy=0;
+    if(S.last){ const lvx=S.lastVel?S.lastVel.vx:0, lvy=S.lastVel?S.lastVel.vy:0; const ivx=(tgt.x-S.last.x), ivy=(tgt.y-S.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); S.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy-s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } }
+      ax = tgt.x + vx * P.leadW * tHit; ay = tgt.y + vy * P.leadW * tHit;
+    }
+    const jitter = (((S.tick*13 + tank.x*7 + tank.y*3 + ${idx}*11)%23)-11) * (P.aimJitter||0.12) * 0.07 + (P.aimBias||0);
+    tank.fire(D(ax-tank.x, ay-tank.y) + jitter);
+    S.last={x:tgt.x,y:tgt.y};
   }
   // movement helpers
   let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
   // bullet avoidance with time-to-closest weighting
   let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
-  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(S.side||1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
   if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
@@ -169,7 +166,7 @@ function buildTeamCode(teamLabel, seedOffset = 0) {
     const P = genParamsByRole(role);
     // add slight seedOffset bias to diversify
     P.bias += Math.round(((i + 1) * 7 + seedOffset) % 27) - 13;
-    blocks.push(buildBotBlock(names[i], types[role], P));
+    blocks.push(buildBotBlock(names[i], types[role], P, i));
   }
   return blocks.join('\n\n// ===== 다음 로봇 =====\n\n\n');
 }
@@ -347,4 +344,3 @@ async function main() {
 if (require.main === module) {
   main().catch((err) => { console.error(err); process.exit(1); });
 }
-
