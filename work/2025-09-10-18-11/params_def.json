@@ -1,0 +1,25 @@
+{
+  "teamName": "Nova",
+  "roles": ["TANKER","TANKER","DEALER","DEALER","NORMAL","NORMAL"],
+  "base": {
+    "rMin": 230,
+    "rMax": 360,
+    "strafe": 26,
+    "threatR": 230,
+    "threatH": 6,
+    "fleeBias": 18,
+    "sep": 78,
+    "edge": 64,
+    "leadCap": 24,
+    "leadW": 1.10,
+    "aimJitter": 0.12,
+    "healthW": 1.25,
+    "distW": 0.08,
+    "finisherHP": 28,
+    "aggrRemain": 3,
+    "aggrIn": 32,
+    "aggrOut": 24,
+    "aimBias": -0.2,
+    "bias": -3
+  }
+}

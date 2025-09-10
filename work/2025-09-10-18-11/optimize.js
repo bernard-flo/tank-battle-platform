@@ -101,8 +101,12 @@ async function main() {
 
   let best = null;
   const logs = [];
+  let params = null;
+  if (args.params && fs.existsSync(args.params)) {
+    params = JSON.parse(fs.readFileSync(args.params, 'utf8'));
+  }
   for (let i = 0; i < candidates; i++) {
-    const code = generateTeamCode({ seed: baseSeed + i, teamName: 'Nova' });
+    const code = generateTeamCode({ seed: baseSeed + i, teamName: 'Nova', params });
     let totalScore = 0;
     const sums = [];
     for (const opp of opponents) {
