@@ -223,7 +223,7 @@ function evaluateTeam(candidateFile, opponents, opts = {}) {
 function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  const opponents = listOpponentFiles(8);
+  const opponents = listOpponentFiles(parseInt(process.env.OPP_LIMIT || '8', 10));
   if (opponents.length === 0) {
     console.log('No opponent *.txt found in result/. Creating default team without evaluation.');
     const code = buildTeamCode(Date.now()|0);
@@ -234,8 +234,8 @@ function main() {
   console.log('Opponents:', opponents.map(p=>path.basename(path.dirname(p)) + '/' + path.basename(p)).join(', '));
 
   const tmpCand = path.join(WORK_DIR, 'candidate.txt');
-  const iters = 6;
-  const repeats = 30; // per side
+  const iters = parseInt(process.env.ITERS || '6', 10);
+  const repeats = parseInt(process.env.REPEATS || '30', 10); // per side
   let best = { winRate: -1, seed: 0, details: [] };
 
   for (let i = 0; i < iters; i++) {
