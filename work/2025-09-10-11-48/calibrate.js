@@ -2,7 +2,7 @@
 /*
   AI Team Calibrator for tank_battle_platform.html
   - Generates candidate team code with tunable parameters
-  - Evaluates vs existing results in result/*/*.txt using simulator/cli.js
+  - Evaluates vs existing results found under result/ directories using simulator/cli.js
   - Picks the best-performing candidate and writes it to result/<TS>/<TS>.txt
   - Writes evaluation summary to work/<TS>/RESULT.md
 
@@ -246,4 +246,3 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(e); process.exit(1); }
 }
-
