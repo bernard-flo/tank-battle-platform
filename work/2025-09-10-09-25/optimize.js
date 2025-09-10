@@ -175,7 +175,10 @@ function run() {
 
   // Identify toughest opponents (lowest winRate) and focus fine-tuning
   best.details.sort((a,b)=>a.winRate-b.winRate);
-  const hard = best.details.slice(0, Math.min(3, best.details.length)).map(d=>d.opp);
+  const hardest = best.details.slice(0, Math.min(3, best.details.length)).map(d=>d.opp);
+  const recentTwo = opps.slice(0, Math.min(2, opps.length)).map(p=>path.basename(p));
+  const hardSet = new Set([...hardest, ...recentTwo]);
+  const hard = Array.from(hardSet);
   console.log('Hardest opponents:', hard.join(', '));
   function evaluateFocused(tf) {
     let sum=0, n=0; const list=[];
