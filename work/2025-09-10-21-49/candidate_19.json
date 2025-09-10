@@ -1,0 +1,64 @@
+{
+  "aggScore": -722.1662499999999,
+  "wins": 47,
+  "losses": 116,
+  "draws": 29,
+  "cfg": {
+    "names": [
+      "Aegis-1",
+      "Aegis-2",
+      "Aegis-3",
+      "Aegis-4",
+      "Aegis-5",
+      "Aegis-6"
+    ],
+    "layout": [
+      "TANKER",
+      "TANKER",
+      "NORMAL",
+      "NORMAL",
+      "DEALER",
+      "DEALER"
+    ],
+    "biases": [
+      -11.772465639415628,
+      7.882718103748674,
+      -5.79093838564129,
+      3.4806094986689526,
+      -4.876916966843403,
+      1.7471935580302222
+    ],
+    "params": {
+      "TANKER": {
+        "minRange": 172.38555163777545,
+        "maxRange": 300.0921628284309,
+        "strafeAngle": 29.77397320470257,
+        "threatRadius": 169.60460956594096,
+        "leadWeight": 0.9981028626645126,
+        "aimJitter": 0.0755424792036759,
+        "targetHealthWeight": 1.1952615836419573,
+        "targetDistWeight": 0.11884006184788612
+      },
+      "NORMAL": {
+        "minRange": 198.74110565897243,
+        "maxRange": 300.2323993578157,
+        "strafeAngle": 29.27259500033544,
+        "threatRadius": 161.77197558710657,
+        "leadWeight": 0.9899212348154356,
+        "aimJitter": 0.10752018649094044,
+        "targetHealthWeight": 1.2692152417616516,
+        "targetDistWeight": 0.08097738513588859
+      },
+      "DEALER": {
+        "minRange": 223.9439325601067,
+        "maxRange": 363.07501749707916,
+        "strafeAngle": 28.97262509363194,
+        "threatRadius": 161.10661215217866,
+        "leadWeight": 0.9421919592765877,
+        "aimJitter": 0.055553826946018875,
+        "targetHealthWeight": 1.1484628010928368,
+        "targetDistWeight": 0.09995222339365174
+      }
+    }
+  }
+}

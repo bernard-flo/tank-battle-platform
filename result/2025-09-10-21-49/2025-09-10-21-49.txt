@@ -6,7 +6,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9609441277778782,"aimJitter":0.08437685780289814,"fireBias":0,"minRange":171.40982280365714,"maxRange":278.9261080861233,"strafeAngle":24.687814566669537,"threatRadius":166.68467257803513,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":-8.33368536861197,"sidePref":-8,"targetHealthWeight":1.1669357177204418,"targetDistWeight":0.0873500538572338,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.98,"aimJitter":0.12,"fireBias":0,"minRange":170,"maxRange":290,"strafeAngle":24,"threatRadius":170,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":-10,"sidePref":-8,"targetHealthWeight":1.25,"targetDistWeight":0.1,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -106,7 +106,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9609441277778782,"aimJitter":0.08437685780289814,"fireBias":0,"minRange":171.40982280365714,"maxRange":278.9261080861233,"strafeAngle":24.687814566669537,"threatRadius":166.68467257803513,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":7.271756855351152,"sidePref":8,"targetHealthWeight":1.1669357177204418,"targetDistWeight":0.0873500538572338,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.98,"aimJitter":0.12,"fireBias":0,"minRange":170,"maxRange":290,"strafeAngle":24,"threatRadius":170,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":10,"sidePref":8,"targetHealthWeight":1.25,"targetDistWeight":0.1,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -206,7 +206,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9939412047627998,"aimJitter":0.18454543480908148,"fireBias":0,"minRange":182.85704240119625,"maxRange":305.0997602034326,"strafeAngle":31.34384190166483,"threatRadius":159.53677550995556,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":-8.602718646310565,"sidePref":-8,"targetHealthWeight":1.256967591984595,"targetDistWeight":0.07498348201262234,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.98,"aimJitter":0.15,"fireBias":0,"minRange":190,"maxRange":310,"strafeAngle":28,"threatRadius":162,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":-6,"sidePref":-8,"targetHealthWeight":1.25,"targetDistWeight":0.1,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -306,7 +306,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9939412047627998,"aimJitter":0.18454543480908148,"fireBias":0,"minRange":182.85704240119625,"maxRange":305.0997602034326,"strafeAngle":31.34384190166483,"threatRadius":159.53677550995556,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":4.768528329491728,"sidePref":8,"targetHealthWeight":1.256967591984595,"targetDistWeight":0.07498348201262234,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.98,"aimJitter":0.15,"fireBias":0,"minRange":190,"maxRange":310,"strafeAngle":28,"threatRadius":162,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":6,"sidePref":8,"targetHealthWeight":1.25,"targetDistWeight":0.1,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -406,7 +406,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9761088700580898,"aimJitter":0.1090273205947582,"fireBias":0,"minRange":232.94056937340036,"maxRange":380.7837646724396,"strafeAngle":34.8192387485139,"threatRadius":150.23058972346254,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":-6.455041507939708,"sidePref":-8,"targetHealthWeight":1.1283987578949155,"targetDistWeight":0.07996380315095554,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.99,"aimJitter":0.1,"fireBias":0,"minRange":235,"maxRange":380,"strafeAngle":34,"threatRadius":155,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":-3,"sidePref":-8,"targetHealthWeight":1.25,"targetDistWeight":0.1,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -506,7 +506,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9761088700580898,"aimJitter":0.1090273205947582,"fireBias":0,"minRange":232.94056937340036,"maxRange":380.7837646724396,"strafeAngle":34.8192387485139,"threatRadius":150.23058972346254,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":3.611911633799945,"sidePref":8,"targetHealthWeight":1.1283987578949155,"targetDistWeight":0.07996380315095554,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.99,"aimJitter":0.1,"fireBias":0,"minRange":235,"maxRange":380,"strafeAngle":34,"threatRadius":155,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":3,"sidePref":8,"targetHealthWeight":1.25,"targetDistWeight":0.1,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
