@@ -6,7 +6,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9881278919123629,"aimJitter":0.09661156822399897,"fireBias":0,"minRange":186.67622476920315,"maxRange":309.6151843981977,"strafeAngle":25.3843969311877,"threatRadius":179.13837100786185,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":-9.908811907941645,"sidePref":-8,"targetHealthWeight":1.3933671891772879,"targetDistWeight":0.07104057354938864,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.9609441277778782,"aimJitter":0.08437685780289814,"fireBias":0,"minRange":171.40982280365714,"maxRange":278.9261080861233,"strafeAngle":24.687814566669537,"threatRadius":166.68467257803513,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":-8.33368536861197,"sidePref":-8,"targetHealthWeight":1.1669357177204418,"targetDistWeight":0.0873500538572338,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -106,7 +106,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9881278919123629,"aimJitter":0.09661156822399897,"fireBias":0,"minRange":186.67622476920315,"maxRange":309.6151843981977,"strafeAngle":25.3843969311877,"threatRadius":179.13837100786185,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":7.072018035887721,"sidePref":8,"targetHealthWeight":1.3933671891772879,"targetDistWeight":0.07104057354938864,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.9609441277778782,"aimJitter":0.08437685780289814,"fireBias":0,"minRange":171.40982280365714,"maxRange":278.9261080861233,"strafeAngle":24.687814566669537,"threatRadius":166.68467257803513,"threatFleeBias":12,"allySep":62,"edgeMargin":46,"bias":7.271756855351152,"sidePref":8,"targetHealthWeight":1.1669357177204418,"targetDistWeight":0.0873500538572338,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -206,7 +206,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9347565978830442,"aimJitter":0.1335924606759549,"fireBias":0,"minRange":179.41408401651628,"maxRange":301.24543972366615,"strafeAngle":32.29933447799774,"threatRadius":163.10601924825872,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":-5.922127593843154,"sidePref":-8,"targetHealthWeight":1.1863687418934867,"targetDistWeight":0.12732202465278153,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.9939412047627998,"aimJitter":0.18454543480908148,"fireBias":0,"minRange":182.85704240119625,"maxRange":305.0997602034326,"strafeAngle":31.34384190166483,"threatRadius":159.53677550995556,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":-8.602718646310565,"sidePref":-8,"targetHealthWeight":1.256967591984595,"targetDistWeight":0.07498348201262234,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -306,7 +306,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9347565978830442,"aimJitter":0.1335924606759549,"fireBias":0,"minRange":179.41408401651628,"maxRange":301.24543972366615,"strafeAngle":32.29933447799774,"threatRadius":163.10601924825872,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":9.942239158184066,"sidePref":8,"targetHealthWeight":1.1863687418934867,"targetDistWeight":0.12732202465278153,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.9939412047627998,"aimJitter":0.18454543480908148,"fireBias":0,"minRange":182.85704240119625,"maxRange":305.0997602034326,"strafeAngle":31.34384190166483,"threatRadius":159.53677550995556,"threatFleeBias":13,"allySep":62,"edgeMargin":46,"bias":4.768528329491728,"sidePref":8,"targetHealthWeight":1.256967591984595,"targetDistWeight":0.07498348201262234,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -406,7 +406,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9861667516115434,"aimJitter":0.14226423043174086,"fireBias":0,"minRange":240.03212503755668,"maxRange":382.95947147665123,"strafeAngle":35.54103217714741,"threatRadius":145.57743361873946,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":-2.1712399465295036,"sidePref":-8,"targetHealthWeight":1.3684452949639805,"targetDistWeight":0.11568399045044131,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.9761088700580898,"aimJitter":0.1090273205947582,"fireBias":0,"minRange":232.94056937340036,"maxRange":380.7837646724396,"strafeAngle":34.8192387485139,"threatRadius":150.23058972346254,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":-6.455041507939708,"sidePref":-8,"targetHealthWeight":1.1283987578949155,"targetDistWeight":0.07996380315095554,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 
@@ -506,7 +506,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
-  const P={"leadCap":14,"leadWeight":0.9861667516115434,"aimJitter":0.14226423043174086,"fireBias":0,"minRange":240.03212503755668,"maxRange":382.95947147665123,"strafeAngle":35.54103217714741,"threatRadius":145.57743361873946,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":3.560280760022744,"sidePref":8,"targetHealthWeight":1.3684452949639805,"targetDistWeight":0.11568399045044131,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
+  const P={"leadCap":14,"leadWeight":0.9761088700580898,"aimJitter":0.1090273205947582,"fireBias":0,"minRange":232.94056937340036,"maxRange":380.7837646724396,"strafeAngle":34.8192387485139,"threatRadius":150.23058972346254,"threatFleeBias":14,"allySep":62,"edgeMargin":46,"bias":3.611911633799945,"sidePref":8,"targetHealthWeight":1.1283987578949155,"targetDistWeight":0.07996380315095554,"finishHp":22,"finishRemain":3,"finishMinDelta":30,"finishMaxDelta":24};
 
   __state.tick = (__state.tick||0) + 1;
 

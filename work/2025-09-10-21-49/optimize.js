@@ -106,6 +106,13 @@ function main(){
     }
   };
 
+  const layoutPool = [
+    ['TANKER','TANKER','NORMAL','NORMAL','DEALER','DEALER'],
+    ['TANKER','NORMAL','DEALER','DEALER','DEALER','DEALER'],
+    ['TANKER','TANKER','DEALER','DEALER','DEALER','NORMAL'],
+    ['TANKER','NORMAL','NORMAL','DEALER','DEALER','DEALER'],
+  ];
+
   let best = baseConfig;
   let bestScore = -1e9;
   let bestDetail = null;
@@ -113,7 +120,15 @@ function main(){
   const tries = process.env.OPT_TRIES ? parseInt(process.env.OPT_TRIES,10) : 12;
   const repeatOpt = process.env.OPT_REPEAT ? parseInt(process.env.OPT_REPEAT,10) : 10;
   for(let t=0;t<tries;t++){
-    const cfg = t===0? baseConfig : mutateParams(best);
+    // Structure mutation (layout/bias) occasionally
+    let seedCfg = best;
+    if(t % 4 === 0 && t !== 0){
+      const lc = JSON.parse(JSON.stringify(best));
+      lc.layout = layoutPool[Math.floor(Math.random()*layoutPool.length)];
+      lc.biases = lc.biases.map((b,i)=> (i%2===0?-1:1)* (6+Math.random()*8));
+      seedCfg = lc;
+    }
+    const cfg = t===0? baseConfig : mutateParams(seedCfg);
     const code = generateTeamCode(cfg);
     let aggScore=0; let wins=0, losses=0, draws=0;
     for(const opp of sampleOpp){
