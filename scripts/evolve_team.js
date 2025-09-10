@@ -236,6 +236,18 @@ async function main() {
   if (!fs.existsSync(workDir)) fs.mkdirSync(workDir, { recursive: true });
   if (!fs.existsSync(resultDir)) fs.mkdirSync(resultDir, { recursive: true });
 
+  if (args['generate-only']) {
+    const seedParams = { prefix: args.prefix ? String(args.prefix) : 'Nova-G', jitter: args.jitter ? parseFloat(args.jitter) : 0.0 };
+    const code = buildTeamCode(seedParams);
+    const outFile = path.join(resultDir, `${TS}.txt`);
+    fs.writeFileSync(outFile, code);
+    console.log(`Saved team (generate-only) -> ${outFile}`);
+    const msgPath = path.join(workDir, 'RESULT.md');
+    fs.writeFileSync(msgPath, `# Tech of Tank – Generate Only (${TS})\n\n- Team: ${seedParams.prefix}\n- Status: Generated without tuning.\n`);
+    console.log(`Saved stub report -> ${msgPath}`);
+    return;
+  }
+
   const opponents = listOpponents(TS);
   if (opponents.length === 0) {
     console.log('No opponents found in result/. Exiting.');
