@@ -4,7 +4,7 @@ function type(){return 1;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.073697474839137,"aimJitter":0.26974270264740596,"velSmooth":0.63129480825394,"minRange":187,"maxRange":292,"strafeAngle":34,"strafeSpread":19,"approachSpread":18,"escapeSpread":11,"threatRadius":150,"threatFleeBias":-13,"allySep":73,"edgeMargin":33,"bias":-9,"targetHealthWeight":1.0994042085173523,"targetDistWeight":0.20687141106231652,"finishHp":39,"finishRemain":2,"finishMinDelta":35,"finishMaxDelta":23};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.2236459552870425,"velSmooth":0.8255460000549613,"minRange":113,"maxRange":284,"strafeAngle":29,"strafeSpread":18,"approachSpread":23,"escapeSpread":31,"threatRadius":151,"threatFleeBias":-22,"allySep":68,"edgeMargin":32,"bias":-8,"targetHealthWeight":1.152439625965067,"targetDistWeight":0.20263465958443294,"finishHp":26,"finishRemain":3,"finishMinDelta":24,"finishMaxDelta":33};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
@@ -108,7 +108,7 @@ function type(){return 2;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.073697474839137,"aimJitter":0.3173443560557717,"velSmooth":0.63129480825394,"minRange":203,"maxRange":308,"strafeAngle":42,"strafeSpread":19,"approachSpread":18,"escapeSpread":11,"threatRadius":150,"threatFleeBias":13,"allySep":73,"edgeMargin":33,"bias":-9,"targetHealthWeight":1.0994042085173523,"targetDistWeight":0.20687141106231652,"finishHp":39,"finishRemain":2,"finishMinDelta":35,"finishMaxDelta":23};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.2631128885729912,"velSmooth":0.8255460000549613,"minRange":129,"maxRange":300,"strafeAngle":37,"strafeSpread":18,"approachSpread":23,"escapeSpread":31,"threatRadius":151,"threatFleeBias":22,"allySep":68,"edgeMargin":32,"bias":-8,"targetHealthWeight":1.152439625965067,"targetDistWeight":0.20263465958443294,"finishHp":26,"finishRemain":3,"finishMinDelta":24,"finishMaxDelta":33};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
@@ -212,7 +212,7 @@ function type(){return 2;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.073697474839137,"aimJitter":0.36494600946413747,"velSmooth":0.63129480825394,"minRange":187,"maxRange":292,"strafeAngle":34,"strafeSpread":19,"approachSpread":18,"escapeSpread":11,"threatRadius":150,"threatFleeBias":-13,"allySep":73,"edgeMargin":33,"bias":-9,"targetHealthWeight":1.0994042085173523,"targetDistWeight":0.20687141106231652,"finishHp":39,"finishRemain":2,"finishMinDelta":35,"finishMaxDelta":23};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.30257982185893983,"velSmooth":0.8255460000549613,"minRange":113,"maxRange":284,"strafeAngle":29,"strafeSpread":18,"approachSpread":23,"escapeSpread":31,"threatRadius":151,"threatFleeBias":-22,"allySep":68,"edgeMargin":32,"bias":-8,"targetHealthWeight":1.152439625965067,"targetDistWeight":0.20263465958443294,"finishHp":26,"finishRemain":3,"finishMinDelta":24,"finishMaxDelta":33};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
@@ -316,7 +316,7 @@ function type(){return 0;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.073697474839137,"aimJitter":0.26974270264740596,"velSmooth":0.63129480825394,"minRange":203,"maxRange":308,"strafeAngle":42,"strafeSpread":19,"approachSpread":18,"escapeSpread":11,"threatRadius":150,"threatFleeBias":13,"allySep":73,"edgeMargin":33,"bias":9,"targetHealthWeight":1.0994042085173523,"targetDistWeight":0.20687141106231652,"finishHp":39,"finishRemain":2,"finishMinDelta":35,"finishMaxDelta":23};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.2236459552870425,"velSmooth":0.8255460000549613,"minRange":129,"maxRange":300,"strafeAngle":37,"strafeSpread":18,"approachSpread":23,"escapeSpread":31,"threatRadius":151,"threatFleeBias":22,"allySep":68,"edgeMargin":32,"bias":8,"targetHealthWeight":1.152439625965067,"targetDistWeight":0.20263465958443294,"finishHp":26,"finishRemain":3,"finishMinDelta":24,"finishMaxDelta":33};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
@@ -420,7 +420,7 @@ function type(){return 2;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.073697474839137,"aimJitter":0.3173443560557717,"velSmooth":0.63129480825394,"minRange":187,"maxRange":292,"strafeAngle":34,"strafeSpread":19,"approachSpread":18,"escapeSpread":11,"threatRadius":150,"threatFleeBias":-13,"allySep":73,"edgeMargin":33,"bias":9,"targetHealthWeight":1.0994042085173523,"targetDistWeight":0.20687141106231652,"finishHp":39,"finishRemain":2,"finishMinDelta":35,"finishMaxDelta":23};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.2631128885729912,"velSmooth":0.8255460000549613,"minRange":113,"maxRange":284,"strafeAngle":29,"strafeSpread":18,"approachSpread":23,"escapeSpread":31,"threatRadius":151,"threatFleeBias":-22,"allySep":68,"edgeMargin":32,"bias":8,"targetHealthWeight":1.152439625965067,"targetDistWeight":0.20263465958443294,"finishHp":26,"finishRemain":3,"finishMinDelta":24,"finishMaxDelta":33};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
@@ -524,7 +524,7 @@ function type(){return 1;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.073697474839137,"aimJitter":0.36494600946413747,"velSmooth":0.63129480825394,"minRange":203,"maxRange":308,"strafeAngle":42,"strafeSpread":19,"approachSpread":18,"escapeSpread":11,"threatRadius":150,"threatFleeBias":13,"allySep":73,"edgeMargin":33,"bias":9,"targetHealthWeight":1.0994042085173523,"targetDistWeight":0.20687141106231652,"finishHp":39,"finishRemain":2,"finishMinDelta":35,"finishMaxDelta":23};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.30257982185893983,"velSmooth":0.8255460000549613,"minRange":129,"maxRange":300,"strafeAngle":37,"strafeSpread":18,"approachSpread":23,"escapeSpread":31,"threatRadius":151,"threatFleeBias":22,"allySep":68,"edgeMargin":32,"bias":8,"targetHealthWeight":1.152439625965067,"targetDistWeight":0.20263465958443294,"finishHp":26,"finishRemain":3,"finishMinDelta":24,"finishMaxDelta":33};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
