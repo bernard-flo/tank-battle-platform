@@ -152,14 +152,14 @@ function main() {
 
   // Role parameter presets (tuned starting points)
   const presets = [
-    // Two TANKERs (frontliners)
-    { label: 'T1', type: 'Type.TANKER', P: { rMin: 182, rMax: 296, strafe: 22, threatR: 232, threatH: 5, fleeBias: 16, sep: 78, edge: 60, leadCap: 20, leadW: 1.06, aimJitter: 0.12, healthW: 1.25, distW: 0.09, finisherHP: 28, aggrRemain: 3, aggrIn: 30, aggrOut: 20, bias: -10, flipEvery: 92 } },
-    { label: 'T2', type: 'Type.TANKER', P: { rMin: 190, rMax: 304, strafe: 24, threatR: 232, threatH: 5, fleeBias: 16, sep: 78, edge: 60, leadCap: 21, leadW: 1.06, aimJitter: 0.12, healthW: 1.23, distW: 0.09, finisherHP: 28, aggrRemain: 3, aggrIn: 30, aggrOut: 20, bias: 8, flipEvery: 98 } },
-    // Four DEALERs (backline DPS)
-    { label: 'D1', type: 'Type.DEALER', P: { rMin: 274, rMax: 430, strafe: 30, threatR: 206, threatH: 6, fleeBias: 14, sep: 72, edge: 62, leadCap: 22, leadW: 1.12, aimJitter: 0.10, healthW: 1.18, distW: 0.08, finisherHP: 22, aggrRemain: 2, aggrIn: 30, aggrOut: 22, aimBias: -0.6, bias: -8, flipEvery: 84 } },
-    { label: 'D2', type: 'Type.DEALER', P: { rMin: 286, rMax: 444, strafe: 30, threatR: 206, threatH: 6, fleeBias: 14, sep: 72, edge: 62, leadCap: 22, leadW: 1.12, aimJitter: 0.10, healthW: 1.18, distW: 0.08, finisherHP: 22, aggrRemain: 2, aggrIn: 30, aggrOut: 22, aimBias: -0.6, bias: 8,  flipEvery: 88 } },
-    { label: 'D3', type: 'Type.DEALER', P: { rMin: 268, rMax: 418, strafe: 28, threatR: 206, threatH: 6, fleeBias: 14, sep: 72, edge: 62, leadCap: 22, leadW: 1.12, aimJitter: 0.11, healthW: 1.20, distW: 0.08, finisherHP: 22, aggrRemain: 2, aggrIn: 30, aggrOut: 22, aimBias: -0.6, bias: -4, flipEvery: 86 } },
-    { label: 'D4', type: 'Type.DEALER', P: { rMin: 292, rMax: 452, strafe: 32, threatR: 206, threatH: 6, fleeBias: 14, sep: 72, edge: 62, leadCap: 23, leadW: 1.12, aimJitter: 0.10, healthW: 1.18, distW: 0.08, finisherHP: 22, aggrRemain: 2, aggrIn: 30, aggrOut: 22, aimBias: -0.6, bias: 4,  flipEvery: 90 } },
+    // Three TANKERs (frontliners)
+    { label: 'T1', type: 'Type.TANKER', P: { rMin: 182, rMax: 296, strafe: 22, threatR: 238, threatH: 5, fleeBias: 16, sep: 80, edge: 58, leadCap: 20, leadW: 1.06, aimJitter: 0.12, healthW: 1.25, distW: 0.09, finisherHP: 28, aggrRemain: 3, aggrIn: 30, aggrOut: 20, bias: -10, flipEvery: 90 } },
+    { label: 'T2', type: 'Type.TANKER', P: { rMin: 190, rMax: 304, strafe: 24, threatR: 238, threatH: 5, fleeBias: 16, sep: 80, edge: 58, leadCap: 21, leadW: 1.06, aimJitter: 0.12, healthW: 1.23, distW: 0.09, finisherHP: 28, aggrRemain: 3, aggrIn: 30, aggrOut: 20, bias: 8,  flipEvery: 96 } },
+    { label: 'T3', type: 'Type.TANKER', P: { rMin: 176, rMax: 288, strafe: 20, threatR: 238, threatH: 5, fleeBias: 16, sep: 80, edge: 58, leadCap: 20, leadW: 1.06, aimJitter: 0.12, healthW: 1.27, distW: 0.09, finisherHP: 30, aggrRemain: 3, aggrIn: 30, aggrOut: 20, bias: 0,  flipEvery: 92 } },
+    // Three DEALERs (backline DPS)
+    { label: 'D1', type: 'Type.DEALER', P: { rMin: 274, rMax: 430, strafe: 30, threatR: 206, threatH: 6, fleeBias: 14, sep: 74, edge: 62, leadCap: 22, leadW: 1.12, aimJitter: 0.10, healthW: 1.18, distW: 0.08, finisherHP: 22, aggrRemain: 2, aggrIn: 30, aggrOut: 22, aimBias: -0.6, bias: -8, flipEvery: 84 } },
+    { label: 'D2', type: 'Type.DEALER', P: { rMin: 286, rMax: 444, strafe: 30, threatR: 206, threatH: 6, fleeBias: 14, sep: 74, edge: 62, leadCap: 22, leadW: 1.12, aimJitter: 0.10, healthW: 1.18, distW: 0.08, finisherHP: 22, aggrRemain: 2, aggrIn: 30, aggrOut: 22, aimBias: -0.6, bias: 8,  flipEvery: 88 } },
+    { label: 'D3', type: 'Type.DEALER', P: { rMin: 268, rMax: 418, strafe: 28, threatR: 206, threatH: 6, fleeBias: 14, sep: 74, edge: 62, leadCap: 22, leadW: 1.12, aimJitter: 0.11, healthW: 1.20, distW: 0.08, finisherHP: 22, aggrRemain: 2, aggrIn: 30, aggrOut: 22, aimBias: -0.6, bias: -4, flipEvery: 86 } },
   ];
 
   const blocks = presets.map((p, i) => robotBlock(p.label, p.type, i, p.P));
