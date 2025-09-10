@@ -7,7 +7,7 @@ function update(tank, enemies, allies, bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131+11)|0)%2?1:-1;
-  const P={"rMin":160.4,"rMax":252.8,"strafe":26.1,"threatR":77.4,"fleeBias":16.5,"sep":65.7,"edge":46.7,"bias":9.4,"leadCap":10.5,"leadW":0.9,"aimJitter":0.2,"healthW":1.2,"distW":0.1,"finisherHP":20,"aggrRemain":2,"aggrIn":32.5,"aggrOut":19.3};
+  const P={"rMin":156.5,"rMax":230.7,"strafe":30.5,"threatR":79.2,"fleeBias":16.6,"sep":59.1,"edge":41.3,"bias":9,"leadCap":13.4,"leadW":0.9,"aimJitter":0.1,"healthW":1.3,"distW":0.2,"finisherHP":24,"aggrRemain":4,"aggrIn":39.3,"aggrOut":17.4};
 
   __s.tick=(__s.tick||0)+1;
 
@@ -101,7 +101,7 @@ function update(tank, enemies, allies, bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131+19)|0)%2?1:-1;
-  const P={"rMin":168.3,"rMax":265.1,"strafe":31.3,"threatR":73.9,"fleeBias":15.9,"sep":65.4,"edge":39,"bias":-4.5,"leadCap":10.6,"leadW":0.9,"aimJitter":0.1,"healthW":1.3,"distW":0.1,"finisherHP":22.7,"aggrRemain":3,"aggrIn":25.3,"aggrOut":26.5};
+  const P={"rMin":152.5,"rMax":264.9,"strafe":25.4,"threatR":73.4,"fleeBias":17.1,"sep":57.4,"edge":45.5,"bias":8,"leadCap":11.3,"leadW":1,"aimJitter":0.1,"healthW":1.4,"distW":0.1,"finisherHP":18.7,"aggrRemain":2,"aggrIn":32.2,"aggrOut":19.8};
 
   __s.tick=(__s.tick||0)+1;
 
@@ -195,7 +195,7 @@ function update(tank, enemies, allies, bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131+-7)|0)%2?1:-1;
-  const P={"rMin":173,"rMax":245.2,"strafe":29.2,"threatR":74,"fleeBias":14,"sep":66.5,"edge":40.6,"bias":-8.3,"leadCap":12.3,"leadW":1.1,"aimJitter":0.1,"healthW":1.4,"distW":0.1,"finisherHP":24.3,"aggrRemain":4,"aggrIn":34.4,"aggrOut":28.5};
+  const P={"rMin":170.5,"rMax":269.7,"strafe":26.5,"threatR":73,"fleeBias":12.9,"sep":64.3,"edge":44.4,"bias":-2.4,"leadCap":13.4,"leadW":0.8,"aimJitter":0.1,"healthW":1.2,"distW":0.1,"finisherHP":17.3,"aggrRemain":3,"aggrIn":40.9,"aggrOut":16.1};
 
   __s.tick=(__s.tick||0)+1;
 
@@ -289,7 +289,7 @@ function update(tank, enemies, allies, bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131+5)|0)%2?1:-1;
-  const P={"rMin":169,"rMax":277.2,"strafe":30.6,"threatR":73.3,"fleeBias":12.6,"sep":62.5,"edge":48.4,"bias":5.2,"leadCap":13.5,"leadW":1.1,"aimJitter":0.2,"healthW":1,"distW":0.2,"finisherHP":20.5,"aggrRemain":4,"aggrIn":23.7,"aggrOut":16.2};
+  const P={"rMin":185.1,"rMax":259.6,"strafe":28,"threatR":78.1,"fleeBias":12.6,"sep":57.3,"edge":45.2,"bias":-1.1,"leadCap":10.1,"leadW":0.8,"aimJitter":0.1,"healthW":1.2,"distW":0.1,"finisherHP":23.1,"aggrRemain":4,"aggrIn":36.1,"aggrOut":16.2};
 
   __s.tick=(__s.tick||0)+1;
 
@@ -383,7 +383,7 @@ function update(tank, enemies, allies, bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131+-13)|0)%2?1:-1;
-  const P={"rMin":223.8,"rMax":318.4,"strafe":35,"threatR":77,"fleeBias":13.9,"sep":63.6,"edge":45.7,"bias":2.6,"leadCap":10.1,"leadW":1.1,"aimJitter":0.1,"healthW":1.1,"distW":0.2,"finisherHP":21.5,"aggrRemain":3,"aggrIn":31.9,"aggrOut":19.5};
+  const P={"rMin":239.6,"rMax":311.8,"strafe":37.8,"threatR":73.6,"fleeBias":12.3,"sep":59.5,"edge":40.4,"bias":2.6,"leadCap":13.3,"leadW":0.8,"aimJitter":0.2,"healthW":1.2,"distW":0.1,"finisherHP":17.7,"aggrRemain":4,"aggrIn":27.6,"aggrOut":21.4};
 
   __s.tick=(__s.tick||0)+1;
 
@@ -477,7 +477,7 @@ function update(tank, enemies, allies, bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131+23)|0)%2?1:-1;
-  const P={"rMin":224,"rMax":322.6,"strafe":36.4,"threatR":71.2,"fleeBias":13.3,"sep":66.5,"edge":40.1,"bias":0,"leadCap":14,"leadW":1.1,"aimJitter":0.2,"healthW":1.3,"distW":0.1,"finisherHP":19.8,"aggrRemain":2,"aggrIn":26.9,"aggrOut":20.8};
+  const P={"rMin":211,"rMax":326.2,"strafe":35.7,"threatR":69.6,"fleeBias":15.2,"sep":66.8,"edge":42.3,"bias":0.5,"leadCap":14.4,"leadW":1.2,"aimJitter":0.2,"healthW":1.3,"distW":0.1,"finisherHP":24,"aggrRemain":3,"aggrIn":33.7,"aggrOut":27};
 
   __s.tick=(__s.tick||0)+1;
 
