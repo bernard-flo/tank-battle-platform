@@ -219,16 +219,16 @@ async function main() {
   const teamName = 'Helios';
 
   // Phase A: quick screen candidates vs the newest opponent only
-  const baseline = [opponents[0]];
+  const baseline = opponents.slice(0, 2); // screen against two newest to reduce overfit
   const candidates = [];
-  const N = 10; // candidates
+  const N = 14; // candidates
   console.log(`[${now()}] Generating ${N} candidates (seeded params)...`);
   for (let i = 0; i < N; i++) {
     const code = buildTeamCode(teamName, i * 1337 + 7);
-    const res = await evaluateAgainstOpponents(code, baseline, 28);
+    const res = await evaluateAgainstOpponents(code, baseline, 24);
     const wr = res.total.wins / Math.max(1, (res.total.tests - res.total.draws));
     candidates.push({ idx: i, code, score: wr, screen: res });
-    console.log(`  cand#${i}: WR=${(wr*100).toFixed(1)}% vs ${path.basename(baseline[0].path)}`);
+    console.log(`  cand#${i}: WR=${(wr*100).toFixed(1)}% vs [${baseline.map(b=>path.basename(b.path)).join(', ')}]`);
   }
 
   candidates.sort((a, b) => b.score - a.score);
@@ -237,7 +237,7 @@ async function main() {
 
   let best = null;
   for (const c of topK) {
-    const res = await evaluateAgainstOpponents(c.code, opponents, 26);
+    const res = await evaluateAgainstOpponents(c.code, opponents, 28);
     const effMatches = res.total.tests - res.total.draws;
     const wr = effMatches > 0 ? res.total.wins / effMatches : 0;
     const margin = res.total.wins - res.total.losses;
@@ -291,4 +291,3 @@ async function main() {
 if (require.main === module) {
   main().catch((err) => { console.error(err); process.exit(1); });
 }
-
