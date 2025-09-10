@@ -1,9 +1,9 @@
-function name(){return "NovaE-T1";}
+function name(){return "NovaZ-T1";}
 function type(){return Type.TANKER;}
 let __S_0={last:null,tick:0,lastVel:null,side: ((0*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI; const N=(a)=>{a%=360; return a<0?a+360:a;}; const C=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"minR":190,"maxR":310,"strafe":36,"threat":85,"sep":66,"edge":46,"bias":-12,"jA":31,"jB":17,"jM":29,"jH":14,"jF":0.14,"leadCap":11,"leadW":0.92,"hW":1.55,"dW":0.11,"finN":28,"finX":18,"lastN":34,"lastX":34,"minCap":160}; const S=__S_0; S.tick=(S.tick||0)+1;
+  const P={"minR":200,"maxR":320,"strafe":26,"threat":180,"threatH":5,"sep":64,"edge":50,"bias":-10,"jF":0.1,"aimBias":0,"leadCap":18,"leadW":1.05,"hW":1.35,"dW":0.1,"finHP":24,"aggrIn":26,"aggrOut":18,"lastN2":3,"minCap":160,"fleeBias":14}; const S=__S_0; S.tick=(S.tick||0)+1;
   // 1) Target selection (health priority, distance tie)
   let T=null, sc=1e18; for(const e of enemies){ const s=e.health*P.hW + e.distance*P.dW; if(s<sc){sc=s; T=e;} }
   // 2) Predictive aim using quadratic intercept (fallback to linear lead)
@@ -23,12 +23,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "NovaE-T2";}
+function name(){return "NovaZ-T2";}
 function type(){return Type.TANKER;}
 let __S_1={last:null,tick:0,lastVel:null,side: ((1*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI; const N=(a)=>{a%=360; return a<0?a+360:a;}; const C=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"minR":190,"maxR":310,"strafe":36,"threat":85,"sep":66,"edge":46,"bias":-12,"jA":31,"jB":17,"jM":29,"jH":14,"jF":0.14,"leadCap":11,"leadW":0.92,"hW":1.55,"dW":0.11,"finN":28,"finX":18,"lastN":34,"lastX":34,"minCap":160}; const S=__S_1; S.tick=(S.tick||0)+1;
+  const P={"minR":200,"maxR":320,"strafe":26,"threat":180,"threatH":5,"sep":64,"edge":50,"bias":-10,"jF":0.1,"aimBias":0,"leadCap":18,"leadW":1.05,"hW":1.35,"dW":0.1,"finHP":24,"aggrIn":26,"aggrOut":18,"lastN2":3,"minCap":160,"fleeBias":14}; const S=__S_1; S.tick=(S.tick||0)+1;
   // 1) Target selection (health priority, distance tie)
   let T=null, sc=1e18; for(const e of enemies){ const s=e.health*P.hW + e.distance*P.dW; if(s<sc){sc=s; T=e;} }
   // 2) Predictive aim using quadratic intercept (fallback to linear lead)
@@ -48,12 +48,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "NovaE-D1";}
+function name(){return "NovaZ-D1";}
 function type(){return Type.DEALER;}
 let __S_2={last:null,tick:0,lastVel:null,side: ((2*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI; const N=(a)=>{a%=360; return a<0?a+360:a;}; const C=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"minR":260,"maxR":380,"strafe":40,"threat":88,"sep":62,"edge":46,"bias":-14,"jA":17,"jB":13,"jM":25,"jH":12,"jF":0.11,"leadCap":12,"leadW":1,"hW":1.6,"dW":0.09,"finN":26,"finX":18,"lastN":32,"lastX":32,"minCap":180}; const S=__S_2; S.tick=(S.tick||0)+1;
+  const P={"minR":280,"maxR":420,"strafe":38,"threat":170,"threatH":6,"sep":60,"edge":52,"bias":-12,"jF":0.09,"aimBias":-0.4,"leadCap":20,"leadW":1.15,"hW":1.25,"dW":0.08,"finHP":20,"aggrIn":28,"aggrOut":22,"lastN2":2,"minCap":180,"fleeBias":14}; const S=__S_2; S.tick=(S.tick||0)+1;
   // 1) Target selection (health priority, distance tie)
   let T=null, sc=1e18; for(const e of enemies){ const s=e.health*P.hW + e.distance*P.dW; if(s<sc){sc=s; T=e;} }
   // 2) Predictive aim using quadratic intercept (fallback to linear lead)
@@ -73,12 +73,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "NovaE-D2";}
+function name(){return "NovaZ-D2";}
 function type(){return Type.DEALER;}
 let __S_3={last:null,tick:0,lastVel:null,side: ((3*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI; const N=(a)=>{a%=360; return a<0?a+360:a;}; const C=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"minR":260,"maxR":380,"strafe":40,"threat":88,"sep":62,"edge":46,"bias":-14,"jA":17,"jB":13,"jM":25,"jH":12,"jF":0.11,"leadCap":12,"leadW":1,"hW":1.6,"dW":0.09,"finN":26,"finX":18,"lastN":32,"lastX":32,"minCap":180}; const S=__S_3; S.tick=(S.tick||0)+1;
+  const P={"minR":280,"maxR":420,"strafe":38,"threat":170,"threatH":6,"sep":60,"edge":52,"bias":-12,"jF":0.09,"aimBias":-0.4,"leadCap":20,"leadW":1.15,"hW":1.25,"dW":0.08,"finHP":20,"aggrIn":28,"aggrOut":22,"lastN2":2,"minCap":180,"fleeBias":14}; const S=__S_3; S.tick=(S.tick||0)+1;
   // 1) Target selection (health priority, distance tie)
   let T=null, sc=1e18; for(const e of enemies){ const s=e.health*P.hW + e.distance*P.dW; if(s<sc){sc=s; T=e;} }
   // 2) Predictive aim using quadratic intercept (fallback to linear lead)
@@ -98,12 +98,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "NovaE-N1";}
+function name(){return "NovaZ-N1";}
 function type(){return Type.NORMAL;}
 let __S_4={last:null,tick:0,lastVel:null,side: ((4*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI; const N=(a)=>{a%=360; return a<0?a+360:a;}; const C=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"minR":220,"maxR":340,"strafe":38,"threat":86,"sep":64,"edge":46,"bias":-12,"jA":19,"jB":29,"jM":27,"jH":13,"jF":0.12,"leadCap":11,"leadW":0.96,"hW":1.55,"dW":0.1,"finN":28,"finX":18,"lastN":34,"lastX":34,"minCap":170}; const S=__S_4; S.tick=(S.tick||0)+1;
+  const P={"minR":240,"maxR":360,"strafe":34,"threat":175,"threatH":6,"sep":62,"edge":52,"bias":-11,"jF":0.1,"aimBias":-0.2,"leadCap":19,"leadW":1.08,"hW":1.3,"dW":0.09,"finHP":22,"aggrIn":28,"aggrOut":20,"lastN2":3,"minCap":170,"fleeBias":14}; const S=__S_4; S.tick=(S.tick||0)+1;
   // 1) Target selection (health priority, distance tie)
   let T=null, sc=1e18; for(const e of enemies){ const s=e.health*P.hW + e.distance*P.dW; if(s<sc){sc=s; T=e;} }
   // 2) Predictive aim using quadratic intercept (fallback to linear lead)
@@ -123,12 +123,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "NovaE-N2";}
+function name(){return "NovaZ-N2";}
 function type(){return Type.NORMAL;}
 let __S_5={last:null,tick:0,lastVel:null,side: ((5*17)%2?1:-1)};
 function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI; const N=(a)=>{a%=360; return a<0?a+360:a;}; const C=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"minR":220,"maxR":340,"strafe":38,"threat":86,"sep":64,"edge":46,"bias":-12,"jA":19,"jB":29,"jM":27,"jH":13,"jF":0.12,"leadCap":11,"leadW":0.96,"hW":1.55,"dW":0.1,"finN":28,"finX":18,"lastN":34,"lastX":34,"minCap":170}; const S=__S_5; S.tick=(S.tick||0)+1;
+  const P={"minR":240,"maxR":360,"strafe":34,"threat":175,"threatH":6,"sep":62,"edge":52,"bias":-11,"jF":0.1,"aimBias":-0.2,"leadCap":19,"leadW":1.08,"hW":1.3,"dW":0.09,"finHP":22,"aggrIn":28,"aggrOut":20,"lastN2":3,"minCap":170,"fleeBias":14}; const S=__S_5; S.tick=(S.tick||0)+1;
   // 1) Target selection (health priority, distance tie)
   let T=null, sc=1e18; for(const e of enemies){ const s=e.health*P.hW + e.distance*P.dW; if(s<sc){sc=s; T=e;} }
   // 2) Predictive aim using quadratic intercept (fallback to linear lead)
