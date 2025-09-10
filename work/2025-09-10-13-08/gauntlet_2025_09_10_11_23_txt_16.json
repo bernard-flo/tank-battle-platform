@@ -3,146 +3,146 @@
     {
       "seed": "20240910-0",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-8",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     },
     {
       "seed": "20240910-1",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-9",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     },
     {
       "seed": "20240910-2",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-10",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     },
     {
       "seed": "20240910-3",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-11",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     },
     {
       "seed": "20240910-4",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-12",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     },
     {
       "seed": "20240910-5",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-13",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     },
     {
       "seed": "20240910-6",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-14",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     },
     {
       "seed": "20240910-7",
       "winner": "blue",
-      "ticks": 580,
+      "ticks": 540,
       "redAlive": 0,
-      "blueAlive": 4,
+      "blueAlive": 3,
       "redEnergy": 0,
-      "blueEnergy": 321
+      "blueEnergy": 236
     },
     {
       "seed": "20240910-15",
       "winner": "blue",
-      "ticks": 1187,
+      "ticks": 646,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 162
+      "blueEnergy": 357
     }
   ],
   "aggregate": {
@@ -150,11 +150,11 @@
     "redWins": 0,
     "blueWins": 16,
     "draws": 0,
-    "avgTicks": 883.5,
+    "avgTicks": 593,
     "avgRedAlive": 0,
-    "avgBlueAlive": 3.5,
+    "avgBlueAlive": 4.5,
     "avgRedEnergy": 0,
-    "avgBlueEnergy": 241.5,
+    "avgBlueEnergy": 296.5,
     "baseSeed": "20240910",
     "concurrency": 8
   }
