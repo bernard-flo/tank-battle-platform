@@ -58,12 +58,14 @@ function main(){
 }
 
 if(require.main===module){
-  const myTs = fs.readFileSync(path.join(process.cwd(), '.timestamp'), 'utf8').trim();
   const workDir = process.cwd();
+  const myTs = fs.readFileSync(path.join(workDir, '.timestamp'), 'utf8').trim();
   const candDir = path.join(workDir, 'candidates');
   const candidates = fs.readdirSync(candDir).filter(f=>f.endsWith('.txt')).map(f=>path.join(candDir, f));
   if(candidates.length===0){ console.error('No candidate files.'); process.exit(1); }
-  const opponents = listOpponents('result', myTs);
+  // Resolve result directory relative to repo root (two levels up from work/<ts>)
+  const resultDir = path.resolve(workDir, '..', '..', 'result');
+  const opponents = listOpponents(resultDir, myTs);
   if(opponents.length===0){ console.error('No opponents found under result/.'); process.exit(1); }
   console.log(`Found ${candidates.length} candidates and ${opponents.length} opponents.`);
   const best = pickBestCandidate(candidates, opponents);
