@@ -92,6 +92,7 @@ async function main() {
 
   const compFiles = listCompetitorTeams(RESULT_DIR)
     .filter((f) => /\d{4}-\d{2}-\d{2}-\d{2}-\d{2}\.txt$/.test(f))
+    .filter((f) => !f.includes(path.basename(WORKDIR))) // exclude current working result if exists
     .slice(0, 4); // focus on latest/top 4 teams for speed
   if (compFiles.length === 0) {
     console.error('No competitor teams found in result/.');
