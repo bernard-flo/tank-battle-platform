@@ -1,4 +1,4 @@
-function name(){return "ares_v1-1";}
+function name(){return "ares_v12-1";}
 function type(){return Type.TANKER;}
 let __state={last:null};
 function update(tank,enemies,allies,bulletInfo){
@@ -6,7 +6,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
-  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":160,"maxRange":260,"strafeAngle":28,"threatRadius":70,"allySep":60,"edgeMargin":45,"bias":10,"healthBias":1.3,"distBias":0.12};
+  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":170,"maxRange":260,"strafeAngle":28,"threatRadius":76,"allySep":60,"edgeMargin":45,"bias":-2,"healthBias":1.3,"distBias":0.12};
 
   // Focus target: prioritize low health and proximity
   let tgt=null; let best=1e12;
@@ -113,7 +113,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "ares_v1-2";}
+function name(){return "ares_v12-2";}
 function type(){return Type.TANKER;}
 let __state={last:null};
 function update(tank,enemies,allies,bulletInfo){
@@ -121,7 +121,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
-  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":160,"maxRange":260,"strafeAngle":28,"threatRadius":70,"allySep":60,"edgeMargin":45,"bias":-10,"healthBias":1.3,"distBias":0.12};
+  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":170,"maxRange":260,"strafeAngle":28,"threatRadius":76,"allySep":60,"edgeMargin":45,"bias":2,"healthBias":1.3,"distBias":0.12};
 
   // Focus target: prioritize low health and proximity
   let tgt=null; let best=1e12;
@@ -228,7 +228,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "ares_v1-3";}
+function name(){return "ares_v12-3";}
 function type(){return Type.DEALER;}
 let __state={last:null};
 function update(tank,enemies,allies,bulletInfo){
@@ -236,7 +236,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
-  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.22,"minRange":220,"maxRange":330,"strafeAngle":34,"threatRadius":72,"allySep":60,"edgeMargin":45,"bias":5,"healthBias":1.25,"distBias":0.1};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.22,"minRange":215,"maxRange":325,"strafeAngle":34,"threatRadius":78,"allySep":60,"edgeMargin":45,"bias":-1,"healthBias":1.25,"distBias":0.1};
 
   // Focus target: prioritize low health and proximity
   let tgt=null; let best=1e12;
@@ -343,7 +343,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "ares_v1-4";}
+function name(){return "ares_v12-4";}
 function type(){return Type.DEALER;}
 let __state={last:null};
 function update(tank,enemies,allies,bulletInfo){
@@ -351,7 +351,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
-  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.22,"minRange":220,"maxRange":330,"strafeAngle":34,"threatRadius":72,"allySep":60,"edgeMargin":45,"bias":-5,"healthBias":1.25,"distBias":0.1};
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.22,"minRange":215,"maxRange":325,"strafeAngle":34,"threatRadius":78,"allySep":60,"edgeMargin":45,"bias":1,"healthBias":1.25,"distBias":0.1};
 
   // Focus target: prioritize low health and proximity
   let tgt=null; let best=1e12;
@@ -458,7 +458,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "ares_v1-5";}
+function name(){return "ares_v12-5";}
 function type(){return Type.DEALER;}
 let __state={last:null};
 function update(tank,enemies,allies,bulletInfo){
@@ -466,7 +466,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
-  const P={"leadCap":10,"leadWeight":1.05,"aimJitter":0.22,"minRange":210,"maxRange":320,"strafeAngle":30,"threatRadius":73,"allySep":60,"edgeMargin":45,"bias":2,"healthBias":1.22,"distBias":0.11};
+  const P={"leadCap":10,"leadWeight":1.05,"aimJitter":0.22,"minRange":205,"maxRange":315,"strafeAngle":30,"threatRadius":79,"allySep":60,"edgeMargin":45,"bias":-0.4,"healthBias":1.22,"distBias":0.11};
 
   // Focus target: prioritize low health and proximity
   let tgt=null; let best=1e12;
@@ -573,7 +573,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "ares_v1-6";}
+function name(){return "ares_v12-6";}
 function type(){return Type.NORMAL;}
 let __state={last:null};
 function update(tank,enemies,allies,bulletInfo){
@@ -581,7 +581,7 @@ function update(tank,enemies,allies,bulletInfo){
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
-  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":190,"maxRange":295,"strafeAngle":32,"threatRadius":71,"allySep":60,"edgeMargin":45,"bias":0,"healthBias":1.28,"distBias":0.11};
+  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":193,"maxRange":293,"strafeAngle":32,"threatRadius":77,"allySep":60,"edgeMargin":45,"bias":0,"healthBias":1.28,"distBias":0.11};
 
   // Focus target: prioritize low health and proximity
   let tgt=null; let best=1e12;
