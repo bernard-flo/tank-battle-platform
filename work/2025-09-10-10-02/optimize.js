@@ -241,13 +241,13 @@ async function main() {
     process.exit(1);
   }
   // Limit to top-K recent opponents to keep runtime reasonable
-  const K = Math.min(10, opponents.length);
+  const K = Math.min(parseInt(process.env.OPP_LIMIT||'6',10), opponents.length);
   const oppSel = opponents.slice(0, K);
 
   const base = defaultParams();
   let best = { params: base, score: -Infinity, detail: null };
-  const rounds = 18; // number of candidate evaluations (including base)
-  const repeatPerOpp = 40; // matches per opponent
+  const rounds = parseInt(process.env.ROUNDS||'8',10); // number of candidate evaluations (excluding base)
+  const repeatPerOpp = parseInt(process.env.REPEAT||'16',10); // matches per opponent
   const seedBase = 424242;
 
   function scoreAgainstOpps(code) {
@@ -307,4 +307,3 @@ async function main() {
 if (require.main === module) {
   main().catch((e)=>{ console.error(e); process.exit(1); });
 }
-
