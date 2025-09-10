@@ -205,3 +205,46 @@ Best Candidate: Stellar-8
 - Stellar-8: wr=0.752, score=437.0 knobs={"aggr":1,"lateral":0,"leadMul":1.02,"aimMul":1,"defense":4,"biasAdj":1}
 - Stellar-3: wr=0.712, score=414.0 knobs={"aggr":-1,"lateral":1,"leadMul":1.08,"aimMul":1.2,"defense":0,"biasAdj":1}
 - Stellar-7: wr=0.667, score=392.0 knobs={"aggr":1,"lateral":-1,"leadMul":0.96,"aimMul":0.9,"defense":2,"biasAdj":-1}
+
+---
+
+All-opponents evaluation (count=34)
+- Average WR: 0.837
+- Beaten: 32/34
+- Worst opponent: 2025-09-10-12-49/2025-09-10-12-49.txt (wr=0.300)
+
+### Per-opponent WR (sorted asc)
+- 2025-09-10-12-49/2025-09-10-12-49.txt: wr=0.300 (wins=12, losses=28, draws=0)
+- 2025-09-10-13-23/2025-09-10-13-23.txt: wr=0.500 (wins=20, losses=20, draws=0)
+- 2025-09-10-07-34/2025-09-10-07-34.txt: wr=0.600 (wins=24, losses=16, draws=0)
+- 2025-09-10-08-32/2025-09-10-08-32.txt: wr=0.600 (wins=24, losses=16, draws=0)
+- 2025-09-10-11-58/2025-09-10-11-58.txt: wr=0.600 (wins=24, losses=8, draws=8)
+- 2025-09-10-10-19/2025-09-10-10-19.txt: wr=0.625 (wins=25, losses=10, draws=5)
+- 2025-09-10-12-11/2025-09-10-12-11.txt: wr=0.675 (wins=27, losses=13, draws=0)
+- 2025-09-10-07-47/2025-09-10-07-47.txt: wr=0.700 (wins=28, losses=12, draws=0)
+- 2025-09-10-11-48/2025-09-10-11-48.txt: wr=0.700 (wins=28, losses=12, draws=0)
+- 2025-09-10-12-19/2025-09-10-12-19.txt: wr=0.700 (wins=28, losses=12, draws=0)
+- 2025-09-10-13-39/2025-09-10-13-39.txt: wr=0.700 (wins=28, losses=12, draws=0)
+- 2025-09-10-11-23/2025-09-10-11-23.txt: wr=0.775 (wins=31, losses=2, draws=7)
+- 2025-09-10-11-10/2025-09-10-11-10.txt: wr=0.800 (wins=32, losses=8, draws=0)
+- 2025-09-10-11-16/2025-09-10-11-16.txt: wr=0.800 (wins=32, losses=8, draws=0)
+- 2025-09-10-13-08/2025-09-10-13-08.txt: wr=0.800 (wins=32, losses=8, draws=0)
+- 2025-09-10-08-10/2025-09-10-08-10.txt: wr=0.900 (wins=36, losses=4, draws=0)
+- 2025-09-10-08-25/2025-09-10-08-25.txt: wr=0.900 (wins=36, losses=4, draws=0)
+- 2025-09-10-08-46/2025-09-10-08-46.txt: wr=0.900 (wins=36, losses=4, draws=0)
+- 2025-09-10-10-02/2025-09-10-10-02.txt: wr=0.900 (wins=36, losses=0, draws=4)
+- 2025-09-10-13-02/2025-09-10-13-02.txt: wr=0.975 (wins=39, losses=1, draws=0)
+- result/2025-09-10-06-00.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- result/2025-09-10-07-21.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-07-27/2025-09-10-07-27.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-08-18/2025-09-10-08-18.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-08-54/2025-09-10-08-54.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-09-11/2025-09-10-09-11.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-09-15/2025-09-10-09-15.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-09-25/2025-09-10-09-25.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-09-59/2025-09-10-09-59.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-10-26/2025-09-10-10-26.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-11-02/2025-09-10-11-02.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-11-35/2025-09-10-11-35.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-12-32/2025-09-10-12-32.txt: wr=1.000 (wins=40, losses=0, draws=0)
+- 2025-09-10-12-37/2025-09-10-12-37.txt: wr=1.000 (wins=40, losses=0, draws=0)
