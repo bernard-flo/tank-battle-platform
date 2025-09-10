@@ -1,0 +1,178 @@
+function name(){return "Nova-1-Tank";}
+function type(){return Type.TANKER;}
+let __S_0={tick:0,side:1,last:null,lv:{vx:0,vy:0},flip:0};
+function update(tank,enemies,allies,bulletInfo){
+  var H=Math.hypot; function D(x,y){return Math.atan2(y,x)*180/Math.PI;} function N(a){a%=360; if(a<0)a+=360; return a;}
+  var S=__S_0; S.tick=(S.tick||0)+1; if(S.side==null) S.side=1;
+  var P={rMin:185,rMax:305,edge:54,sep:78,strafe:22,flipEvery:80,threatR:240,threatT:6,leadCap:22,leadW:1.05,aimJit:0.11,finHP:28,focusW:1.25,distW:0.10,aggrRemain:3,aggrIn:30,aggrOut:20};
+
+  // Select target: prefer low HP and closer
+  var tgt=null,best=1e18;
+  for(var i=0;i<enemies.length;i++){
+    var e=enemies[i];
+    var score=e.health*P.focusW + e.distance*P.distW + i*0.0002; if(score<best){best=score; tgt=e;}
+  }
+
+  // Predictive fire with smoothed velocity and quadratic intercept
+  if(tgt){
+    var aimX=tgt.x, aimY=tgt.y;
+    if(S.last){
+      var ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y;
+      var vx=S.lv.vx*0.6 + ivx*0.4, vy=S.lv.vy*0.6 + ivy*0.4; S.lv={vx: vx, vy: vy};
+      var rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64;
+      var aa=vx*vx+vy*vy - s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry, t=0;
+      if(Math.abs(aa)<1e-6){ t = bb!==0 ? Math.max(0, Math.min(P.leadCap, -cc/bb)) : 0; }
+      else { var disc=bb*bb-4*aa*cc; if(disc>=0){ var sd=Math.sqrt(disc); var t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = t1>0&&t2>0?(t1<t2?t1:t2): (t1>0?t1:(t2>0?t2:0)); t=Math.max(0,Math.min(P.leadCap,t)); } }
+      aimX=tgt.x + vx*P.leadW*t; aimY=tgt.y + vy*P.leadW*t;
+    }
+    var jit=(S.tick*13 + ((tank.x*37+tank.y*53)|0))%23 - 11; var da=jit*P.aimJit*0.08;
+    tank.fire(D(aimX-tank.x, aimY-tank.y)+da);
+    S.last={x:tgt.x,y:tgt.y};
+  }
+
+  // Movement planners
+  var moved=0; function go(a){ if(moved>12) return true; moved++; return tank.move(N(a)); }
+  function edgeAvoid(){
+    if(tank.x < P.edge) return go(0);
+    if(tank.x > 900-P.edge) return go(180);
+    if(tank.y < P.edge) return go(90);
+    if(tank.y > 600-P.edge) return go(270);
+    return false;
+  }
+
+  // Bullet avoidance scoring: consider closest-approach and time weight
+  var hot=null, sc=1e18;
+  for(var i2=0;i2<bulletInfo.length;i2++){
+    var b=bulletInfo[i2]; var dx=b.x-tank.x, dy=b.y-tank.y; var v=H(b.vx,b.vy)||1; var ux=b.vx/v, uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue;
+    var px=b.x-proj*ux, py=b.y-proj*uy; var dist=H(px-tank.x,py-tank.y); var tt=proj/v; if(dist>P.threatR) continue;
+    var s=dist + tt*(P.threatT); if(s<sc){ sc=s; hot=b; }
+  }
+  if(hot){
+    var ba=D(hot.vx,hot.vy);
+    function risk(a){ var rad=a*Math.PI/180; var nx=tank.x+Math.cos(rad)*tank.speed, ny=tank.y+Math.sin(rad)*tank.speed; var r=0; for(var k=0;k<bulletInfo.length;k++){ var b=bulletInfo[k]; var dx=b.x-nx, dy=b.y-ny; var v=H(b.vx,b.vy)||1; var ux=b.vx/v, uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux, py=b.y-proj*uy; var dist=H(px-nx,py-ny); var tt=proj/v; if(dist>P.threatR) continue; r += (1/(1+dist)) + tt*0.006; } if(nx<P.edge||nx>900-P.edge||ny<P.edge||ny>600-P.edge) r+=0.6; return r; }
+    var side = (S.side||1); if((S.tick - (S.flip||0)) > P.flipEvery){ side=-side; S.side=side; S.flip=S.tick; }
+    var cands=[ba+90+side*18, ba-90-side*18, ba+120, ba-120, ba+60, ba-60]; cands.sort(function(a,b){return risk(a)-risk(b)});
+    for(var j=0;j<cands.length;j++){ if(go(cands[j])) return; }
+  }
+
+  // Ally separation
+  var near=null, ad=1e18; for(var m=0;m<allies.length;m++){ var a=allies[m]; if(a.distance<ad){ ad=a.distance; near=a; } }
+  if(near && ad < P.sep){ var away=D(tank.x-near.x, tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+
+  // Edge avoid quick
+  if(edgeAvoid()) return;
+
+  // Range control + strafing
+  if(tgt){
+    var to=D(tgt.x-tank.x, tgt.y-tank.y), d=tgt.distance; var r0=P.rMin, r1=P.rMax;
+    if(tgt.health<=P.finHP || enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut); }
+    if(d<r0){ if(go(to+180)) return; if(go(to+196)) return; if(go(to+164)) return; }
+    else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; }
+    else { var sd=(S.side||1); if((S.tick - (S.flip||0)) > P.flipEvery){ sd=-sd; S.side=sd; S.flip=S.tick; } var s=to + sd*(P.strafe); if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; }
+  }
+
+  // Patrol sweep
+  var sweep=[0,60,120,180,240,300]; for(var q=0;q<sweep.length;q++){ if(go(sweep[q])) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-2-Tank";}
+function type(){return Type.TANKER;}
+let __S_1={tick:0,side:-1,last:null,lv:{vx:0,vy:0},flip:0};
+function update(tank,enemies,allies,bulletInfo){
+  var H=Math.hypot; function D(x,y){return Math.atan2(y,x)*180/Math.PI;} function N(a){a%=360; if(a<0)a+=360; return a;}
+  var S=__S_1; S.tick=(S.tick||0)+1; if(S.side==null) S.side=-1;
+  var P={rMin:190,rMax:310,edge:54,sep:78,strafe:24,flipEvery:96,threatR:240,threatT:6,leadCap:22,leadW:1.05,aimJit:0.11,finHP:28,focusW:1.22,distW:0.10,aggrRemain:3,aggrIn:30,aggrOut:20};
+  var tgt=null,best=1e18; for(var i=0;i<enemies.length;i++){ var e=enemies[i]; var s=e.health*P.focusW + e.distance*P.distW + i*0.0002; if(s<best){best=s;tgt=e;} }
+  if(tgt){ var aimX=tgt.x, aimY=tgt.y; if(S.last){ var ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; var vx=S.lv.vx*0.58+ivx*0.42, vy=S.lv.vy*0.58+ivy*0.42; S.lv={vx:vx,vy:vy}; var rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64; var aa=vx*vx+vy*vy - s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry, t=0; if(Math.abs(aa)<1e-6){ t= bb!==0? Math.max(0,Math.min(P.leadCap,-cc/bb)) : 0; } else { var disc=bb*bb-4*aa*cc; if(disc>=0){ var sd=Math.sqrt(disc); var t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = t1>0&&t2>0?(t1<t2?t1:t2): (t1>0?t1:(t2>0?t2:0)); t=Math.max(0,Math.min(P.leadCap,t)); } }
+    aimX=tgt.x + vx*P.leadW*t; aimY=tgt.y + vy*P.leadW*t; }
+    var jit=(S.tick*17 + ((tank.x*41+tank.y*59)|0))%23 - 11; tank.fire(D(aimX-tank.x, aimY-tank.y)+jit*P.aimJit*0.08); S.last={x:tgt.x,y:tgt.y}; }
+  var moved=0; function go(a){ if(moved>12) return true; moved++; return tank.move(N(a)); }
+  var hot=null, sc=1e18; for(var i2=0;i2<bulletInfo.length;i2++){ var b=bulletInfo[i2]; var dx=b.x-tank.x,dy=b.y-tank.y; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux, py=b.y-proj*uy; var dist=H(px-tank.x,py-tank.y); var tt=proj/v; if(dist>P.threatR) continue; var s=dist+tt*(6); if(s<sc){sc=s;hot=b;} }
+  if(hot){ var ba=D(hot.vx,hot.vy); function risk(a){ var rad=a*Math.PI/180; var nx=tank.x+Math.cos(rad)*tank.speed, ny=tank.y+Math.sin(rad)*tank.speed; var r=0; for(var k=0;k<bulletInfo.length;k++){ var b=bulletInfo[k]; var dx=b.x-nx,dy=b.y-ny; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-nx,py-ny); var tt=proj/v; if(dist>P.threatR) continue; r+=(1/(1+dist))+tt*0.006; } if(nx<P.edge||nx>900-P.edge||ny<P.edge||ny>600-P.edge) r+=0.6; return r; } var side=(S.side||-1); if((S.tick-(S.flip||0))>P.flipEvery){ side=-side; S.side=side; S.flip=S.tick; } var c=[ba+90+side*18,ba-90-side*18,ba+120,ba-120,ba+60,ba-60]; c.sort(function(a,b){return risk(a)-risk(b)}); for(var j=0;j<c.length;j++){ if(go(c[j])) return; } }
+  var near=null, ad=1e18; for(var m=0;m<allies.length;m++){ var a=allies[m]; if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ var away=D(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
+  if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
+  if(tgt){ var to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; var r0=P.rMin,r1=P.rMax; if(tgt.health<=P.finHP||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ if(go(to+180))return; if(go(to+196))return; if(go(to+164))return; } else if(d>r1){ if(go(to))return; if(go(to+14))return; if(go(to-14))return; } else { var sd=(S.side||-1); if((S.tick-(S.flip||0))>P.flipEvery){ sd=-sd; S.side=sd; S.flip=S.tick;} var s=to+sd*(P.strafe); if(go(s))return; if(go(s+16))return; if(go(s-16))return; } }
+  var sweep=[0,60,120,180,240,300]; for(var q=0;q<sweep.length;q++){ if(go(sweep[q])) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-3-Dealer";}
+function type(){return Type.DEALER;}
+let __S_2={tick:0,side:1,last:null,lv:{vx:0,vy:0},flip:0};
+function update(tank,enemies,allies,bulletInfo){
+  var H=Math.hypot; function D(x,y){return Math.atan2(y,x)*180/Math.PI;} function N(a){a%=360; if(a<0)a+=360; return a;}
+  var S=__S_2; S.tick=(S.tick||0)+1; if(S.side==null) S.side=1;
+  var P={rMin:210,rMax:340,edge:64,sep:86,strafe:28,flipEvery:72,threatR:250,threatT:7,leadCap:24,leadW:1.06,aimJit:0.13,finHP:22,focusW:1.28,distW:0.08,aggrRemain:2,aggrIn:36,aggrOut:24};
+  var tgt=null,best=1e18; for(var i=0;i<enemies.length;i++){ var e=enemies[i]; var s=e.health*P.focusW + e.distance*P.distW + i*0.0002; if(s<best){best=s; tgt=e;} }
+  if(tgt){ var aimX=tgt.x, aimY=tgt.y; if(S.last){ var ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; var vx=S.lv.vx*0.52+ivx*0.48, vy=S.lv.vy*0.52+ivy*0.48; S.lv={vx:vx,vy:vy}; var rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64; var aa=vx*vx+vy*vy - s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry, t=0; if(Math.abs(aa)<1e-6){ t= bb!==0? Math.max(0,Math.min(P.leadCap,-cc/bb)) : 0; } else { var disc=bb*bb-4*aa*cc; if(disc>=0){ var sd=Math.sqrt(disc); var t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = t1>0&&t2>0?(t1<t2?t1:t2): (t1>0?t1:(t2>0?t2:0)); t=Math.max(0,Math.min(P.leadCap,t)); } else { var d=H(rx,ry); t=Math.min(P.leadCap,d/8); } } aimX=tgt.x + vx*P.leadW*t; aimY=tgt.y + vy*P.leadW*t; }
+    var jit=(S.tick*19 + ((tank.x*67+tank.y*71)|0))%23 - 11; tank.fire(D(aimX-tank.x, aimY-tank.y)+jit*P.aimJit*0.08); S.last={x:tgt.x,y:tgt.y}; }
+  var moved=0; function go(a){ if(moved>14) return true; moved++; return tank.move(N(a)); }
+  var hot=null, sc=1e18; for(var i2=0;i2<bulletInfo.length;i2++){ var b=bulletInfo[i2]; var dx=b.x-tank.x,dy=b.y-tank.y; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-tank.x,py-tank.y); var tt=proj/v; if(dist>P.threatR) continue; var s=dist+tt*(P.threatT); if(s<sc){sc=s;hot=b;} }
+  if(hot){ var ba=D(hot.vx,hot.vy); function risk(a){ var rad=a*Math.PI/180; var nx=tank.x+Math.cos(rad)*tank.speed, ny=tank.y+Math.sin(rad)*tank.speed; var r=0; for(var k=0;k<bulletInfo.length;k++){ var b=bulletInfo[k]; var dx=b.x-nx,dy=b.y-ny; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-nx,py-ny); var tt=proj/v; if(dist>P.threatR) continue; r+=(1/(1+dist))+tt*0.006; } if(nx<P.edge||nx>900-P.edge||ny<P.edge||ny>600-P.edge) r+=0.7; return r; } var side=(S.side||1); if((S.tick-(S.flip||0))>P.flipEvery){ side=-side; S.side=side; S.flip=S.tick; } var c=[ba+100+side*22, ba-100-side*22, ba+140, ba-140, ba+70, ba-70]; c.sort(function(a,b){return risk(a)-risk(b)}); for(var j=0;j<c.length;j++){ if(go(c[j])) return; } }
+  var near=null, ad=1e18; for(var m=0;m<allies.length;m++){ var a=allies[m]; if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ var away=D(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  if(tgt){ var to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; var r0=P.rMin,r1=P.rMax; if(tgt.health<=P.finHP||enemies.length<=P.aggrRemain){ r0=Math.max(140,r0-P.aggrIn); r1=Math.max(190,r1-P.aggrOut);} if(d<r0){ if(go(to+180))return; if(go(to+196))return; if(go(to+164))return; } else if(d>r1){ if(go(to))return; if(go(to+12))return; if(go(to-12))return; } else { var sd=(S.side||1); if((S.tick-(S.flip||0))>P.flipEvery){ sd=-sd; S.side=sd; S.flip=S.tick;} var s=to+sd*(P.strafe); if(go(s))return; if(go(s+14))return; if(go(s-14))return; } }
+  var sweep=[20,80,140,200,260,320]; for(var q=0;q<sweep.length;q++){ if(go(sweep[q])) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-4-Dealer";}
+function type(){return Type.DEALER;}
+let __S_3={tick:0,side:-1,last:null,lv:{vx:0,vy:0},flip:0};
+function update(tank,enemies,allies,bulletInfo){
+  var H=Math.hypot; function D(x,y){return Math.atan2(y,x)*180/Math.PI;} function N(a){a%=360; if(a<0)a+=360; return a;}
+  var S=__S_3; S.tick=(S.tick||0)+1; if(S.side==null) S.side=-1;
+  var P={rMin:210,rMax:340,edge:64,sep:86,strafe:28,flipEvery:76,threatR:252,threatT:7,leadCap:24,leadW:1.06,aimJit:0.13,finHP:22,focusW:1.26,distW:0.08,aggrRemain:2,aggrIn:36,aggrOut:24};
+  var tgt=null,best=1e18; for(var i=0;i<enemies.length;i++){ var e=enemies[i]; var s=e.health*P.focusW + e.distance*P.distW + i*0.0002; if(s<best){best=s; tgt=e;} }
+  if(tgt){ var aimX=tgt.x, aimY=tgt.y; if(S.last){ var ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; var vx=S.lv.vx*0.54+ivx*0.46, vy=S.lv.vy*0.54+ivy*0.46; S.lv={vx:vx,vy:vy}; var rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64; var aa=vx*vx+vy*vy - s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry, t=0; if(Math.abs(aa)<1e-6){ t= bb!==0? Math.max(0,Math.min(P.leadCap,-cc/bb)) : 0; } else { var disc=bb*bb-4*aa*cc; if(disc>=0){ var sd=Math.sqrt(disc); var t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = t1>0&&t2>0?(t1<t2?t1:t2): (t1>0?t1:(t2>0?t2:0)); t=Math.max(0,Math.min(P.leadCap,t)); } else { var d=H(rx,ry); t=Math.min(P.leadCap,d/8); } } aimX=tgt.x + vx*P.leadW*t; aimY=tgt.y + vy*P.leadW*t; }
+    var jit=(S.tick*23 + ((tank.x*73+tank.y*79)|0))%23 - 11; tank.fire(D(aimX-tank.x, aimY-tank.y)+jit*P.aimJit*0.08); S.last={x:tgt.x,y:tgt.y}; }
+  var moved=0; function go(a){ if(moved>14) return true; moved++; return tank.move(N(a)); }
+  var hot=null, sc=1e18; for(var i2=0;i2<bulletInfo.length;i2++){ var b=bulletInfo[i2]; var dx=b.x-tank.x,dy=b.y-tank.y; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-tank.x,py-tank.y); var tt=proj/v; if(dist>P.threatR) continue; var s=dist+tt*(P.threatT); if(s<sc){sc=s;hot=b;} }
+  if(hot){ var ba=D(hot.vx,hot.vy); function risk(a){ var rad=a*Math.PI/180; var nx=tank.x+Math.cos(rad)*tank.speed, ny=tank.y+Math.sin(rad)*tank.speed; var r=0; for(var k=0;k<bulletInfo.length;k++){ var b=bulletInfo[k]; var dx=b.x-nx,dy=b.y-ny; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-nx,py-ny); var tt=proj/v; if(dist>P.threatR) continue; r+=(1/(1+dist))+tt*0.006; } if(nx<P.edge||nx>900-P.edge||ny<P.edge||ny>600-P.edge) r+=0.7; return r; } var side=(S.side||-1); if((S.tick-(S.flip||0))>P.flipEvery){ side=-side; S.side=side; S.flip=S.tick; } var c=[ba+100+side*22, ba-100-side*22, ba+140, ba-140, ba+70, ba-70]; c.sort(function(a,b){return risk(a)-risk(b)}); for(var j=0;j<c.length;j++){ if(go(c[j])) return; } }
+  var near=null, ad=1e18; for(var m=0;m<allies.length;m++){ var a=allies[m]; if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ var away=D(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  if(tgt){ var to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; var r0=P.rMin,r1=P.rMax; if(tgt.health<=P.finHP||enemies.length<=P.aggrRemain){ r0=Math.max(140,r0-P.aggrIn); r1=Math.max(190,r1-P.aggrOut);} if(d<r0){ if(go(to+180))return; if(go(to+196))return; if(go(to+164))return; } else if(d>r1){ if(go(to))return; if(go(to+12))return; if(go(to-12))return; } else { var sd=(S.side||-1); if((S.tick-(S.flip||0))>P.flipEvery){ sd=-sd; S.side=sd; S.flip=S.tick;} var s=to+sd*(P.strafe); if(go(s))return; if(go(s+14))return; if(go(s-14))return; } }
+  var sweep=[40,100,160,220,280,340]; for(var q=0;q<sweep.length;q++){ if(go(sweep[q])) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-5-Normal";}
+function type(){return Type.NORMAL;}
+let __S_4={tick:0,side:1,last:null,lv:{vx:0,vy:0},flip:0};
+function update(tank,enemies,allies,bulletInfo){
+  var H=Math.hypot; function D(x,y){return Math.atan2(y,x)*180/Math.PI;} function N(a){a%=360; if(a<0)a+=360; return a;}
+  var S=__S_4; S.tick=(S.tick||0)+1; if(S.side==null) S.side=1;
+  var P={rMin:200,rMax:330,edge:58,sep:84,strafe:24,flipEvery:84,threatR:246,threatT:6,leadCap:23,leadW:1.055,aimJit:0.12,finHP:24,focusW:1.24,distW:0.09,aggrRemain:3,aggrIn:30,aggrOut:20};
+  var tgt=null,best=1e18; for(var i=0;i<enemies.length;i++){ var e=enemies[i]; var s=e.health*P.focusW + e.distance*P.distW + i*0.0002; if(s<best){best=s; tgt=e;} }
+  if(tgt){ var aimX=tgt.x, aimY=tgt.y; if(S.last){ var ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; var vx=S.lv.vx*0.56+ivx*0.44, vy=S.lv.vy*0.56+ivy*0.44; S.lv={vx:vx,vy:vy}; var rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64; var aa=vx*vx+vy*vy - s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry, t=0; if(Math.abs(aa)<1e-6){ t= bb!==0? Math.max(0,Math.min(P.leadCap,-cc/bb)) : 0; } else { var disc=bb*bb-4*aa*cc; if(disc>=0){ var sd=Math.sqrt(disc); var t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = t1>0&&t2>0?(t1<t2?t1:t2): (t1>0?t1:(t2>0?t2:0)); t=Math.max(0,Math.min(P.leadCap,t)); } else { var d=H(rx,ry); t=Math.min(P.leadCap,d/8); } } aimX=tgt.x + vx*P.leadW*t; aimY=tgt.y + vy*P.leadW*t; }
+    var jit=(S.tick*21 + ((tank.x*61+tank.y*67)|0))%23 - 11; tank.fire(D(aimX-tank.x, aimY-tank.y)+jit*P.aimJit*0.08); S.last={x:tgt.x,y:tgt.y}; }
+  var moved=0; function go(a){ if(moved>13) return true; moved++; return tank.move(N(a)); }
+  var hot=null, sc=1e18; for(var i2=0;i2<bulletInfo.length;i2++){ var b=bulletInfo[i2]; var dx=b.x-tank.x,dy=b.y-tank.y; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-tank.x,py-tank.y); var tt=proj/v; if(dist>P.threatR) continue; var s=dist+tt*(P.threatT); if(s<sc){sc=s;hot=b;} }
+  if(hot){ var ba=D(hot.vx,hot.vy); function risk(a){ var rad=a*Math.PI/180; var nx=tank.x+Math.cos(rad)*tank.speed, ny=tank.y+Math.sin(rad)*tank.speed; var r=0; for(var k=0;k<bulletInfo.length;k++){ var b=bulletInfo[k]; var dx=b.x-nx,dy=b.y-ny; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-nx,py-ny); var tt=proj/v; if(dist>P.threatR) continue; r+=(1/(1+dist))+tt*0.006; } if(nx<P.edge||nx>900-P.edge||ny<P.edge||ny>600-P.edge) r+=0.65; return r; } var side=(S.side||1); if((S.tick-(S.flip||0))>P.flipEvery){ side=-side; S.side=side; S.flip=S.tick; } var c=[ba+95+side*20, ba-95-side*20, ba+135, ba-135, ba+65, ba-65]; c.sort(function(a,b){return risk(a)-risk(b)}); for(var j=0;j<c.length;j++){ if(go(c[j])) return; } }
+  var near=null, ad=1e18; for(var m=0;m<allies.length;m++){ var a=allies[m]; if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ var away=D(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+20))return; if(go(away-20))return; }
+  if(tgt){ var to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; var r0=P.rMin,r1=P.rMax; if(tgt.health<=P.finHP||enemies.length<=P.aggrRemain){ r0=Math.max(130,r0-P.aggrIn); r1=Math.max(180,r1-P.aggrOut);} if(d<r0){ if(go(to+180))return; if(go(to+196))return; if(go(to+164))return; } else if(d>r1){ if(go(to))return; if(go(to+12))return; if(go(to-12))return; } else { var sd=(S.side||1); if((S.tick-(S.flip||0))>P.flipEvery){ sd=-sd; S.side=sd; S.flip=S.tick;} var s=to+sd*(P.strafe); if(go(s))return; if(go(s+14))return; if(go(s-14))return; } }
+  var sweep=[10,70,130,190,250,310]; for(var q=0;q<sweep.length;q++){ if(go(sweep[q])) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Nova-6-Normal";}
+function type(){return Type.NORMAL;}
+let __S_5={tick:0,side:-1,last:null,lv:{vx:0,vy:0},flip:0};
+function update(tank,enemies,allies,bulletInfo){
+  var H=Math.hypot; function D(x,y){return Math.atan2(y,x)*180/Math.PI;} function N(a){a%=360; if(a<0)a+=360; return a;}
+  var S=__S_5; S.tick=(S.tick||0)+1; if(S.side==null) S.side=-1;
+  var P={rMin:200,rMax:330,edge:58,sep:84,strafe:24,flipEvery:88,threatR:246,threatT:6,leadCap:23,leadW:1.055,aimJit:0.12,finHP:24,focusW:1.24,distW:0.09,aggrRemain:3,aggrIn:30,aggrOut:20};
+  var tgt=null,best=1e18; for(var i=0;i<enemies.length;i++){ var e=enemies[i]; var s=e.health*P.focusW + e.distance*P.distW + i*0.0002; if(s<best){best=s; tgt=e;} }
+  if(tgt){ var aimX=tgt.x, aimY=tgt.y; if(S.last){ var ivx=tgt.x-S.last.x, ivy=tgt.y-S.last.y; var vx=S.lv.vx*0.56+ivx*0.44, vy=S.lv.vy*0.56+ivy*0.44; S.lv={vx:vx,vy:vy}; var rx=tgt.x-tank.x, ry=tgt.y-tank.y, s2=64; var aa=vx*vx+vy*vy - s2, bb=2*(rx*vx+ry*vy), cc=rx*rx+ry*ry, t=0; if(Math.abs(aa)<1e-6){ t= bb!==0? Math.max(0,Math.min(P.leadCap,-cc/bb)) : 0; } else { var disc=bb*bb-4*aa*cc; if(disc>=0){ var sd=Math.sqrt(disc); var t1=(-bb-sd)/(2*aa), t2=(-bb+sd)/(2*aa); t = t1>0&&t2>0?(t1<t2?t1:t2): (t1>0?t1:(t2>0?t2:0)); t=Math.max(0,Math.min(P.leadCap,t)); } else { var d=H(rx,ry); t=Math.min(P.leadCap,d/8); } } aimX=tgt.x + vx*P.leadW*t; aimY=tgt.y + vy*P.leadW*t; }
+    var jit=(S.tick*29 + ((tank.x*79+tank.y*83)|0))%23 - 11; tank.fire(D(aimX-tank.x, aimY-tank.y)+jit*P.aimJit*0.08); S.last={x:tgt.x,y:tgt.y}; }
+  var moved=0; function go(a){ if(moved>13) return true; moved++; return tank.move(N(a)); }
+  var hot=null, sc=1e18; for(var i2=0;i2<bulletInfo.length;i2++){ var b=bulletInfo[i2]; var dx=b.x-tank.x,dy=b.y-tank.y; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-tank.x,py-tank.y); var tt=proj/v; if(dist>P.threatR) continue; var s=dist+tt*(P.threatT); if(s<sc){sc=s;hot=b;} }
+  if(hot){ var ba=D(hot.vx,hot.vy); function risk(a){ var rad=a*Math.PI/180; var nx=tank.x+Math.cos(rad)*tank.speed, ny=tank.y+Math.sin(rad)*tank.speed; var r=0; for(var k=0;k<bulletInfo.length;k++){ var b=bulletInfo[k]; var dx=b.x-nx,dy=b.y-ny; var v=H(b.vx,b.vy)||1; var ux=b.vx/v,uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue; var px=b.x-proj*ux,py=b.y-proj*uy; var dist=H(px-nx,py-ny); var tt=proj/v; if(dist>P.threatR) continue; r+=(1/(1+dist))+tt*0.006; } if(nx<P.edge||nx>900-P.edge||ny<P.edge||ny>600-P.edge) r+=0.65; return r; } var side=(S.side||-1); if((S.tick-(S.flip||0))>P.flipEvery){ side=-side; S.side=side; S.flip=S.tick; } var c=[ba+95+side*20, ba-95-side*20, ba+135, ba-135, ba+65, ba-65]; c.sort(function(a,b){return risk(a)-risk(b)}); for(var j=0;j<c.length;j++){ if(go(c[j])) return; } }
+  var near=null, ad=1e18; for(var m=0;m<allies.length;m++){ var a=allies[m]; if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ var away=D(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+20))return; if(go(away-20))return; }
+  if(tgt){ var to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; var r0=P.rMin,r1=P.rMax; if(tgt.health<=P.finHP||enemies.length<=P.aggrRemain){ r0=Math.max(130,r0-P.aggrIn); r1=Math.max(180,r1-P.aggrOut);} if(d<r0){ if(go(to+180))return; if(go(to+196))return; if(go(to+164))return; } else if(d>r1){ if(go(to))return; if(go(to+12))return; if(go(to-12))return; } else { var sd=(S.side||-1); if((S.tick-(S.flip||0))>P.flipEvery){ sd=-sd; S.side=sd; S.flip=S.tick;} var s=to+sd*(P.strafe); if(go(s))return; if(go(s+14))return; if(go(s-14))return; } }
+  var sweep=[30,90,150,210,270,330]; for(var q=0;q<sweep.length;q++){ if(go(sweep[q])) return; }
+}
