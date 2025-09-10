@@ -1,0 +1,686 @@
+function name(){return "ares_v8-1";}
+function type(){return Type.TANKER;}
+let __state={last:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
+  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":175,"maxRange":275,"strafeAngle":33,"threatRadius":75,"allySep":60,"edgeMargin":45,"bias":5,"healthBias":1.3,"distBias":0.12};
+
+  // Focus target: prioritize low health and proximity
+  let tgt=null; let best=1e12;
+  for(const e of enemies){
+    const key = e.health*P.healthBias + e.distance*P.distBias;
+    if(key<best){best=key; tgt=e;}
+  }
+
+  // Aiming with linear lead (approx using last-frame velocity)
+  if(tgt){
+    let aimX=tgt.x, aimY=tgt.y;
+    if(__state.last && __state.last.hasOwnProperty('x')){
+      const vx=(tgt.x-__state.last.x); // px per tick
+      const vy=(tgt.y-__state.last.y);
+      const dx=tgt.x-tank.x, dy=tgt.y-tank.y;
+      const s=8; // bullet speed px/tick
+      const a = vx*vx+vy*vy - s*s;
+      const b = 2*(dx*vx+dy*vy);
+      const c = dx*dx+dy*dy;
+      let t=null;
+      if (Math.abs(a) < 1e-6) {
+        t = c/(-b); // fallback when a~0
+      } else {
+        const D = b*b - 4*a*c;
+        if (D >= 0) {
+          const t1 = (-b + Math.sqrt(D))/(2*a);
+          const t2 = (-b - Math.sqrt(D))/(2*a);
+          t = Math.min(t1,t2);
+          if (!(t>0)) t = Math.max(t1,t2);
+        }
+      }
+      if (t && t>0 && t<P.leadCap) {
+        aimX = tgt.x + vx*t*P.leadWeight;
+        aimY = tgt.y + vy*t*P.leadWeight;
+      } else {
+        const d = Math.hypot(dx,dy);
+        const tLead = clamp(d/s,0,P.leadCap);
+        aimX = tgt.x + vx*tLead*P.leadWeight*0.6;
+        aimY = tgt.y + vy*tLead*P.leadWeight*0.6;
+      }
+    }
+    const jitter = (((tank.x*31+tank.y*17)%23)-11)*0.05 * P.aimJitter;
+    const fireAngle = toDeg(aimX-tank.x, aimY-tank.y) + jitter;
+    tank.fire(fireAngle);
+    __state.last = { x: tgt.x, y: tgt.y };
+  }
+
+  // Movement helpers
+  let tries=0; const tryMove=(a)=>{tries++; return tank.move(norm(a));};
+  const edge=(m)=>{
+    if(tank.x < m && tryMove(0)) return true;
+    if(tank.x > 900-m && tryMove(180)) return true;
+    if(tank.y < m && tryMove(90)) return true;
+    if(tank.y > 600-m && tryMove(270)) return true;
+    return false;
+  };
+
+  // Bullet threat detection using nearest approach
+  let hot=null; let minD=1e9;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v;
+    const proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y);
+      if(d<minD && d<P.threatRadius){ minD=d; hot=b; }
+    }
+  }
+  if(hot){
+    const a=toDeg(hot.vx,hot.vy);
+    const side = ( (tank.x*13+tank.y*7)%2 ? 1 : -1 );
+    const cand=[a+90+P.bias*side, a-90-P.bias*side, a+120, a-120];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+
+  if(edge(P.edgeMargin)) return;
+
+  // Ally separation
+  let nearA=null; let ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; nearA=a; } }
+  if(nearA && ad < P.allySep){
+    const away = toDeg(tank.x-nearA.x, tank.y-nearA.y);
+    if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return;
+  }
+
+  // Engagement spacing and strafe
+  if(tgt){
+    const to = toDeg(tgt.x-tank.x, tgt.y-tank.y);
+    const d = tgt.distance;
+    if(d < P.minRange){
+      const away = to+180 + P.bias*0.5;
+      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
+    } else if(d > P.maxRange){
+      if(tryMove(to)) return; if(tryMove(to+18)) return; if(tryMove(to-18)) return;
+    } else {
+      const dir = ((tank.x*5+tank.y*3)%2 ? 1 : -1);
+      const side = to + dir*P.strafeAngle + P.bias*0.3;
+      if(tryMove(side)) return; if(tryMove(side+18)) return; if(tryMove(side-18)) return;
+    }
+  }
+
+  // Fallback sweeping
+  const sweep=[0,60,120,180,240,300];
+  for(const s of sweep){ if(tryMove(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "ares_v8-2";}
+function type(){return Type.TANKER;}
+let __state={last:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
+  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":175,"maxRange":275,"strafeAngle":33,"threatRadius":75,"allySep":60,"edgeMargin":45,"bias":-5,"healthBias":1.3,"distBias":0.12};
+
+  // Focus target: prioritize low health and proximity
+  let tgt=null; let best=1e12;
+  for(const e of enemies){
+    const key = e.health*P.healthBias + e.distance*P.distBias;
+    if(key<best){best=key; tgt=e;}
+  }
+
+  // Aiming with linear lead (approx using last-frame velocity)
+  if(tgt){
+    let aimX=tgt.x, aimY=tgt.y;
+    if(__state.last && __state.last.hasOwnProperty('x')){
+      const vx=(tgt.x-__state.last.x); // px per tick
+      const vy=(tgt.y-__state.last.y);
+      const dx=tgt.x-tank.x, dy=tgt.y-tank.y;
+      const s=8; // bullet speed px/tick
+      const a = vx*vx+vy*vy - s*s;
+      const b = 2*(dx*vx+dy*vy);
+      const c = dx*dx+dy*dy;
+      let t=null;
+      if (Math.abs(a) < 1e-6) {
+        t = c/(-b); // fallback when a~0
+      } else {
+        const D = b*b - 4*a*c;
+        if (D >= 0) {
+          const t1 = (-b + Math.sqrt(D))/(2*a);
+          const t2 = (-b - Math.sqrt(D))/(2*a);
+          t = Math.min(t1,t2);
+          if (!(t>0)) t = Math.max(t1,t2);
+        }
+      }
+      if (t && t>0 && t<P.leadCap) {
+        aimX = tgt.x + vx*t*P.leadWeight;
+        aimY = tgt.y + vy*t*P.leadWeight;
+      } else {
+        const d = Math.hypot(dx,dy);
+        const tLead = clamp(d/s,0,P.leadCap);
+        aimX = tgt.x + vx*tLead*P.leadWeight*0.6;
+        aimY = tgt.y + vy*tLead*P.leadWeight*0.6;
+      }
+    }
+    const jitter = (((tank.x*31+tank.y*17)%23)-11)*0.05 * P.aimJitter;
+    const fireAngle = toDeg(aimX-tank.x, aimY-tank.y) + jitter;
+    tank.fire(fireAngle);
+    __state.last = { x: tgt.x, y: tgt.y };
+  }
+
+  // Movement helpers
+  let tries=0; const tryMove=(a)=>{tries++; return tank.move(norm(a));};
+  const edge=(m)=>{
+    if(tank.x < m && tryMove(0)) return true;
+    if(tank.x > 900-m && tryMove(180)) return true;
+    if(tank.y < m && tryMove(90)) return true;
+    if(tank.y > 600-m && tryMove(270)) return true;
+    return false;
+  };
+
+  // Bullet threat detection using nearest approach
+  let hot=null; let minD=1e9;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v;
+    const proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y);
+      if(d<minD && d<P.threatRadius){ minD=d; hot=b; }
+    }
+  }
+  if(hot){
+    const a=toDeg(hot.vx,hot.vy);
+    const side = ( (tank.x*13+tank.y*7)%2 ? 1 : -1 );
+    const cand=[a+90+P.bias*side, a-90-P.bias*side, a+120, a-120];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+
+  if(edge(P.edgeMargin)) return;
+
+  // Ally separation
+  let nearA=null; let ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; nearA=a; } }
+  if(nearA && ad < P.allySep){
+    const away = toDeg(tank.x-nearA.x, tank.y-nearA.y);
+    if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return;
+  }
+
+  // Engagement spacing and strafe
+  if(tgt){
+    const to = toDeg(tgt.x-tank.x, tgt.y-tank.y);
+    const d = tgt.distance;
+    if(d < P.minRange){
+      const away = to+180 + P.bias*0.5;
+      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
+    } else if(d > P.maxRange){
+      if(tryMove(to)) return; if(tryMove(to+18)) return; if(tryMove(to-18)) return;
+    } else {
+      const dir = ((tank.x*5+tank.y*3)%2 ? 1 : -1);
+      const side = to + dir*P.strafeAngle + P.bias*0.3;
+      if(tryMove(side)) return; if(tryMove(side+18)) return; if(tryMove(side-18)) return;
+    }
+  }
+
+  // Fallback sweeping
+  const sweep=[0,60,120,180,240,300];
+  for(const s of sweep){ if(tryMove(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "ares_v8-3";}
+function type(){return Type.DEALER;}
+let __state={last:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.22,"minRange":235,"maxRange":345,"strafeAngle":39,"threatRadius":77,"allySep":60,"edgeMargin":45,"bias":2.5,"healthBias":1.25,"distBias":0.1};
+
+  // Focus target: prioritize low health and proximity
+  let tgt=null; let best=1e12;
+  for(const e of enemies){
+    const key = e.health*P.healthBias + e.distance*P.distBias;
+    if(key<best){best=key; tgt=e;}
+  }
+
+  // Aiming with linear lead (approx using last-frame velocity)
+  if(tgt){
+    let aimX=tgt.x, aimY=tgt.y;
+    if(__state.last && __state.last.hasOwnProperty('x')){
+      const vx=(tgt.x-__state.last.x); // px per tick
+      const vy=(tgt.y-__state.last.y);
+      const dx=tgt.x-tank.x, dy=tgt.y-tank.y;
+      const s=8; // bullet speed px/tick
+      const a = vx*vx+vy*vy - s*s;
+      const b = 2*(dx*vx+dy*vy);
+      const c = dx*dx+dy*dy;
+      let t=null;
+      if (Math.abs(a) < 1e-6) {
+        t = c/(-b); // fallback when a~0
+      } else {
+        const D = b*b - 4*a*c;
+        if (D >= 0) {
+          const t1 = (-b + Math.sqrt(D))/(2*a);
+          const t2 = (-b - Math.sqrt(D))/(2*a);
+          t = Math.min(t1,t2);
+          if (!(t>0)) t = Math.max(t1,t2);
+        }
+      }
+      if (t && t>0 && t<P.leadCap) {
+        aimX = tgt.x + vx*t*P.leadWeight;
+        aimY = tgt.y + vy*t*P.leadWeight;
+      } else {
+        const d = Math.hypot(dx,dy);
+        const tLead = clamp(d/s,0,P.leadCap);
+        aimX = tgt.x + vx*tLead*P.leadWeight*0.6;
+        aimY = tgt.y + vy*tLead*P.leadWeight*0.6;
+      }
+    }
+    const jitter = (((tank.x*31+tank.y*17)%23)-11)*0.05 * P.aimJitter;
+    const fireAngle = toDeg(aimX-tank.x, aimY-tank.y) + jitter;
+    tank.fire(fireAngle);
+    __state.last = { x: tgt.x, y: tgt.y };
+  }
+
+  // Movement helpers
+  let tries=0; const tryMove=(a)=>{tries++; return tank.move(norm(a));};
+  const edge=(m)=>{
+    if(tank.x < m && tryMove(0)) return true;
+    if(tank.x > 900-m && tryMove(180)) return true;
+    if(tank.y < m && tryMove(90)) return true;
+    if(tank.y > 600-m && tryMove(270)) return true;
+    return false;
+  };
+
+  // Bullet threat detection using nearest approach
+  let hot=null; let minD=1e9;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v;
+    const proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y);
+      if(d<minD && d<P.threatRadius){ minD=d; hot=b; }
+    }
+  }
+  if(hot){
+    const a=toDeg(hot.vx,hot.vy);
+    const side = ( (tank.x*13+tank.y*7)%2 ? 1 : -1 );
+    const cand=[a+90+P.bias*side, a-90-P.bias*side, a+120, a-120];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+
+  if(edge(P.edgeMargin)) return;
+
+  // Ally separation
+  let nearA=null; let ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; nearA=a; } }
+  if(nearA && ad < P.allySep){
+    const away = toDeg(tank.x-nearA.x, tank.y-nearA.y);
+    if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return;
+  }
+
+  // Engagement spacing and strafe
+  if(tgt){
+    const to = toDeg(tgt.x-tank.x, tgt.y-tank.y);
+    const d = tgt.distance;
+    if(d < P.minRange){
+      const away = to+180 + P.bias*0.5;
+      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
+    } else if(d > P.maxRange){
+      if(tryMove(to)) return; if(tryMove(to+18)) return; if(tryMove(to-18)) return;
+    } else {
+      const dir = ((tank.x*5+tank.y*3)%2 ? 1 : -1);
+      const side = to + dir*P.strafeAngle + P.bias*0.3;
+      if(tryMove(side)) return; if(tryMove(side+18)) return; if(tryMove(side-18)) return;
+    }
+  }
+
+  // Fallback sweeping
+  const sweep=[0,60,120,180,240,300];
+  for(const s of sweep){ if(tryMove(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "ares_v8-4";}
+function type(){return Type.DEALER;}
+let __state={last:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
+  const P={"leadCap":10,"leadWeight":1.1,"aimJitter":0.22,"minRange":235,"maxRange":345,"strafeAngle":39,"threatRadius":77,"allySep":60,"edgeMargin":45,"bias":-2.5,"healthBias":1.25,"distBias":0.1};
+
+  // Focus target: prioritize low health and proximity
+  let tgt=null; let best=1e12;
+  for(const e of enemies){
+    const key = e.health*P.healthBias + e.distance*P.distBias;
+    if(key<best){best=key; tgt=e;}
+  }
+
+  // Aiming with linear lead (approx using last-frame velocity)
+  if(tgt){
+    let aimX=tgt.x, aimY=tgt.y;
+    if(__state.last && __state.last.hasOwnProperty('x')){
+      const vx=(tgt.x-__state.last.x); // px per tick
+      const vy=(tgt.y-__state.last.y);
+      const dx=tgt.x-tank.x, dy=tgt.y-tank.y;
+      const s=8; // bullet speed px/tick
+      const a = vx*vx+vy*vy - s*s;
+      const b = 2*(dx*vx+dy*vy);
+      const c = dx*dx+dy*dy;
+      let t=null;
+      if (Math.abs(a) < 1e-6) {
+        t = c/(-b); // fallback when a~0
+      } else {
+        const D = b*b - 4*a*c;
+        if (D >= 0) {
+          const t1 = (-b + Math.sqrt(D))/(2*a);
+          const t2 = (-b - Math.sqrt(D))/(2*a);
+          t = Math.min(t1,t2);
+          if (!(t>0)) t = Math.max(t1,t2);
+        }
+      }
+      if (t && t>0 && t<P.leadCap) {
+        aimX = tgt.x + vx*t*P.leadWeight;
+        aimY = tgt.y + vy*t*P.leadWeight;
+      } else {
+        const d = Math.hypot(dx,dy);
+        const tLead = clamp(d/s,0,P.leadCap);
+        aimX = tgt.x + vx*tLead*P.leadWeight*0.6;
+        aimY = tgt.y + vy*tLead*P.leadWeight*0.6;
+      }
+    }
+    const jitter = (((tank.x*31+tank.y*17)%23)-11)*0.05 * P.aimJitter;
+    const fireAngle = toDeg(aimX-tank.x, aimY-tank.y) + jitter;
+    tank.fire(fireAngle);
+    __state.last = { x: tgt.x, y: tgt.y };
+  }
+
+  // Movement helpers
+  let tries=0; const tryMove=(a)=>{tries++; return tank.move(norm(a));};
+  const edge=(m)=>{
+    if(tank.x < m && tryMove(0)) return true;
+    if(tank.x > 900-m && tryMove(180)) return true;
+    if(tank.y < m && tryMove(90)) return true;
+    if(tank.y > 600-m && tryMove(270)) return true;
+    return false;
+  };
+
+  // Bullet threat detection using nearest approach
+  let hot=null; let minD=1e9;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v;
+    const proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y);
+      if(d<minD && d<P.threatRadius){ minD=d; hot=b; }
+    }
+  }
+  if(hot){
+    const a=toDeg(hot.vx,hot.vy);
+    const side = ( (tank.x*13+tank.y*7)%2 ? 1 : -1 );
+    const cand=[a+90+P.bias*side, a-90-P.bias*side, a+120, a-120];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+
+  if(edge(P.edgeMargin)) return;
+
+  // Ally separation
+  let nearA=null; let ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; nearA=a; } }
+  if(nearA && ad < P.allySep){
+    const away = toDeg(tank.x-nearA.x, tank.y-nearA.y);
+    if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return;
+  }
+
+  // Engagement spacing and strafe
+  if(tgt){
+    const to = toDeg(tgt.x-tank.x, tgt.y-tank.y);
+    const d = tgt.distance;
+    if(d < P.minRange){
+      const away = to+180 + P.bias*0.5;
+      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
+    } else if(d > P.maxRange){
+      if(tryMove(to)) return; if(tryMove(to+18)) return; if(tryMove(to-18)) return;
+    } else {
+      const dir = ((tank.x*5+tank.y*3)%2 ? 1 : -1);
+      const side = to + dir*P.strafeAngle + P.bias*0.3;
+      if(tryMove(side)) return; if(tryMove(side+18)) return; if(tryMove(side-18)) return;
+    }
+  }
+
+  // Fallback sweeping
+  const sweep=[0,60,120,180,240,300];
+  for(const s of sweep){ if(tryMove(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "ares_v8-5";}
+function type(){return Type.DEALER;}
+let __state={last:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
+  const P={"leadCap":10,"leadWeight":1.05,"aimJitter":0.22,"minRange":225,"maxRange":335,"strafeAngle":35,"threatRadius":78,"allySep":60,"edgeMargin":45,"bias":1,"healthBias":1.22,"distBias":0.11};
+
+  // Focus target: prioritize low health and proximity
+  let tgt=null; let best=1e12;
+  for(const e of enemies){
+    const key = e.health*P.healthBias + e.distance*P.distBias;
+    if(key<best){best=key; tgt=e;}
+  }
+
+  // Aiming with linear lead (approx using last-frame velocity)
+  if(tgt){
+    let aimX=tgt.x, aimY=tgt.y;
+    if(__state.last && __state.last.hasOwnProperty('x')){
+      const vx=(tgt.x-__state.last.x); // px per tick
+      const vy=(tgt.y-__state.last.y);
+      const dx=tgt.x-tank.x, dy=tgt.y-tank.y;
+      const s=8; // bullet speed px/tick
+      const a = vx*vx+vy*vy - s*s;
+      const b = 2*(dx*vx+dy*vy);
+      const c = dx*dx+dy*dy;
+      let t=null;
+      if (Math.abs(a) < 1e-6) {
+        t = c/(-b); // fallback when a~0
+      } else {
+        const D = b*b - 4*a*c;
+        if (D >= 0) {
+          const t1 = (-b + Math.sqrt(D))/(2*a);
+          const t2 = (-b - Math.sqrt(D))/(2*a);
+          t = Math.min(t1,t2);
+          if (!(t>0)) t = Math.max(t1,t2);
+        }
+      }
+      if (t && t>0 && t<P.leadCap) {
+        aimX = tgt.x + vx*t*P.leadWeight;
+        aimY = tgt.y + vy*t*P.leadWeight;
+      } else {
+        const d = Math.hypot(dx,dy);
+        const tLead = clamp(d/s,0,P.leadCap);
+        aimX = tgt.x + vx*tLead*P.leadWeight*0.6;
+        aimY = tgt.y + vy*tLead*P.leadWeight*0.6;
+      }
+    }
+    const jitter = (((tank.x*31+tank.y*17)%23)-11)*0.05 * P.aimJitter;
+    const fireAngle = toDeg(aimX-tank.x, aimY-tank.y) + jitter;
+    tank.fire(fireAngle);
+    __state.last = { x: tgt.x, y: tgt.y };
+  }
+
+  // Movement helpers
+  let tries=0; const tryMove=(a)=>{tries++; return tank.move(norm(a));};
+  const edge=(m)=>{
+    if(tank.x < m && tryMove(0)) return true;
+    if(tank.x > 900-m && tryMove(180)) return true;
+    if(tank.y < m && tryMove(90)) return true;
+    if(tank.y > 600-m && tryMove(270)) return true;
+    return false;
+  };
+
+  // Bullet threat detection using nearest approach
+  let hot=null; let minD=1e9;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v;
+    const proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y);
+      if(d<minD && d<P.threatRadius){ minD=d; hot=b; }
+    }
+  }
+  if(hot){
+    const a=toDeg(hot.vx,hot.vy);
+    const side = ( (tank.x*13+tank.y*7)%2 ? 1 : -1 );
+    const cand=[a+90+P.bias*side, a-90-P.bias*side, a+120, a-120];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+
+  if(edge(P.edgeMargin)) return;
+
+  // Ally separation
+  let nearA=null; let ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; nearA=a; } }
+  if(nearA && ad < P.allySep){
+    const away = toDeg(tank.x-nearA.x, tank.y-nearA.y);
+    if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return;
+  }
+
+  // Engagement spacing and strafe
+  if(tgt){
+    const to = toDeg(tgt.x-tank.x, tgt.y-tank.y);
+    const d = tgt.distance;
+    if(d < P.minRange){
+      const away = to+180 + P.bias*0.5;
+      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
+    } else if(d > P.maxRange){
+      if(tryMove(to)) return; if(tryMove(to+18)) return; if(tryMove(to-18)) return;
+    } else {
+      const dir = ((tank.x*5+tank.y*3)%2 ? 1 : -1);
+      const side = to + dir*P.strafeAngle + P.bias*0.3;
+      if(tryMove(side)) return; if(tryMove(side+18)) return; if(tryMove(side-18)) return;
+    }
+  }
+
+  // Fallback sweeping
+  const sweep=[0,60,120,180,240,300];
+  for(const s of sweep){ if(tryMove(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name(){return "ares_v8-6";}
+function type(){return Type.NORMAL;}
+let __state={last:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const dist=(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2);
+  const P={"leadCap":10,"leadWeight":1,"aimJitter":0.2,"minRange":205,"maxRange":310,"strafeAngle":37,"threatRadius":76,"allySep":60,"edgeMargin":45,"bias":0,"healthBias":1.28,"distBias":0.11};
+
+  // Focus target: prioritize low health and proximity
+  let tgt=null; let best=1e12;
+  for(const e of enemies){
+    const key = e.health*P.healthBias + e.distance*P.distBias;
+    if(key<best){best=key; tgt=e;}
+  }
+
+  // Aiming with linear lead (approx using last-frame velocity)
+  if(tgt){
+    let aimX=tgt.x, aimY=tgt.y;
+    if(__state.last && __state.last.hasOwnProperty('x')){
+      const vx=(tgt.x-__state.last.x); // px per tick
+      const vy=(tgt.y-__state.last.y);
+      const dx=tgt.x-tank.x, dy=tgt.y-tank.y;
+      const s=8; // bullet speed px/tick
+      const a = vx*vx+vy*vy - s*s;
+      const b = 2*(dx*vx+dy*vy);
+      const c = dx*dx+dy*dy;
+      let t=null;
+      if (Math.abs(a) < 1e-6) {
+        t = c/(-b); // fallback when a~0
+      } else {
+        const D = b*b - 4*a*c;
+        if (D >= 0) {
+          const t1 = (-b + Math.sqrt(D))/(2*a);
+          const t2 = (-b - Math.sqrt(D))/(2*a);
+          t = Math.min(t1,t2);
+          if (!(t>0)) t = Math.max(t1,t2);
+        }
+      }
+      if (t && t>0 && t<P.leadCap) {
+        aimX = tgt.x + vx*t*P.leadWeight;
+        aimY = tgt.y + vy*t*P.leadWeight;
+      } else {
+        const d = Math.hypot(dx,dy);
+        const tLead = clamp(d/s,0,P.leadCap);
+        aimX = tgt.x + vx*tLead*P.leadWeight*0.6;
+        aimY = tgt.y + vy*tLead*P.leadWeight*0.6;
+      }
+    }
+    const jitter = (((tank.x*31+tank.y*17)%23)-11)*0.05 * P.aimJitter;
+    const fireAngle = toDeg(aimX-tank.x, aimY-tank.y) + jitter;
+    tank.fire(fireAngle);
+    __state.last = { x: tgt.x, y: tgt.y };
+  }
+
+  // Movement helpers
+  let tries=0; const tryMove=(a)=>{tries++; return tank.move(norm(a));};
+  const edge=(m)=>{
+    if(tank.x < m && tryMove(0)) return true;
+    if(tank.x > 900-m && tryMove(180)) return true;
+    if(tank.y < m && tryMove(90)) return true;
+    if(tank.y > 600-m && tryMove(270)) return true;
+    return false;
+  };
+
+  // Bullet threat detection using nearest approach
+  let hot=null; let minD=1e9;
+  for(const b of bulletInfo){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const v=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v;
+    const proj=dx*nx+dy*ny; if(proj>0){
+      const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y);
+      if(d<minD && d<P.threatRadius){ minD=d; hot=b; }
+    }
+  }
+  if(hot){
+    const a=toDeg(hot.vx,hot.vy);
+    const side = ( (tank.x*13+tank.y*7)%2 ? 1 : -1 );
+    const cand=[a+90+P.bias*side, a-90-P.bias*side, a+120, a-120];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+
+  if(edge(P.edgeMargin)) return;
+
+  // Ally separation
+  let nearA=null; let ad=1e9; for(const a of allies){ if(a.distance<ad){ ad=a.distance; nearA=a; } }
+  if(nearA && ad < P.allySep){
+    const away = toDeg(tank.x-nearA.x, tank.y-nearA.y);
+    if(tryMove(away)) return; if(tryMove(away+30)) return; if(tryMove(away-30)) return;
+  }
+
+  // Engagement spacing and strafe
+  if(tgt){
+    const to = toDeg(tgt.x-tank.x, tgt.y-tank.y);
+    const d = tgt.distance;
+    if(d < P.minRange){
+      const away = to+180 + P.bias*0.5;
+      if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return;
+    } else if(d > P.maxRange){
+      if(tryMove(to)) return; if(tryMove(to+18)) return; if(tryMove(to-18)) return;
+    } else {
+      const dir = ((tank.x*5+tank.y*3)%2 ? 1 : -1);
+      const side = to + dir*P.strafeAngle + P.bias*0.3;
+      if(tryMove(side)) return; if(tryMove(side+18)) return; if(tryMove(side-18)) return;
+    }
+  }
+
+  // Fallback sweeping
+  const sweep=[0,60,120,180,240,300];
+  for(const s of sweep){ if(tryMove(s+P.bias)) return; }
+}
