@@ -5,7 +5,7 @@ function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":170,"rMax":265,"strafe":22,"threatR":190,"threatH":4,"fleeBias":18,"sep":70,"edge":52,"leadCap":20,"leadW":1.04,"aimJitter":0.1,"healthW":1.25,"distW":0.1,"finisherHP":26,"aggrRemain":3,"aggrIn":26,"aggrOut":16,"prefDealer":1,"prefNormal":0,"bias":-10};
+  const P={"rMin":180,"rMax":285,"strafe":22,"threatR":200,"threatH":4,"fleeBias":18,"sep":76,"edge":52,"leadCap":16,"leadW":1,"aimJitter":0.14,"healthW":1.25,"distW":0.1,"finisherHP":26,"aggrRemain":3,"aggrIn":26,"aggrOut":16,"prefDealer":1,"prefNormal":0,"bias":-10};
   const S=__state_0;
   S.tick=(S.tick||0)+1;
 
@@ -110,7 +110,7 @@ function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":210,"rMax":330,"strafe":30,"threatR":170,"threatH":5,"fleeBias":16,"sep":64,"edge":56,"leadCap":22,"leadW":1.15,"aimJitter":0.08,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":35,"aggrOut":24,"prefDealer":1,"prefNormal":0,"aimBias":-0.4,"bias":-8};
+  const P={"rMin":230,"rMax":350,"strafe":30,"threatR":180,"threatH":5,"fleeBias":16,"sep":70,"edge":56,"leadCap":18,"leadW":1.08,"aimJitter":0.14,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":35,"aggrOut":24,"prefDealer":1,"prefNormal":0,"aimBias":-0.4,"bias":-8};
   const S=__state_1;
   S.tick=(S.tick||0)+1;
 
@@ -215,7 +215,7 @@ function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":180,"rMax":290,"strafe":26,"threatR":180,"threatH":4,"fleeBias":16,"sep":66,"edge":50,"leadCap":20,"leadW":1.08,"aimJitter":0.12,"healthW":1.25,"distW":0.1,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"prefDealer":1,"prefNormal":1,"bias":-6};
+  const P={"rMin":190,"rMax":305,"strafe":26,"threatR":190,"threatH":4,"fleeBias":16,"sep":72,"edge":50,"leadCap":16,"leadW":1.02,"aimJitter":0.16,"healthW":1.25,"distW":0.1,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"prefDealer":1,"prefNormal":1,"bias":-6};
   const S=__state_2;
   S.tick=(S.tick||0)+1;
 
@@ -320,7 +320,7 @@ function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":170,"rMax":265,"strafe":22,"threatR":190,"threatH":4,"fleeBias":18,"sep":70,"edge":52,"leadCap":20,"leadW":1.04,"aimJitter":0.1,"healthW":1.25,"distW":0.1,"finisherHP":26,"aggrRemain":3,"aggrIn":26,"aggrOut":16,"prefDealer":1,"prefNormal":0,"bias":10};
+  const P={"rMin":180,"rMax":285,"strafe":22,"threatR":200,"threatH":4,"fleeBias":18,"sep":76,"edge":52,"leadCap":16,"leadW":1,"aimJitter":0.14,"healthW":1.25,"distW":0.1,"finisherHP":26,"aggrRemain":3,"aggrIn":26,"aggrOut":16,"prefDealer":1,"prefNormal":0,"bias":10};
   const S=__state_3;
   S.tick=(S.tick||0)+1;
 
@@ -425,7 +425,7 @@ function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":210,"rMax":330,"strafe":30,"threatR":170,"threatH":5,"fleeBias":16,"sep":64,"edge":56,"leadCap":22,"leadW":1.15,"aimJitter":0.08,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":35,"aggrOut":24,"prefDealer":1,"prefNormal":0,"aimBias":-0.4,"bias":8};
+  const P={"rMin":230,"rMax":350,"strafe":30,"threatR":180,"threatH":5,"fleeBias":16,"sep":70,"edge":56,"leadCap":18,"leadW":1.08,"aimJitter":0.14,"healthW":1.2,"distW":0.08,"finisherHP":22,"aggrRemain":2,"aggrIn":35,"aggrOut":24,"prefDealer":1,"prefNormal":0,"aimBias":-0.4,"bias":8};
   const S=__state_4;
   S.tick=(S.tick||0)+1;
 
@@ -530,7 +530,7 @@ function update(tank,enemies,allies,bulletInfo){
   const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const CL=(v,l,h)=>v<l?l:v>h?h:v;
-  const P={"rMin":180,"rMax":290,"strafe":26,"threatR":180,"threatH":4,"fleeBias":16,"sep":66,"edge":50,"leadCap":20,"leadW":1.08,"aimJitter":0.12,"healthW":1.25,"distW":0.1,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"prefDealer":1,"prefNormal":1,"bias":6};
+  const P={"rMin":190,"rMax":305,"strafe":26,"threatR":190,"threatH":4,"fleeBias":16,"sep":72,"edge":50,"leadCap":16,"leadW":1.02,"aimJitter":0.16,"healthW":1.25,"distW":0.1,"finisherHP":24,"aggrRemain":3,"aggrIn":28,"aggrOut":18,"prefDealer":1,"prefNormal":1,"bias":6};
   const S=__state_5;
   S.tick=(S.tick||0)+1;
 
