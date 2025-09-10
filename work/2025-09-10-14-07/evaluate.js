@@ -23,7 +23,7 @@ function listCompetitors() {
   return list.filter((p) => !p.includes('2025-09-10-14-07') || p.endsWith('/2025-09-10-14-07.txt'));
 }
 
-function runBatch({ red, blue, matches=40, seed=1234, concurrency=8, fast=true, runner='secure', jsonOut }) {
+function runBatch({ red, blue, matches=20, seed=1234, concurrency=8, fast=true, runner='secure', jsonOut }) {
   const args = [SIM, '--red', red, '--blue', blue, '--repeat', String(matches), '--seed', String(seed), '--concurrency', String(concurrency), '--runner', runner];
   if (fast) args.push('--fast');
   if (jsonOut) args.push('--json', jsonOut);
@@ -45,8 +45,8 @@ function evaluateTeam(teamPath, competitors, workDir) {
     const base = path.basename(opp).replace(/\.txt$/, '');
     const outA = path.join(workDir, `result_${base}_A_${Date.now()%100000}.json`);
     const outB = path.join(workDir, `result_${base}_B_${Date.now()%100000}.json`);
-    const A = runBatch({ red: teamPath, blue: opp, matches: 40, jsonOut: outA });
-    const B = runBatch({ red: opp, blue: teamPath, matches: 40, jsonOut: outB });
+    const A = runBatch({ red: teamPath, blue: opp, matches: 20, jsonOut: outA });
+    const B = runBatch({ red: opp, blue: teamPath, matches: 20, jsonOut: outB });
     const redWinA = A.redWins; const blueWinA = A.blueWins; const drawA = A.draws;
     const redWinB = B.redWins; const blueWinB = B.blueWins; const drawB = B.draws;
     // In B, our team is blue
@@ -116,4 +116,3 @@ function main() {
 }
 
 if (require.main === module) main();
-
