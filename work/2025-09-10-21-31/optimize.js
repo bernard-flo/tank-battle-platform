@@ -92,7 +92,7 @@ function update(tank,enemies,allies,bulletInfo){
     if(__s.last){
       const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y;
       const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0;
-      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:s vy};
+      const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy};
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t;
     }
     const jitter=(((__s.tick*31+${idx+1})%23)-11)*0.07*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter);
@@ -307,4 +307,3 @@ async function main() {
 if (require.main === module) {
   main().catch((err) => { console.error(err); process.exit(1); });
 }
-
