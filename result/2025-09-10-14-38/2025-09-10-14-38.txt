@@ -1,0 +1,205 @@
+function name(){return "Astra-T1";}
+function type(){return Type.TANKER;}
+let __s={last:null,tick:0,lastVel:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"minRange":190,"maxRange":254,"strafeAngle":29,"threatRadius":165,"threatFleeBias":10,"allySep":59,"edgeMargin":54,"leadCap":12.3,"leadWeight":0.75,"aimJitter":0.14,"targetHealthWeight":1.11,"targetDistWeight":0.26,"finishHp":22,"finishRemain":4,"finishMinDelta":16,"finishMaxDelta":31,"bias":-5}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  // target selection
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(k<b){b=k; tgt=e;} }
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){ const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y; const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*t; ay=tgt.y+svy*P.leadWeight*t; }
+    const jitter=((((tank.x*31+tank.y*17)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s.last={x:tgt.x,y:tgt.y};
+  }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  // bullet avoidance
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatRadius){minR=d; hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.threatFleeBias + P.bias*0.6; const cand=[a+90+side,a-90-side,a+130,a-130,a+70,a-70]; for(const c of cand){ if(go(c)) return; } }
+  // walls
+  if(tank.x<P.edgeMargin){ if(go(0))return; } if(tank.x>900-P.edgeMargin){ if(go(180))return; } if(tank.y<P.edgeMargin){ if(go(90))return; } if(tank.y>600-P.edgeMargin){ if(go(270))return; }
+  // ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance; near=a;} } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  // kiting ring control
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let mn=P.minRange, mx=P.maxRange; const remain=enemies.length; if((tgt.health<=P.finishHp)||remain<=P.finishRemain){ mn=Math.max(80,mn-P.finishMinDelta); mx=Math.max(120,mx-P.finishMaxDelta); }
+    if(d<mn){ const away=to+180+P.bias*0.4; if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
+    else if(d>mx){ if(go(to))return; if(go(to+16))return; if(go(to-16))return; }
+    else { const side = to + ((((tank.x*13+tank.y*7)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side))return; if(go(side+16))return; if(go(side-16))return; }
+  }
+  const sweep=[0,60,120,180,240,300]; for(const s of sweep){ if(go(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+
+function name(){return "Astra-T2";}
+function type(){return Type.TANKER;}
+let __s={last:null,tick:0,lastVel:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"minRange":159,"maxRange":275,"strafeAngle":32,"threatRadius":149,"threatFleeBias":17,"allySep":57,"edgeMargin":59,"leadCap":15.02,"leadWeight":0.85,"aimJitter":0.14,"targetHealthWeight":1.17,"targetDistWeight":0.27,"finishHp":21,"finishRemain":4,"finishMinDelta":20,"finishMaxDelta":49,"bias":-3}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  // target selection
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(k<b){b=k; tgt=e;} }
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){ const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y; const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*t; ay=tgt.y+svy*P.leadWeight*t; }
+    const jitter=((((tank.x*31+tank.y*17)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s.last={x:tgt.x,y:tgt.y};
+  }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  // bullet avoidance
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatRadius){minR=d; hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.threatFleeBias + P.bias*0.6; const cand=[a+90+side,a-90-side,a+130,a-130,a+70,a-70]; for(const c of cand){ if(go(c)) return; } }
+  // walls
+  if(tank.x<P.edgeMargin){ if(go(0))return; } if(tank.x>900-P.edgeMargin){ if(go(180))return; } if(tank.y<P.edgeMargin){ if(go(90))return; } if(tank.y>600-P.edgeMargin){ if(go(270))return; }
+  // ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance; near=a;} } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  // kiting ring control
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let mn=P.minRange, mx=P.maxRange; const remain=enemies.length; if((tgt.health<=P.finishHp)||remain<=P.finishRemain){ mn=Math.max(80,mn-P.finishMinDelta); mx=Math.max(120,mx-P.finishMaxDelta); }
+    if(d<mn){ const away=to+180+P.bias*0.4; if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
+    else if(d>mx){ if(go(to))return; if(go(to+16))return; if(go(to-16))return; }
+    else { const side = to + ((((tank.x*13+tank.y*7)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side))return; if(go(side+16))return; if(go(side-16))return; }
+  }
+  const sweep=[0,60,120,180,240,300]; for(const s of sweep){ if(go(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+
+function name(){return "Astra-D3";}
+function type(){return Type.DEALER;}
+let __s={last:null,tick:0,lastVel:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"minRange":231,"maxRange":378,"strafeAngle":36,"threatRadius":132,"threatFleeBias":20,"allySep":62,"edgeMargin":54,"leadCap":11.14,"leadWeight":0.8,"aimJitter":0.08,"targetHealthWeight":1.04,"targetDistWeight":0.19,"finishHp":39,"finishRemain":3,"finishMinDelta":20,"finishMaxDelta":31,"bias":33}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  // target selection
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(k<b){b=k; tgt=e;} }
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){ const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y; const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*t; ay=tgt.y+svy*P.leadWeight*t; }
+    const jitter=((((tank.x*31+tank.y*17)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s.last={x:tgt.x,y:tgt.y};
+  }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  // bullet avoidance
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatRadius){minR=d; hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.threatFleeBias + P.bias*0.6; const cand=[a+90+side,a-90-side,a+130,a-130,a+70,a-70]; for(const c of cand){ if(go(c)) return; } }
+  // walls
+  if(tank.x<P.edgeMargin){ if(go(0))return; } if(tank.x>900-P.edgeMargin){ if(go(180))return; } if(tank.y<P.edgeMargin){ if(go(90))return; } if(tank.y>600-P.edgeMargin){ if(go(270))return; }
+  // ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance; near=a;} } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  // kiting ring control
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let mn=P.minRange, mx=P.maxRange; const remain=enemies.length; if((tgt.health<=P.finishHp)||remain<=P.finishRemain){ mn=Math.max(80,mn-P.finishMinDelta); mx=Math.max(120,mx-P.finishMaxDelta); }
+    if(d<mn){ const away=to+180+P.bias*0.4; if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
+    else if(d>mx){ if(go(to))return; if(go(to+16))return; if(go(to-16))return; }
+    else { const side = to + ((((tank.x*13+tank.y*7)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side))return; if(go(side+16))return; if(go(side-16))return; }
+  }
+  const sweep=[0,60,120,180,240,300]; for(const s of sweep){ if(go(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+
+function name(){return "Astra-D4";}
+function type(){return Type.DEALER;}
+let __s={last:null,tick:0,lastVel:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"minRange":230,"maxRange":339,"strafeAngle":36,"threatRadius":130,"threatFleeBias":18,"allySep":54,"edgeMargin":52,"leadCap":15.27,"leadWeight":0.76,"aimJitter":0.15,"targetHealthWeight":1.03,"targetDistWeight":0.28,"finishHp":35,"finishRemain":3,"finishMinDelta":23,"finishMaxDelta":36,"bias":-11}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  // target selection
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(k<b){b=k; tgt=e;} }
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){ const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y; const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*t; ay=tgt.y+svy*P.leadWeight*t; }
+    const jitter=((((tank.x*31+tank.y*17)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s.last={x:tgt.x,y:tgt.y};
+  }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  // bullet avoidance
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatRadius){minR=d; hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.threatFleeBias + P.bias*0.6; const cand=[a+90+side,a-90-side,a+130,a-130,a+70,a-70]; for(const c of cand){ if(go(c)) return; } }
+  // walls
+  if(tank.x<P.edgeMargin){ if(go(0))return; } if(tank.x>900-P.edgeMargin){ if(go(180))return; } if(tank.y<P.edgeMargin){ if(go(90))return; } if(tank.y>600-P.edgeMargin){ if(go(270))return; }
+  // ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance; near=a;} } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  // kiting ring control
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let mn=P.minRange, mx=P.maxRange; const remain=enemies.length; if((tgt.health<=P.finishHp)||remain<=P.finishRemain){ mn=Math.max(80,mn-P.finishMinDelta); mx=Math.max(120,mx-P.finishMaxDelta); }
+    if(d<mn){ const away=to+180+P.bias*0.4; if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
+    else if(d>mx){ if(go(to))return; if(go(to+16))return; if(go(to-16))return; }
+    else { const side = to + ((((tank.x*13+tank.y*7)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side))return; if(go(side+16))return; if(go(side-16))return; }
+  }
+  const sweep=[0,60,120,180,240,300]; for(const s of sweep){ if(go(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+
+function name(){return "Astra-N5";}
+function type(){return Type.NORMAL;}
+let __s={last:null,tick:0,lastVel:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"minRange":181,"maxRange":319,"strafeAngle":31,"threatRadius":123,"threatFleeBias":22,"allySep":61,"edgeMargin":55,"leadCap":15.41,"leadWeight":0.87,"aimJitter":0.13,"targetHealthWeight":1.09,"targetDistWeight":0.27,"finishHp":27,"finishRemain":2,"finishMinDelta":14,"finishMaxDelta":43,"bias":-24}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  // target selection
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(k<b){b=k; tgt=e;} }
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){ const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y; const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*t; ay=tgt.y+svy*P.leadWeight*t; }
+    const jitter=((((tank.x*31+tank.y*17)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s.last={x:tgt.x,y:tgt.y};
+  }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  // bullet avoidance
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatRadius){minR=d; hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.threatFleeBias + P.bias*0.6; const cand=[a+90+side,a-90-side,a+130,a-130,a+70,a-70]; for(const c of cand){ if(go(c)) return; } }
+  // walls
+  if(tank.x<P.edgeMargin){ if(go(0))return; } if(tank.x>900-P.edgeMargin){ if(go(180))return; } if(tank.y<P.edgeMargin){ if(go(90))return; } if(tank.y>600-P.edgeMargin){ if(go(270))return; }
+  // ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance; near=a;} } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  // kiting ring control
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let mn=P.minRange, mx=P.maxRange; const remain=enemies.length; if((tgt.health<=P.finishHp)||remain<=P.finishRemain){ mn=Math.max(80,mn-P.finishMinDelta); mx=Math.max(120,mx-P.finishMaxDelta); }
+    if(d<mn){ const away=to+180+P.bias*0.4; if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
+    else if(d>mx){ if(go(to))return; if(go(to+16))return; if(go(to-16))return; }
+    else { const side = to + ((((tank.x*13+tank.y*7)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side))return; if(go(side+16))return; if(go(side-16))return; }
+  }
+  const sweep=[0,60,120,180,240,300]; for(const s of sweep){ if(go(s+P.bias)) return; }
+}
+
+
+// ===== 다음 로봇 =====
+
+
+function name(){return "Astra-N6";}
+function type(){return Type.NORMAL;}
+let __s={last:null,tick:0,lastVel:null};
+function update(tank,enemies,allies,bulletInfo){
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const H=Math.hypot;
+  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const P={"minRange":179,"maxRange":328,"strafeAngle":30,"threatRadius":135,"threatFleeBias":17,"allySep":65,"edgeMargin":61,"leadCap":11.49,"leadWeight":0.93,"aimJitter":0.17,"targetHealthWeight":1.13,"targetDistWeight":0.22,"finishHp":30,"finishRemain":3,"finishMinDelta":17,"finishMaxDelta":46,"bias":6}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
+  // target selection
+  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(k<b){b=k; tgt=e;} }
+  if(tgt){
+    let ax=tgt.x, ay=tgt.y;
+    if(__s.last){ const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y; const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*t; ay=tgt.y+svy*P.leadWeight*t; }
+    const jitter=((((tank.x*31+tank.y*17)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s.last={x:tgt.x,y:tgt.y};
+  }
+  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  // bullet avoidance
+  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatRadius){minR=d; hot=bu;} } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.threatFleeBias + P.bias*0.6; const cand=[a+90+side,a-90-side,a+130,a-130,a+70,a-70]; for(const c of cand){ if(go(c)) return; } }
+  // walls
+  if(tank.x<P.edgeMargin){ if(go(0))return; } if(tank.x>900-P.edgeMargin){ if(go(180))return; } if(tank.y<P.edgeMargin){ if(go(90))return; } if(tank.y>600-P.edgeMargin){ if(go(270))return; }
+  // ally separation
+  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance; near=a;} } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
+  // kiting ring control
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let mn=P.minRange, mx=P.maxRange; const remain=enemies.length; if((tgt.health<=P.finishHp)||remain<=P.finishRemain){ mn=Math.max(80,mn-P.finishMinDelta); mx=Math.max(120,mx-P.finishMaxDelta); }
+    if(d<mn){ const away=to+180+P.bias*0.4; if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
+    else if(d>mx){ if(go(to))return; if(go(to+16))return; if(go(to-16))return; }
+    else { const side = to + ((((tank.x*13+tank.y*7)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side))return; if(go(side+16))return; if(go(side-16))return; }
+  }
+  const sweep=[0,60,120,180,240,300]; for(const s of sweep){ if(go(s+P.bias)) return; }
+}

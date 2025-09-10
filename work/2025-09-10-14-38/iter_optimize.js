@@ -50,42 +50,66 @@ function randBetween(a, b) { return a + Math.random() * (b - a); }
 
 function genParamsByRole(role) {
   const base = {
-    minRange: role === 'TANKER' ? 170 : role === 'DEALER' ? 240 : 200,
-    maxRange: role === 'TANKER' ? 260 : role === 'DEALER' ? 360 : 310,
-    strafeAngle: role === 'DEALER' ? 34 : 28,
-    threatRadius: role === 'TANKER' ? 150 : 120,
-    threatFleeBias: role === 'TANKER' ? 14 : 20,
-    allySep: 60,
-    edgeMargin: 54,
-    leadCap: 14,
-    leadWeight: 0.86,
-    aimJitter: role === 'DEALER' ? 0.12 : 0.18,
-    targetHealthWeight: 1.08,
-    targetDistWeight: 0.22,
-    finishHp: role === 'DEALER' ? 34 : 26,
-    finishRemain: 3,
-    finishMinDelta: 20,
-    finishMaxDelta: 40,
+    // target selection
+    healthW: 1.18,
+    distW: 0.10,
+    dealerBias: -12,
+    tankerBias: 6,
+    // aim
+    velLP: 0.55,
+    leadCap: 20,
+    leadW: 1.02,
+    aimJitter: role === 'DEALER' ? 0.12 : 0.16,
+    aimBias: 0,
+    // range & movement
+    minRange: role === 'TANKER' ? 180 : role === 'DEALER' ? 260 : 210,
+    maxRange: role === 'TANKER' ? 280 : role === 'DEALER' ? 420 : 320,
+    strafe: role === 'DEALER' ? 28 : 24,
+    allySep: 66,
+    edge: 58,
+    // bullet avoidance
+    threatR: role === 'TANKER' ? 200 : 160,
+    threatH: 5,
+    threatBonus: 0,
+    fleeBias: role === 'TANKER' ? 14 : 18,
+    // finisher/aggression
+    finisherHP: role === 'DEALER' ? 28 : 24,
+    aggrRemain: 3,
+    aggrIn: 24,
+    aggrOut: 18,
+    // symmetry breaker
     bias: 0,
   };
   const jit = (v, p) => v + randBetween(-p, p);
   return {
-    minRange: Math.round(jit(base.minRange, 25)),
-    maxRange: Math.round(jit(base.maxRange, 25)),
-    strafeAngle: Math.round(jit(base.strafeAngle, 6)),
-    threatRadius: Math.round(jit(base.threatRadius, 20)),
-    threatFleeBias: Math.round(jit(base.threatFleeBias, 6)),
-    allySep: Math.round(jit(base.allySep, 10)),
-    edgeMargin: Math.round(jit(base.edgeMargin, 8)),
-    leadCap: +(Math.max(8, Math.min(22, jit(base.leadCap, 3))).toFixed(2)),
-    leadWeight: +(Math.max(0.7, Math.min(1.05, jit(base.leadWeight, 0.12))).toFixed(2)),
-    aimJitter: +(Math.max(0.08, Math.min(0.26, jit(base.aimJitter, 0.08))).toFixed(2)),
-    targetHealthWeight: +(Math.max(0.7, Math.min(1.5, jit(base.targetHealthWeight, 0.1))).toFixed(2)),
-    targetDistWeight: +(Math.max(0.12, Math.min(0.40, jit(base.targetDistWeight, 0.06))).toFixed(2)),
-    finishHp: Math.round(jit(base.finishHp, 8)),
-    finishRemain: Math.max(1, Math.round(jit(base.finishRemain, 1))),
-    finishMinDelta: Math.round(jit(base.finishMinDelta, 8)),
-    finishMaxDelta: Math.round(jit(base.finishMaxDelta, 10)),
+    // target selection
+    healthW: +(Math.max(0.8, Math.min(1.6, jit(base.healthW, 0.12))).toFixed(2)),
+    distW: +(Math.max(0.06, Math.min(0.18, jit(base.distW, 0.03))).toFixed(3)),
+    dealerBias: Math.round(jit(base.dealerBias, 6)),
+    tankerBias: Math.round(jit(base.tankerBias, 4)),
+    // aim
+    velLP: +(Math.max(0.4, Math.min(0.7, jit(base.velLP, 0.08))).toFixed(2)),
+    leadCap: +(Math.max(8, Math.min(24, jit(base.leadCap, 4))).toFixed(2)),
+    leadW: +(Math.max(0.85, Math.min(1.15, jit(base.leadW, 0.1))).toFixed(2)),
+    aimJitter: +(Math.max(0.08, Math.min(0.22, jit(base.aimJitter, 0.06))).toFixed(2)),
+    aimBias: +(jit(base.aimBias, 0.6)).toFixed(2),
+    // range & movement
+    minRange: Math.round(jit(base.minRange, 24)),
+    maxRange: Math.round(jit(base.maxRange, 28)),
+    strafe: Math.round(jit(base.strafe, 6)),
+    allySep: Math.round(jit(base.allySep, 8)),
+    edge: Math.round(jit(base.edge, 8)),
+    // bullet avoidance
+    threatR: Math.round(jit(base.threatR, 24)),
+    threatH: Math.round(jit(base.threatH, 1)),
+    threatBonus: Math.round(jit(base.threatBonus, 2)),
+    fleeBias: Math.round(jit(base.fleeBias, 4)),
+    // finisher/aggression
+    finisherHP: Math.round(jit(base.finisherHP, 6)),
+    aggrRemain: Math.max(1, Math.round(jit(base.aggrRemain, 1))),
+    aggrIn: Math.round(jit(base.aggrIn, 6)),
+    aggrOut: Math.round(jit(base.aggrOut, 6)),
+    // symmetry breaker
     bias: Math.round(jit(base.bias, 25)),
   };
 }
@@ -95,31 +119,29 @@ function buildBotBlock(label, typeLiteral, P) {
 function type(){return ${typeLiteral};}
 let __s={last:null,tick:0,lastVel:null};
 function update(tank,enemies,allies,bulletInfo){
-  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const H=Math.hypot;
-  const norm=(a)=>{a%=360; if(a<0)a+=360; return a;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const H=Math.hypot, D=(x,y)=>Math.atan2(y,x)*180/Math.PI;
+  const N=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const CL=(v,l,h)=>v<l?l:v>h?h:v;
   const P=${JSON.stringify(P)}; __s.tick=(__s.tick||0)+1; const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
-  // target selection
-  let tgt=null,b=1e9; for(const e of enemies){ const k=e.health*P.targetHealthWeight + e.distance*P.targetDistWeight; if(k<b){b=k; tgt=e;} }
-  if(tgt){
-    let ax=tgt.x, ay=tgt.y;
-    if(__s.last){ const vx=tgt.x-__s.last.x, vy=tgt.y-__s.last.y; const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const svx=lvx*0.6+vx*0.4, svy=lvy*0.6+vy*0.4; __s.lastVel={vx:svx,vy:svy}; const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadWeight*t; ay=tgt.y+svy*P.leadWeight*t; }
-    const jitter=((((tank.x*31+tank.y*17)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s.last={x:tgt.x,y:tgt.y};
-  }
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
-  // bullet avoidance
-  let hot=null,minR=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<minR && d<P.threatRadius){minR=d; hot=bu;} } }
-  if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.threatFleeBias + P.bias*0.6; const cand=[a+90+side,a-90-side,a+130,a-130,a+70,a-70]; for(const c of cand){ if(go(c)) return; } }
+  // target selection with role bias by inferred size
+  let tgt=null, best=1e18; for(const e of enemies){ let tBias=0; const sz=e.size||0; if(sz>=43) tBias+=P.tankerBias; else if(sz<=34) tBias+=P.dealerBias; const k=e.health*P.healthW + e.distance*P.distW + tBias; if(k<best){best=k; tgt=e;} }
+  // predictive fire via quadratic intercept
+  if(tgt){ let ax=tgt.x, ay=tgt.y; let vx=0, vy=0; if(__s.last){ const lvx=__s.lastVel?__s.lastVel.vx:0, lvy=__s.lastVel?__s.lastVel.vy:0; const ivx=(tgt.x-__s.last.x), ivy=(tgt.y-__s.last.y); vx=lvx*P.velLP + ivx*(1-P.velLP); vy=lvy*P.velLP + ivy*(1-P.velLP); __s.lastVel={vx,vy}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const s2=64; const aa=vx*vx+vy*vy - s2; const bb=2*(rx*vx+ry*vy); const cc=rx*rx+ry*ry; let tHit=0; if(Math.abs(aa)<1e-6){ tHit = bb!==0 ? CL(-cc/bb, 0, P.leadCap) : 0; } else { const disc=bb*bb-4*aa*cc; if(disc>=0){ const sd=Math.sqrt(disc); const t1=(-bb - sd)/(2*aa); const t2=(-bb + sd)/(2*aa); const tc=(t1>0&&t2>0)?Math.min(t1,t2):(t1>0?t1:(t2>0?t2:0)); tHit=CL(tc,0,P.leadCap); } else { const d=H(rx,ry); tHit=CL(d/8,0,P.leadCap); } } ax=tgt.x + vx*P.leadW*tHit; ay=tgt.y + vy*P.leadW*tHit; }
+    const jitter=((((__s.tick*13 + tank.x*7 + tank.y*3)%23)-11) * (P.aimJitter||0.12) * 0.07) + (P.aimBias||0);
+    tank.fire(D(ax-tank.x,ay-tank.y) + jitter); __s.last={x:tgt.x,y:tgt.y}; }
+  // movement helpers
+  let tried=0; const go=(a)=>{ if(tried>20) return true; tried++; return tank.move(N(a)); };
+  // bullet avoidance with time-to-closest weighting
+  let hot=null, score=1e18; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const dist=H(px-tank.x,py-tank.y); const tt=proj/v; const s=dist + tt*P.threatH - (P.threatBonus||0); if(dist<P.threatR && s<score){score=s; hot=b;} } }
+  if(hot){ const a=D(hot.vx,hot.vy); const side=(rnd>0?1:-1)*P.fleeBias + (P.bias||0)*0.4; const cand=[a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]; for(const c of cand){ if(go(c)) return; } }
   // walls
-  if(tank.x<P.edgeMargin){ if(go(0))return; } if(tank.x>900-P.edgeMargin){ if(go(180))return; } if(tank.y<P.edgeMargin){ if(go(90))return; } if(tank.y>600-P.edgeMargin){ if(go(270))return; }
+  if(tank.x<P.edge){ if(go(0)) return; } if(tank.x>900-P.edge){ if(go(180)) return; } if(tank.y<P.edge){ if(go(90)) return; } if(tank.y>600-P.edge){ if(go(270)) return; }
   // ally separation
-  let near=null,ad=1e9; for(const a of allies){ if(a.distance<ad){ad=a.distance; near=a;} } if(near && ad<P.allySep){ const away=toDeg(tank.x-near.x,tank.y-near.y); if(go(away))return; if(go(away+22))return; if(go(away-22))return; }
-  // kiting ring control
-  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y); const d=tgt.distance; let mn=P.minRange, mx=P.maxRange; const remain=enemies.length; if((tgt.health<=P.finishHp)||remain<=P.finishRemain){ mn=Math.max(80,mn-P.finishMinDelta); mx=Math.max(120,mx-P.finishMaxDelta); }
-    if(d<mn){ const away=to+180+P.bias*0.4; if(go(away))return; if(go(away+18))return; if(go(away-18))return; }
-    else if(d>mx){ if(go(to))return; if(go(to+16))return; if(go(to-16))return; }
-    else { const side = to + ((((tank.x*13+tank.y*7)|0)%2)?P.strafeAngle:-P.strafeAngle) + P.bias*0.5; if(go(side))return; if(go(side+16))return; if(go(side-16))return; }
-  }
-  const sweep=[0,60,120,180,240,300]; for(const s of sweep){ if(go(s+P.bias)) return; }
+  let near=null, ad=1e18; for(const a of allies){ if(a.distance<ad){ ad=a.distance; near=a; } } if(near && ad<P.allySep){ const away=D(tank.x-near.x,tank.y-near.y); if(go(away)) return; if(go(away+18)) return; if(go(away-18)) return; }
+  // range control + strafing
+  if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.minRange, r1=P.maxRange; if(tgt.health<=P.finisherHP || enemies.length<=P.aggrRemain){ r0=Math.max(100, r0-P.aggrIn); r1=Math.max(140, r1-P.aggrOut); } if(d<r0){ const aw=to+180+(P.bias||0)*0.3; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to + (((tank.x*13+tank.y*7)|0)%2?P.strafe:-P.strafe) + (P.bias||0)*0.4; if(go(s)) return; if(go(s+14)) return; if(go(s-14)) return; } }
+  // fallback sweep
+  for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
 }
 `;
 }
