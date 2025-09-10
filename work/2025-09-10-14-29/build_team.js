@@ -68,7 +68,7 @@ function update(tank,enemies,allies,bulletInfo){
   // Movement helpers
   var moved=0; function go(a){ if(moved>20) return true; moved++; return tank.move(N(a)); }
 
-  // 3) Bullet avoidance: choose perpendicular that maximizes projected separation score
+  // 3) Bullet avoidance: pick dodge angle by scoring projected separation and time-to-approach
   var hot=null,score=1e18;
   for(var i2=0;i2<bulletInfo.length;i2++){
     var b=bulletInfo[i2];
@@ -84,9 +84,25 @@ function update(tank,enemies,allies,bulletInfo){
   }
   if(hot){
     var ba=D(hot.vx,hot.vy);
-    // Evaluate both sides and pick lower risk via heuristic sampling forward
     var sideBias=(S.side||1)*(P.fleeBias||16) + (P.bias||0)*0.5;
     var cands=[ba+90+sideBias, ba-90-sideBias, ba+120, ba-120, ba+70, ba-70, ba+150, ba-150];
+    // Score each candidate by predicted post-move risk
+    function riskAtAngle(a){
+      var rad=a*Math.PI/180;
+      var nx=tank.x+Math.cos(rad)*tank.speed, ny=tank.y+Math.sin(rad)*tank.speed;
+      var r=0, i; // accumulate inverse distance with time weighting
+      for(i=0;i<bulletInfo.length;i++){
+        var b=bulletInfo[i];
+        var dx=b.x-nx, dy=b.y-ny; var v=H(b.vx,b.vy)||1; var ux=b.vx/v, uy=b.vy/v; var proj=dx*ux+dy*uy; if(proj<=0) continue;
+        var px=b.x-proj*ux, py=b.y-proj*uy; var dist=H(px-nx,py-ny); var tt=proj/v; if(dist>(P.threatR||200)) continue; r += (1/(1+dist)) + (tt*(P.threatH||5))*0.002;
+      }
+      // Edge and clustering penalties
+      if(nx < (P.edge||60) || nx > 900-(P.edge||60) || ny < (P.edge||60) || ny > 600-(P.edge||60)) r += 0.5;
+      // mild center bias to avoid corners
+      var cx=Math.abs(450-nx)/450, cy=Math.abs(300-ny)/300; r += 0.05*(cx+cy);
+      return r;
+    }
+    cands.sort(function(a,b){ return riskAtAngle(a)-riskAtAngle(b); });
     for(var j=0;j<cands.length;j++){ if(go(cands[j])) return; }
   }
 
@@ -157,4 +173,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
