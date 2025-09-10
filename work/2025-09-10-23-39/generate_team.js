@@ -35,7 +35,7 @@ const Roles = {
 function clamp(v, lo, hi){ return v < lo ? lo : v > hi ? hi : v; }
 
 // Build a single robot block with embedded parameters
-function buildRobot(name, role, biasDeg, seedOffset, params) {
+function buildRobot(name, role, biasDeg, seedOffset, params, style='v1') {
   const rolePreset = Roles[role];
   const P = { ...rolePreset.base, ...params };
   // Serialize numeric params to compact JSON-like literal
@@ -48,7 +48,32 @@ function buildRobot(name, role, biasDeg, seedOffset, params) {
     edgeW: P.edgeW ?? 0.5, sepW: P.sepW ?? 0.35, rangeW: P.rangeW ?? 0.22,
   });
 
-  // The AI code is compact but readable enough; avoid external globals.
+  // The AI code is compact; two styles: v1 (advanced) and simple (baseline).
+  if (style === 'simple') {
+    return (
+`function name(){return ${JSON.stringify(name)};}
+function type(){return ${rolePreset.type};}
+let __s${seedOffset}={tick:0};
+function update(tank,enemies,allies,bulletInfo){
+  "use strict";
+  const P=${PLIT};
+  const H=Math.hypot, toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  __s${seedOffset}.tick=(__s${seedOffset}.tick||0)+1;
+  let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
+  if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
+  const go=(a)=>tank.move(norm(a));
+  // primary: dodge nearest bullet roughly perpendicular
+  let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
+  if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s${seedOffset}.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }
+  // keep distance ring
+  if(tgt){ const to=toDeg(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; if(d<P.rMin){ if(go(to+180))return; } if(d>P.rMax){ if(go(to))return; } const s=to+(((__s${seedOffset}.tick>>3)%2)?P.strafe:-P.strafe); if(go(s))return; }
+  // edges
+  if(tank.x<P.edge && go(0))return; if(tank.x>900-P.edge && go(180))return; if(tank.y<P.edge && go(90))return; if(tank.y>600-P.edge && go(270))return;
+  // fallback sweep
+  const sweep=[0,45,90,135,180,225,270,315]; for(const s of sweep){ if(go(s)) return; }
+}
+`);
+  }
   return (
 `function name(){return ${JSON.stringify(name)};}
 function type(){return ${rolePreset.type};}
@@ -125,7 +150,7 @@ function buildTeam(prefix, style, tweak = {}) {
       avoidW: clamp((tweak.avoidW ?? 1.0), 0.4, 2.0), edgeW: clamp((tweak.edgeW ?? 0.5), 0.2, 1.5), sepW: clamp((tweak.sepW ?? 0.35), 0.1, 1.5), rangeW: clamp((tweak.rangeW ?? 0.22), 0.1, 1.0)
     };
     const n = `${prefix}-${i+1}`;
-    blocks.push(buildRobot(n, role, bias, i+1, base));
+    blocks.push(buildRobot(n, role, bias, i+1, base, style));
   }
   return blocks.join('\n\n// ===== 다음 로봇 =====\n\n');
 }

@@ -104,12 +104,20 @@ function main(){
     { tag:'E', rMin:178, rMax:292, strafe:29, fleeBias:17, aimJitter:0.15, leadW:0.95, biasShift:10 },
   ];
 
-  const candidates = baseTweaks.map(t => {
-    const file = path.join(outBase, `team_${t.tag}.txt`);
-    const name = `Nova-${t.tag}`;
-    const code = buildTeamFromGenerator(genPath, file, name, t);
-    return { name, file, code, tweak: t };
-  });
+  const candidates = [];
+  for (const t of baseTweaks) {
+    // advanced style (v1)
+    const file1 = path.join(outBase, `team_${t.tag}_v1.txt`);
+    const gen1 = require(path.resolve(genPath));
+    const code1 = gen1.buildTeam(`Nova-${t.tag}`, 'v1', t);
+    fs.writeFileSync(file1, code1);
+    candidates.push({ name: `Nova-${t.tag}-v1`, file: file1, code: code1, tweak: t });
+    // simple style
+    const file2 = path.join(outBase, `team_${t.tag}_simple.txt`);
+    const code2 = gen1.buildTeam(`Nova-${t.tag}-S`, 'simple', t);
+    fs.writeFileSync(file2, code2);
+    candidates.push({ name: `Nova-${t.tag}-simple`, file: file2, code: code2, tweak: { ...t, style: 'simple' } });
+  }
 
   // 3) Stage 1: quick evaluation
   const stage1 = stageEvaluate(candidates, opponents.slice(0, 10), { repeatPerSide: 6, maxTicks: 3600 });
