@@ -3,158 +3,122 @@
     {
       "seed": "2000-0",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
+      "blueEnergy": 558
     },
     {
       "seed": "2000-8",
       "winner": "blue",
-      "ticks": 423,
+      "ticks": 435,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 544
     },
     {
       "seed": "2000-1",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
+      "blueEnergy": 558
     },
     {
       "seed": "2000-9",
       "winner": "blue",
-      "ticks": 423,
+      "ticks": 435,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 544
     },
     {
       "seed": "2000-2",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
+      "blueEnergy": 558
     },
     {
       "seed": "2000-10",
       "winner": "blue",
-      "ticks": 423,
+      "ticks": 435,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 544
     },
     {
       "seed": "2000-3",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
+      "blueEnergy": 558
     },
     {
       "seed": "2000-11",
       "winner": "blue",
-      "ticks": 423,
+      "ticks": 435,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 544
     },
     {
       "seed": "2000-4",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
-    },
-    {
-      "seed": "2000-12",
-      "winner": "blue",
-      "ticks": 423,
-      "redAlive": 0,
-      "blueAlive": 5,
-      "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 558
     },
     {
       "seed": "2000-5",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
-    },
-    {
-      "seed": "2000-13",
-      "winner": "blue",
-      "ticks": 423,
-      "redAlive": 0,
-      "blueAlive": 5,
-      "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 558
     },
     {
       "seed": "2000-6",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
-    },
-    {
-      "seed": "2000-14",
-      "winner": "blue",
-      "ticks": 423,
-      "redAlive": 0,
-      "blueAlive": 5,
-      "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 558
     },
     {
       "seed": "2000-7",
       "winner": "blue",
-      "ticks": 1413,
+      "ticks": 411,
       "redAlive": 0,
-      "blueAlive": 2,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 74
-    },
-    {
-      "seed": "2000-15",
-      "winner": "blue",
-      "ticks": 423,
-      "redAlive": 0,
-      "blueAlive": 5,
-      "redEnergy": 0,
-      "blueEnergy": 270
+      "blueEnergy": 558
     }
   ],
   "aggregate": {
-    "matches": 16,
+    "matches": 12,
     "redWins": 0,
-    "blueWins": 16,
+    "blueWins": 12,
     "draws": 0,
-    "avgTicks": 918,
+    "avgTicks": 419,
     "avgRedAlive": 0,
-    "avgBlueAlive": 3.5,
+    "avgBlueAlive": 6,
     "avgRedEnergy": 0,
-    "avgBlueEnergy": 172,
+    "avgBlueEnergy": 553.33,
     "baseSeed": "2000",
     "concurrency": 8
   }

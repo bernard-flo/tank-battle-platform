@@ -3,158 +3,122 @@
     {
       "seed": "2000-0",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
+      "blueEnergy": 457
     },
     {
       "seed": "2000-8",
       "winner": "blue",
-      "ticks": 1598,
+      "ticks": 506,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 584
     },
     {
       "seed": "2000-1",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
+      "blueEnergy": 457
     },
     {
       "seed": "2000-9",
       "winner": "blue",
-      "ticks": 1598,
+      "ticks": 506,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 584
     },
     {
       "seed": "2000-2",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
+      "blueEnergy": 457
     },
     {
       "seed": "2000-10",
       "winner": "blue",
-      "ticks": 1598,
+      "ticks": 506,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 584
     },
     {
       "seed": "2000-3",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
+      "blueEnergy": 457
     },
     {
       "seed": "2000-11",
       "winner": "blue",
-      "ticks": 1598,
+      "ticks": 506,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 584
     },
     {
       "seed": "2000-4",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
-    },
-    {
-      "seed": "2000-12",
-      "winner": "blue",
-      "ticks": 1598,
-      "redAlive": 0,
-      "blueAlive": 3,
-      "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 457
     },
     {
       "seed": "2000-5",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
-    },
-    {
-      "seed": "2000-13",
-      "winner": "blue",
-      "ticks": 1598,
-      "redAlive": 0,
-      "blueAlive": 3,
-      "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 457
     },
     {
       "seed": "2000-6",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
-    },
-    {
-      "seed": "2000-14",
-      "winner": "blue",
-      "ticks": 1598,
-      "redAlive": 0,
-      "blueAlive": 3,
-      "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 457
     },
     {
       "seed": "2000-7",
       "winner": "blue",
-      "ticks": 1381,
+      "ticks": 419,
       "redAlive": 0,
-      "blueAlive": 3,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 138
-    },
-    {
-      "seed": "2000-15",
-      "winner": "blue",
-      "ticks": 1598,
-      "redAlive": 0,
-      "blueAlive": 3,
-      "redEnergy": 0,
-      "blueEnergy": 104
+      "blueEnergy": 457
     }
   ],
   "aggregate": {
-    "matches": 16,
+    "matches": 12,
     "redWins": 0,
-    "blueWins": 16,
+    "blueWins": 12,
     "draws": 0,
-    "avgTicks": 1489.5,
+    "avgTicks": 448,
     "avgRedAlive": 0,
-    "avgBlueAlive": 3,
+    "avgBlueAlive": 6,
     "avgRedEnergy": 0,
-    "avgBlueEnergy": 121,
+    "avgBlueEnergy": 499.33,
     "baseSeed": "2000",
     "concurrency": 8
   }

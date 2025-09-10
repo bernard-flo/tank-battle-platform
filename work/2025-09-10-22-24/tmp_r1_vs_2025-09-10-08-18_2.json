@@ -2,160 +2,70 @@
   "summaries": [
     {
       "seed": "2000-0",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-8",
       "winner": "blue",
-      "ticks": 628,
+      "ticks": 397,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 227
+      "blueEnergy": 600
     },
     {
       "seed": "2000-1",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-9",
       "winner": "blue",
-      "ticks": 628,
+      "ticks": 397,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 227
+      "blueEnergy": 600
     },
     {
       "seed": "2000-2",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-10",
       "winner": "blue",
-      "ticks": 628,
+      "ticks": 397,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 227
+      "blueEnergy": 600
     },
     {
       "seed": "2000-3",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-11",
       "winner": "blue",
-      "ticks": 628,
+      "ticks": 397,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 227
+      "blueEnergy": 600
     },
     {
       "seed": "2000-4",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-12",
       "winner": "blue",
-      "ticks": 628,
+      "ticks": 397,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 227
+      "blueEnergy": 600
     },
     {
       "seed": "2000-5",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-13",
       "winner": "blue",
-      "ticks": 628,
+      "ticks": 397,
       "redAlive": 0,
-      "blueAlive": 5,
+      "blueAlive": 6,
       "redEnergy": 0,
-      "blueEnergy": 227
-    },
-    {
-      "seed": "2000-6",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-14",
-      "winner": "blue",
-      "ticks": 628,
-      "redAlive": 0,
-      "blueAlive": 5,
-      "redEnergy": 0,
-      "blueEnergy": 227
-    },
-    {
-      "seed": "2000-7",
-      "winner": "red",
-      "ticks": 2551,
-      "redAlive": 2,
-      "blueAlive": 0,
-      "redEnergy": 43,
-      "blueEnergy": 0
-    },
-    {
-      "seed": "2000-15",
-      "winner": "blue",
-      "ticks": 628,
-      "redAlive": 0,
-      "blueAlive": 5,
-      "redEnergy": 0,
-      "blueEnergy": 227
+      "blueEnergy": 600
     }
   ],
   "aggregate": {
-    "matches": 16,
-    "redWins": 8,
-    "blueWins": 8,
+    "matches": 6,
+    "redWins": 0,
+    "blueWins": 6,
     "draws": 0,
-    "avgTicks": 1589.5,
-    "avgRedAlive": 1,
-    "avgBlueAlive": 2.5,
-    "avgRedEnergy": 21.5,
-    "avgBlueEnergy": 113.5,
+    "avgTicks": 397,
+    "avgRedAlive": 0,
+    "avgBlueAlive": 6,
+    "avgRedEnergy": 0,
+    "avgBlueEnergy": 600,
     "baseSeed": "2000",
-    "concurrency": 8
+    "concurrency": 6
   }
 }

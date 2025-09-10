@@ -1,0 +1,125 @@
+{
+  "summaries": [
+    {
+      "seed": "2468-0",
+      "winner": "blue",
+      "ticks": 571,
+      "redAlive": 0,
+      "blueAlive": 6,
+      "redEnergy": 0,
+      "blueEnergy": 394
+    },
+    {
+      "seed": "2468-6",
+      "winner": "blue",
+      "ticks": 841,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 347
+    },
+    {
+      "seed": "2468-1",
+      "winner": "blue",
+      "ticks": 571,
+      "redAlive": 0,
+      "blueAlive": 6,
+      "redEnergy": 0,
+      "blueEnergy": 394
+    },
+    {
+      "seed": "2468-7",
+      "winner": "blue",
+      "ticks": 841,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 347
+    },
+    {
+      "seed": "2468-2",
+      "winner": "blue",
+      "ticks": 571,
+      "redAlive": 0,
+      "blueAlive": 6,
+      "redEnergy": 0,
+      "blueEnergy": 394
+    },
+    {
+      "seed": "2468-8",
+      "winner": "blue",
+      "ticks": 841,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 347
+    },
+    {
+      "seed": "2468-3",
+      "winner": "blue",
+      "ticks": 571,
+      "redAlive": 0,
+      "blueAlive": 6,
+      "redEnergy": 0,
+      "blueEnergy": 394
+    },
+    {
+      "seed": "2468-9",
+      "winner": "blue",
+      "ticks": 841,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 347
+    },
+    {
+      "seed": "2468-4",
+      "winner": "blue",
+      "ticks": 571,
+      "redAlive": 0,
+      "blueAlive": 6,
+      "redEnergy": 0,
+      "blueEnergy": 394
+    },
+    {
+      "seed": "2468-10",
+      "winner": "blue",
+      "ticks": 841,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 347
+    },
+    {
+      "seed": "2468-5",
+      "winner": "blue",
+      "ticks": 571,
+      "redAlive": 0,
+      "blueAlive": 6,
+      "redEnergy": 0,
+      "blueEnergy": 394
+    },
+    {
+      "seed": "2468-11",
+      "winner": "blue",
+      "ticks": 841,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 347
+    }
+  ],
+  "aggregate": {
+    "matches": 12,
+    "redWins": 0,
+    "blueWins": 12,
+    "draws": 0,
+    "avgTicks": 706,
+    "avgRedAlive": 0,
+    "avgBlueAlive": 5.5,
+    "avgRedEnergy": 0,
+    "avgBlueEnergy": 370.5,
+    "baseSeed": "2468",
+    "concurrency": 6
+  }
+}
