@@ -23,6 +23,7 @@ function listOpponents(maxCount = 6) {
       if (d.startsWith(RUNID)) continue;
       entries.push(p);
     } else if (fs.statSync(p).isDirectory()) {
+      if (d === RUNID) continue; // exclude our own current run dir
       const f = path.join(p, `${d}.txt`);
       if (fs.existsSync(f)) entries.push(f);
     }
@@ -172,6 +173,42 @@ function run() {
     console.log(`Refined ${i} avg winRate = ${(score*100).toFixed(2)}%`);
   }
 
+  // Identify toughest opponents (lowest winRate) and focus fine-tuning
+  best.details.sort((a,b)=>a.winRate-b.winRate);
+  const hard = best.details.slice(0, Math.min(3, best.details.length)).map(d=>d.opp);
+  console.log('Hardest opponents:', hard.join(', '));
+  function evaluateFocused(tf) {
+    let sum=0, n=0; const list=[];
+    for (const oppBase of hard) {
+      const opp = opps.find(p=>path.basename(p)===oppBase);
+      if (!opp) continue;
+      const { winRate, total } = evaluate(tf, opp, { repeat: 30, concurrency: 8, fast: true });
+      sum += winRate; n++; list.push({ opp: oppBase, winRate, matches: total });
+    }
+    return { score: n?sum/n:0, list };
+  }
+  let focusedBest = { params: bestParams, score: -1, file: best.file };
+  for (let i=0;i<12;i++) {
+    const p = randomize(bestParams, 0.4);
+    const code = buildTeam(p, 'Helios');
+    const tf = path.join(WKDIR, `focus_${i}.js`);
+    saveTeam(tf, code);
+    const { score } = evaluateFocused(tf);
+    if (score > focusedBest.score) { focusedBest = { params: p, score, file: tf }; }
+    console.log(`[focus ${i}] score=${(score*100).toFixed(1)}%`);
+  }
+  if (focusedBest.score > 0) {
+    // Evaluate the focused-best against all opponents to see overall performance
+    let sum=0; let totalPairs=0; const details=[];
+    for (const opp of opps) {
+      const { winRate, total } = evaluate(focusedBest.file, opp, { repeat: 25, concurrency: 8, fast: true });
+      sum += winRate; totalPairs += 1; details.push({ opp: path.basename(opp), winRate, matches: total });
+    }
+    const score = sum / totalPairs;
+    if (score > bestScore) { bestScore = score; best = { file: focusedBest.file, details }; bestParams = focusedBest.params; }
+    console.log(`Focused best avg winRate = ${(score*100).toFixed(2)}%`);
+  }
+
   // Save final team code to result dir
   const finalCode = buildTeam(bestParams, 'Helios');
   const outPath = path.join(RSDIR, `${RUNID}.txt`);
@@ -192,4 +229,3 @@ function run() {
 }
 
 run();
-

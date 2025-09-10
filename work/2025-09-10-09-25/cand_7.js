@@ -4,10 +4,11 @@ function type(){return 1;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.0282081123110476,"aimJitter":0.21268302830592528,"velSmooth":0.454083141453857,"minRange":150,"maxRange":212,"strafeAngle":15,"strafeSpread":18,"approachSpread":16,"escapeSpread":21,"threatRadius":150,"threatFleeBias":-14,"allySep":52,"edgeMargin":37,"bias":-17,"targetHealthWeight":1.500476456901034,"targetDistWeight":0.0918624374171669,"finishHp":31,"finishRemain":4,"finishMinDelta":25,"finishMaxDelta":34};
+  const P={"leadCap":13,"leadWeight":0.9432098813442191,"aimJitter":0.1973220969341439,"velSmooth":0.7671090712571638,"minRange":124,"maxRange":263,"strafeAngle":26,"strafeSpread":15,"approachSpread":22,"escapeSpread":13,"threatRadius":160,"threatFleeBias":-6,"allySep":63,"edgeMargin":34,"bias":-16,"targetHealthWeight":0.8756202527500199,"targetDistWeight":0.06387335491035079,"finishHp":18,"finishRemain":2,"finishMinDelta":41,"finishMaxDelta":16};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
+  const clamp=(v,lo,hi)=>v<lo?lo:(v>hi?hi:v);
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
 
   // 1) Target selection: health-weighted then distance
@@ -107,10 +108,11 @@ function type(){return 2;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.0282081123110476,"aimJitter":0.25021532741873564,"velSmooth":0.454083141453857,"minRange":166,"maxRange":228,"strafeAngle":23,"strafeSpread":18,"approachSpread":16,"escapeSpread":21,"threatRadius":150,"threatFleeBias":14,"allySep":52,"edgeMargin":37,"bias":-17,"targetHealthWeight":1.500476456901034,"targetDistWeight":0.0918624374171669,"finishHp":31,"finishRemain":4,"finishMinDelta":25,"finishMaxDelta":34};
+  const P={"leadCap":13,"leadWeight":0.9432098813442191,"aimJitter":0.232143643451934,"velSmooth":0.7671090712571638,"minRange":140,"maxRange":279,"strafeAngle":34,"strafeSpread":15,"approachSpread":22,"escapeSpread":13,"threatRadius":160,"threatFleeBias":6,"allySep":63,"edgeMargin":34,"bias":-16,"targetHealthWeight":0.8756202527500199,"targetDistWeight":0.06387335491035079,"finishHp":18,"finishRemain":2,"finishMinDelta":41,"finishMaxDelta":16};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
+  const clamp=(v,lo,hi)=>v<lo?lo:(v>hi?hi:v);
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
 
   // 1) Target selection: health-weighted then distance
@@ -210,10 +212,11 @@ function type(){return 2;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.0282081123110476,"aimJitter":0.28774762653154595,"velSmooth":0.454083141453857,"minRange":150,"maxRange":212,"strafeAngle":15,"strafeSpread":18,"approachSpread":16,"escapeSpread":21,"threatRadius":150,"threatFleeBias":-14,"allySep":52,"edgeMargin":37,"bias":-17,"targetHealthWeight":1.500476456901034,"targetDistWeight":0.0918624374171669,"finishHp":31,"finishRemain":4,"finishMinDelta":25,"finishMaxDelta":34};
+  const P={"leadCap":13,"leadWeight":0.9432098813442191,"aimJitter":0.26696518996972407,"velSmooth":0.7671090712571638,"minRange":124,"maxRange":263,"strafeAngle":26,"strafeSpread":15,"approachSpread":22,"escapeSpread":13,"threatRadius":160,"threatFleeBias":-6,"allySep":63,"edgeMargin":34,"bias":-16,"targetHealthWeight":0.8756202527500199,"targetDistWeight":0.06387335491035079,"finishHp":18,"finishRemain":2,"finishMinDelta":41,"finishMaxDelta":16};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
+  const clamp=(v,lo,hi)=>v<lo?lo:(v>hi?hi:v);
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
 
   // 1) Target selection: health-weighted then distance
@@ -313,10 +316,11 @@ function type(){return 0;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.0282081123110476,"aimJitter":0.21268302830592528,"velSmooth":0.454083141453857,"minRange":166,"maxRange":228,"strafeAngle":23,"strafeSpread":18,"approachSpread":16,"escapeSpread":21,"threatRadius":150,"threatFleeBias":14,"allySep":52,"edgeMargin":37,"bias":17,"targetHealthWeight":1.500476456901034,"targetDistWeight":0.0918624374171669,"finishHp":31,"finishRemain":4,"finishMinDelta":25,"finishMaxDelta":34};
+  const P={"leadCap":13,"leadWeight":0.9432098813442191,"aimJitter":0.1973220969341439,"velSmooth":0.7671090712571638,"minRange":140,"maxRange":279,"strafeAngle":34,"strafeSpread":15,"approachSpread":22,"escapeSpread":13,"threatRadius":160,"threatFleeBias":6,"allySep":63,"edgeMargin":34,"bias":16,"targetHealthWeight":0.8756202527500199,"targetDistWeight":0.06387335491035079,"finishHp":18,"finishRemain":2,"finishMinDelta":41,"finishMaxDelta":16};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
+  const clamp=(v,lo,hi)=>v<lo?lo:(v>hi?hi:v);
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
 
   // 1) Target selection: health-weighted then distance
@@ -416,10 +420,11 @@ function type(){return 2;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.0282081123110476,"aimJitter":0.25021532741873564,"velSmooth":0.454083141453857,"minRange":150,"maxRange":212,"strafeAngle":15,"strafeSpread":18,"approachSpread":16,"escapeSpread":21,"threatRadius":150,"threatFleeBias":-14,"allySep":52,"edgeMargin":37,"bias":17,"targetHealthWeight":1.500476456901034,"targetDistWeight":0.0918624374171669,"finishHp":31,"finishRemain":4,"finishMinDelta":25,"finishMaxDelta":34};
+  const P={"leadCap":13,"leadWeight":0.9432098813442191,"aimJitter":0.232143643451934,"velSmooth":0.7671090712571638,"minRange":124,"maxRange":263,"strafeAngle":26,"strafeSpread":15,"approachSpread":22,"escapeSpread":13,"threatRadius":160,"threatFleeBias":-6,"allySep":63,"edgeMargin":34,"bias":16,"targetHealthWeight":0.8756202527500199,"targetDistWeight":0.06387335491035079,"finishHp":18,"finishRemain":2,"finishMinDelta":41,"finishMaxDelta":16};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
+  const clamp=(v,lo,hi)=>v<lo?lo:(v>hi?hi:v);
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
 
   // 1) Target selection: health-weighted then distance
@@ -519,10 +524,11 @@ function type(){return 1;}
 var __state = (typeof __state !== 'undefined' && __state) || { tick:0, last:null, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"leadCap":15,"leadWeight":1.0282081123110476,"aimJitter":0.28774762653154595,"velSmooth":0.454083141453857,"minRange":166,"maxRange":228,"strafeAngle":23,"strafeSpread":18,"approachSpread":16,"escapeSpread":21,"threatRadius":150,"threatFleeBias":14,"allySep":52,"edgeMargin":37,"bias":17,"targetHealthWeight":1.500476456901034,"targetDistWeight":0.0918624374171669,"finishHp":31,"finishRemain":4,"finishMinDelta":25,"finishMaxDelta":34};
+  const P={"leadCap":13,"leadWeight":0.9432098813442191,"aimJitter":0.26696518996972407,"velSmooth":0.7671090712571638,"minRange":140,"maxRange":279,"strafeAngle":34,"strafeSpread":15,"approachSpread":22,"escapeSpread":13,"threatRadius":160,"threatFleeBias":6,"allySep":63,"edgeMargin":34,"bias":16,"targetHealthWeight":0.8756202527500199,"targetDistWeight":0.06387335491035079,"finishHp":18,"finishRemain":2,"finishMinDelta":41,"finishMaxDelta":16};
   __state.tick = (__state.tick||0)+1;
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI;
   const hypot=Math.hypot;
+  const clamp=(v,lo,hi)=>v<lo?lo:(v>hi?hi:v);
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
 
   // 1) Target selection: health-weighted then distance
