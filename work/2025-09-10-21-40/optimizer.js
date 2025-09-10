@@ -234,8 +234,8 @@ function main() {
   console.log('Opponents:', opponents.map(p=>path.basename(path.dirname(p)) + '/' + path.basename(p)).join(', '));
 
   const tmpCand = path.join(WORK_DIR, 'candidate.txt');
-  const iters = 10;
-  const repeats = 80; // per side
+  const iters = 6;
+  const repeats = 30; // per side
   let best = { winRate: -1, seed: 0, details: [] };
 
   for (let i = 0; i < iters; i++) {
@@ -271,4 +271,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
