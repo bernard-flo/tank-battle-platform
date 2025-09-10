@@ -122,6 +122,24 @@ async function main(){
     if (avg > bestScore) { bestScore = avg; bestParams = cand; }
   }
 
+  // Targeted refinement against hardest opponents
+  let prelim = [];
+  for (const o of opponents){
+    const opp = readText(o.path);
+    const r = await duel(makeTeam(bestParams), opp, 33330000, 6);
+    prelim.push({ name:o.name, path:o.path, rate:r.rate });
+  }
+  prelim.sort((a,b)=> a.rate - b.rate);
+  const hard = prelim.slice(0, 10);
+  console.log('Hard opponents:', hard.map(x=>x.name).join(', '));
+  for (let iter=0; iter<6; iter++){
+    const cand = mkParamsWithPerturb(bestParams, scale);
+    const code = makeTeam(cand);
+    let sum = 0; for (const h of hard){ const r = await duel(code, readText(h.path), 55550000+iter*1000, 8); sum += r.rate; }
+    const baseSum = await (async()=>{ let s=0; for(const h of hard){ const r=await duel(makeTeam(bestParams), readText(h.path), 55550000+iter*1000, 8); s+=r.rate; } return s; })();
+    if (sum > baseSum) { bestParams = cand; console.log(`Refine iter ${iter}: improved hard-set avg ${(sum/hard.length).toFixed(3)} > ${(baseSum/hard.length).toFixed(3)}`); }
+  }
+
   // Finalize best code
   const finalCode = makeTeam(bestParams);
 
@@ -178,4 +196,3 @@ async function main(){
 if (require.main === module) {
   main().catch((e)=>{ console.error(e); process.exit(1); });
 }
-
