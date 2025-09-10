@@ -27,3 +27,25 @@ Best Candidate: Aquila-5
 - Overall winRate: 35.2%
 - Min opponent winRate: 0.0%
 - Matches: 384 (W:135 L:249 D:0)
+
+## Smart Optimize (Helix)
+
+Best: Helix-11 wr=0.409 knobs={"aggr":0,"lateral":-1,"leadWeight":1.02,"aimJitter":0.2,"defense":8,"biasAdj":-2}
+- 2025-09-10-11-48.txt: 8/40 (wr=0.200)
+- 2025-09-10-11-58.txt: 16/40 (wr=0.400)
+- 2025-09-10-12-11.txt: 0/40 (wr=0.000)
+- 2025-09-10-12-19.txt: 8/40 (wr=0.200)
+- 2025-09-10-12-32.txt: 32/40 (wr=0.800)
+- 2025-09-10-12-37.txt: 31/40 (wr=0.775)
+- 2025-09-10-12-49.txt: 4/40 (wr=0.100)
+- 2025-09-10-13-02.txt: 32/40 (wr=0.800)
+
+## Smart Optimize (Helix)
+
+Best: Helix-8 wr=0.528 knobs={"aggr":-1,"lateral":1,"leadWeight":1.02,"aimJitter":0.2,"defense":8,"biasAdj":1}
+- 2025-09-10-12-11.txt: 0/24 (wr=0.000)
+- 2025-09-10-12-19.txt: 8/24 (wr=0.333)
+- 2025-09-10-12-32.txt: 20/24 (wr=0.833)
+- 2025-09-10-12-37.txt: 20/24 (wr=0.833)
+- 2025-09-10-12-49.txt: 8/24 (wr=0.333)
+- 2025-09-10-13-02.txt: 20/24 (wr=0.833)

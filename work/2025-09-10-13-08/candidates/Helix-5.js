@@ -1,4 +1,4 @@
-function name(){return "Helix-8-Q1";}
+function name(){return "Helix-5-Q1";}
 function type(){return Type.TANKER;}
 let __state = { last:null, tick:0, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
@@ -7,7 +7,7 @@ function update(tank,enemies,allies,bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
-  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":178,"maxRange":276,"strafeAngle":32,"threatRadius":230,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":-11,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
+  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":178,"maxRange":276,"strafeAngle":30,"threatRadius":230,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":-13,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
   __state.tick = (__state.tick||0) + 1;
   let tgt=null; let best=1e9;
   for(const e of enemies){ const key = e.health*1.22 + e.distance*0.12; if(key<best){best=key; tgt=e;} }
@@ -47,7 +47,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Helix-8-Q2";}
+function name(){return "Helix-5-Q2";}
 function type(){return Type.TANKER;}
 let __state = { last:null, tick:0, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
@@ -56,7 +56,7 @@ function update(tank,enemies,allies,bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
-  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":188,"maxRange":286,"strafeAngle":28,"threatRadius":230,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":13,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
+  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":188,"maxRange":286,"strafeAngle":30,"threatRadius":230,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":11,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
   __state.tick = (__state.tick||0) + 1;
   let tgt=null; let best=1e9;
   for(const e of enemies){ const key = e.health*1.22 + e.distance*0.12; if(key<best){best=key; tgt=e;} }
@@ -96,7 +96,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Helix-8-Q3";}
+function name(){return "Helix-5-Q3";}
 function type(){return Type.DEALER;}
 let __state = { last:null, tick:0, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
@@ -105,7 +105,7 @@ function update(tank,enemies,allies,bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
-  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":252,"maxRange":392,"strafeAngle":39,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":-3,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
+  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":252,"maxRange":392,"strafeAngle":36,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":-5,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
   __state.tick = (__state.tick||0) + 1;
   let tgt=null; let best=1e9;
   for(const e of enemies){ const key = e.health*1.22 + e.distance*0.12; if(key<best){best=key; tgt=e;} }
@@ -145,7 +145,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Helix-8-Q4";}
+function name(){return "Helix-5-Q4";}
 function type(){return Type.DEALER;}
 let __state = { last:null, tick:0, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
@@ -154,7 +154,7 @@ function update(tank,enemies,allies,bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
-  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":252,"maxRange":392,"strafeAngle":21,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":5,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
+  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":252,"maxRange":392,"strafeAngle":24,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":3,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
   __state.tick = (__state.tick||0) + 1;
   let tgt=null; let best=1e9;
   for(const e of enemies){ const key = e.health*1.22 + e.distance*0.12; if(key<best){best=key; tgt=e;} }
@@ -194,7 +194,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Helix-8-Q5";}
+function name(){return "Helix-5-Q5";}
 function type(){return Type.NORMAL;}
 let __state = { last:null, tick:0, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
@@ -203,7 +203,7 @@ function update(tank,enemies,allies,bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
-  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":210,"maxRange":330,"strafeAngle":34,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":-5,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
+  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":210,"maxRange":330,"strafeAngle":32,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":-7,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
   __state.tick = (__state.tick||0) + 1;
   let tgt=null; let best=1e9;
   for(const e of enemies){ const key = e.health*1.22 + e.distance*0.12; if(key<best){best=key; tgt=e;} }
@@ -243,7 +243,7 @@ function update(tank,enemies,allies,bulletInfo){
 
 
 
-function name(){return "Helix-8-Q6";}
+function name(){return "Helix-5-Q6";}
 function type(){return Type.NORMAL;}
 let __state = { last:null, tick:0, lastVel:null };
 function update(tank,enemies,allies,bulletInfo){
@@ -252,7 +252,7 @@ function update(tank,enemies,allies,bulletInfo){
   const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const hypot=Math.hypot;
   const rnd=((tank.x*97+tank.y*131)|0)%2?1:-1;
-  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":210,"maxRange":330,"strafeAngle":26,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":7,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
+  const P={"leadCap":14,"leadWeight":1.02,"aimJitter":0.2,"minRange":210,"maxRange":330,"strafeAngle":28,"threatRadius":210,"threatFleeBias":14,"allySep":64,"edgeMargin":52,"bias":5,"targetHealthWeight":1.22,"targetDistWeight":0.12,"finishHp":22,"finishRemain":3,"finishMinDelta":32,"finishMaxDelta":22};
   __state.tick = (__state.tick||0) + 1;
   let tgt=null; let best=1e9;
   for(const e of enemies){ const key = e.health*1.22 + e.distance*0.12; if(key<best){best=key; tgt=e;} }

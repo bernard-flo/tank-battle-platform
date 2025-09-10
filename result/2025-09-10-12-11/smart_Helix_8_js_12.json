@@ -1,0 +1,125 @@
+{
+  "summaries": [
+    {
+      "seed": "163333-0",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-8",
+      "winner": "red",
+      "ticks": 651,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 201,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-1",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-9",
+      "winner": "red",
+      "ticks": 651,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 201,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-2",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-10",
+      "winner": "red",
+      "ticks": 651,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 201,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-3",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-11",
+      "winner": "red",
+      "ticks": 651,
+      "redAlive": 4,
+      "blueAlive": 0,
+      "redEnergy": 201,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-4",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-5",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-6",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    },
+    {
+      "seed": "163333-7",
+      "winner": "red",
+      "ticks": 1029,
+      "redAlive": 3,
+      "blueAlive": 0,
+      "redEnergy": 248,
+      "blueEnergy": 0
+    }
+  ],
+  "aggregate": {
+    "matches": 12,
+    "redWins": 12,
+    "blueWins": 0,
+    "draws": 0,
+    "avgTicks": 903,
+    "avgRedAlive": 3.333,
+    "avgBlueAlive": 0,
+    "avgRedEnergy": 232.33,
+    "avgBlueEnergy": 0,
+    "baseSeed": "163333",
+    "concurrency": 8
+  }
+}
