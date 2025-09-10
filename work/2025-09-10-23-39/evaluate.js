@@ -17,7 +17,7 @@ function readFile(p) { return fs.readFileSync(path.resolve(p), 'utf8'); }
 function writeFile(p, s) { fs.writeFileSync(path.resolve(p), s); }
 
 function listOpponentTxt(maxCount = 20) {
-  const base = path.resolve('../../result');
+  const base = path.join(__dirname, '../../result');
   const items = fs.readdirSync(base).map(n => path.join(base, n)).filter(p => fs.existsSync(p));
   const dirs = items.filter(p => fs.statSync(p).isDirectory());
   const files = [];
@@ -154,4 +154,3 @@ function main(){
 if (require.main === module) {
   main();
 }
-
