@@ -217,34 +217,42 @@ function summaryScore(res) {
 }
 
 async function main() {
+  const FAST = process.env.FAST === '1';
+  const OPP_LIMIT = FAST ? 16 : 9999;
+  const BASELINE_LIMIT = FAST ? 2 : 3;
+  const CANDS = FAST ? 8 : 16;
+  const TOPK = FAST ? 3 : 4;
+  const BASE_REP = FAST ? 12 : 24;
+  const FULL_REP = FAST ? 16 : 28;
+  const ROUNDS = FAST ? 2 : 3;
+
   console.log(`[${now()}] Listing opponents...`);
-  const opponents = await listOpponentFiles(9999);
+  const opponents = await listOpponentFiles(OPP_LIMIT);
   if (opponents.length === 0) throw new Error('No opponent .txt files found in result/.');
   console.log(`Found ${opponents.length} opponent teams.`);
 
   const teamName = 'Helios';
 
   let globalBest = null;
-  const ROUNDS = 3;
+  
   for (let round = 1; round <= ROUNDS; round++) {
     console.log(`[${now()}] Round ${round}: generating candidates...`);
-    const baseline = opponents.slice(0, 3); // newest 3 for initial screen
+    const baseline = opponents.slice(0, BASELINE_LIMIT); // newest for initial screen
     const candidates = [];
-    const N = 16; // candidates per round
-    for (let i = 0; i < N; i++) {
+    for (let i = 0; i < CANDS; i++) {
       const code = buildTeamCode(teamName, round * 10007 + i * 1337 + 7);
-      const res = await evaluateAgainstOpponents(code, baseline, 24);
+      const res = await evaluateAgainstOpponents(code, baseline, BASE_REP);
       const eff = res.total.tests - res.total.draws; const wr = eff>0 ? res.total.wins/eff : 0;
       candidates.push({ idx: i, code, score: wr, res });
       console.log(`  cand#${i}: WR=${(wr*100).toFixed(1)}% vs baseline`);
     }
 
     candidates.sort((a, b) => b.score - a.score);
-    const topK = candidates.slice(0, 4);
-    console.log(`[${now()}] Evaluating top ${topK.length} across all opponents...`);
+    const topK = candidates.slice(0, TOPK);
+    console.log(`[${now()}] Evaluating top ${topK.length} across all opponents (${opponents.length})...`);
 
     for (const c of topK) {
-      const res = await evaluateAgainstOpponents(c.code, opponents, 28);
+      const res = await evaluateAgainstOpponents(c.code, opponents, FULL_REP);
       const score = summaryScore(res);
       const eff = res.total.tests - res.total.draws; const wr = eff>0 ? res.total.wins/eff : 0;
       const head = res.breakdown.filter(b => b.wins > b.losses).length;
