@@ -46,15 +46,15 @@ function listCompetitors(limitSample=12) {
   return picks.map(e => e.path);
 }
 
-function jitter(x, pct) {
-  const f = 1 + (Math.random()*2 - 1) * pct;
+function jitter(x, pct, factor=1) {
+  const f = 1 + (Math.random()*2 - 1) * pct * factor;
   return Array.isArray(x) ? x.map(v => Math.round(v*f)) : +(x * f).toFixed(3);
 }
 
-function makeCandidate(i, base) {
+function makeCandidate(i, base, factor=1) {
   // Randomize around base with small perturbations; bigger for distances/strafe
   const mk = (obj) => {
-    const scale = (k, s) => jitter(obj[k], s);
+    const scale = (k, s) => jitter(obj[k], s, factor);
     return {
       rMin: scale('rMin', 0.10), rMax: scale('rMax', 0.10),
       strafe: scale('strafe', 0.20), threatR: scale('threatR', 0.10), threatH: scale('threatH', 0.08),
@@ -118,7 +118,8 @@ function main() {
 
   const base = defaultParams();
   const tmpDir = fs.mkdtempSync(path.join(WD, 'tmp_'));
-  const trials = 8; // coarse search
+  const rounds = 3;
+  const trials = 10; // per round
   let best = { params: base, wr: -1, wins:0, losses:0, draws:0 };
   // include baseline first
   {
@@ -126,11 +127,15 @@ function main() {
     best = { params: base, ...evalRes };
     console.log(`Baseline: WR=${(evalRes.wr*100).toFixed(1)}% (W:${evalRes.wins} L:${evalRes.losses} D:${evalRes.draws})`);
   }
-  for (let i=0;i<trials;i++) {
-    const cand = makeCandidate(i+1, base);
-    const evalRes = evaluateCandidate(cand, opponents, tmpDir);
-    console.log(`Trial ${i+1}/${trials}: WR=${(evalRes.wr*100).toFixed(1)}% (W:${evalRes.wins} L:${evalRes.losses} D:${evalRes.draws})`);
-    if (evalRes.wr > best.wr) best = { params: cand, ...evalRes };
+  let current = best.params;
+  for (let r=0;r<rounds;r++) {
+    const factor = 1 - r*0.3; // decrease jitter each round
+    for (let i=0;i<trials;i++) {
+      const cand = makeCandidate(i+1, current, factor);
+      const evalRes = evaluateCandidate(cand, opponents, tmpDir);
+      console.log(`Round ${r+1}/${rounds} Trial ${i+1}/${trials}: WR=${(evalRes.wr*100).toFixed(1)}% (W:${evalRes.wins} L:${evalRes.losses} D:${evalRes.draws})`);
+      if (evalRes.wr > best.wr) { best = { params: cand, ...evalRes }; current = cand; }
+    }
   }
   fs.rmSync(tmpDir, { recursive: true, force: true });
 
