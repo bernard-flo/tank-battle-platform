@@ -2,7 +2,7 @@
 /*
   Optimizer for Tank Battle AI teams.
   - Generates parameterized team code with 6 bots.
-  - Evaluates against recent opponents in result/*/*.txt using simulator/cli.js.
+  - Evaluates against recent opponents found under result/<timestamp>/*.txt using simulator/cli.js.
   - Selects best candidate and saves to result/<timestamp>/<timestamp>.txt.
   - Writes a summary to RESULT.md in the working directory.
 */
