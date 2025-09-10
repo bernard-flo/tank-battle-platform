@@ -126,9 +126,21 @@ function main() {
     }
 
     const winRate = totalMatches > 0 ? wins / totalMatches : 0;
-    const item = { key: style.key, path: candPath, wins, losses, draws, totalMatches, winRate, perOpp };
+    // Compute robust score: min aggregated win-rate across opponents (both sides combined)
+    const aggByOpp = {};
+    for (let i = 0; i < perOpp.length; i += 2) {
+      const vs = perOpp[i];
+      const rv = perOpp[i+1];
+      const oppKey = vs.opp; // same as rv.opp
+      const winsAgg = (vs.agg.redWins || 0) + (rv.agg.blueWins || 0);
+      const matchesAgg = (vs.agg.matches || 0) + (rv.agg.matches || 0);
+      aggByOpp[oppKey] = matchesAgg > 0 ? winsAgg / matchesAgg : 0;
+    }
+    const minOppRate = Math.min(...Object.values(aggByOpp));
+    const item = { key: style.key, path: candPath, wins, losses, draws, totalMatches, winRate, perOpp, minOppRate, aggByOpp };
     report.push(item);
-    if (!best || winRate > best.winRate) best = item;
+    // prefer higher minOppRate, tiebreak by winRate
+    if (!best || (item.minOppRate > best.minOppRate + 1e-9) || (item.minOppRate === best.minOppRate && item.winRate > best.winRate)) best = item;
   });
 
   // Save best to nested result directory: result/<workdir>/<workdir>.txt
@@ -144,14 +156,14 @@ function main() {
   md += `Import: result/${outBase}/${outBase}.txt\n\n`;
   md += `Opponents: ${listOpponents().map((p)=>path.relative(RESULT_DIR, p)).join(', ')}\n\n`;
   for (const r of report) {
-    md += `- ${r.key}: winRate=${(r.winRate*100).toFixed(1)}% (W:${r.wins} L:${r.losses} D:${r.draws} / M:${r.totalMatches})\n`;
+    md += `- ${r.key}: winRate=${(r.winRate*100).toFixed(1)}% minOpp=${(r.minOppRate*100).toFixed(1)}% (W:${r.wins} L:${r.losses} D:${r.draws} / M:${r.totalMatches})\n`;
     for (const p of r.perOpp) {
       const a = p.agg;
       const wr = p.side === 'red' ? (a.redWins/a.matches) : (a.blueWins/a.matches);
       md += `  - vs ${p.opp} as ${p.side}: wr=${(wr*100).toFixed(1)}% (R:${a.redWins} B:${a.blueWins} D:${a.draws})\n`;
     }
   }
-  md += `\nBest: ${best.key}, saved to result/${outBase}/${outBase}.txt\n`;
+  md += `\nBest: ${best.key} (minOpp=${(best.minOppRate*100).toFixed(1)}%), saved to result/${outBase}/${outBase}.txt\n`;
   fs.writeFileSync(path.join(WORK_DIR, 'RESULT.md'), md);
 
   console.log(`Best candidate: ${best.key} -> ${outPath}`);
@@ -160,4 +172,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
