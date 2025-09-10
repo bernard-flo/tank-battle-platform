@@ -31,7 +31,7 @@ function update(tank,enemies,allies,bulletInfo){
   let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
   // Range control + strafing
   // Opening drift by team (mitigate spawn bias)
-  if(S.tick<24){ const base = S.isRed ? (S.top? 20 : -20) : (S.top? 200 : 160); const open=[base,base+(S.side*8),base-(S.side*8)]; for(const ang of open){ if(go(ang)) return; } }
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
   if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
   // Sweep
   for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
@@ -55,7 +55,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
   if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
   let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
-  if(S.tick<24){ const base = S.isRed ? (S.top? 16 : -16) : (S.top? 196 : 164); const open=[base,base+(S.side*8),base-(S.side*8)]; for(const ang of open){ if(go(ang)) return; } }
+  if(S.tick<18){ const open = S.isRed ? [0,10,-10] : [180,170,190]; for(const ang of open){ if(go(ang)) return; } }
   if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
   for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
 }
@@ -78,7 +78,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
   if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
   let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
-  if(S.tick<24){ const base = S.isRed ? (S.top? 14 : -14) : (S.top? 194 : 166); const open=[base,base+(S.side*8),base-(S.side*8)]; for(const ang of open){ if(go(ang)) return; } }
+  if(S.tick<18){ const open = S.isRed ? [0,8,-8] : [180,172,188]; for(const ang of open){ if(go(ang)) return; } }
   if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(140,r0-P.aggrIn); r1=Math.max(180,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
   for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
 }
@@ -101,7 +101,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
   if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
   let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
-  if(S.tick<24){ const base = S.isRed ? (S.top? 14 : -14) : (S.top? 194 : 166); const open=[base,base+(S.side*8),base-(S.side*8)]; for(const ang of open){ if(go(ang)) return; } }
+  if(S.tick<18){ const open = S.isRed ? [0,8,-8] : [180,172,188]; for(const ang of open){ if(go(ang)) return; } }
   if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(140,r0-P.aggrIn); r1=Math.max(180,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
   for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
 }
@@ -124,7 +124,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
   if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
   let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
-  if(S.tick<24){ const base = S.isRed ? (S.top? 18 : -18) : (S.top? 198 : 162); const open=[base,base+(S.side*8),base-(S.side*8)]; for(const ang of open){ if(go(ang)) return; } }
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
   if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
   for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
 }
@@ -147,7 +147,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(hot){ const a=D(hot.vx,hot.vy); const side=S.side*P.fleeBias + (BIAS)*0.5; for(const c of [a+90+side,a-90-side,a+120,a-120,a+70,a-70,a+150,a-150]){ if(go(c)) return; } }
   if(tank.x<P.edge){ if(go(0)) return;} if(tank.x>900-P.edge){ if(go(180)) return;} if(tank.y<P.edge){ if(go(90)) return;} if(tank.y>600-P.edge){ if(go(270)) return;}
   let near=null,ad=1e18; for(const a of allies){ if(a.distance<ad){ad=a.distance;near=a;} } if(near&&ad<P.sep){ const aw=D(tank.x-near.x,tank.y-near.y); if(go(aw)) return; if(go(aw+18)) return; if(go(aw-18)) return; }
-  if(S.tick<24){ const base = S.isRed ? (S.top? 18 : -18) : (S.top? 198 : 162); const open=[base,base+(S.side*8),base-(S.side*8)]; for(const ang of open){ if(go(ang)) return; } }
+  if(S.tick<18){ const open = S.isRed ? [0,12,-12] : [180,168,192]; for(const ang of open){ if(go(ang)) return; } }
   if(tgt){ const to=D(tgt.x-tank.x,tgt.y-tank.y), d=tgt.distance; let r0=P.rMin,r1=P.rMax; if((tgt.health<=P.finHP)||enemies.length<=P.aggrRemain){ r0=Math.max(120,r0-P.aggrIn); r1=Math.max(160,r1-P.aggrOut);} if(d<r0){ const aw=to+180+(BIAS)*0.4; if(go(aw)) return; if(go(aw+16)) return; if(go(aw-16)) return; } else if(d>r1){ if(go(to)) return; if(go(to+14)) return; if(go(to-14)) return; } else { const s=to+S.side*P.strafe+(BIAS)*0.5; if(go(s)) return; if(go(s+16)) return; if(go(s-16)) return; } }
   for(const s of [0,60,120,180,240,300]){ if(go(s+(P.bias||0))) return; }
 }
