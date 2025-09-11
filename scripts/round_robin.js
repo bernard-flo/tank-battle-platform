@@ -1,192 +1,218 @@
 #!/usr/bin/env node
 /*
- Round-robin matcher for all teams under result/**
- - Discovers team files by scanning for "function name()" pattern.
- - Runs one match per unordered pair (A vs B) with A as Red, B as Blue.
- - Uses simulator CLI for each match with --fast for speed.
- - Aggregates per-team stats and writes result/MATCH.md.
+ Round-robin matcher for all AI team files under result/.
+ - Discovers files containing "function name()" in result/ recursively (e.g., timestamp dirs, team.js, *.txt)
+ - Runs pairwise matches using simulator/cli.js with repeat and concurrency
+ - Aggregates per-team W/L/D and win rates
+ - Writes Markdown summary to result/MATCH.md
+
+ Usage:
+   node scripts/round_robin.js [--repeat 10] [--pairConcurrency 2] [--internalConcurrency 8] [--seed 1000]
 */
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
 
-function scanTeamFiles(rootDir) {
-  const results = [];
-  function walk(dir) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const e of entries) {
-      const p = path.join(dir, e.name);
-      if (e.isDirectory()) {
-        walk(p);
-      } else if (e.isFile()) {
-        // Only consider reasonably small textual files
-        try {
-          const stat = fs.statSync(p);
-          if (stat.size > 1024 * 1024) continue; // skip >1MB
-          const txt = fs.readFileSync(p, 'utf8');
-          if (/function\s+name\s*\(\s*\)/.test(txt)) {
-            results.push(p);
-          }
-        } catch (_e) {}
-      }
+const ROOT = path.resolve(__dirname, '..');
+const RESULT_DIR = path.join(ROOT, 'result');
+const SIM_CLI = path.join(ROOT, 'simulator', 'cli.js');
+
+function parseArgs(argv) {
+  const args = {};
+  for (let i = 2; i < argv.length; i++) {
+    const a = argv[i];
+    if (a.startsWith('--')) {
+      const key = a.slice(2);
+      const next = argv[i + 1];
+      if (next && !next.startsWith('--')) { args[key] = next; i++; }
+      else { args[key] = true; }
     }
   }
-  walk(rootDir);
-  // De-dup and sort for stable ordering
-  return Array.from(new Set(results)).sort();
+  return args;
 }
 
-function inferTeamLabel(filePath) {
-  // Try to extract first robot name string
+function listFilesRec(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'MATCH.md') continue; // skip previous report
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...listFilesRec(p));
+    else out.push(p);
+  }
+  return out;
+}
+
+function containsSignature(p) {
   try {
-    const txt = fs.readFileSync(filePath, 'utf8');
-    const m = txt.match(/function\s+name\s*\(\s*\)\s*\{[^}]*?return\s+(["'`])([^\1]+?)\1\s*;?\s*\}/);
-    if (m) return `${path.basename(path.dirname(filePath))}:${m[2]}`;
-  } catch (_e) {}
-  // Fallback to directory and filename
-  const dir = path.basename(path.dirname(filePath));
-  const base = path.basename(filePath);
-  return `${dir}/${base}`;
+    const buf = fs.readFileSync(p, 'utf8');
+    return /function\s+name\s*\(\s*\)/.test(buf);
+  } catch { return false; }
 }
 
-function runMatchCLI(red, blue) {
+function discoverTeams() {
+  const files = listFilesRec(RESULT_DIR);
+  const teamFiles = files.filter((p) => /\.(txt|js)$/i.test(p) && containsSignature(p));
+  // sort for stable order
+  teamFiles.sort((a, b) => a.localeCompare(b));
+  return teamFiles;
+}
+
+function idFor(p) {
+  // Make a readable id relative to result/
+  const rel = path.relative(RESULT_DIR, p);
+  return rel;
+}
+
+function runCliMatch(red, blue, opts) {
   return new Promise((resolve, reject) => {
-    const jsonOut = path.join(os.tmpdir(), `match-${Math.random().toString(36).slice(2)}.json`);
-    const args = [
-      path.resolve('simulator/cli.js'),
+    const tmpJson = path.join(os.tmpdir(), `tb_summary_${Date.now()}_${Math.random().toString(36).slice(2)}.json`);
+    const args = [SIM_CLI,
       '--red', red,
       '--blue', blue,
-      '--fast',
-      '--json', jsonOut,
+      '--repeat', String(opts.repeat),
+      '--concurrency', String(opts.internalConcurrency),
+      '--seed', String(opts.seed),
+      '--fast', '--runner', 'secure',
+      '--json', tmpJson,
     ];
-    const proc = spawn('node', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-    let stdout = '';
+    const child = spawn('node', args, { cwd: ROOT });
     let stderr = '';
-    proc.stdout.on('data', (d) => { stdout += d.toString(); });
-    proc.stderr.on('data', (d) => { stderr += d.toString(); });
-    proc.on('error', reject);
-    proc.on('close', (code) => {
+    child.stderr.on('data', (d) => { stderr += d.toString(); });
+    child.on('error', reject);
+    child.on('close', (code) => {
       if (code !== 0) {
-        return reject(new Error(`cli exit ${code}: ${stderr || stdout}`));
+        return reject(new Error(`simulator exited with code ${code}: ${stderr}`));
       }
       try {
-        const raw = fs.readFileSync(jsonOut, 'utf8');
-        fs.unlinkSync(jsonOut);
-        const obj = JSON.parse(raw);
-        // repeat=1 so we expect summary
-        const s = obj.summary || (obj.summaries && obj.summaries[0]);
-        if (!s) return resolve({ winner: 'draw', ticks: 0, redAlive: 0, blueAlive: 0 });
-        resolve(s);
+        const raw = fs.readFileSync(tmpJson, 'utf8');
+        fs.unlinkSync(tmpJson);
+        const json = JSON.parse(raw);
+        const agg = json.aggregate;
+        if (!agg) throw new Error('No aggregate in simulator output');
+        resolve(agg);
       } catch (e) {
-        // Fallback parse from stdout when JSON missing
-        const w = /Winner:\s+(RED|BLUE|DRAW)/.exec(stdout);
-        const winner = w ? w[1].toLowerCase() : 'draw';
-        resolve({ winner, ticks: 0, redAlive: 0, blueAlive: 0 });
+        reject(e);
       }
     });
   });
 }
 
 async function main() {
-  const root = path.resolve('result');
-  if (!fs.existsSync(root)) throw new Error('result/ directory not found');
+  const args = parseArgs(process.argv);
+  const repeat = args.repeat ? parseInt(String(args.repeat), 10) : 10;
+  const pairConcurrency = args.pairConcurrency ? parseInt(String(args.pairConcurrency), 10) : 2;
+  const internalConcurrency = args.internalConcurrency ? parseInt(String(args.internalConcurrency), 10) : Math.min(8, Math.max(1, os.cpus().length - 1));
+  const seed = args.seed ? parseInt(String(args.seed), 10) : 1000;
 
-  const teams = scanTeamFiles(root).map((p) => ({
-    file: p,
-    label: inferTeamLabel(p),
-  }));
-  if (teams.length < 2) throw new Error('Not enough teams found under result/**');
+  const teams = discoverTeams();
+  if (teams.length < 2) {
+    console.error('No sufficient AI teams found in result/.');
+    process.exit(1);
+  }
 
-  // Stats container
-  const stats = new Map(); // key=file, value={ label, played, wins, losses, draws }
-  for (const t of teams) stats.set(t.file, { label: t.label, played: 0, wins: 0, losses: 0, draws: 0 });
+  console.log(`Discovered ${teams.length} teams. Running round-robin with repeat=${repeat}.`);
 
-  // Build pair list (unordered pairs, A vs B with A as red, B as blue)
-  const pairs = [];
+  const ids = teams.map(idFor);
+  const indexById = new Map(ids.map((id, i) => [id, i]));
+
+  // Per-team aggregate
+  const stats = ids.map(() => ({ wins: 0, losses: 0, draws: 0 }));
+  const pairResults = []; // { redId, blueId, redWins, blueWins, draws }
+
+  // Build all pairs
+  const tasks = [];
   for (let i = 0; i < teams.length; i++) {
     for (let j = i + 1; j < teams.length; j++) {
-      pairs.push([teams[i], teams[j]]);
+      const red = teams[i];
+      const blue = teams[j];
+      const redId = ids[i];
+      const blueId = ids[j];
+      tasks.push(async () => {
+        const agg = await runCliMatch(red, blue, { repeat, internalConcurrency, seed });
+        const { redWins, blueWins, draws } = agg;
+        pairResults.push({ redId, blueId, redWins, blueWins, draws });
+        const ir = indexById.get(redId);
+        const ib = indexById.get(blueId);
+        stats[ir].wins += redWins; stats[ir].losses += blueWins; stats[ir].draws += draws;
+        stats[ib].wins += blueWins; stats[ib].losses += redWins; stats[ib].draws += draws;
+        console.log(`Done ${redId} vs ${blueId} => R:${redWins} B:${blueWins} D:${draws}`);
+      });
     }
   }
 
-  const total = pairs.length;
-  const concurrency = Math.max(2, Math.min(8, Math.floor(os.cpus().length / 2)));
-  let completed = 0;
-  let errors = 0;
-
-  async function worker(workIdx) {
-    while (true) {
-      let pair;
-      // fetch next index atomically
-      const idx = nextIndex++;
-      if (idx >= total) return;
-      pair = pairs[idx];
-      const red = pair[0];
-      const blue = pair[1];
-      try {
-        const s = await runMatchCLI(red.file, blue.file);
-        const redStat = stats.get(red.file);
-        const blueStat = stats.get(blue.file);
-        redStat.played++; blueStat.played++;
-        if (s.winner === 'red') { redStat.wins++; blueStat.losses++; }
-        else if (s.winner === 'blue') { blueStat.wins++; redStat.losses++; }
-        else { redStat.draws++; blueStat.draws++; }
-      } catch (e) {
-        errors++;
-      } finally {
-        completed++;
-        if (completed % 50 === 0 || completed === total) {
-          process.stdout.write(`\rProcessed ${completed}/${total} pairs...`);
-        }
+  // Run with limited concurrency across pairs
+  let cursor = 0;
+  async function worker() {
+    while (cursor < tasks.length) {
+      const idx = cursor++;
+      try { await tasks[idx](); } catch (e) {
+        console.error(`Pair task ${idx} failed:`, e.message);
       }
     }
   }
-
-  let nextIndex = 0;
-  const workers = [];
-  for (let i = 0; i < concurrency; i++) workers.push(worker(i));
+  const workers = Array.from({ length: pairConcurrency }, () => worker());
   await Promise.all(workers);
-  process.stdout.write(`\n`);
 
-  // Prepare ranking
-  const arr = Array.from(stats.entries()).map(([file, s]) => {
-    const winRate = s.played ? s.wins / s.played : 0;
-    return { file, ...s, winRate };
-  }).sort((a, b) => b.winRate - a.winRate || b.wins - a.wins);
+  // Compute totals and win rates
+  const totalMatchesPerPair = repeat; // per pair
+  const totalPairs = (teams.length * (teams.length - 1)) / 2;
+  const totalMatches = totalPairs * totalMatchesPerPair;
 
-  // High win rate threshold: >= 0.6
-  const high = arr.filter((x) => x.winRate >= 0.6);
+  const summary = ids.map((id, i) => {
+    const s = stats[i];
+    const games = s.wins + s.losses + s.draws;
+    const winRate = games > 0 ? s.wins / games : 0;
+    return { id, wins: s.wins, losses: s.losses, draws: s.draws, games, winRate };
+  });
+
+  // Sort by win rate desc, then wins desc
+  const ranked = [...summary].sort((a, b) => (b.winRate - a.winRate) || (b.wins - a.wins));
+
+  // High performers: winRate >= 0.65
+  const highCut = 0.65;
+  const high = ranked.filter((r) => r.winRate >= highCut);
 
   // Write MATCH.md
-  const lines = [];
-  lines.push('# Round-Robin Match Results');
-  lines.push('');
-  lines.push(`- Teams: ${teams.length}`);
-  lines.push(`- Pairings: ${total} (one match per unordered pair, Red=A, Blue=B)`);
-  lines.push(`- Mode: --fast (secure runner), maxTicks default`);
-  if (errors) lines.push(`- Errors: ${errors} (counted as draws)`);
-  lines.push('');
-  lines.push('## Ranking (by win rate)');
-  lines.push('');
-  lines.push('| Rank | Team | Played | Wins | Losses | Draws | Win Rate |');
-  lines.push('|-----:|:-----|------:|----:|------:|-----:|--------:|');
-  arr.forEach((r, i) => {
-    lines.push(`| ${i + 1} | ${r.label} | ${r.played} | ${r.wins} | ${r.losses} | ${r.draws} | ${(r.winRate * 100).toFixed(1)}% |`);
+  const md = [];
+  md.push(`# Round-Robin Match Results`);
+  md.push('');
+  md.push(`- Teams: ${teams.length}`);
+  md.push(`- Pairs: ${totalPairs}`);
+  md.push(`- Repeat per pair: ${repeat}`);
+  md.push(`- Internal concurrency: ${internalConcurrency}`);
+  md.push(`- Pair concurrency: ${pairConcurrency}`);
+  md.push(`- Base seed: ${seed}`);
+  md.push('');
+  md.push('## Overall Ranking (by Win Rate)');
+  md.push('');
+  md.push('| Rank | Team (result/relative) | W | L | D | Games | Win% |');
+  md.push('|-----:|-------------------------|---:|---:|---:|-----:|-----:|');
+  ranked.forEach((r, idx) => {
+    const pct = (r.winRate * 100).toFixed(2);
+    md.push(`| ${idx + 1} | ${r.id} | ${r.wins} | ${r.losses} | ${r.draws} | ${r.games} | ${pct}% |`);
   });
-  lines.push('');
-  lines.push('## High Win Rates (>= 60%)');
-  lines.push('');
+  md.push('');
+  md.push('## High Win-Rate Teams');
+  md.push('');
+  md.push(`Threshold: Win% >= ${(highCut * 100).toFixed(0)}%`);
   if (high.length === 0) {
-    lines.push('- None');
+    md.push('None');
   } else {
-    for (const r of high) {
-      lines.push(`- ${r.label}: ${(r.winRate * 100).toFixed(1)}% (${r.wins}/${r.played})`);
-    }
+    high.forEach((r, idx) => {
+      const pct = (r.winRate * 100).toFixed(2);
+      md.push(`- ${r.id}: ${pct}% (${r.wins}-${r.losses}-${r.draws})`);
+    });
   }
-  lines.push('');
-  const outPath = path.resolve('result', 'MATCH.md');
-  fs.writeFileSync(outPath, lines.join('\n'));
+  md.push('');
+  md.push('## Pairwise Summaries (sample)');
+  md.push('');
+  pairResults.slice(0, 200).forEach((p) => {
+    md.push(`- ${p.redId} vs ${p.blueId}: R ${p.redWins} / B ${p.blueWins} / D ${p.draws}`);
+  });
+
+  const outPath = path.join(RESULT_DIR, 'MATCH.md');
+  fs.writeFileSync(outPath, md.join('\n'));
   console.log(`Wrote ${outPath}`);
 }
 
