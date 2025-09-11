@@ -3,7 +3,7 @@ function type(){return Type.TANKER;}
 let __s1={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":170,"rMax":288,"strafe":27,"threatR":196,"fleeBias":11,"sep":60,"edge":52,"leadCap":14,"leadW":0.95,"aimJitter":0.12,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-10,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
+  const P={"rMin":167,"rMax":310,"strafe":26,"threatR":196,"fleeBias":15,"sep":60,"edge":52,"leadCap":14,"leadW":1,"aimJitter":0.15,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-7,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const rnd=((tank.x*97+tank.y*131+1)|0)%2?1:-1; __s1.tick=(__s1.tick||0)+1;
@@ -49,7 +49,7 @@ function type(){return Type.DEALER;}
 let __s2={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":182,"rMax":268,"strafe":29,"threatR":184,"fleeBias":15,"sep":64,"edge":52,"leadCap":14,"leadW":0.95,"aimJitter":0.13999999999999999,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":8,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
+  const P={"rMin":179,"rMax":290,"strafe":28,"threatR":184,"fleeBias":19,"sep":64,"edge":52,"leadCap":14,"leadW":1,"aimJitter":0.16999999999999998,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":11,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const rnd=((tank.x*97+tank.y*131+2)|0)%2?1:-1; __s2.tick=(__s2.tick||0)+1;
@@ -95,7 +95,7 @@ function type(){return Type.NORMAL;}
 let __s3={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":170,"rMax":288,"strafe":31,"threatR":196,"fleeBias":11,"sep":60,"edge":52,"leadCap":14,"leadW":0.95,"aimJitter":0.12,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-4,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
+  const P={"rMin":167,"rMax":310,"strafe":30,"threatR":196,"fleeBias":15,"sep":60,"edge":52,"leadCap":14,"leadW":1,"aimJitter":0.15,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-1,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const rnd=((tank.x*97+tank.y*131+3)|0)%2?1:-1; __s3.tick=(__s3.tick||0)+1;
@@ -141,7 +141,7 @@ function type(){return Type.TANKER;}
 let __s4={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":182,"rMax":268,"strafe":27,"threatR":184,"fleeBias":15,"sep":64,"edge":52,"leadCap":14,"leadW":0.95,"aimJitter":0.12,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":12,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
+  const P={"rMin":179,"rMax":290,"strafe":26,"threatR":184,"fleeBias":19,"sep":64,"edge":52,"leadCap":14,"leadW":1,"aimJitter":0.15,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":15,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const rnd=((tank.x*97+tank.y*131+4)|0)%2?1:-1; __s4.tick=(__s4.tick||0)+1;
@@ -187,7 +187,7 @@ function type(){return Type.DEALER;}
 let __s5={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":170,"rMax":288,"strafe":29,"threatR":196,"fleeBias":11,"sep":60,"edge":52,"leadCap":14,"leadW":0.95,"aimJitter":0.12,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-12,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
+  const P={"rMin":167,"rMax":310,"strafe":28,"threatR":196,"fleeBias":15,"sep":60,"edge":52,"leadCap":14,"leadW":1,"aimJitter":0.15,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-9,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const rnd=((tank.x*97+tank.y*131+5)|0)%2?1:-1; __s5.tick=(__s5.tick||0)+1;
@@ -233,7 +233,7 @@ function type(){return Type.NORMAL;}
 let __s6={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":182,"rMax":268,"strafe":31,"threatR":184,"fleeBias":15,"sep":64,"edge":52,"leadCap":14,"leadW":0.95,"aimJitter":0.12,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":6,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
+  const P={"rMin":179,"rMax":290,"strafe":30,"threatR":184,"fleeBias":19,"sep":64,"edge":52,"leadCap":14,"leadW":1,"aimJitter":0.15,"healthW":1.22,"distW":0.14,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":9,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"sepW":0.35,"rangeW":0.22};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, toRad=(a)=>a*Math.PI/180, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   const rnd=((tank.x*97+tank.y*131+6)|0)%2?1:-1; __s6.tick=(__s6.tick||0)+1;
