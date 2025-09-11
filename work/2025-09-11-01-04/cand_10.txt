@@ -1,0 +1,231 @@
+function name(){return "Aquila-10-T1";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function threat(b){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
+    const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(66); } return false;
+  }
+  function tryMove(a){ return tank.move(ang(a)); }
+
+  const tgt = enemies.length?closest(enemies):null;
+  if(tgt){
+    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.297;
+    tank.fire(base + jit);
+  }
+  // Dodge bullets first
+  let hot=null, minD=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
+  if(hot){
+    const a = deg(hot.vx,hot.vy);
+    const cand=[a+90+(-12), a-90-(-12), a+110, a-110];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+  // Ally separation to reduce collisions
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
+  // Kiting / approach / side-strafe
+  if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
+    if(d < 175){ const away = to+180 + (-12); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 250){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else { const side = to + (12); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
+  }
+  // Fallback strafes
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p+(-12))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-10-T2";}
+function type(){return Type.TANKER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function threat(b){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
+    const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(66); } return false;
+  }
+  function tryMove(a){ return tank.move(ang(a)); }
+
+  const tgt = enemies.length?closest(enemies):null;
+  if(tgt){
+    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.297;
+    tank.fire(base + jit);
+  }
+  // Dodge bullets first
+  let hot=null, minD=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
+  if(hot){
+    const a = deg(hot.vx,hot.vy);
+    const cand=[a+90+(-9), a-90-(-9), a+110, a-110];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+  // Ally separation to reduce collisions
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
+  // Kiting / approach / side-strafe
+  if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
+    if(d < 175){ const away = to+180 + (-9); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 250){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else { const side = to + (12); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
+  }
+  // Fallback strafes
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p+(-9))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-10-D3";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function threat(b){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
+    const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(72); } return false;
+  }
+  function tryMove(a){ return tank.move(ang(a)); }
+
+  const tgt = enemies.length?closest(enemies):null;
+  if(tgt){
+    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.363;
+    tank.fire(base + jit);
+  }
+  // Dodge bullets first
+  let hot=null, minD=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
+  if(hot){
+    const a = deg(hot.vx,hot.vy);
+    const cand=[a+90+(18), a-90-(18), a+110, a-110];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+  // Ally separation to reduce collisions
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
+  // Kiting / approach / side-strafe
+  if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
+    if(d < 215){ const away = to+180 + (18); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 320){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else { const side = to + (24); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
+  }
+  // Fallback strafes
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p+(18))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-10-D4";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function threat(b){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
+    const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(72); } return false;
+  }
+  function tryMove(a){ return tank.move(ang(a)); }
+
+  const tgt = enemies.length?closest(enemies):null;
+  if(tgt){
+    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.363;
+    tank.fire(base + jit);
+  }
+  // Dodge bullets first
+  let hot=null, minD=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
+  if(hot){
+    const a = deg(hot.vx,hot.vy);
+    const cand=[a+90+(16), a-90-(16), a+110, a-110];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+  // Ally separation to reduce collisions
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
+  // Kiting / approach / side-strafe
+  if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
+    if(d < 215){ const away = to+180 + (16); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 320){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else { const side = to + (24); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
+  }
+  // Fallback strafes
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p+(16))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-10-D5";}
+function type(){return Type.DEALER;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function threat(b){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
+    const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(72); } return false;
+  }
+  function tryMove(a){ return tank.move(ang(a)); }
+
+  const tgt = enemies.length?closest(enemies):null;
+  if(tgt){
+    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.363;
+    tank.fire(base + jit);
+  }
+  // Dodge bullets first
+  let hot=null, minD=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
+  if(hot){
+    const a = deg(hot.vx,hot.vy);
+    const cand=[a+90+(14), a-90-(14), a+110, a-110];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+  // Ally separation to reduce collisions
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
+  // Kiting / approach / side-strafe
+  if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
+    if(d < 215){ const away = to+180 + (14); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 320){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else { const side = to + (24); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
+  }
+  // Fallback strafes
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p+(14))) return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "Aquila-10-N6";}
+function type(){return Type.NORMAL;}
+function update(tank,enemies,allies,bulletInfo){
+  function ang(a){a%=360; if(a<0)a+=360; return a;}
+  function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
+  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function threat(b){
+    const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
+    const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(68); } return false;
+  }
+  function tryMove(a){ return tank.move(ang(a)); }
+
+  const tgt = enemies.length?closest(enemies):null;
+  if(tgt){
+    const base = deg(tgt.x-tank.x,tgt.y-tank.y);
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.330;
+    tank.fire(base + jit);
+  }
+  // Dodge bullets first
+  let hot=null, minD=1e9; for(const b of bulletInfo){const d=Math.hypot(b.x-tank.x,b.y-tank.y); if(d<minD && threat(b)){minD=d; hot=b;}}
+  if(hot){
+    const a = deg(hot.vx,hot.vy);
+    const cand=[a+90+(0), a-90-(0), a+110, a-110];
+    for(const c of cand){ if(tryMove(c)) return; }
+  }
+  // Ally separation to reduce collisions
+  if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
+  // Kiting / approach / side-strafe
+  if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
+    if(d < 200){ const away = to+180 + (0); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 300){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else { const side = to + (8); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
+  }
+  // Fallback strafes
+  const pref=[0,90,180,270]; for(const p of pref){ if(tryMove(p+(0))) return; }
+}

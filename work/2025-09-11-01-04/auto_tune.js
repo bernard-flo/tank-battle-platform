@@ -42,6 +42,7 @@ function buildTeamCode(params) {
       NORMAL: { near: 200, far: 300, side: 8 },
     },
     strafePref: [0, 90, 180, 270],
+    targeting: 'hybrid', // 'nearest' | 'lowHealth' | 'hybrid'
   }, params || {});
 
   function oneBot(idx, role, roleOffset) {
@@ -51,12 +52,18 @@ function buildTeamCode(params) {
     const k = cfg.kite[role];
     const jitter = cfg.jitter * (role === 'DEALER' ? 1.1 : role === 'TANKER' ? 0.9 : 1.0);
 
+    const targetLogic = cfg.targeting === 'lowHealth' ?
+`let r=null, mh=1e9; for(const e of enemies){ if(e.health < mh){ mh=e.health; r=e; }} return r;` :
+      (cfg.targeting === 'nearest' ?
+`let r=null,md=1e9; for(const e of enemies){ if(e.distance < md){ md=e.distance; r=e; }} return r;` :
+`let r=null,mb=1e9; for(const e of enemies){ const score = e.distance*0.7 + e.health*0.3; if(score < mb){ mb=score; r=e; }} return r;`);
+
     return `function name(){return "${nm}";}
 function type(){return ${typeExpr};}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function closest(arr){${targetLogic}}
   function threat(b){
     const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
     const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(${threat}); } return false;
@@ -146,31 +153,37 @@ function main() {
       NORMAL: { near: 200, far: 300, side: 8 },
     },
     strafePref: [0, 90, 180, 270],
+    targeting: 'hybrid',
   };
 
   const variants = [];
-  const jitters = [0.28, 0.33, 0.38];
-  const dealerNear = [215, 230, 245];
-  const dealerFar = [320, 335, 350];
-  const tankNear = [160, 175];
-  const tankFar = [250, 270];
+  const jitters = [0.26, 0.31, 0.36, 0.41];
+  const dealerNear = [210, 230, 250];
+  const dealerFar = [315, 335, 355];
+  const tankNear = [155, 170, 185];
+  const tankFar = [245, 265, 285];
+  const targetings = ['nearest','hybrid','lowHealth'];
   let id = 0;
-  for (const j of jitters) {
-    for (const dn of dealerNear) {
-      for (const df of dealerFar) {
-        const cfg = JSON.parse(JSON.stringify(base));
-        cfg.namePrefix = `Aquila-${++id}`;
-        cfg.jitter = j;
-        cfg.kite.DEALER.near = dn;
-        cfg.kite.DEALER.far = df;
-        cfg.kite.TANKER.near = tankNear[(id+j*100)%tankNear.length|0];
-        cfg.kite.TANKER.far = tankFar[(id+df)%tankFar.length|0];
-        variants.push({ name: cfg.namePrefix, code: buildTeamCode(cfg), cfg });
-        if (variants.length >= 12) break;
+  for (const tmode of targetings) {
+    for (const j of jitters) {
+      for (const dn of dealerNear) {
+        for (const df of dealerFar) {
+          const cfg = JSON.parse(JSON.stringify(base));
+          cfg.namePrefix = `Aquila-${++id}`;
+          cfg.jitter = j;
+          cfg.targeting = tmode;
+          cfg.kite.DEALER.near = dn;
+          cfg.kite.DEALER.far = df;
+          cfg.kite.TANKER.near = tankNear[(id+j*100)%tankNear.length|0];
+          cfg.kite.TANKER.far = tankFar[(id+df)%tankFar.length|0];
+          variants.push({ name: cfg.namePrefix, code: buildTeamCode(cfg), cfg });
+          if (variants.length >= 18) break;
+        }
+        if (variants.length >= 18) break;
       }
-      if (variants.length >= 12) break;
+      if (variants.length >= 18) break;
     }
-    if (variants.length >= 12) break;
+    if (variants.length >= 18) break;
   }
 
   // Include a balanced NORMAL-heavy variant

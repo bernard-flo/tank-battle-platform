@@ -1,0 +1,32 @@
+# Evaluation Result
+
+Best: Aquila-10 (winRate=33.3%)
+
+## Candidates
+- Aquila-10: winRate=33.3% (games=192, wins=64, losses=128, draws=0)
+- Aquila-6: winRate=20.8% (games=192, wins=40, losses=152, draws=0)
+- Aquila-2: winRate=18.8% (games=192, wins=36, losses=156, draws=0)
+- Aquila-11: winRate=18.8% (games=192, wins=36, losses=156, draws=0)
+- Aquila-3: winRate=16.7% (games=192, wins=32, losses=148, draws=12)
+- Aquila-N: winRate=16.7% (games=192, wins=32, losses=160, draws=0)
+- Aquila-4: winRate=14.6% (games=192, wins=28, losses=164, draws=0)
+- Aquila-8: winRate=12.5% (games=192, wins=24, losses=168, draws=0)
+- Aquila-12: winRate=12.5% (games=192, wins=24, losses=152, draws=16)
+- Aquila-1: winRate=10.4% (games=192, wins=20, losses=172, draws=0)
+- Aquila-9: winRate=6.3% (games=192, wins=12, losses=176, draws=4)
+- Aquila-5: winRate=0.0% (games=192, wins=0, losses=160, draws=32)
+- Aquila-7: winRate=0.0% (games=192, wins=0, losses=188, draws=4)
+
+## Breakdown vs Opponents (Best)
+- vs result/2025-09-11-00-41/2025-09-11-00-41.txt: winRate=0%, W:0 L:16 D:0 (n=16)
+- vs result/2025-09-10-23-39/2025-09-10-23-39.txt: winRate=25%, W:4 L:12 D:0 (n=16)
+- vs result/2025-09-10-23-21/2025-09-10-23-21.txt: winRate=0%, W:0 L:16 D:0 (n=16)
+- vs result/2025-09-10-22-24/2025-09-10-22-24.txt: winRate=0%, W:0 L:16 D:0 (n=16)
+- vs result/2025-09-10-21-49/2025-09-10-21-49.txt: winRate=0%, W:0 L:16 D:0 (n=16)
+- vs result/2025-09-10-21-40/2025-09-10-21-40.txt: winRate=0%, W:0 L:16 D:0 (n=16)
+- vs result/2025-09-10-21-31/2025-09-10-21-31.txt: winRate=0%, W:0 L:16 D:0 (n=16)
+- vs result/2025-09-10-21-05/2025-09-10-21-05.txt: winRate=0%, W:0 L:16 D:0 (n=16)
+- vs result/2025-09-10-21-09/2025-09-10-21-09.txt: winRate=100%, W:16 L:0 D:0 (n=16)
+- vs result/2025-09-10-21-06/2025-09-10-21-06.txt: winRate=100%, W:16 L:0 D:0 (n=16)
+- vs result/2025-09-10-20-51/2025-09-10-20-51.txt: winRate=100%, W:16 L:0 D:0 (n=16)
+- vs result/2025-09-10-20-38/2025-09-10-20-38.txt: winRate=75%, W:12 L:4 D:0 (n=16)
