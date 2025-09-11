@@ -10,7 +10,8 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const REPO_ROOT = path.resolve(__dirname, '..');
+// Resolve repository root (two levels up from this script)
+const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const SIM_CLI = path.join(REPO_ROOT, 'simulator', 'cli.js');
 const TS = path.basename(process.cwd());
 const OUT_RESULT_DIR = path.join(REPO_ROOT, 'result', TS);
