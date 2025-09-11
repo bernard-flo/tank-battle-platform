@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
-Runs a round-robin tournament for all AI teams found under result/**/team.js
-and writes a Markdown summary to result/MATCH.md.
+Runs a round-robin tournament for all AI teams found under result subfolders
+that contain a team.js, and writes a Markdown summary to result/MATCH.md.
 
 Uses the headless simulator CLI (simulator/cli.js) with batch repeats and
 worker concurrency for performance. Color-swap is applied for fairness.
@@ -212,4 +212,3 @@ if (require.main === module) {
     process.exit(1);
   }
 }
-
