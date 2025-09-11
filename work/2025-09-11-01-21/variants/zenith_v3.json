@@ -1,0 +1,8 @@
+{
+  "name": "zenith_v3",
+  "biases": [-8, -10, -6, 6, 10, 8],
+  "tanker": {"minR": 190, "maxR": 310, "strafe": 36, "threat": 90, "thTime": 20, "sep": 68, "edge": 44, "bias": -10, "leadCap": 12, "leadW": 0.95, "hW": 1.52, "dW": 0.11, "finN": 26, "finX": 16, "lastN": 32, "lastX": 32, "minCap": 160, "finH": 20},
+  "dealer": {"minR": 280, "maxR": 410, "strafe": 50, "threat": 96, "thTime": 24, "sep": 66, "edge": 46, "bias": -12, "leadCap": 13, "leadW": 1.08, "hW": 1.7,  "dW": 0.09, "finN": 24, "finX": 16, "lastN": 30, "lastX": 30, "minCap": 190, "finH": 18},
+  "normal": {"minR": 230, "maxR": 360, "strafe": 42, "threat": 92, "thTime": 20, "sep": 66, "edge": 46, "bias": -8,  "leadCap": 12, "leadW": 1.02, "hW": 1.6,  "dW": 0.10, "finN": 24, "finX": 16, "lastN": 32, "lastX": 32, "minCap": 170, "finH": 18}
+}
+
