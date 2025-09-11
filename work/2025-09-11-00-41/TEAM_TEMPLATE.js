@@ -32,6 +32,15 @@ function update(tank,enemies,allies,bulletInfo){
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*P.ttcW; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(((${stateVar}.tick>>2)%2)?1:-1)*P.fleeBias + P.bias*0.6; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150]; for(const c of cand){ if(go(c)) return; }}
 
+  // 2.5) Opening book movement (first few ticks): spread and break line-of-fire
+  if(${stateVar}.tick <= P.openTicks){
+    const forward = tank.x < 450 ? 0 : 180;
+    const prefer = norm(forward + P.open);
+    if(go(prefer)) return;
+    if(go(prefer + P.openSpread)) return;
+    if(go(prefer - P.openSpread)) return;
+  }
+
   // 3) Edge avoidance band
   if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
 
@@ -60,16 +69,17 @@ function buildTeam(namePrefix, roles) {
     finisherHP: 28, aggrRemain: 3, aggrIn: 22, aggrOut: 16,
     bias: 0, horizon: 10, samp: 7, avoidW: 1, edgeW: 0.5, rangeW: 0.22,
     rangeSpread: 18, ttcW: 4, jTick: 1, jSeed: 1,
+    openTicks: 24, open: 0, openSpread: 18,
   };
   const presets = {
-    TANKER: { ...base, rMin: 160, rMax: 280, fleeBias: 12, bias: -6, aimJitter: 0.14, jSeed: 11 },
-    DEALER: { ...base, rMin: 184, rMax: 305, fleeBias: 22, bias: 12, aimJitter: 0.18, strafe: 34, jSeed: 7 },
-    NORMAL: { ...base, rMin: 170, rMax: 298, fleeBias: 16, bias: 4, jSeed: 3 },
+    TANKER: { ...base, rMin: 160, rMax: 280, fleeBias: 12, bias: -6, aimJitter: 0.14, jSeed: 11, open: 10 },
+    DEALER: { ...base, rMin: 184, rMax: 305, fleeBias: 22, bias: 12, aimJitter: 0.18, strafe: 34, jSeed: 7, open: 25 },
+    NORMAL: { ...base, rMin: 170, rMax: 298, fleeBias: 16, bias: 4, jSeed: 3, open: 18 },
   };
 
   for (let i = 0; i < roles.length; i++) {
     const role = roles[i];
-    const P = { ...presets[role.kind], bias: presets[role.kind].bias + (role.bias||0), rMin: presets[role.kind].rMin + (role.rMin||0), rMax: presets[role.kind].rMax + (role.rMax||0), jSeed: presets[role.kind].jSeed + i };
+    const P = { ...presets[role.kind], bias: presets[role.kind].bias + (role.bias||0), rMin: presets[role.kind].rMin + (role.rMin||0), rMax: presets[role.kind].rMax + (role.rMax||0), jSeed: presets[role.kind].jSeed + i, open: presets[role.kind].open + (role.open||0) };
     const botName = `${namePrefix}-${i+1}`;
     const tankType = role.kind === 'TANKER' ? 'Type.TANKER' : (role.kind === 'DEALER' ? 'Type.DEALER' : 'Type.NORMAL');
     bots.push(makeBotCode(botName, tankType, P, `__s${i+1}`));
@@ -78,4 +88,3 @@ function buildTeam(namePrefix, roles) {
 }
 
 module.exports = { buildTeam };
-
