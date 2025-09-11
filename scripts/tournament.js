@@ -1,184 +1,232 @@
 #!/usr/bin/env node
-/*
- Pairwise tournament runner for result/ AIs.
- - Scans result/ for team .txt files containing function name()/update().
- - Compiles each team once using simulator/bot_loader.
- - Runs single headless match per pair (fast mode) to keep runtime reasonable.
- - Aggregates W/L/D per team and writes result/MATCH.md with a summary and high-win list.
+/* eslint-disable no-console */
+// Round-robin tournament runner for all AI teams under result/
+// - Pairs every team file against every other
+// - Runs two matches per pair (swap colors once)
+// - Uses simulator/worker.js to parallelize execution per match
+// - Aggregates and writes a concise summary to result/MATCH.md
 
- Usage:
-   node scripts/tournament.js [--threshold 0.7] [--maxPairs N]
-
- Notes:
- - Uses fast engine mode for performance; runner remains 'secure'.
- - Draws are excluded when computing win-rate = wins / (wins + losses).
-*/
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { runMatch } = require('../simulator/engine');
+const { Worker } = require('worker_threads');
 const { compileTeamFromCode } = require('../simulator/bot_loader');
 
-function parseArgs(argv) {
-  const args = {};
-  for (let i = 2; i < argv.length; i++) {
-    const a = argv[i];
-    if (a.startsWith('--')) {
-      const key = a.slice(2);
-      const next = argv[i + 1];
-      if (next && !next.startsWith('--')) { args[key] = next; i++; } else { args[key] = true; }
-    }
+const ROOT = path.resolve(__dirname, '..');
+const RESULT_DIR = path.join(ROOT, 'result');
+const SIM_ROOT = path.join(ROOT, 'simulator');
+
+// Config (tweakable via env vars)
+const MAX_TICKS = parseInt(process.env.TOURNAMENT_MAX_TICKS || '2000', 10);
+const RUNNER_MODE = process.env.TOURNAMENT_RUNNER || 'secure'; // 'secure' | 'fast'
+const FAST_ENGINE = process.env.TOURNAMENT_FAST === '1' || true; // engine fast path
+const CONCURRENCY = Math.max(1, parseInt(process.env.TOURNAMENT_CONCURRENCY || String(Math.min(8, os.cpus().length || 4)), 10));
+const SEED_BASE = process.env.TOURNAMENT_SEED || 'tournament';
+
+function isTeamFile(filePath) {
+  try {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) return false;
+    const content = fs.readFileSync(filePath, 'utf8');
+    // Must contain at least one robot definition per HTML convention
+    return /\bfunction\s+name\s*\(\s*\)/.test(content) && /\bfunction\s+update\s*\(/.test(content);
+  } catch (_e) {
+    return false;
   }
-  return args;
 }
 
-function listTeamFiles(rootDir) {
-  const results = [];
-  function walk(dir) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        walk(p);
-      } else if (entry.isFile() && entry.name.endsWith('.txt')) {
-        try {
-          const txt = fs.readFileSync(p, 'utf8');
-          if (/function\s+name\s*\(\s*\)/.test(txt) && /function\s+update\s*\(/.test(txt)) {
-            results.push(p);
-          }
-        } catch (_) { /* ignore */ }
+function listAllTeamFiles(dir) {
+  const acc = [];
+  const stack = [dir];
+  while (stack.length) {
+    const d = stack.pop();
+    let entries;
+    try {
+      entries = fs.readdirSync(d, { withFileTypes: true });
+    } catch (_e) {
+      continue;
+    }
+    for (const e of entries) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) {
+        stack.push(p);
+      } else if (e.isFile()) {
+        if (isTeamFile(p)) acc.push(p);
       }
     }
   }
-  walk(rootDir);
-  // de-dup and sort for stability
-  return Array.from(new Set(results)).sort((a,b) => a.localeCompare(b));
+  // Ensure deterministic order
+  acc.sort((a, b) => a.localeCompare(b));
+  return acc;
 }
 
-function teamIdFromPath(p) {
-  // Prefer the directory timestamp as ID if present; else the basename without ext
-  const base = path.basename(p, '.txt');
-  const parent = path.basename(path.dirname(p));
-  if (/^\d{4}-\d{2}-\d{2}-/.test(parent)) return parent;
-  return base;
+function rel(p) {
+  return path.relative(ROOT, p) || p;
 }
 
-function compileTeams(files) {
-  const map = new Map();
-  for (const f of files) {
-    const code = fs.readFileSync(f, 'utf8');
-    const redTeam = compileTeamFromCode(code, 'red', 'secure');
-    const blueTeam = compileTeamFromCode(code, 'blue', 'secure');
-    map.set(f, { redTeam, blueTeam, id: teamIdFromPath(f) });
-  }
-  return map;
-}
-
-function runPair(redTeam, blueTeam, seed) {
-  const players = [...redTeam, ...blueTeam];
-  const res = runMatch(players, { seed, maxTicks: 5000, fast: true });
-  return res.winner; // 'red' | 'blue' | 'draw'
-}
-
-function formatPercent(x) {
-  return (x * 100).toFixed(1) + '%';
-}
-
-function writeMarkdown(outPath, teams, stats, threshold) {
-  const lines = [];
-  const now = new Date();
-  const totalTeams = teams.length;
-  const totalPairs = (totalTeams * (totalTeams - 1)) / 2;
-
-  // Sort by win rate (wins/(wins+losses)), then by wins
-  const rows = teams.map((t) => {
-    const s = stats.get(t.file);
-    const denom = s.wins + s.losses;
-    const wr = denom > 0 ? s.wins / denom : 0;
-    return { id: t.id, file: t.file, wins: s.wins, losses: s.losses, draws: s.draws, wr };
-  }).sort((a, b) => (b.wr - a.wr) || (b.wins - a.wins) || a.id.localeCompare(b.id));
-
-  lines.push(`# Tournament Summary`);
-  lines.push(``);
-  lines.push(`- Date: ${now.toISOString()}`);
-  lines.push(`- Teams: ${totalTeams}`);
-  lines.push(`- Pairwise Matches: ${totalPairs} (1 game per pair, fast mode)`);
-  lines.push(`- Win-Rate: wins/(wins+losses); draws excluded`);
-  lines.push(``);
-
-  lines.push(`## Overall Standings (sorted by win rate)`);
-  lines.push(``);
-  lines.push(`| Rank | Team ID | W | L | D | Win Rate |`);
-  lines.push(`| ---- | ------- | - | - | - | -------- |`);
-  rows.forEach((r, i) => {
-    lines.push(`| ${i + 1} | ${r.id} | ${r.wins} | ${r.losses} | ${r.draws} | ${formatPercent(r.wr)} |`);
+function runWorkerMatch(redCode, blueCode, seed) {
+  return new Promise((resolve, reject) => {
+    const w = new Worker(path.join(SIM_ROOT, 'worker.js'), {
+      workerData: {
+        redCode,
+        blueCode,
+        runnerMode: RUNNER_MODE,
+        seeds: [seed],
+        maxTicks: MAX_TICKS,
+        fast: FAST_ENGINE,
+      },
+    });
+    w.on('message', (arr) => resolve(arr[0]));
+    w.on('error', reject);
+    w.on('exit', (code) => { if (code !== 0) reject(new Error(`Worker exited with code ${code}`)); });
   });
-  lines.push('');
-
-  const high = rows.filter((r) => r.wr >= threshold);
-  lines.push(`## High Win Rates (>= ${Math.round(threshold * 100)}%)`);
-  if (high.length === 0) {
-    lines.push(`- None`);
-  } else {
-    for (const r of high) {
-      lines.push(`- ${r.id}: ${r.wins}-${r.losses}-${r.draws} (${formatPercent(r.wr)})`);
-    }
-  }
-  lines.push('');
-
-  fs.writeFileSync(outPath, lines.join('\n'));
 }
 
 async function main() {
-  const args = parseArgs(process.argv);
-  const threshold = args.threshold ? Math.min(0.99, Math.max(0, parseFloat(args.threshold))) : 0.7;
-  const maxPairs = args.maxPairs ? parseInt(args.maxPairs, 10) : null; // for debugging
+  // Discover teams
+  const teamFiles = listAllTeamFiles(RESULT_DIR);
+  if (teamFiles.length < 2) {
+    console.error('Not enough team files found under result/');
+    process.exit(1);
+  }
 
-  const root = path.resolve('result');
-  if (!fs.existsSync(root)) throw new Error('result/ directory not found');
-  const files = listTeamFiles(root);
-  if (files.length < 2) throw new Error('Need at least 2 team files in result/');
+  console.log(`Discovered ${teamFiles.length} team files.`);
+  // Preload codes for faster worker spin-up
+  const teamCodeMap = new Map();
+  for (const f of teamFiles) teamCodeMap.set(f, fs.readFileSync(f, 'utf8'));
 
-  const compiled = compileTeams(files);
-  const teams = files.map((f) => ({ file: f, id: compiled.get(f).id }));
+  // Validate compilability early (fails fast for broken inputs)
+  for (const f of teamFiles) {
+    try {
+      compileTeamFromCode(teamCodeMap.get(f), 'red', RUNNER_MODE);
+    } catch (e) {
+      console.warn(`Warning: failed to compile ${rel(f)}: ${e?.message || e}`);
+    }
+  }
 
-  // Initialize stats
-  const stats = new Map();
-  for (const f of files) stats.set(f, { wins: 0, losses: 0, draws: 0 });
-
+  // Build all unique pairs
   const pairs = [];
-  for (let i = 0; i < files.length; i++) {
-    for (let j = i + 1; j < files.length; j++) {
-      pairs.push([i, j]);
+  for (let i = 0; i < teamFiles.length; i++) {
+    for (let j = i + 1; j < teamFiles.length; j++) {
+      pairs.push([teamFiles[i], teamFiles[j]]);
     }
   }
-  if (maxPairs && maxPairs > 0 && maxPairs < pairs.length) pairs.length = maxPairs;
+  console.log(`Total pairs: ${pairs.length}`);
 
-  // Run all pairs sequentially (fast engine keeps this reasonable)
-  // Seed with a stable value based on indices to keep determinism across runs.
-  const baseSeed = 123456789;
-  for (let p = 0; p < pairs.length; p++) {
-    const [i, j] = pairs[p];
-    const fA = files[i];
-    const fB = files[j];
-    const { redTeam } = compiled.get(fA);
-    const { blueTeam } = compiled.get(fB);
-    const seed = baseSeed + p;
-    const winner = runPair(redTeam, blueTeam, seed);
-    if (winner === 'red') { stats.get(fA).wins++; stats.get(fB).losses++; }
-    else if (winner === 'blue') { stats.get(fA).losses++; stats.get(fB).wins++; }
-    else { stats.get(fA).draws++; stats.get(fB).draws++; }
-    if ((p + 1) % 100 === 0) {
-      process.stdout.write(`Processed ${p + 1}/${pairs.length} pairs\r`);
+  // Aggregation structures
+  const perAI = new Map(); // path -> { wins, losses, draws, matches }
+  const pairResults = []; // { a, b, aWins, bWins, draws }
+
+  function ensureAIEntry(p) {
+    if (!perAI.has(p)) perAI.set(p, { wins: 0, losses: 0, draws: 0, matches: 0 });
+    return perAI.get(p);
+  }
+
+  // Simple concurrency control
+  let active = 0;
+  let idx = 0;
+  let completedPairs = 0;
+
+  async function runNext() {
+    if (idx >= pairs.length) return;
+    const [a, b] = pairs[idx++];
+    active++;
+    try {
+      const baseSeed = `${SEED_BASE}-${idx}`;
+      // A(red) vs B(blue)
+      const r1 = await runWorkerMatch(teamCodeMap.get(a), teamCodeMap.get(b), `${baseSeed}-A`);
+      // B(red) vs A(blue)
+      const r2 = await runWorkerMatch(teamCodeMap.get(b), teamCodeMap.get(a), `${baseSeed}-B`);
+
+      let aWins = 0, bWins = 0, draws = 0;
+      if (r1.winner === 'red') aWins++; else if (r1.winner === 'blue') bWins++; else draws++;
+      if (r2.winner === 'blue') aWins++; else if (r2.winner === 'red') bWins++; else draws++;
+
+      pairResults.push({ a, b, aWins, bWins, draws });
+
+      const aStat = ensureAIEntry(a);
+      const bStat = ensureAIEntry(b);
+      aStat.wins += aWins; aStat.losses += bWins; aStat.draws += draws; aStat.matches += (aWins + bWins + draws);
+      bStat.wins += bWins; bStat.losses += aWins; bStat.draws += draws; bStat.matches += (aWins + bWins + draws);
+
+      completedPairs++;
+      if (completedPairs % 50 === 0 || completedPairs === pairs.length) {
+        process.stdout.write(`\rProcessed pairs: ${completedPairs}/${pairs.length}`);
+      }
+    } catch (e) {
+      console.error(`\nError in pair ${rel(a)} vs ${rel(b)}: ${e?.message || e}`);
+    } finally {
+      active--;
+      if (idx < pairs.length) await runNext();
     }
   }
-  process.stdout.write(`Processed ${pairs.length}/${pairs.length} pairs\n`);
 
-  const outPath = path.resolve('result', 'MATCH.md');
-  writeMarkdown(outPath, teams, stats, threshold);
-  console.log(`Wrote summary -> ${outPath}`);
+  // Kick off workers up to CONCURRENCY
+  const starters = [];
+  for (let k = 0; k < Math.min(CONCURRENCY, pairs.length); k++) starters.push(runNext());
+  await Promise.all(starters);
+  console.log('\nAll pairs processed.');
+
+  // Build MATCH.md content
+  const lines = [];
+  const now = new Date();
+  lines.push('# Tournament Summary');
+  lines.push('');
+  lines.push(`- Date: ${now.toISOString()}`);
+  lines.push(`- Teams: ${teamFiles.length}`);
+  lines.push(`- Pairs: ${pairs.length}`);
+  lines.push(`- Matches per pair: 2 (color-swapped)`);
+  lines.push(`- Engine: maxTicks=${MAX_TICKS}, fast=${FAST_ENGINE}, runner=${RUNNER_MODE}`);
+  lines.push(`- Concurrency: ${CONCURRENCY}`);
+  lines.push('');
+
+  // Leaderboard
+  const leaderboard = teamFiles.map((p) => {
+    const s = ensureAIEntry(p);
+    const nonDraw = s.wins + s.losses;
+    const winRate = nonDraw > 0 ? s.wins / nonDraw : 0;
+    return { path: p, ...s, winRate };
+  }).sort((x, y) => y.winRate - x.winRate || y.wins - x.wins);
+
+  lines.push('## Leaderboard (Win Rate, excluding draws)');
+  lines.push('');
+  lines.push('| Rank | Team | W | L | D | WinRate |');
+  lines.push('|-----:|:-----|--:|--:|--:|--------:|');
+  leaderboard.forEach((e, i) => {
+    lines.push(`| ${i + 1} | ${rel(e.path)} | ${e.wins} | ${e.losses} | ${e.draws} | ${(e.winRate * 100).toFixed(1)}% |`);
+  });
+  lines.push('');
+
+  // High-win list
+  const threshold = parseFloat(process.env.TOURNAMENT_HIGH_THRESHOLD || '0.65');
+  const strong = leaderboard.filter((e) => e.winRate >= threshold);
+  lines.push(`## High-Win Teams (>= ${(threshold * 100).toFixed(0)}% win rate)`);
+  if (strong.length === 0) {
+    lines.push('None');
+  } else {
+    for (const e of strong) {
+      lines.push(`- ${rel(e.path)}: ${(e.winRate * 100).toFixed(1)}% (${e.wins}-${e.losses}-${e.draws})`);
+    }
+  }
+  lines.push('');
+
+  // Optional compact pairwise summary (not exhaustive details)
+  lines.push('## Pairwise Summary (counts over 2 games)');
+  lines.push('');
+  lines.push('Format: TeamA vs TeamB — A:Wins, B:Wins, Draws');
+  for (const pr of pairResults) {
+    lines.push(`- ${rel(pr.a)} vs ${rel(pr.b)} — A:${pr.aWins}, B:${pr.bWins}, D:${pr.draws}`);
+  }
+  lines.push('');
+
+  // Write MATCH.md
+  const outPath = path.join(RESULT_DIR, 'MATCH.md');
+  fs.writeFileSync(outPath, lines.join('\n'));
+  console.log(`Wrote summary -> ${rel(outPath)}`);
 }
 
-if (require.main === module) {
-  main().catch((err) => { console.error(err); process.exit(1); });
-}
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
 
