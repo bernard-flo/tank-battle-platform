@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-Round-robin tournament for all AIs under result/**/team.js.
+Round-robin tournament for all AIs under result/(...)/team.js.
 Runs pairwise matches in both directions (red/blue), aggregates W/L/D,
 and writes summary to result/MATCH.md.
 
@@ -204,4 +204,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
