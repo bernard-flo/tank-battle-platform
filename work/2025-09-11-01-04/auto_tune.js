@@ -13,7 +13,8 @@ const { spawnSync } = require('child_process');
 // Resolve repository root (two levels up from this script)
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const SIM_CLI = path.join(REPO_ROOT, 'simulator', 'cli.js');
-const TS = path.basename(process.cwd());
+// Timestamp dir name equals this script's parent directory name
+const TS = path.basename(__dirname);
 const OUT_RESULT_DIR = path.join(REPO_ROOT, 'result', TS);
 const OUT_WORK_DIR = path.join(REPO_ROOT, 'work', TS);
 
