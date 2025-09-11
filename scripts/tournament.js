@@ -1,232 +1,183 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
-// Round-robin tournament runner for all AI teams under result/
-// - Pairs every team file against every other
-// - Runs two matches per pair (swap colors once)
-// - Uses simulator/worker.js to parallelize execution per match
-// - Aggregates and writes a concise summary to result/MATCH.md
+/*
+ Runs a round-robin tournament among all AIs under result/*/team.js
+ Uses the headless simulator CLI with secure runner and fast engine optimizations.
 
+ Output: result/MATCH.md (summary + high win-rate list)
+*/
+/* eslint-disable no-console */
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { Worker } = require('worker_threads');
-const { compileTeamFromCode } = require('../simulator/bot_loader');
+const { spawnSync } = require('child_process');
 
-const ROOT = path.resolve(__dirname, '..');
-const RESULT_DIR = path.join(ROOT, 'result');
-const SIM_ROOT = path.join(ROOT, 'simulator');
+const REPO_ROOT = path.resolve(__dirname, '..');
+const RESULT_DIR = path.join(REPO_ROOT, 'result');
+const MATCH_MD = path.join(RESULT_DIR, 'MATCH.md');
 
-// Config (tweakable via env vars)
-const MAX_TICKS = parseInt(process.env.TOURNAMENT_MAX_TICKS || '2000', 10);
-const RUNNER_MODE = process.env.TOURNAMENT_RUNNER || 'secure'; // 'secure' | 'fast'
-const FAST_ENGINE = process.env.TOURNAMENT_FAST === '1' || true; // engine fast path
-const CONCURRENCY = Math.max(1, parseInt(process.env.TOURNAMENT_CONCURRENCY || String(Math.min(8, os.cpus().length || 4)), 10));
-const SEED_BASE = process.env.TOURNAMENT_SEED || 'tournament';
+// Tunables
+const REPEAT_PER_SIDE = parseInt(process.env.TOURN_REPEAT || '50', 10); // matches per side (A-red vs B-blue, then swapped)
+const CONCURRENCY = Math.max(1, Math.min(os.cpus().length, parseInt(process.env.TOURN_CONCURRENCY || String(Math.max(1, os.cpus().length - 1)), 10)));
+const RUNNER = process.env.TOURN_RUNNER || 'secure'; // 'secure' | 'fast'
+const FAST_FLAG = process.env.TOURN_FAST === '0' ? false : true; // default true
+const MAX_TICKS = parseInt(process.env.TOURN_MAX_TICKS || '5000', 10);
 
-function isTeamFile(filePath) {
+function findTeams() {
+  if (!fs.existsSync(RESULT_DIR)) return [];
+  const subdirs = fs.readdirSync(RESULT_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => path.join(RESULT_DIR, d.name));
+  const teams = [];
+  for (const d of subdirs) {
+    const teamPath = path.join(d, 'team.js');
+    if (fs.existsSync(teamPath)) {
+      teams.push({ id: path.basename(d), file: teamPath });
+    }
+  }
+  return teams.sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function runBatch(redFile, blueFile) {
+  const args = [
+    path.join(REPO_ROOT, 'simulator', 'cli.js'),
+    '--red', redFile,
+    '--blue', blueFile,
+    '--repeat', String(REPEAT_PER_SIDE),
+    '--runner', RUNNER,
+    '--maxTicks', String(MAX_TICKS),
+    '--concurrency', String(CONCURRENCY),
+  ];
+  if (FAST_FLAG) args.push('--fast');
+
+  // Write JSON to a temp file for reliable parsing
+  const jsonOut = path.join(os.tmpdir(), `match_${path.basename(redFile)}_vs_${path.basename(blueFile)}_${Date.now()}_${Math.random().toString(36).slice(2)}.json`);
+  args.push('--json', jsonOut);
+
+  const res = spawnSync('node', args, { encoding: 'utf8' });
+  if (res.error) throw res.error;
+  if (res.status !== 0) {
+    console.error(res.stdout);
+    console.error(res.stderr);
+    throw new Error(`Simulator exited with ${res.status}`);
+  }
+  let parsed;
   try {
-    const stat = fs.statSync(filePath);
-    if (!stat.isFile()) return false;
-    const content = fs.readFileSync(filePath, 'utf8');
-    // Must contain at least one robot definition per HTML convention
-    return /\bfunction\s+name\s*\(\s*\)/.test(content) && /\bfunction\s+update\s*\(/.test(content);
-  } catch (_e) {
-    return false;
+    const raw = fs.readFileSync(jsonOut, 'utf8');
+    parsed = JSON.parse(raw);
+  } finally {
+    try { fs.unlinkSync(jsonOut); } catch (_) {}
   }
+  if (!parsed || !parsed.aggregate) throw new Error('Invalid JSON output from simulator');
+  const { redWins, blueWins, draws, matches } = parsed.aggregate;
+  return { redWins, blueWins, draws, matches };
 }
 
-function listAllTeamFiles(dir) {
-  const acc = [];
-  const stack = [dir];
-  while (stack.length) {
-    const d = stack.pop();
-    let entries;
-    try {
-      entries = fs.readdirSync(d, { withFileTypes: true });
-    } catch (_e) {
-      continue;
-    }
-    for (const e of entries) {
-      const p = path.join(d, e.name);
-      if (e.isDirectory()) {
-        stack.push(p);
-      } else if (e.isFile()) {
-        if (isTeamFile(p)) acc.push(p);
-      }
+function roundRobin(teams) {
+  const pairResults = [];
+  const totals = new Map();
+  for (const t of teams) totals.set(t.id, { wins: 0, losses: 0, draws: 0, games: 0 });
+
+  for (let i = 0; i < teams.length; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      const A = teams[i];
+      const B = teams[j];
+
+      // A (red) vs B (blue)
+      const r1 = runBatch(A.file, B.file);
+      // B (red) vs A (blue)
+      const r2 = runBatch(B.file, A.file);
+
+      const aWins = r1.redWins + r2.blueWins;
+      const bWins = r1.blueWins + r2.redWins;
+      const draws = r1.draws + r2.draws;
+      const games = r1.matches + r2.matches;
+
+      pairResults.push({ A: A.id, B: B.id, aWins, bWins, draws, games });
+
+      const aTot = totals.get(A.id);
+      aTot.wins += aWins; aTot.losses += bWins; aTot.draws += draws; aTot.games += games;
+      const bTot = totals.get(B.id);
+      bTot.wins += bWins; bTot.losses += aWins; bTot.draws += draws; bTot.games += games;
     }
   }
-  // Ensure deterministic order
-  acc.sort((a, b) => a.localeCompare(b));
-  return acc;
+  return { pairResults, totals };
 }
 
-function rel(p) {
-  return path.relative(ROOT, p) || p;
+function fmtPct(numer, denom) {
+  if (denom === 0) return '0.0%';
+  return `${((numer / denom) * 100).toFixed(1)}%`;
 }
 
-function runWorkerMatch(redCode, blueCode, seed) {
-  return new Promise((resolve, reject) => {
-    const w = new Worker(path.join(SIM_ROOT, 'worker.js'), {
-      workerData: {
-        redCode,
-        blueCode,
-        runnerMode: RUNNER_MODE,
-        seeds: [seed],
-        maxTicks: MAX_TICKS,
-        fast: FAST_ENGINE,
-      },
-    });
-    w.on('message', (arr) => resolve(arr[0]));
-    w.on('error', reject);
-    w.on('exit', (code) => { if (code !== 0) reject(new Error(`Worker exited with code ${code}`)); });
-  });
-}
-
-async function main() {
-  // Discover teams
-  const teamFiles = listAllTeamFiles(RESULT_DIR);
-  if (teamFiles.length < 2) {
-    console.error('Not enough team files found under result/');
-    process.exit(1);
-  }
-
-  console.log(`Discovered ${teamFiles.length} team files.`);
-  // Preload codes for faster worker spin-up
-  const teamCodeMap = new Map();
-  for (const f of teamFiles) teamCodeMap.set(f, fs.readFileSync(f, 'utf8'));
-
-  // Validate compilability early (fails fast for broken inputs)
-  for (const f of teamFiles) {
-    try {
-      compileTeamFromCode(teamCodeMap.get(f), 'red', RUNNER_MODE);
-    } catch (e) {
-      console.warn(`Warning: failed to compile ${rel(f)}: ${e?.message || e}`);
-    }
-  }
-
-  // Build all unique pairs
-  const pairs = [];
-  for (let i = 0; i < teamFiles.length; i++) {
-    for (let j = i + 1; j < teamFiles.length; j++) {
-      pairs.push([teamFiles[i], teamFiles[j]]);
-    }
-  }
-  console.log(`Total pairs: ${pairs.length}`);
-
-  // Aggregation structures
-  const perAI = new Map(); // path -> { wins, losses, draws, matches }
-  const pairResults = []; // { a, b, aWins, bWins, draws }
-
-  function ensureAIEntry(p) {
-    if (!perAI.has(p)) perAI.set(p, { wins: 0, losses: 0, draws: 0, matches: 0 });
-    return perAI.get(p);
-  }
-
-  // Simple concurrency control
-  let active = 0;
-  let idx = 0;
-  let completedPairs = 0;
-
-  async function runNext() {
-    if (idx >= pairs.length) return;
-    const [a, b] = pairs[idx++];
-    active++;
-    try {
-      const baseSeed = `${SEED_BASE}-${idx}`;
-      // A(red) vs B(blue)
-      const r1 = await runWorkerMatch(teamCodeMap.get(a), teamCodeMap.get(b), `${baseSeed}-A`);
-      // B(red) vs A(blue)
-      const r2 = await runWorkerMatch(teamCodeMap.get(b), teamCodeMap.get(a), `${baseSeed}-B`);
-
-      let aWins = 0, bWins = 0, draws = 0;
-      if (r1.winner === 'red') aWins++; else if (r1.winner === 'blue') bWins++; else draws++;
-      if (r2.winner === 'blue') aWins++; else if (r2.winner === 'red') bWins++; else draws++;
-
-      pairResults.push({ a, b, aWins, bWins, draws });
-
-      const aStat = ensureAIEntry(a);
-      const bStat = ensureAIEntry(b);
-      aStat.wins += aWins; aStat.losses += bWins; aStat.draws += draws; aStat.matches += (aWins + bWins + draws);
-      bStat.wins += bWins; bStat.losses += aWins; bStat.draws += draws; bStat.matches += (aWins + bWins + draws);
-
-      completedPairs++;
-      if (completedPairs % 50 === 0 || completedPairs === pairs.length) {
-        process.stdout.write(`\rProcessed pairs: ${completedPairs}/${pairs.length}`);
-      }
-    } catch (e) {
-      console.error(`\nError in pair ${rel(a)} vs ${rel(b)}: ${e?.message || e}`);
-    } finally {
-      active--;
-      if (idx < pairs.length) await runNext();
-    }
-  }
-
-  // Kick off workers up to CONCURRENCY
-  const starters = [];
-  for (let k = 0; k < Math.min(CONCURRENCY, pairs.length); k++) starters.push(runNext());
-  await Promise.all(starters);
-  console.log('\nAll pairs processed.');
-
-  // Build MATCH.md content
+function writeMarkdown(teams, pairResults, totals) {
   const lines = [];
   const now = new Date();
-  lines.push('# Tournament Summary');
+  lines.push(`# Tank Battle Tournament Results`);
   lines.push('');
   lines.push(`- Date: ${now.toISOString()}`);
-  lines.push(`- Teams: ${teamFiles.length}`);
-  lines.push(`- Pairs: ${pairs.length}`);
-  lines.push(`- Matches per pair: 2 (color-swapped)`);
-  lines.push(`- Engine: maxTicks=${MAX_TICKS}, fast=${FAST_ENGINE}, runner=${RUNNER_MODE}`);
-  lines.push(`- Concurrency: ${CONCURRENCY}`);
+  lines.push(`- Teams: ${teams.length}`);
+  lines.push(`- Config: repeat/side=${REPEAT_PER_SIDE}, concurrency=${CONCURRENCY}, runner=${RUNNER}, fast=${FAST_FLAG}, maxTicks=${MAX_TICKS}`);
   lines.push('');
 
-  // Leaderboard
-  const leaderboard = teamFiles.map((p) => {
-    const s = ensureAIEntry(p);
-    const nonDraw = s.wins + s.losses;
-    const winRate = nonDraw > 0 ? s.wins / nonDraw : 0;
-    return { path: p, ...s, winRate };
-  }).sort((x, y) => y.winRate - x.winRate || y.wins - x.wins);
+  // Overall ranking
+  const overall = Array.from(totals.entries()).map(([id, t]) => ({ id, ...t, winRate: t.games > 0 ? (t.wins / t.games) : 0 }));
+  overall.sort((x, y) => y.winRate - x.winRate || y.wins - x.wins);
 
-  lines.push('## Leaderboard (Win Rate, excluding draws)');
+  lines.push('## Overall Ranking');
   lines.push('');
-  lines.push('| Rank | Team | W | L | D | WinRate |');
-  lines.push('|-----:|:-----|--:|--:|--:|--------:|');
-  leaderboard.forEach((e, i) => {
-    lines.push(`| ${i + 1} | ${rel(e.path)} | ${e.wins} | ${e.losses} | ${e.draws} | ${(e.winRate * 100).toFixed(1)}% |`);
+  lines.push('| Rank | Team | Wins | Losses | Draws | Games | Win Rate |');
+  lines.push('|---:|:---|---:|---:|---:|---:|---:|');
+  overall.forEach((t, idx) => {
+    lines.push(`| ${idx + 1} | ${t.id} | ${t.wins} | ${t.losses} | ${t.draws} | ${t.games} | ${fmtPct(t.wins, t.games)} |`);
   });
   lines.push('');
 
-  // High-win list
-  const threshold = parseFloat(process.env.TOURNAMENT_HIGH_THRESHOLD || '0.65');
-  const strong = leaderboard.filter((e) => e.winRate >= threshold);
-  lines.push(`## High-Win Teams (>= ${(threshold * 100).toFixed(0)}% win rate)`);
-  if (strong.length === 0) {
-    lines.push('None');
+  // High win-rate list (>= 65%)
+  const HIGH_THRESHOLD = parseFloat(process.env.TOURN_HIGH_THRESH || '0.65');
+  const highs = overall.filter((t) => t.winRate >= HIGH_THRESHOLD);
+  lines.push(`## High Win Rates (>= ${(HIGH_THRESHOLD * 100).toFixed(0)}%)`);
+  lines.push('');
+  if (highs.length === 0) {
+    lines.push('_None meet the threshold._');
   } else {
-    for (const e of strong) {
-      lines.push(`- ${rel(e.path)}: ${(e.winRate * 100).toFixed(1)}% (${e.wins}-${e.losses}-${e.draws})`);
-    }
+    highs.forEach((t) => {
+      lines.push(`- ${t.id}: ${fmtPct(t.wins, t.games)} (${t.wins}/${t.games})`);
+    });
   }
   lines.push('');
 
-  // Optional compact pairwise summary (not exhaustive details)
-  lines.push('## Pairwise Summary (counts over 2 games)');
+  // Pairwise detail
+  lines.push('## Pairwise Results');
   lines.push('');
-  lines.push('Format: TeamA vs TeamB — A:Wins, B:Wins, Draws');
-  for (const pr of pairResults) {
-    lines.push(`- ${rel(pr.a)} vs ${rel(pr.b)} — A:${pr.aWins}, B:${pr.bWins}, D:${pr.draws}`);
+  lines.push('| Team A | Team B | A Wins | B Wins | Draws | Games | A Win Rate | B Win Rate |');
+  lines.push('|:--|:--|--:|--:|--:|--:|--:|--:|');
+  for (const p of pairResults) {
+    const aWR = fmtPct(p.aWins, p.games);
+    const bWR = fmtPct(p.bWins, p.games);
+    lines.push(`| ${p.A} | ${p.B} | ${p.aWins} | ${p.bWins} | ${p.draws} | ${p.games} | ${aWR} | ${bWR} |`);
   }
   lines.push('');
 
-  // Write MATCH.md
-  const outPath = path.join(RESULT_DIR, 'MATCH.md');
-  fs.writeFileSync(outPath, lines.join('\n'));
-  console.log(`Wrote summary -> ${rel(outPath)}`);
+  fs.writeFileSync(MATCH_MD, lines.join('\n'));
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+function main() {
+  const teams = findTeams();
+  if (teams.length < 2) {
+    console.log('No sufficient teams found under result/*/team.js');
+    console.log('Nothing to do.');
+    process.exit(0);
+  }
+
+  console.log(`Found ${teams.length} teams. Running round-robin...`);
+  console.log(teams.map((t) => ` - ${t.id}`).join('\n'));
+
+  const { pairResults, totals } = roundRobin(teams);
+  writeMarkdown(teams, pairResults, totals);
+
+  console.log(`Wrote summary -> ${path.relative(REPO_ROOT, MATCH_MD)}`);
+}
+
+if (require.main === module) {
+  main();
+}
 
