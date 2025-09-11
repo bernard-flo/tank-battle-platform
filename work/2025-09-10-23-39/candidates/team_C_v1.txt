@@ -19,7 +19,7 @@ function update(tank,enemies,allies,bulletInfo){
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; }
     const jitter=((((tank.x*31+tank.y*17+1)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s1.last={x:tgt.x,y:tgt.y}; }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
 
   // 3) Bullet avoidance with time-to-closest-approach heuristic and multi-candidate sampling
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*4; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
@@ -65,7 +65,7 @@ function update(tank,enemies,allies,bulletInfo){
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; }
     const jitter=((((tank.x*31+tank.y*17+2)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s2.last={x:tgt.x,y:tgt.y}; }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
 
   // 3) Bullet avoidance with time-to-closest-approach heuristic and multi-candidate sampling
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*4; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
@@ -111,7 +111,7 @@ function update(tank,enemies,allies,bulletInfo){
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; }
     const jitter=((((tank.x*31+tank.y*17+3)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s3.last={x:tgt.x,y:tgt.y}; }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
 
   // 3) Bullet avoidance with time-to-closest-approach heuristic and multi-candidate sampling
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*4; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
@@ -157,7 +157,7 @@ function update(tank,enemies,allies,bulletInfo){
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; }
     const jitter=((((tank.x*31+tank.y*17+4)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s4.last={x:tgt.x,y:tgt.y}; }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
 
   // 3) Bullet avoidance with time-to-closest-approach heuristic and multi-candidate sampling
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*4; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
@@ -203,7 +203,7 @@ function update(tank,enemies,allies,bulletInfo){
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; }
     const jitter=((((tank.x*31+tank.y*17+5)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s5.last={x:tgt.x,y:tgt.y}; }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
 
   // 3) Bullet avoidance with time-to-closest-approach heuristic and multi-candidate sampling
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*4; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
@@ -249,7 +249,7 @@ function update(tank,enemies,allies,bulletInfo){
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; }
     const jitter=((((tank.x*31+tank.y*17+6)%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s6.last={x:tgt.x,y:tgt.y}; }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
 
   // 3) Bullet avoidance with time-to-closest-approach heuristic and multi-candidate sampling
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*4; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }

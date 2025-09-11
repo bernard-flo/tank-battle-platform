@@ -8,7 +8,7 @@ function update(tank,enemies,allies,bulletInfo){
   __s1.tick=(__s1.tick||0)+1;
   let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
   if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
-  const go=(a)=>tank.move(norm(a));
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
   // primary: dodge nearest bullet roughly perpendicular
   let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
   if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s1.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }
@@ -33,7 +33,7 @@ function update(tank,enemies,allies,bulletInfo){
   __s2.tick=(__s2.tick||0)+1;
   let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
   if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
-  const go=(a)=>tank.move(norm(a));
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
   // primary: dodge nearest bullet roughly perpendicular
   let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
   if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s2.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }
@@ -58,7 +58,7 @@ function update(tank,enemies,allies,bulletInfo){
   __s3.tick=(__s3.tick||0)+1;
   let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
   if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
-  const go=(a)=>tank.move(norm(a));
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
   // primary: dodge nearest bullet roughly perpendicular
   let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
   if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s3.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }
@@ -83,7 +83,7 @@ function update(tank,enemies,allies,bulletInfo){
   __s4.tick=(__s4.tick||0)+1;
   let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
   if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
-  const go=(a)=>tank.move(norm(a));
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
   // primary: dodge nearest bullet roughly perpendicular
   let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
   if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s4.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }
@@ -108,7 +108,7 @@ function update(tank,enemies,allies,bulletInfo){
   __s5.tick=(__s5.tick||0)+1;
   let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
   if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
-  const go=(a)=>tank.move(norm(a));
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
   // primary: dodge nearest bullet roughly perpendicular
   let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
   if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s5.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }
@@ -133,7 +133,7 @@ function update(tank,enemies,allies,bulletInfo){
   __s6.tick=(__s6.tick||0)+1;
   let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
   if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
-  const go=(a)=>tank.move(norm(a));
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
   // primary: dodge nearest bullet roughly perpendicular
   let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
   if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s6.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }

@@ -129,9 +129,36 @@ function main(){
   const stage2 = stageEvaluate(top, opponents, { repeatPerSide: 12, maxTicks: 4200 });
 
   // Choose best
-  const best = stage2[0];
+  let best = stage2[0];
 
-  // 5) Save outputs
+  // 5) Stage 3: local mutation search around best
+  const baseTweak = { ...(best.tweak || {}) };
+  const jitter = (v, d, lo, hi) => Math.max(lo, Math.min(hi, v + (Math.random()*2-1)*d));
+  const mutations = [];
+  for (let i=0;i<8;i++) {
+    mutations.push({
+      rMin: Math.round(jitter(baseTweak.rMin||170, 12, 140, 220)),
+      rMax: Math.round(jitter(baseTweak.rMax||280, 12, 230, 340)),
+      strafe: Math.round(jitter(baseTweak.strafe||28, 6, 18, 42)),
+      fleeBias: Math.round(jitter(baseTweak.fleeBias||16, 6, 8, 28)),
+      aimJitter: +(jitter(baseTweak.aimJitter||0.15, 0.05, 0.05, 0.3)).toFixed(2),
+      leadW: +(jitter(baseTweak.leadW||0.95, 0.05, 0.8, 1.0)).toFixed(2),
+      biasShift: Math.round(jitter(baseTweak.biasShift||0, 10, -16, 16)),
+    });
+  }
+  const gen = require(path.resolve(genPath));
+  const localCandidates = mutations.map((t, idx) => {
+    const file = path.join(outBase, `team_L${idx}.txt`);
+    const code = gen.buildTeam(`Nova-L${idx}`, 'v1', t);
+    fs.writeFileSync(file, code);
+    return { name: `Nova-L${idx}`, file, code, tweak: t };
+  });
+  const stage3 = stageEvaluate(localCandidates, opponents, { repeatPerSide: 10, maxTicks: 4200 });
+  if (stage3[0] && stage3[0].winRate > best.winRate) {
+    best = stage3[0];
+  }
+
+  // 6) Save outputs
   const bestPath = path.join(CWD, 'best.txt');
   writeFile(bestPath, best.code);
 
