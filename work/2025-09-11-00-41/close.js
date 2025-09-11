@@ -1,4 +1,4 @@
-// Hyperion-close - generated 2025-09-11T00:49:13.063Z
+// Hyperion-close - generated 2025-09-11T00:52:29.390Z
 function name(){return "Hyperion-close-1";}
 function type(){return Type.TANKER;}
 let __s1={last:null,lastVel:null,tick:0};

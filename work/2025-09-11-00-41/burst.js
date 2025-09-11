@@ -1,10 +1,10 @@
-// Hyperion-wide - generated 2025-09-11T00:52:29.389Z
-function name(){return "Hyperion-wide-1";}
+// Hyperion-burst - generated 2025-09-11T00:52:29.391Z
+function name(){return "Hyperion-burst-1";}
 function type(){return Type.TANKER;}
 let __s1={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":160,"rMax":302,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-12,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":22,"ttcW":4,"jTick":1,"jSeed":11,"openTicks":24,"open":10,"openSpread":18};
+  const P={"rMin":156,"rMax":280,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.98,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-10,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":11,"openTicks":24,"open":10,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s1.tick=(__s1.tick||0)+1;
@@ -57,12 +57,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "Hyperion-wide-2";}
+function name(){return "Hyperion-burst-2";}
 function type(){return Type.DEALER;}
 let __s2={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":184,"rMax":337,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.18,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":20,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":22,"ttcW":4,"jTick":1,"jSeed":8,"openTicks":24,"open":25,"openSpread":18};
+  const P={"rMin":180,"rMax":315,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.98,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":26,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":8,"openTicks":24,"open":25,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s2.tick=(__s2.tick||0)+1;
@@ -115,12 +115,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "Hyperion-wide-3";}
+function name(){return "Hyperion-burst-3";}
 function type(){return Type.NORMAL;}
 let __s3={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":170,"rMax":320,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.16,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":6,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":22,"ttcW":4,"jTick":1,"jSeed":5,"openTicks":24,"open":18,"openSpread":18};
+  const P={"rMin":166,"rMax":298,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.98,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":8,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":5,"openTicks":24,"open":18,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s3.tick=(__s3.tick||0)+1;
@@ -173,12 +173,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "Hyperion-wide-4";}
+function name(){return "Hyperion-burst-4";}
 function type(){return Type.DEALER;}
 let __s4={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":190,"rMax":327,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.18,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":22,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":22,"ttcW":4,"jTick":1,"jSeed":10,"openTicks":24,"open":25,"openSpread":18};
+  const P={"rMin":186,"rMax":305,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.98,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":28,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":10,"openTicks":24,"open":25,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s4.tick=(__s4.tick||0)+1;
@@ -231,12 +231,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "Hyperion-wide-5";}
+function name(){return "Hyperion-burst-5";}
 function type(){return Type.NORMAL;}
 let __s5={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":170,"rMax":320,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.16,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":4,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":22,"ttcW":4,"jTick":1,"jSeed":7,"openTicks":24,"open":18,"openSpread":18};
+  const P={"rMin":166,"rMax":298,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.98,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":6,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":7,"openTicks":24,"open":18,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s5.tick=(__s5.tick||0)+1;
@@ -289,12 +289,12 @@ function update(tank,enemies,allies,bulletInfo){
 
 // ===== 다음 로봇 =====
 
-function name(){return "Hyperion-wide-6";}
+function name(){return "Hyperion-burst-6";}
 function type(){return Type.TANKER;}
 let __s6={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":154,"rMax":302,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-10,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":22,"ttcW":4,"jTick":1,"jSeed":16,"openTicks":24,"open":10,"openSpread":18};
+  const P={"rMin":150,"rMax":280,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.98,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-4,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":16,"openTicks":24,"open":10,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s6.tick=(__s6.tick||0)+1;

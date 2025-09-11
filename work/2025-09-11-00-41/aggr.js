@@ -1,4 +1,4 @@
-// Hyperion-aggr - generated 2025-09-11T00:49:13.061Z
+// Hyperion-aggr - generated 2025-09-11T00:52:29.388Z
 function name(){return "Hyperion-aggr-1";}
 function type(){return Type.TANKER;}
 let __s1={last:null,lastVel:null,tick:0};
