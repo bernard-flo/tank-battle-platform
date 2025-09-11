@@ -1,10 +1,7 @@
 #!/usr/bin/env node
-/*
- Runs a round-robin tournament among all AIs under result/*/team.js
- Uses the headless simulator CLI with secure runner and fast engine optimizations.
-
- Output: result/MATCH.md (summary + high win-rate list)
-*/
+// Runs a round-robin tournament among all AIs under result/*/team.js
+// Uses the headless simulator CLI with secure runner and fast engine optimizations.
+// Output: result/MATCH.md (summary + high win-rate list)
 /* eslint-disable no-console */
 const fs = require('fs');
 const path = require('path');
@@ -180,4 +177,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
