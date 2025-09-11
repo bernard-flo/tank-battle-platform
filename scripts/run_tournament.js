@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-Round-robin tournament runner for all AIs in result/*/team.js
+Round-robin tournament runner for all AIs in result/(...)/team.js
 Generates result/MATCH.md with pairwise outcomes and overall win rates.
 
 Usage: node scripts/run_tournament.js [--repeats 30] [--concurrency 6]
@@ -210,4 +210,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
