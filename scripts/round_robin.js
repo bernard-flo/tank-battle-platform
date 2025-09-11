@@ -88,9 +88,19 @@ function runCliMatch(red, blue, opts) {
         const raw = fs.readFileSync(tmpJson, 'utf8');
         fs.unlinkSync(tmpJson);
         const json = JSON.parse(raw);
-        const agg = json.aggregate;
-        if (!agg) throw new Error('No aggregate in simulator output');
-        resolve(agg);
+        // Supports both repeat>1 (aggregate) and repeat=1 (summary)
+        if (json.aggregate) {
+          resolve(json.aggregate);
+        } else if (json.summary) {
+          const s = json.summary;
+          // Map to aggregate-like shape with counts
+          const redWins = s.winner === 'red' ? 1 : 0;
+          const blueWins = s.winner === 'blue' ? 1 : 0;
+          const draws = s.winner === 'draw' ? 1 : 0;
+          resolve({ matches: 1, redWins, blueWins, draws, baseSeed: s.seed, avgTicks: s.ticks, avgRedAlive: s.redAlive, avgBlueAlive: s.blueAlive, avgRedEnergy: s.redEnergy, avgBlueEnergy: s.blueEnergy, concurrency: 1 });
+        } else {
+          throw new Error('Invalid simulator JSON structure');
+        }
       } catch (e) {
         reject(e);
       }
@@ -220,4 +230,3 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-
