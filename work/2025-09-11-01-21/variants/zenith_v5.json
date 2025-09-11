@@ -1,8 +1,7 @@
 {
   "name": "zenith_v5",
   "biases": [-12, -8, -4, 4, 8, 12],
-  "tanker": {"minR": 160, "maxR": 280, "strafe": 30, "threat": 88, "thTime": 18, "sep": 66, "edge": 44, "bias": -10, "leadCap": 11, "leadW": 0.96, "hW": 1.5,  "dW": 0.12, "finN": 36, "finX": 26, "lastN": 38, "lastX": 36, "minCap": 150, "finH": 26},
-  "dealer": {"minR": 260, "maxR": 400, "strafe": 48, "threat": 94, "thTime": 22, "sep": 62, "edge": 46, "bias": -10, "leadCap": 13, "leadW": 1.08, "hW": 1.72, "dW": 0.09, "finN": 32, "finX": 24, "lastN": 34, "lastX": 32, "minCap": 185, "finH": 22},
-  "normal": {"minR": 220, "maxR": 340, "strafe": 40, "threat": 92, "thTime": 20, "sep": 64, "edge": 46, "bias": -8,  "leadCap": 12, "leadW": 1.02, "hW": 1.6,  "dW": 0.11, "finN": 32, "finX": 22, "lastN": 34, "lastX": 32, "minCap": 170, "finH": 22}
+  "tanker": {"minR": 160, "maxR": 280, "strafe": 30, "threat": 88, "thTime": 18, "sep": 66, "edge": 44, "bias": -10, "leadCap": 11, "leadW": 0.96, "hW": 1.5,  "dW": 0.12, "finN": 36, "finX": 26, "lastN": 38, "lastX": 36, "minCap": 150, "finH": 26, "advPush": 16, "endPush": 22, "finPush": 12},
+  "dealer": {"minR": 260, "maxR": 400, "strafe": 48, "threat": 94, "thTime": 22, "sep": 62, "edge": 46, "bias": -10, "leadCap": 13, "leadW": 1.08, "hW": 1.72, "dW": 0.09, "finN": 32, "finX": 24, "lastN": 34, "lastX": 32, "minCap": 185, "finH": 22, "advPush": 12, "endPush": 18, "finPush": 10},
+  "normal": {"minR": 220, "maxR": 340, "strafe": 40, "threat": 92, "thTime": 20, "sep": 64, "edge": 46, "bias": -8,  "leadCap": 12, "leadW": 1.02, "hW": 1.6,  "dW": 0.11, "finN": 32, "finX": 22, "lastN": 34, "lastX": 32, "minCap": 170, "finH": 22, "advPush": 14, "endPush": 20, "finPush": 10}
 }
-
