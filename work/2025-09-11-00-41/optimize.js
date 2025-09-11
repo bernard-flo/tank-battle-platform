@@ -83,6 +83,10 @@ function buildVariant(name) {
       return tweak((r, i) => { r.leadW = 0.98; r.aimJitter = 0.14; r.rMin = (r.rMin||0) - 4; r.bias += (i%2?6:2); return r; });
     case 'lock':
       return tweak((r) => { r.aimJitter = 0.08; r.leadCap = 16; r.smoothPrev = 0.6; return r; });
+    case 'split': {
+      const dirs = [-80, +40, +80, -40, -95, +95];
+      return roles.map((r, i) => ({ ...r, open: (r.open||0) + dirs[i], openSpread: 14, openTicks: 34, threatR: 220, fleeBias: (r.fleeBias||18) + 6 }));
+    }
     default:
       return roles;
   }
@@ -96,7 +100,7 @@ function generateTeamCode(label, variant) {
 
 function main() {
   // Build candidate variants
-  const labels = ['base', 'aggr', 'kite', 'safe', 'wide', 'close', 'evade', 'burst', 'lock'];
+  const labels = ['base', 'aggr', 'kite', 'safe', 'wide', 'close', 'evade', 'burst', 'lock', 'split'];
   const candidates = labels.map((lab) => ({ label: lab, roles: buildVariant(lab) }));
 
   // Write candidate files
