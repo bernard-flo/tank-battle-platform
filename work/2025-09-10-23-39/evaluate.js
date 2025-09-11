@@ -153,7 +153,8 @@ function main(){
     fs.writeFileSync(file, code);
     return { name: `Nova-L${idx}`, file, code, tweak: t };
   });
-  const stage3 = stageEvaluate(localCandidates, opponents, { repeatPerSide: 10, maxTicks: 4200 });
+  const toughest = (best.vs || []).slice().sort((a,b)=>a.winRate-b.winRate).slice(0, 10).map(v=>v.opponent);
+  const stage3 = stageEvaluate(localCandidates, toughest.length ? toughest : opponents, { repeatPerSide: 8, maxTicks: 4200 });
   if (stage3[0] && stage3[0].winRate > best.winRate) {
     best = stage3[0];
   }
