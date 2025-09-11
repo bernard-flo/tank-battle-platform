@@ -61,7 +61,7 @@ function update(tank,enemies,allies,bulletInfo){
   __s${seedOffset}.tick=(__s${seedOffset}.tick||0)+1;
   let tgt=null; if(enemies.length){ tgt=enemies.reduce((a,b)=>a.distance<b.distance?a:b); }
   if(tgt){ tank.fire(toDeg(tgt.x-tank.x,tgt.y-tank.y)); }
-  const go=(a)=>tank.move(norm(a));
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
   // primary: dodge nearest bullet roughly perpendicular
   let nearest=null,bd=1e9; for(const b of bulletInfo){ const d=H(b.x-tank.x,b.y-tank.y); if(d<bd){bd=d; nearest=b;} }
   if(nearest && bd<P.threatR){ const a=toDeg(nearest.vx,nearest.vy); const side=((__s${seedOffset}.tick>>2)%2?1:-1)*P.fleeBias; const cands=[a+90+side,a-90-side,a+60,a-60]; for(const c of cands){ if(go(c)) return; } }
@@ -96,7 +96,7 @@ function update(tank,enemies,allies,bulletInfo){
       const d=H(tgt.x-tank.x,tgt.y-tank.y); const t=clamp(d/8,0,P.leadCap); ax=tgt.x+svx*P.leadW*t; ay=tgt.y+svy*P.leadW*t; }
     const jitter=((((tank.x*31+tank.y*17+${seedOffset})%23)-11)*0.07)*P.aimJitter; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __s${seedOffset}.last={x:tgt.x,y:tgt.y}; }
 
-  let tries=0; const go=(a)=>{tries++; return tank.move(norm(a));};
+  let _tries=0; const go=(a)=>{ if(_tries>=10) return false; _tries++; return tank.move(norm(a)); };
 
   // 3) Bullet avoidance with time-to-closest-approach heuristic and multi-candidate sampling
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*4; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }

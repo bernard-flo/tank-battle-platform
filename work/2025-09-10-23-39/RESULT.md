@@ -1,16 +1,21 @@
 # Evaluation Result
 
-Best: Nova-B (winRate=21.5%)
+Best: Nova-B-v1 (winRate=21.5%)
 
 ## Stage 1 Summary
-- Nova-D: winRate=22.5% (games=120, wins=27, losses=93, draws=0)
-- Nova-B: winRate=20.8% (games=120, wins=25, losses=84, draws=11)
-- Nova-C: winRate=19.2% (games=120, wins=23, losses=91, draws=6)
-- Nova-A: winRate=18.3% (games=120, wins=22, losses=97, draws=1)
-- Nova-E: winRate=17.5% (games=120, wins=21, losses=84, draws=15)
+- Nova-D-v1: winRate=22.5% (games=120, wins=27, losses=93, draws=0)
+- Nova-B-v1: winRate=20.8% (games=120, wins=25, losses=84, draws=11)
+- Nova-C-v1: winRate=19.2% (games=120, wins=23, losses=91, draws=6)
+- Nova-A-v1: winRate=18.3% (games=120, wins=22, losses=97, draws=1)
+- Nova-E-v1: winRate=17.5% (games=120, wins=21, losses=84, draws=15)
+- Nova-E-simple: winRate=16.7% (games=120, wins=20, losses=94, draws=6)
+- Nova-A-simple: winRate=15.8% (games=120, wins=19, losses=95, draws=6)
+- Nova-B-simple: winRate=14.2% (games=120, wins=17, losses=96, draws=7)
+- Nova-C-simple: winRate=13.3% (games=120, wins=16, losses=95, draws=9)
+- Nova-D-simple: winRate=10.8% (games=120, wins=13, losses=102, draws=5)
 
 ## Stage 2 Breakdown (Top Candidates)
-### Nova-B: winRate=21.5% (games=432, wins=93, losses=325, draws=14)
+### Nova-B-v1: winRate=21.5% (games=432, wins=93, losses=325, draws=14)
 - vs 2025-09-10-23-21/2025-09-10-23-21.txt: winRate=12.5%, W:3 L:20 D:1 (n=24)
 - vs 2025-09-10-22-24/2025-09-10-22-24.txt: winRate=0%, W:0 L:24 D:0 (n=24)
 - vs 2025-09-10-21-49/2025-09-10-21-49.txt: winRate=45.8%, W:11 L:10 D:3 (n=24)
@@ -30,7 +35,7 @@ Best: Nova-B (winRate=21.5%)
 - vs 2025-09-10-18-11/2025-09-10-18-11.txt: winRate=16.7%, W:4 L:19 D:1 (n=24)
 - vs 2025-09-10-17-54/2025-09-10-17-54.txt: winRate=12.5%, W:3 L:21 D:0 (n=24)
 
-### Nova-D: winRate=19.4% (games=432, wins=84, losses=347, draws=1)
+### Nova-D-v1: winRate=19.4% (games=432, wins=84, losses=347, draws=1)
 - vs 2025-09-10-23-21/2025-09-10-23-21.txt: winRate=29.2%, W:7 L:17 D:0 (n=24)
 - vs 2025-09-10-22-24/2025-09-10-22-24.txt: winRate=0%, W:0 L:24 D:0 (n=24)
 - vs 2025-09-10-21-49/2025-09-10-21-49.txt: winRate=20.8%, W:5 L:19 D:0 (n=24)
