@@ -21,7 +21,7 @@ const OUT_WORK_DIR = path.join(REPO_ROOT, 'work', TS);
 function listRecentOpponents(limit = 12) {
   const resDir = path.join(REPO_ROOT, 'result');
   const dirs = fs.readdirSync(resDir)
-    .filter((d) => fs.existsSync(path.join(resDir, d, `${d}.txt`)))
+    .filter((d) => d !== TS && fs.existsSync(path.join(resDir, d, `${d}.txt`)))
     .map((d) => ({ d, mtime: fs.statSync(path.join(resDir, d)).mtimeMs }))
     .sort((a, b) => b.mtime - a.mtime)
     .slice(0, limit)

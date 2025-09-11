@@ -3,7 +3,7 @@ function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function closest(arr){let r=null,md=1e9; for(const e of enemies){ if(e.distance < md){ md=e.distance; r=e; }} return r;}
   function threat(b){
     const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
     const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(66); } return false;
@@ -13,7 +13,7 @@ function update(tank,enemies,allies,bulletInfo){
   const tgt = enemies.length?closest(enemies):null;
   if(tgt){
     const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jit = ((tank.x*31+tank.y*17)%23-11)*0.252;
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.234;
     tank.fire(base + jit);
   }
   // Dodge bullets first
@@ -27,8 +27,8 @@ function update(tank,enemies,allies,bulletInfo){
   if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
   // Kiting / approach / side-strafe
   if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 160){ const away = to+180 + (-12); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
-    else if(d > 250){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    if(d < 155){ const away = to+180 + (-12); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 265){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
     else { const side = to + (12); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
   }
   // Fallback strafes
@@ -42,7 +42,7 @@ function type(){return Type.TANKER;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function closest(arr){let r=null,md=1e9; for(const e of enemies){ if(e.distance < md){ md=e.distance; r=e; }} return r;}
   function threat(b){
     const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
     const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(66); } return false;
@@ -52,7 +52,7 @@ function update(tank,enemies,allies,bulletInfo){
   const tgt = enemies.length?closest(enemies):null;
   if(tgt){
     const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jit = ((tank.x*31+tank.y*17)%23-11)*0.252;
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.234;
     tank.fire(base + jit);
   }
   // Dodge bullets first
@@ -66,8 +66,8 @@ function update(tank,enemies,allies,bulletInfo){
   if(allies.length){ const ally=closest(allies); if(ally && ally.distance < 60){ const av=deg(tank.x-ally.x,tank.y-ally.y); if(tryMove(av)) return; if(tryMove(av+30)) return; if(tryMove(av-30)) return; }}
   // Kiting / approach / side-strafe
   if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
-    if(d < 160){ const away = to+180 + (-9); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
-    else if(d > 250){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    if(d < 155){ const away = to+180 + (-9); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
+    else if(d > 265){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
     else { const side = to + (12); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
   }
   // Fallback strafes
@@ -81,7 +81,7 @@ function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function closest(arr){let r=null,md=1e9; for(const e of enemies){ if(e.distance < md){ md=e.distance; r=e; }} return r;}
   function threat(b){
     const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
     const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(72); } return false;
@@ -91,7 +91,7 @@ function update(tank,enemies,allies,bulletInfo){
   const tgt = enemies.length?closest(enemies):null;
   if(tgt){
     const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jit = ((tank.x*31+tank.y*17)%23-11)*0.308;
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.286;
     tank.fire(base + jit);
   }
   // Dodge bullets first
@@ -106,7 +106,7 @@ function update(tank,enemies,allies,bulletInfo){
   // Kiting / approach / side-strafe
   if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
     if(d < 230){ const away = to+180 + (18); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
-    else if(d > 320){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else if(d > 315){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
     else { const side = to + (24); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
   }
   // Fallback strafes
@@ -120,7 +120,7 @@ function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function closest(arr){let r=null,md=1e9; for(const e of enemies){ if(e.distance < md){ md=e.distance; r=e; }} return r;}
   function threat(b){
     const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
     const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(72); } return false;
@@ -130,7 +130,7 @@ function update(tank,enemies,allies,bulletInfo){
   const tgt = enemies.length?closest(enemies):null;
   if(tgt){
     const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jit = ((tank.x*31+tank.y*17)%23-11)*0.308;
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.286;
     tank.fire(base + jit);
   }
   // Dodge bullets first
@@ -145,7 +145,7 @@ function update(tank,enemies,allies,bulletInfo){
   // Kiting / approach / side-strafe
   if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
     if(d < 230){ const away = to+180 + (16); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
-    else if(d > 320){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else if(d > 315){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
     else { const side = to + (24); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
   }
   // Fallback strafes
@@ -159,7 +159,7 @@ function type(){return Type.DEALER;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function closest(arr){let r=null,md=1e9; for(const e of enemies){ if(e.distance < md){ md=e.distance; r=e; }} return r;}
   function threat(b){
     const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
     const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(72); } return false;
@@ -169,7 +169,7 @@ function update(tank,enemies,allies,bulletInfo){
   const tgt = enemies.length?closest(enemies):null;
   if(tgt){
     const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jit = ((tank.x*31+tank.y*17)%23-11)*0.308;
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.286;
     tank.fire(base + jit);
   }
   // Dodge bullets first
@@ -184,7 +184,7 @@ function update(tank,enemies,allies,bulletInfo){
   // Kiting / approach / side-strafe
   if(tgt){ const d=tgt.distance; const to=deg(tgt.x-tank.x,tgt.y-tank.y);
     if(d < 230){ const away = to+180 + (14); if(tryMove(away)) return; if(tryMove(away+25)) return; if(tryMove(away-25)) return; }
-    else if(d > 320){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
+    else if(d > 315){ if(tryMove(to)) return; if(tryMove(to+20)) return; if(tryMove(to-20)) return; }
     else { const side = to + (24); if(tryMove(side)) return; if(tryMove(side+20)) return; if(tryMove(side-20)) return; }
   }
   // Fallback strafes
@@ -198,7 +198,7 @@ function type(){return Type.NORMAL;}
 function update(tank,enemies,allies,bulletInfo){
   function ang(a){a%=360; if(a<0)a+=360; return a;}
   function deg(x,y){return Math.atan2(y,x)*180/Math.PI;}
-  function closest(arr){let r=null,md=1e9; for(const e of arr){if(e.distance<md){md=e.distance;r=e;}} return r;}
+  function closest(arr){let r=null,md=1e9; for(const e of enemies){ if(e.distance < md){ md=e.distance; r=e; }} return r;}
   function threat(b){
     const dx=b.x-tank.x, dy=b.y-tank.y; const dv=Math.hypot(b.vx,b.vy)||1; const nx=b.vx/dv, ny=b.vy/dv;
     const proj = dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=Math.hypot(px-tank.x,py-tank.y); return d<(68); } return false;
@@ -208,7 +208,7 @@ function update(tank,enemies,allies,bulletInfo){
   const tgt = enemies.length?closest(enemies):null;
   if(tgt){
     const base = deg(tgt.x-tank.x,tgt.y-tank.y);
-    const jit = ((tank.x*31+tank.y*17)%23-11)*0.280;
+    const jit = ((tank.x*31+tank.y*17)%23-11)*0.260;
     tank.fire(base + jit);
   }
   // Dodge bullets first
