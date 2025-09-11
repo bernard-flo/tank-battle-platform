@@ -14,15 +14,16 @@ Opponents evaluated:
 - 2025-09-10-23-39
 
 Candidate summary:
-- evade: W:70 L:338 D:32 score:-7.042
-- close: W:64 L:336 D:40 score:-7.197
-- burst: W:56 L:336 D:48 score:-7.387
+- evade: W:70 L:338 D:32 score:-7.041
+- close: W:64 L:336 D:40 score:-7.194
+- burst: W:56 L:336 D:48 score:-7.39
 - aggr: W:40 L:320 D:80 score:-7.403
-- lock: W:56 L:352 D:32 score:-7.793
-- wide: W:48 L:343 D:49 score:-7.816
-- kite: W:32 L:338 D:70 score:-8.063
-- base: W:48 L:360 D:32 score:-8.206
+- lock: W:57 L:351 D:32 score:-7.737
+- wide: W:48 L:344 D:48 score:-7.839
+- kite: W:37 L:342 D:61 score:-8.03
+- base: W:48 L:360 D:32 score:-8.2
 - safe: W:40 L:376 D:24 score:-8.845
+- split: W:32 L:368 D:40 score:-8.85
 
 Best: evade
 

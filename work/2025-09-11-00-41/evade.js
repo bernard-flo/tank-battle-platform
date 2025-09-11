@@ -1,4 +1,4 @@
-// Hyperion-evade - generated 2025-09-11T00:52:29.390Z
+// Hyperion-evade - generated 2025-09-11T00:56:57.207Z
 function name(){return "Hyperion-evade-1";}
 function type(){return Type.TANKER;}
 let __s1={last:null,lastVel:null,tick:0};

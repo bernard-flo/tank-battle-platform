@@ -1,4 +1,4 @@
-// Hyperion-lock - generated 2025-09-11T00:52:29.392Z
+// Hyperion-lock - generated 2025-09-11T00:56:57.208Z
 function name(){return "Hyperion-lock-1";}
 function type(){return Type.TANKER;}
 let __s1={last:null,lastVel:null,tick:0};
