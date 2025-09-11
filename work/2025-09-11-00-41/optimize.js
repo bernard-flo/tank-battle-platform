@@ -70,13 +70,19 @@ function buildVariant(name) {
     case 'aggr':
       return tweak((r, i) => { r.bias += 6; if (r.kind !== 'TANKER') r.rMin = (r.rMin||0) + 6; return r; });
     case 'kite':
-      return tweak((r, i) => { r.bias += (i%2?10:4); r.rMin = (r.rMin||0) + 8; r.rMax = (r.rMax||0) + 12; return r; });
+      return tweak((r, i) => { r.bias += (i%2?10:4); r.rMin = (r.rMin||0) + 10; r.rMax = (r.rMax||0) + 16; r.strafe = (r.strafe||30) + 6; r.strafeTick = 1; return r; });
     case 'safe':
-      return tweak((r) => { r.bias -= 6; r.rMin = (r.rMin||0) + 4; r.rMax = (r.rMax||0) + 4; return r; });
+      return tweak((r) => { r.bias -= 6; r.rMin = (r.rMin||0) + 6; r.rMax = (r.rMax||0) + 6; r.threatR = 220; r.fleeBias = (r.fleeBias||18) + 6; r.openTicks = 28; return r; });
     case 'wide':
-      return tweak((r) => { r.rMax = (r.rMax||0) + 18; return r; });
+      return tweak((r) => { r.rMax = (r.rMax||0) + 22; r.rangeSpread = 22; return r; });
     case 'close':
       return tweak((r) => { r.rMin = (r.rMin||0) - 12; r.bias -= 4; return r; });
+    case 'evade':
+      return tweak((r, i) => { r.threatR = 230; r.fleeBias = (r.fleeBias||18) + 10; r.ttcW = 6; r.openTicks = 30; r.openSpread = 26; r.strafe = (r.strafe||30) + 4; r.strafeSpread = 18; return r; });
+    case 'burst':
+      return tweak((r, i) => { r.leadW = 0.98; r.aimJitter = 0.14; r.rMin = (r.rMin||0) - 4; r.bias += (i%2?6:2); return r; });
+    case 'lock':
+      return tweak((r) => { r.aimJitter = 0.08; r.leadCap = 16; r.smoothPrev = 0.6; return r; });
     default:
       return roles;
   }
@@ -90,7 +96,7 @@ function generateTeamCode(label, variant) {
 
 function main() {
   // Build candidate variants
-  const labels = ['base', 'aggr', 'kite', 'safe', 'wide', 'close'];
+  const labels = ['base', 'aggr', 'kite', 'safe', 'wide', 'close', 'evade', 'burst', 'lock'];
   const candidates = labels.map((lab) => ({ label: lab, roles: buildVariant(lab) }));
 
   // Write candidate files
@@ -153,4 +159,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
