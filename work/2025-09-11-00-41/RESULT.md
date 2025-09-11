@@ -14,13 +14,13 @@ Opponents evaluated:
 - 2025-09-10-23-39
 
 Candidate summary:
-- aggr: W:56 L:328 D:56 score:-7.189
-- kite: W:56 L:328 D:56 score:-7.245
-- wide: W:24 L:360 D:56 score:-8.86
-- base: W:32 L:375 D:33 score:-9.005
-- close: W:32 L:376 D:32 score:-9.053
-- safe: W:40 L:384 D:16 score:-9.057
+- kite: W:48 L:312 D:80 score:-6.98
+- close: W:63 L:337 D:40 score:-7.247
+- aggr: W:40 L:320 D:80 score:-7.403
+- base: W:49 L:360 D:31 score:-8.176
+- wide: W:50 L:374 D:16 score:-8.546
+- safe: W:25 L:391 D:24 score:-9.643
 
-Best: aggr
+Best: kite
 
 Import the team by pasting the contents of the .txt into the platform Import modal.

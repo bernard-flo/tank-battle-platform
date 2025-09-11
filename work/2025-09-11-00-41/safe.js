@@ -1,10 +1,10 @@
-// Hyperion-safe - generated 2025-09-11T00:44:51.567Z
+// Hyperion-safe - generated 2025-09-11T00:49:13.061Z
 function name(){return "Hyperion-safe-1";}
 function type(){return Type.TANKER;}
 let __s1={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":164,"rMax":284,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-18,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":11};
+  const P={"rMin":164,"rMax":284,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-18,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":11,"openTicks":24,"open":10,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s1.tick=(__s1.tick||0)+1;
@@ -28,6 +28,15 @@ function update(tank,enemies,allies,bulletInfo){
   // 2) Bullet avoidance using time-to-closest-approach heuristic
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*P.ttcW; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(((__s1.tick>>2)%2)?1:-1)*P.fleeBias + P.bias*0.6; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150]; for(const c of cand){ if(go(c)) return; }}
+
+  // 2.5) Opening book movement (first few ticks): spread and break line-of-fire
+  if(__s1.tick <= P.openTicks){
+    const forward = tank.x < 450 ? 0 : 180;
+    const prefer = norm(forward + P.open);
+    if(go(prefer)) return;
+    if(go(prefer + P.openSpread)) return;
+    if(go(prefer - P.openSpread)) return;
+  }
 
   // 3) Edge avoidance band
   if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
@@ -53,7 +62,7 @@ function type(){return Type.DEALER;}
 let __s2={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":188,"rMax":319,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.18,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":14,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":8};
+  const P={"rMin":188,"rMax":319,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.18,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":14,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":8,"openTicks":24,"open":25,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s2.tick=(__s2.tick||0)+1;
@@ -77,6 +86,15 @@ function update(tank,enemies,allies,bulletInfo){
   // 2) Bullet avoidance using time-to-closest-approach heuristic
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*P.ttcW; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(((__s2.tick>>2)%2)?1:-1)*P.fleeBias + P.bias*0.6; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150]; for(const c of cand){ if(go(c)) return; }}
+
+  // 2.5) Opening book movement (first few ticks): spread and break line-of-fire
+  if(__s2.tick <= P.openTicks){
+    const forward = tank.x < 450 ? 0 : 180;
+    const prefer = norm(forward + P.open);
+    if(go(prefer)) return;
+    if(go(prefer + P.openSpread)) return;
+    if(go(prefer - P.openSpread)) return;
+  }
 
   // 3) Edge avoidance band
   if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
@@ -102,7 +120,7 @@ function type(){return Type.NORMAL;}
 let __s3={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":174,"rMax":302,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.16,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":0,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":5};
+  const P={"rMin":174,"rMax":302,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.16,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":0,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":5,"openTicks":24,"open":18,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s3.tick=(__s3.tick||0)+1;
@@ -126,6 +144,15 @@ function update(tank,enemies,allies,bulletInfo){
   // 2) Bullet avoidance using time-to-closest-approach heuristic
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*P.ttcW; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(((__s3.tick>>2)%2)?1:-1)*P.fleeBias + P.bias*0.6; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150]; for(const c of cand){ if(go(c)) return; }}
+
+  // 2.5) Opening book movement (first few ticks): spread and break line-of-fire
+  if(__s3.tick <= P.openTicks){
+    const forward = tank.x < 450 ? 0 : 180;
+    const prefer = norm(forward + P.open);
+    if(go(prefer)) return;
+    if(go(prefer + P.openSpread)) return;
+    if(go(prefer - P.openSpread)) return;
+  }
 
   // 3) Edge avoidance band
   if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
@@ -151,7 +178,7 @@ function type(){return Type.DEALER;}
 let __s4={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":194,"rMax":309,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.18,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":16,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":10};
+  const P={"rMin":194,"rMax":309,"strafe":34,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":22,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.18,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":16,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":10,"openTicks":24,"open":25,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s4.tick=(__s4.tick||0)+1;
@@ -175,6 +202,15 @@ function update(tank,enemies,allies,bulletInfo){
   // 2) Bullet avoidance using time-to-closest-approach heuristic
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*P.ttcW; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(((__s4.tick>>2)%2)?1:-1)*P.fleeBias + P.bias*0.6; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150]; for(const c of cand){ if(go(c)) return; }}
+
+  // 2.5) Opening book movement (first few ticks): spread and break line-of-fire
+  if(__s4.tick <= P.openTicks){
+    const forward = tank.x < 450 ? 0 : 180;
+    const prefer = norm(forward + P.open);
+    if(go(prefer)) return;
+    if(go(prefer + P.openSpread)) return;
+    if(go(prefer - P.openSpread)) return;
+  }
 
   // 3) Edge avoidance band
   if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
@@ -200,7 +236,7 @@ function type(){return Type.NORMAL;}
 let __s5={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":174,"rMax":302,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.16,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-2,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":7};
+  const P={"rMin":174,"rMax":302,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":16,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.16,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-2,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":7,"openTicks":24,"open":18,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s5.tick=(__s5.tick||0)+1;
@@ -224,6 +260,15 @@ function update(tank,enemies,allies,bulletInfo){
   // 2) Bullet avoidance using time-to-closest-approach heuristic
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*P.ttcW; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(((__s5.tick>>2)%2)?1:-1)*P.fleeBias + P.bias*0.6; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150]; for(const c of cand){ if(go(c)) return; }}
+
+  // 2.5) Opening book movement (first few ticks): spread and break line-of-fire
+  if(__s5.tick <= P.openTicks){
+    const forward = tank.x < 450 ? 0 : 180;
+    const prefer = norm(forward + P.open);
+    if(go(prefer)) return;
+    if(go(prefer + P.openSpread)) return;
+    if(go(prefer - P.openSpread)) return;
+  }
 
   // 3) Edge avoidance band
   if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }
@@ -249,7 +294,7 @@ function type(){return Type.TANKER;}
 let __s6={last:null,lastVel:null,tick:0};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
-  const P={"rMin":158,"rMax":284,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-16,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":16};
+  const P={"rMin":158,"rMax":284,"strafe":30,"strafeSpread":16,"strafeTick":2,"threatR":196,"fleeBias":12,"sep":60,"sepSpread":22,"edge":52,"leadCap":14,"leadW":0.96,"smoothPrev":0.55,"aimJitter":0.14,"healthW":1.18,"distW":0.14,"cxW":0.02,"cyW":0.02,"finisherHP":28,"aggrRemain":3,"aggrIn":22,"aggrOut":16,"bias":-16,"horizon":10,"samp":7,"avoidW":1,"edgeW":0.5,"rangeW":0.22,"rangeSpread":18,"ttcW":4,"jTick":1,"jSeed":16,"openTicks":24,"open":10,"openSpread":18};
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI, H=Math.hypot, clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
   const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
   __s6.tick=(__s6.tick||0)+1;
@@ -273,6 +318,15 @@ function update(tank,enemies,allies,bulletInfo){
   // 2) Bullet avoidance using time-to-closest-approach heuristic
   let hot=null,score=1e9; for(const bu of bulletInfo){ const dx=bu.x-tank.x, dy=bu.y-tank.y; const v=H(bu.vx,bu.vy)||1; const nx=bu.vx/v, ny=bu.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=bu.x-proj*nx, py=bu.y-proj*ny; const d=H(px-tank.x,py-tank.y); const tt=proj/v; const sc=d + tt*P.ttcW; if(d<P.threatR && sc<score){ score=sc; hot=bu; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); const side=(((__s6.tick>>2)%2)?1:-1)*P.fleeBias + P.bias*0.6; const cand=[a+90+side, a-90-side, a+120, a-120, a+70, a-70, a+150, a-150]; for(const c of cand){ if(go(c)) return; }}
+
+  // 2.5) Opening book movement (first few ticks): spread and break line-of-fire
+  if(__s6.tick <= P.openTicks){
+    const forward = tank.x < 450 ? 0 : 180;
+    const prefer = norm(forward + P.open);
+    if(go(prefer)) return;
+    if(go(prefer + P.openSpread)) return;
+    if(go(prefer - P.openSpread)) return;
+  }
 
   // 3) Edge avoidance band
   if(tank.x<P.edge){ if(go(0))return; } if(tank.x>900-P.edge){ if(go(180))return; } if(tank.y<P.edge){ if(go(90))return; } if(tank.y>600-P.edge){ if(go(270))return; }

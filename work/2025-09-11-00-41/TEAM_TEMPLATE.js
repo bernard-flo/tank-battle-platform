@@ -79,7 +79,16 @@ function buildTeam(namePrefix, roles) {
 
   for (let i = 0; i < roles.length; i++) {
     const role = roles[i];
-    const P = { ...presets[role.kind], bias: presets[role.kind].bias + (role.bias||0), rMin: presets[role.kind].rMin + (role.rMin||0), rMax: presets[role.kind].rMax + (role.rMax||0), jSeed: presets[role.kind].jSeed + i, open: presets[role.kind].open + (role.open||0) };
+    const base = presets[role.kind];
+    const ext = { ...role };
+    delete ext.kind;
+    // Merge full overrides; also apply small per-slot variations to jSeed
+    const P = { ...base, ...ext };
+    P.bias = (base.bias || 0) + (role.bias || 0);
+    P.rMin = (base.rMin || 0) + (role.rMin || 0);
+    P.rMax = (base.rMax || 0) + (role.rMax || 0);
+    P.open = (base.open || 0) + (role.open || 0);
+    P.jSeed = (base.jSeed || 1) + i;
     const botName = `${namePrefix}-${i+1}`;
     const tankType = role.kind === 'TANKER' ? 'Type.TANKER' : (role.kind === 'DEALER' ? 'Type.DEALER' : 'Type.NORMAL');
     bots.push(makeBotCode(botName, tankType, P, `__s${i+1}`));
