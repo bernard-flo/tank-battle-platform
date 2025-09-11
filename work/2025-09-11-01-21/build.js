@@ -21,8 +21,13 @@ function update(tank,enemies,allies,bulletInfo){
   if(T){ let ax=T.x, ay=T.y; if(S.t>0){ const vx=T.x-S.ex, vy=T.y-S.ey; const d=H(T.x-tank.x,T.y-tank.y); const t=C(d/8,0,P.leadCap); ax=T.x+vx*P.leadW*t; ay=T.y+vy*P.leadW*t; }
     const j=((tank.x*P.jA+tank.y*P.jB)%(P.jM)-P.jH)*P.jF; tank.fire(D(ax-tank.x,ay-tank.y)+j); S.ex=T.x; S.ey=T.y; S.t++; }
 
-  // Desired engagement range by type
-  let MIN=P.minR, MAX=P.maxR; if(T){ if(T.health<P.finH){ MIN-=P.finN; MAX-=P.finX; } if(enemies.length<=2){ MIN-=P.lastN; MAX-=P.lastX; } MIN=Math.max(MIN,P.minCap); }
+  // Desired engagement range by type (adaptive)
+  let MIN=P.minR, MAX=P.maxR; if(T){
+    const aN = allies.length, eN = enemies.length;
+    let push = 0; if (aN > eN) push += (P.advPush||0); if (eN <= 2) push += (P.endPush||0);
+    if(T.health<P.finH){ MIN-=P.finN; MAX-=P.finX; push += (P.finPush||0); }
+    MIN -= push; MAX -= push; MIN=Math.max(MIN,P.minCap);
+  }
 
   // Movement executor with retries (engine limits internally)
   const GO=(a)=>tank.move(N(a));
@@ -92,4 +97,3 @@ function main(){
 if(require.main===module){
   main();
 }
-
