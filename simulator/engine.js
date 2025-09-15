@@ -123,7 +123,7 @@ class Engine {
     this.logs = [];
     this.random = createRng(opts.seed);
     this.fast = !!opts.fast; // fast 모드: Object.freeze 생략 등으로 성능 최적화
-    
+
     // Recording (replay) options
     this.record = !!opts.record;
     this.recordEvery = Math.max(1, opts.recordEvery ? parseInt(opts.recordEvery, 10) || 1 : 1);
@@ -300,7 +300,7 @@ function createEngineWithTeams(playerData, opts = {}) {
   // Blue team layout
   for (let i = 0; i < 6; i++) {
     const p = playerData[i + 6];
-    const x = 640 + (i % 2) * 100;
+    const x = 660 + (i % 2) * 100;
     const y = 90 + Math.floor(i / 2) * 120;
     const tank = new Tank(engine, p.id, x, y, 'blue', p.name, p.type);
     tank.code = p.code;

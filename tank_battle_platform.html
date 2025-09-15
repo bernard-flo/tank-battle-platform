@@ -10,25 +10,25 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             color: #fff;
             min-height: 100vh;
         }
-        
+
         .container {
             max-width: 1600px;
             margin: 0 auto;
             padding: 20px;
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 30px;
         }
-        
+
         .title {
             font-size: 3rem;
             font-weight: bold;
@@ -37,12 +37,12 @@
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
         }
-        
+
         .subtitle {
             font-size: 1.2rem;
             color: #a0a0a0;
         }
-        
+
         .setup-screen {
             display: block;
         }
@@ -57,7 +57,7 @@
             gap: 30px;
             margin-bottom: 30px;
         }
-        
+
         .team-setup {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -65,7 +65,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .team-header {
             display: flex;
             align-items: center;
@@ -74,11 +74,11 @@
             border-radius: 10px;
             gap: 15px; /* 아이콘과 입력창 사이 간격 */
         }
-        
+
         .team-red .team-header {
             background: linear-gradient(135deg, #ff4757, #ff3742);
         }
-        
+
         .team-blue .team-header {
             background: linear-gradient(135deg, #3742fa, #2f3542);
         }
@@ -94,7 +94,7 @@
             gap: 8px; /* 버튼들 사이 간격 */
             margin-left: auto;
         }
-        
+
         .team-icon {
             width: 40px;
             height: 40px;
@@ -106,7 +106,7 @@
             font-size: 1.5rem;
             background: rgba(255, 255, 255, 0.2);
         }
-        
+
         /* 팀명 입력창 스타일 */
         .team-name-input {
             background: rgba(255, 255, 255, 0.2);
@@ -136,14 +136,14 @@
         .player-input {
             margin-bottom: 15px;
         }
-        
+
         .player-label {
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
             color: #e0e0e0;
         }
-        
+
         .code-editor {
             width: 100%;
             height: 120px;
@@ -156,18 +156,18 @@
             color: #fff;
             resize: vertical;
         }
-        
+
         .code-editor:focus {
             outline: none;
             border-color: #4ecdc4;
             box-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
         }
-        
+
         .start-battle-btn {
             text-align: center;
             margin-top: 20px;
         }
-        
+
         .btn-large {
             padding: 20px 40px;
             font-size: 18px;
@@ -180,12 +180,12 @@
             color: white;
             transition: all 0.3s ease;
         }
-        
+
         .btn-large:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 30px rgba(46, 204, 113, 0.4);
         }
-        
+
         .battle-arena {
             background: #2c3e50;
             border-radius: 15px;
@@ -196,21 +196,21 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         .arena-content {
             display: grid;
             grid-template-columns: 200px 1fr 200px;
             gap: 10px;
             align-items: start;
         }
-        
+
         .arena-title {
             font-size: 1.5rem;
             margin-bottom: 5px;
             color: #ecf0f1;
             grid-column: 1 / -1;
         }
-        
+
         .battlefield {
             width: 900px;
             height: 600px;
@@ -221,7 +221,7 @@
             overflow: hidden;
             margin: 0 auto;
         }
-        
+
         .tank {
             position: absolute;
             width: 35px;
@@ -235,17 +235,17 @@
             font-weight: bold;
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
-        
+
         .tank-red {
             background: #e74c3c;
             color: white;
         }
-        
+
         .tank-blue {
             background: #3498db;
             color: white;
         }
-        
+
         .tank-name {
             position: absolute;
             top: -22px;
@@ -260,12 +260,12 @@
             white-space: nowrap;
             pointer-events: none;
         }
-        
+
         .tank-name.dead {
             color: #000;
             background: rgba(100, 100, 100, 0.8);
         }
-        
+
         .bullet {
             position: absolute;
             width: 4px;
@@ -273,17 +273,17 @@
             border-radius: 50%;
             transition: all 0.1s linear;
         }
-        
+
         .bullet-red {
             background: #e74c3c;
             box-shadow: 0 0 6px #e74c3c;
         }
-        
+
         .bullet-blue {
             background: #3498db;
             box-shadow: 0 0 6px #3498db;
         }
-        
+
         .explosion {
             position: absolute;
             width: 30px;
@@ -292,19 +292,19 @@
             border-radius: 50%;
             animation: explode 0.5s ease-out forwards;
         }
-        
+
         @keyframes explode {
             0% { transform: scale(0); opacity: 1; }
             100% { transform: scale(1); opacity: 0; }
         }
-        
+
         .controls {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin-bottom: 5px;
         }
-        
+
         .btn {
             padding: 12px 24px;
             border: none;
@@ -315,66 +315,66 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
         }
-        
+
         .btn-start {
             background: linear-gradient(135deg, #2ecc71, #27ae60);
             color: white;
         }
-        
+
         .btn-start:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
         }
-        
+
         .btn-reset {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
         }
-        
+
         .btn-reset:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
         }
-        
+
         .btn-pause {
             background: linear-gradient(135deg, #f39c12, #e67e22);
             color: white;
         }
-        
+
         .btn-pause:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(243, 156, 18, 0.3);
         }
-        
+
         .btn-back {
             background: linear-gradient(135deg, #95a5a6, #7f8c8d);
             color: white;
         }
-        
+
         .btn-back:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(149, 165, 166, 0.3);
         }
-        
+
         .stats {
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
             border-radius: 10px;
             text-align: center;
         }
-        
+
         .stat-value {
             font-size: 1.5rem;
             font-weight: bold;
             margin-bottom: 5px;
         }
-        
+
         .stat-label {
             color: #a0a0a0;
             font-size: 1.5rem;
             margin-bottom: 10px;
         }
-        
+
         .alive-players {
             font-size: 1rem;
             color: #e0e0e0;
@@ -382,12 +382,12 @@
             overflow-y: auto;
             text-align: center;
         }
-        
+
         .player-alive {
             margin-bottom: 3px;
             padding: 4px;
         }
-        
+
         .player-dead {
             margin-bottom: 3px;
             padding: 2px;
@@ -395,15 +395,15 @@
             background: rgba(100, 100, 100, 0.3);
             border-radius: 3px;
         }
-        
+
         .red-team .stat-value {
             color: #ffffff;
         }
-        
+
         .blue-team .stat-value {
             color: #ffffff;
         }
-        
+
         .sample-code {
             margin-top: 10px;
             padding: 10px;
@@ -412,7 +412,7 @@
             font-size: 11px;
             border-left: 3px solid #4ecdc4;
         }
-        
+
         .sample-code pre {
             margin: 0;
             color: #a0a0a0;
@@ -960,7 +960,7 @@
                     <div id="red-players">
                         <!-- Red team player inputs will be generated here -->
                     </div>
-                    
+
                     <div class="sample-code">
                         <strong>Sample Code:</strong>
                         <pre>function name() {
@@ -987,7 +987,7 @@ function update(tank, enemies, allies, bulletInfo) {
 }</pre>
                     </div>
                 </div>
-                
+
                 <!-- Blue Team Setup -->
                 <div class="team-setup team-blue">
                     <div class="team-header">
@@ -1004,7 +1004,7 @@ function update(tank, enemies, allies, bulletInfo) {
                     <div id="blue-players">
                         <!-- Blue team player inputs will be generated here -->
                     </div>
-                    
+
                     <div class="sample-code">
                         <strong>Sample Code:</strong>
                         <pre>function name() {
@@ -1032,12 +1032,12 @@ function update(tank, enemies, allies, bulletInfo) {
                     </div>
                 </div>
             </div>
-            
+
             <div class="start-battle-btn">
                 <button class="btn-large" onclick="startSetup()">🚀 START BATTLE</button>
             </div>
         </div>
-        
+
         <!-- Battle Screen -->
         <div class="battle-screen" id="battle-screen">
             <div class="battle-arena">
@@ -1056,7 +1056,7 @@ function update(tank, enemies, allies, bulletInfo) {
                     </div>
                     <h2 class="arena-title">⚔️ BATTLE ARENA ⚔️</h2>
                 </div>
-                
+
                 <div class="arena-content">
                     <!-- Red Team Stats -->
                     <div class="stats red-team">
@@ -1067,12 +1067,12 @@ function update(tank, enemies, allies, bulletInfo) {
                             <!-- Red team players will be listed here -->
                         </div>
                     </div>
-                    
+
                     <!-- Battlefield -->
                     <div class="battlefield" id="battlefield">
                         <!-- Tanks and bullets will be rendered here -->
                     </div>
-                    
+
                     <!-- Blue Team Stats -->
                     <div class="stats blue-team">
                         <div class="stat-label" id="blue-team-label">🔵 Blue Team</div>
@@ -1140,7 +1140,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 this.code = '';
                 this.hasMoved = false;
             }
-            
+
             move(direction) {
                 if (!this.alive || this.hasMoved) return false;
 
@@ -1179,7 +1179,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 this.y = newY;
                 return true;
             }
-            
+
             fire(angle) {
                 if (!this.alive || Date.now() - this.lastFire < 500) return false;
                 if (angle === undefined || angle === null) return false;
@@ -1202,7 +1202,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 logMessage(`${this.playerName} (${this.id}) fired at ${Math.round(angle)}°!`, this.team);
                 return true;
             }
-            
+
             takeDamage(damage) {
                 this.health -= damage;
 
@@ -1211,23 +1211,23 @@ function update(tank, enemies, allies, bulletInfo) {
                     logMessage(`${this.playerName} (${this.id}) destroyed!`, 'system');
                 }
             }
-            
+
             resetMoveFlag() {
                 this.hasMoved = false;
                 this.moveAttempts = 0; // move 시도 횟수도 함께 리셋
             }
         }
-        
+
         let tanks = [];
         let bullets = [];
         let gameRunning = false;
         let gameLoop;
         let playerData = [];
-        
+
         function createPlayerInputs() {
             const redContainer = document.getElementById('red-players');
             const blueContainer = document.getElementById('blue-players');
-            
+
             // Red team inputs
             for (let i = 1; i <= 6; i++) {
                 const div = document.createElement('div');
@@ -1260,7 +1260,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 `;
                 redContainer.appendChild(div);
             }
-            
+
             // Blue team inputs
             for (let i = 1; i <= 6; i++) {
                 const div = document.createElement('div');
@@ -1293,7 +1293,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 blueContainer.appendChild(div);
             }
         }
-        
+
         function collectPlayerData() {
             playerData = [];
 
@@ -1353,7 +1353,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 });
             }
         }
-        
+
         function initializeGame() {
             tanks = [];
             bullets = [];
@@ -1386,7 +1386,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 const playerInfo = playerData[i + 6];
                 const tank = new Tank(
                     playerInfo.id,
-                    640 + (i % 2) * 100,
+                    660 + (i % 2) * 100,
                     90 + Math.floor(i / 2) * 120,
                     'blue',
                     playerInfo.name,
@@ -1396,7 +1396,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 tanks.push(tank);
             }
         }
-        
+
         function getDefaultCode(i, team) {
             const teamPrefix = team === 'red' ? 'R' : 'B';
             return `function name() {
@@ -1548,7 +1548,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 // tank.alive = false;
             }
         }
-        
+
         function updateBullets() {
             bullets = bullets.filter(bullet => {
                 bullet.x += bullet.vx;
@@ -1585,24 +1585,24 @@ function update(tank, enemies, allies, bulletInfo) {
                 return true;
             });
         }
-        
+
         function createExplosion(x, y) {
             const battlefield = document.getElementById('battlefield');
             if (!battlefield) return;
-            
+
             const explosion = document.createElement('div');
             explosion.className = 'explosion';
             explosion.style.left = (x - 15) + 'px';
             explosion.style.top = (y - 15) + 'px';
             battlefield.appendChild(explosion);
-            
+
             setTimeout(() => {
                 if (explosion.parentNode) {
                     explosion.parentNode.removeChild(explosion);
                 }
             }, 500);
         }
-        
+
         function updateTeamLists() {
             const redTeamList = document.getElementById('red-team-list');
             const blueTeamList = document.getElementById('blue-team-list');
@@ -1650,17 +1650,17 @@ function update(tank, enemies, allies, bulletInfo) {
                     blueEnergyBar.textContent = '0';
                 }
             }
-            
+
             if (redAliveElement) redAliveElement.textContent = redAliveCount;
             if (blueAliveElement) blueAliveElement.textContent = blueAliveCount;
-            
+
             // Update Red team list
             redTeamList.innerHTML = redTanks.map(tank => {
                 const className = tank.alive ? 'player-alive' : 'player-dead';
                 const skull = tank.alive ? ' ('+tank.health+')' : ' 💀';
                 return `<div class="${className}">${tank.playerName}${skull}</div>`;
             }).join('');
-            
+
             // Update Blue team list
             blueTeamList.innerHTML = blueTanks.map(tank => {
                 const className = tank.alive ? 'player-alive' : 'player-dead';
@@ -1668,7 +1668,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 return `<div class="${className}">${tank.playerName}${skull}</div>`;
             }).join('');
         }
-        
+
         function render() {
             const battlefield = document.getElementById('battlefield');
             if (!battlefield) return;
@@ -1733,7 +1733,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 }
 
                 battlefield.appendChild(tankElement);
-                
+
                 // Player name above tank (fixed screen coordinates, not relative to tank)
                 const nameElement = document.createElement('div');
                 nameElement.className = tank.alive ? 'tank-name' : 'tank-name dead';
@@ -1745,7 +1745,7 @@ function update(tank, enemies, allies, bulletInfo) {
                 nameElement.style.zIndex = tank.alive ? '12' : '11'; // 이름도 같은 순서
                 nameElement.style.pointerEvents = 'none';
                 battlefield.appendChild(nameElement);
-                
+
                 // Health bar (only for alive tanks, fixed screen coordinates)
                 if (tank.alive) {
                     const healthBar = document.createElement('div');
@@ -1762,7 +1762,7 @@ function update(tank, enemies, allies, bulletInfo) {
                     battlefield.appendChild(healthBar);
                 }
             });
-            
+
             // Render bullets
             bullets.forEach(bullet => {
                 const bulletElement = document.createElement('div');
@@ -1778,11 +1778,11 @@ function update(tank, enemies, allies, bulletInfo) {
 
             // Update team lists
             updateTeamLists();
-            
+
             // Check win condition
             const redAlive = tanks.filter(t => t.team === 'red' && t.alive);
             const blueAlive = tanks.filter(t => t.team === 'blue' && t.alive);
-            
+
             if (redAlive.length === 0 && blueAlive.length > 0) {
                 gameRunning = false;
                 clearInterval(gameLoop);
@@ -1793,24 +1793,24 @@ function update(tank, enemies, allies, bulletInfo) {
                 logMessage('🎉 RED TEAM WINS! 🎉', 'system');
             }
         }
-        
+
         function gameUpdate() {
             if (!gameRunning) return;
-            
+
             // Execute AI for all tanks
             tanks.forEach(tank => {
                 if (tank.alive) {
                     executeTankAI(tank);
                 }
             });
-            
+
             // Update bullets
             updateBullets();
-            
+
             // Render
             render();
         }
-        
+
         function startSetup() {
             collectPlayerData();
 
@@ -1831,7 +1831,7 @@ function update(tank, enemies, allies, bulletInfo) {
             updateTeamLists();
             console.log('Battle Arena Ready! Click START to begin!');
         }
-        
+
         function backToSetup() {
             gameRunning = false;
             clearInterval(gameLoop);
@@ -1843,16 +1843,16 @@ function update(tank, enemies, allies, bulletInfo) {
             document.getElementById('setup-screen').style.display = 'block';
             document.getElementById('battle-screen').style.display = 'none';
         }
-        
+
         function startBattle() {
             if (gameRunning) return;
-            
+
             gameRunning = true;
             logMessage('🚀 Battle Started!', 'system');
-            
+
             gameLoop = setInterval(gameUpdate, 50);
         }
-        
+
         function pauseBattle() {
             gameRunning = !gameRunning;
             if (gameRunning) {
@@ -1863,21 +1863,21 @@ function update(tank, enemies, allies, bulletInfo) {
                 logMessage('⏸️ Battle Paused!', 'system');
             }
         }
-        
+
         function resetBattle() {
             gameRunning = false;
             clearInterval(gameLoop);
             initializeGame();
             render();
             updateTeamLists();
-            
+
             logMessage('🔄 Battle Reset!', 'system');
         }
-        
+
         function logMessage(message, type) {
             console.log(`[${new Date().toLocaleTimeString()}] ${message}`);
         }
-        
+
         // Initialize the game
         document.addEventListener('DOMContentLoaded', function() {
             createPlayerInputs();
