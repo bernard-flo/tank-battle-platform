@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": "1-0",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 3,
+      "redEnergy": 106,
+      "blueEnergy": 157
+    },
+    {
+      "seed": "1-4",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 2,
+      "blueAlive": 3,
+      "redEnergy": 128,
+      "blueEnergy": 204
+    },
+    {
+      "seed": "1-8",
+      "winner": "blue",
+      "ticks": 2781,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 304
+    },
+    {
+      "seed": "1-1",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 3,
+      "redEnergy": 106,
+      "blueEnergy": 157
+    },
+    {
+      "seed": "1-5",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 2,
+      "blueAlive": 3,
+      "redEnergy": 128,
+      "blueEnergy": 204
+    },
+    {
+      "seed": "1-9",
+      "winner": "blue",
+      "ticks": 2781,
+      "redAlive": 0,
+      "blueAlive": 5,
+      "redEnergy": 0,
+      "blueEnergy": 304
+    },
+    {
+      "seed": "1-2",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 3,
+      "redEnergy": 106,
+      "blueEnergy": 157
+    },
+    {
+      "seed": "1-6",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 2,
+      "blueAlive": 3,
+      "redEnergy": 128,
+      "blueEnergy": 204
+    },
+    {
+      "seed": "1-3",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 3,
+      "redEnergy": 106,
+      "blueEnergy": 157
+    },
+    {
+      "seed": "1-7",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 2,
+      "blueAlive": 3,
+      "redEnergy": 128,
+      "blueEnergy": 204
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 0,
+    "blueWins": 10,
+    "draws": 0,
+    "avgTicks": 3436.2,
+    "avgRedAlive": 2,
+    "avgBlueAlive": 3.4,
+    "avgRedEnergy": 93.6,
+    "avgBlueEnergy": 205.2,
+    "baseSeed": "1",
+    "concurrency": 4
+  }
+}

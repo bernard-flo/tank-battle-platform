@@ -8,7 +8,7 @@ function update(tank,enemies,allies,bulletInfo){
   "use strict";
   // helpers
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:44, allySep:64, horizon:8, bulletRad:22, bulletWeight:0.118, etaW:0.17, inertia:0.0022, edgeW:0.085, rangeInW:0.017, rangeOutW:0.0105, minRange:175, maxRange:285, orbit:22, fleeBias:13, wHealth:1.33, wDist:0.08 };
+  const P={ edge:48, allySep:64, horizon:8, bulletRad:22, bulletWeight:0.115, etaW:0.17, inertia:0.0022, edgeW:0.085, rangeInW:0.018, rangeOutW:0.011, minRange:160, maxRange:260, orbit:24, fleeBias:12, wHealth:1.33, wDist:0.08 };
   __S1.tick=(__S1.tick||0)+1;
   // pick target
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
@@ -34,7 +34,7 @@ let __S2={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:44, allySep:64, horizon:8, bulletRad:22, bulletWeight:0.118, etaW:0.17, inertia:0.0021, edgeW:0.085, rangeInW:0.017, rangeOutW:0.0105, minRange:180, maxRange:300, orbit:24, fleeBias:12, wHealth:1.33, wDist:0.08 };
+  const P={ edge:48, allySep:64, horizon:8, bulletRad:22, bulletWeight:0.115, etaW:0.17, inertia:0.0021, edgeW:0.085, rangeInW:0.018, rangeOutW:0.011, minRange:165, maxRange:270, orbit:24, fleeBias:12, wHealth:1.33, wDist:0.08 };
   __S2.tick=(__S2.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S2.last&&Math.abs(__S2.last.x-tgt.x)<96&&Math.abs(__S2.last.y-tgt.y)<96){ vx=tgt.x-__S2.last.x; vy=tgt.y-__S2.last.y; } __S2.vx=__S2.vx*0.5+vx*0.5; __S2.vy=__S2.vy*0.5+vy*0.5; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S2.vx*__S2.vx+__S2.vy*__S2.vy, rv=rx*__S2.vx+ry*__S2.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,22); const ax=tgt.x+__S2.vx*t, ay=tgt.y+__S2.vy*t; const jitter=(((__S2.tick*19+(tank.x*11+tank.y*7)|0)%11)-5)*0.08; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S2.last={x:tgt.x,y:tgt.y}; }
@@ -55,7 +55,7 @@ let __S3={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:-1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:52, allySep:76, horizon:9, bulletRad:23, bulletWeight:0.13, etaW:0.22, inertia:0.0019, edgeW:0.09, rangeInW:0.018, rangeOutW:0.0105, minRange:300, maxRange:440, orbit:28, fleeBias:16, wHealth:1.34, wDist:0.07 };
+  const P={ edge:50, allySep:64, horizon:7, bulletRad:22, bulletWeight:0.11, etaW:0.16, inertia:0.0022, edgeW:0.085, rangeInW:0.016, rangeOutW:0.011, minRange:152, maxRange:240, orbit:24, fleeBias:12, wHealth:1.34, wDist:0.07 };
   __S3.tick=(__S3.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S3.last&&Math.abs(__S3.last.x-tgt.x)<96&&Math.abs(__S3.last.y-tgt.y)<96){ vx=tgt.x-__S3.last.x; vy=tgt.y-__S3.last.y; } __S3.vx=__S3.vx*0.55+vx*0.45; __S3.vy=__S3.vy*0.55+vy*0.45; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S3.vx*__S3.vx+__S3.vy*__S3.vy, rv=rx*__S3.vx+ry*__S3.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,26); const ax=tgt.x+__S3.vx*t, ay=tgt.y+__S3.vy*t; const jitter=(((__S3.tick*23+(tank.x*13+tank.y*9)|0)%13)-6)*0.08; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S3.last={x:tgt.x,y:tgt.y}; }
@@ -76,7 +76,7 @@ let __S4={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:52, allySep:76, horizon:9, bulletRad:23, bulletWeight:0.13, etaW:0.22, inertia:0.0019, edgeW:0.09, rangeInW:0.018, rangeOutW:0.0105, minRange:295, maxRange:435, orbit:28, fleeBias:16, wHealth:1.34, wDist:0.07 };
+  const P={ edge:50, allySep:64, horizon:7, bulletRad:22, bulletWeight:0.11, etaW:0.16, inertia:0.0022, edgeW:0.085, rangeInW:0.016, rangeOutW:0.011, minRange:152, maxRange:240, orbit:24, fleeBias:12, wHealth:1.34, wDist:0.07 };
   __S4.tick=(__S4.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S4.last&&Math.abs(__S4.last.x-tgt.x)<96&&Math.abs(__S4.last.y-tgt.y)<96){ vx=tgt.x-__S4.last.x; vy=tgt.y-__S4.last.y; } __S4.vx=__S4.vx*0.56+vx*0.44; __S4.vy=__S4.vy*0.56+vy*0.44; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S4.vx*__S4.vx+__S4.vy*__S4.vy, rv=rx*__S4.vx+ry*__S4.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,26); const ax=tgt.x+__S4.vx*t, ay=tgt.y+__S4.vy*t; const jitter=(((__S4.tick*29+(tank.x*9+tank.y*15)|0)%15)-7)*0.07; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S4.last={x:tgt.x,y:tgt.y}; }
@@ -97,7 +97,7 @@ let __S5={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:-1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:52, allySep:78, horizon:9, bulletRad:23, bulletWeight:0.13, etaW:0.22, inertia:0.002, edgeW:0.09, rangeInW:0.018, rangeOutW:0.0105, minRange:300, maxRange:445, orbit:28, fleeBias:16, wHealth:1.36, wDist:0.07 };
+  const P={ edge:50, allySep:66, horizon:7, bulletRad:22, bulletWeight:0.11, etaW:0.16, inertia:0.0022, edgeW:0.085, rangeInW:0.016, rangeOutW:0.011, minRange:160, maxRange:245, orbit:24, fleeBias:12, wHealth:1.36, wDist:0.07 };
   __S5.tick=(__S5.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S5.last&&Math.abs(__S5.last.x-tgt.x)<96&&Math.abs(__S5.last.y-tgt.y)<96){ vx=tgt.x-__S5.last.x; vy=tgt.y-__S5.last.y; } __S5.vx=__S5.vx*0.55+vx*0.45; __S5.vy=__S5.vy*0.55+vy*0.45; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S5.vx*__S5.vx+__S5.vy*__S5.vy, rv=rx*__S5.vx+ry*__S5.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,26); const ax=tgt.x+__S5.vx*t, ay=tgt.y+__S5.vy*t; const jitter=(((__S5.tick*27+(tank.x*7+tank.y*9)|0)%15)-7)*0.07; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S5.last={x:tgt.x,y:tgt.y}; }
@@ -118,7 +118,7 @@ let __S6={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:46, allySep:64, horizon:8, bulletRad:22, bulletWeight:0.118, etaW:0.17, inertia:0.0022, edgeW:0.085, rangeInW:0.017, rangeOutW:0.0105, minRange:220, maxRange:360, orbit:24, fleeBias:13, wHealth:1.33, wDist:0.08 };
+  const P={ edge:46, allySep:64, horizon:8, bulletRad:22, bulletWeight:0.118, etaW:0.17, inertia:0.0022, edgeW:0.085, rangeInW:0.017, rangeOutW:0.0105, minRange:210, maxRange:320, orbit:26, fleeBias:13, wHealth:1.33, wDist:0.08 };
   __S6.tick=(__S6.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S6.last&&Math.abs(__S6.last.x-tgt.x)<96&&Math.abs(__S6.last.y-tgt.y)<96){ vx=tgt.x-__S6.last.x; vy=tgt.y-__S6.last.y; } __S6.vx=__S6.vx*0.52+vx*0.48; __S6.vy=__S6.vy*0.52+vy*0.48; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S6.vx*__S6.vx+__S6.vy*__S6.vy, rv=rx*__S6.vx+ry*__S6.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,24); const ax=tgt.x+__S6.vx*t, ay=tgt.y+__S6.vy*t; const jitter=(((__S6.tick*23+(tank.x*7+tank.y*13)|0)%13)-6)*0.08; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S6.last={x:tgt.x,y:tgt.y}; }
