@@ -22,8 +22,8 @@
     · secure: process/require/global 비공개, 호스트 탈출 위험 억제.
     · fast: 성능 위주, 내부 테스트에 한정 권장.
 - simulator/cli.js: 커맨드라인 인터페이스.
-  - 인자: --red, --blue, --maxTicks, --seed, --repeat, --json, --replay, --recordEvery, --runner secure|fast, --fast, --concurrency N.
-  - 단일/배치 결과 요약 출력 및 JSON 저장 지원. --replay는 단일 경기에서만 지원.ª
+  - 인자: --red, --blue, --seed, --repeat, --json, --replay, --recordEvery, --runner secure|fast, --fast, --concurrency N.
+  - 단일/배치 결과 요약 출력 및 JSON 저장 지원. --replay는 단일 경기에서만 지원.
   - --concurrency N: 반복 실행 시 병렬 처리(worker_threads) 사용.
 - simulator/worker.js: 배치 시뮬 병렬 실행용 워커(worker_threads). 시드 청크를 입력받아 일괄 처리 후 요약 반환.
 - simulator/ai/default_team.js: 예시 6로봇 코드(HTML 기본 예제와 동일 로직).

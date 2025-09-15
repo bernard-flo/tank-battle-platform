@@ -313,7 +313,8 @@ function createEngineWithTeams(playerData, opts = {}) {
 }
 
 function runMatch(playerData, opts = {}) {
-  const maxTicks = opts.maxTicks ?? 5000; // 5000 ticks ~ 250s
+  // const maxTicks = opts.maxTicks ?? 5000; // 5000 ticks ~ 250s
+  const maxTicks = 20 * 180; // 3min
   const engine = createEngineWithTeams(playerData, opts);
   for (let tick = 0; tick < maxTicks; tick++) {
     engine.step();
@@ -326,6 +327,8 @@ function runMatch(playerData, opts = {}) {
   let winner = 'draw';
   if (stats.redAlive === 0 && stats.blueAlive > 0) winner = 'blue';
   else if (stats.blueAlive === 0 && stats.redAlive > 0) winner = 'red';
+  else if (stats.blueEnergy > stats.redEnergy) winner = 'blue';
+  else if (stats.redEnergy > stats.blueEnergy) winner = 'red';
   const result = { winner, ticks: Math.floor(engine.timeMs / engine.tickMs), stats, engine };
   if (engine.record) {
     result.replay = engine.getReplay();
