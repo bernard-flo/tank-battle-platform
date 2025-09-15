@@ -1,5 +1,5 @@
 function name(){return "Hydra-X T1";}
-function type(){return Type.TANKER;}
+function type(){return Type.DEALER;}
 let __state={tick:0,lastTarget:null,lvx:0,lvy:0,lastMove:undefined};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
