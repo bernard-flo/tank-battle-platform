@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech of Tanks 토너먼트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tournament-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+        }
+
+        .round-section {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            padding: 15px 25px;
+            background: #4CAF50; /* 녹색 */
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .round-title {
+            text-align: center;
+            font-size: 1.8em;
+            color: #555;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            border-radius: 10px;
+        }
+
+        .matches-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .score-input {
+            width: 90%;
+            margin: 8px auto;
+            display: block;
+            padding: 8px 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .score-input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 5px rgba(102,126,234,0.5);
+        }
+
+        .match {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .match:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .match-number {
+            text-align: center;
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .team {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .team.winner {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            animation: winnerPulse 1s ease;
+        }
+
+        @keyframes winnerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .team.eliminated {
+            background: #ffebee;
+            color: #c62828;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .winner-selector {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .winner-selector.active {
+            display: block;
+        }
+
+        .winner-selector h3 {
+            color: #f57c00;
+            margin-bottom: 15px;
+        }
+
+        .winner-teams {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .winner-team-btn {
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #f57c00;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .winner-team-btn:hover {
+            background: #f57c00;
+            color: white;
+        }
+
+        .winner-team-btn.selected {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        .confirm-btn {
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .reset-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .reset-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .champion {
+            text-align: center;
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #ffd700, #ffed4b);
+            border-radius: 20px;
+            display: none;
+            animation: championReveal 1s ease;
+        }
+
+        @keyframes championReveal {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .champion.active {
+            display: block;
+        }
+
+        .champion h2 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .champion-name {
+            font-size: 2.5em;
+            color: #d4af37;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .trophy {
+            font-size: 4em;
+            margin: 20px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 Tech of Tanks 토너먼트 <span id="playVideoBtn" style="cursor:pointer;">🏆</span></h1>
+
+
+        <div class="tournament-wrapper">
+            <!-- 우승팀 표시 -->
+            <div class="champion" id="champion">
+                <div class="trophy">🏆</div>
+                <h2>토너먼트 우승</h2>
+                <div class="champion-name" id="championName"></div>
+            </div>
+
+            <!-- 결승전 -->
+            <div class="round-section" id="finals" style="display: none;">
+                <div class="round-title">🥇 결승전</div>
+                <div class="matches-container">
+                    <div class="match">
+                        <div class="match-number">8경기 - FINAL</div>
+                        <div class="team" onclick="selectWinner('finals', 0, 0)" id="finals-0-0">
+                            <span>6경기 승자</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('finals', 0, 1)" id="finals-0-1">
+                            <span>7경기 승자</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 영상 오버레이 -->
+            <!-- 영상 오버레이 -->
+            <div id="videoOverlay"
+                 style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+            z-index:2000; justify-content:center; align-items:center;">
+                <video id="winnerVideo" src="new.mp4"
+                       autoplay
+                       style="max-width:80%; max-height:80%; border-radius:20px; box-shadow:0 0 20px rgba(0,0,0,0.6);">
+                </video>
+            </div>
+
+
+            <!-- 2차전 (준결승) -->
+            <div class="round-section" id="semifinals" style="display: none;">
+                <div class="round-title">🥈 2차전 (준결승)</div>
+                <div class="matches-container">
+                    <div class="match">
+                        <div class="match-number">6경기</div>
+                        <div class="team" onclick="selectWinner('semifinals', 0, 0)" id="semifinals-0-0">
+                            <span>대기중</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('semifinals', 0, 1)" id="semifinals-0-1">
+                            <span>대기중</span>
+                        </div>
+                    </div>
+                    <div class="match">
+                        <div class="match-number">7경기</div>
+                        <div class="team" onclick="selectWinner('semifinals', 1, 0)" id="semifinals-1-0">
+                            <span>대기중</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('semifinals', 1, 1)" id="semifinals-1-1">
+                            <span>대기중</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1차전 -->
+            <div class="round-section" id="quarterfinals">
+                <div class="round-title">🥉 1차전</div>
+                <div class="matches-container">
+                    <div class="match">
+                        <div class="match-number">1경기</div>
+                        <input type="text" class="score-input" id="score-quarterfinals-0" placeholder="승자 점수 입력">
+                        <div class="team" onclick="selectWinner('quarterfinals', 0, 0)" id="quarterfinals-0-0">
+                            <span>1팀</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('quarterfinals', 0, 1)" id="quarterfinals-0-1">
+                            <span>2팀</span>
+                        </div>
+                    </div>
+                    <div class="match">
+                        <div class="match-number">2경기</div>
+                        <input type="text" class="score-input" id="score-quarterfinals-1" placeholder="승자 점수 입력">
+                        <div class="team" onclick="selectWinner('quarterfinals', 1, 0)" id="quarterfinals-1-0">
+                            <span>3팀</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('quarterfinals', 1, 1)" id="quarterfinals-1-1">
+                            <span>4팀</span>
+                        </div>
+                    </div>
+                    <div class="match">
+                        <div class="match-number">3경기</div>
+                        <input type="text" class="score-input" id="score-quarterfinals-2" placeholder="승자 점수 입력">
+                        <div class="team" onclick="selectWinner('quarterfinals', 2, 0)" id="quarterfinals-2-0">
+                            <span>5팀</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('quarterfinals', 2, 1)" id="quarterfinals-2-1">
+                            <span>6팀</span>
+                        </div>
+                    </div>
+                    <div class="match">
+                        <div class="match-number">4경기</div>
+                        <input type="text" class="score-input" id="score-quarterfinals-3" placeholder="승자 점수 입력">
+                        <div class="team" onclick="selectWinner('quarterfinals', 3, 0)" id="quarterfinals-3-0">
+                            <span>7팀</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('quarterfinals', 3, 1)" id="quarterfinals-3-1">
+                            <span>8팀</span>
+                        </div>
+                    </div>
+                    <div class="match">
+                        <div class="match-number">5경기</div>
+                        <input type="text" class="score-input" id="score-quarterfinals-4" placeholder="승자 점수 입력">
+                        <div class="team" onclick="selectWinner('quarterfinals', 4, 0)" id="quarterfinals-4-0">
+                            <span>9팀</span>
+                        </div>
+                        <div class="team" onclick="selectWinner('quarterfinals', 4, 1)" id="quarterfinals-4-1">
+                            <span>10팀</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 추가 탈락자 선택 -->
+                <div class="winner-selector" id="eliminationSelector">
+                    <h3>⚠️ 1차전 승자 중 1팀을 추가로 탈락시켜주세요</h3>
+                    <div class="winner-teams" id="winnerTeams"></div>
+                    <button class="confirm-btn" onclick="confirmElimination()">탈락 확정 및 2차전 진행</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 안내문구 -->
+        <div class="rules-section"
+             style="margin-top:50px; padding:40px; background:#fff; border-radius:20px;
+            box-shadow:0 5px 20px rgba(0,0,0,0.1); max-width:800px; margin-left:auto; margin-right:auto; text-align:center;">
+
+            <h2 style="color:#333; margin-bottom:25px; font-size:1.8em;">📌 경기룰</h2>
+            <ul style="list-style:none; padding:0; margin-bottom:40px; color:#444; line-height:2; font-size:1.3em;">
+                <li>30분 동안 코딩 : 코딩 후, 팀장이 코드를 Export 하여 Bernard에게 DM으로 제출</li>
+                <li>1차전 후, 승자 5팀 중 팀 에너지가 제일 적은 팀은 탈락</li>
+            </ul>
+
+            <h2 style="color:#333; margin-bottom:25px; font-size:1.8em;">⚠️ 유의사항</h2>
+            <ul style="list-style:none; padding:0; color:#444; line-height:2; font-size:1.3em;">
+                <li>실격 룰: 제공된 Object 속성 외 접근, 어뷰징 시 실격패</li>
+                <li>경기의 승부 양상이 나지 않으면 시간상 임의 종료 - 팀 에너지가 많은 팀이 승리</li>
+                <li>결승전은 3판 2선승제 (단, 시간상 단판만 진행할 수 있음)</li>
+            </ul>
+        </div>
+
+
+
+        <!-- 경기화면 돌아가기 버튼 -->
+        <button class="back-btn" onclick="location.href='tank_battle_platform.html'">⬅ 경기화면 돌아가기</button>
+        <button class="reset-btn" onclick="resetTournament()">🔄 초기화</button>
+    </div>
+
+
+    <script>
+        // 토너먼트 상태 관리
+        let tournamentState = {
+            quarterfinals: {
+                matches: [
+                    { teams: ['1팀', '2팀'], winner: null },
+                    { teams: ['3팀', '4팀'], winner: null },
+                    { teams: ['5팀', '6팀'], winner: null },
+                    { teams: ['7팀', '8팀'], winner: null },
+                    { teams: ['9팀', '10팀'], winner: null }
+                ],
+                complete: false
+            },
+            eliminatedTeam: null,
+            semifinals: {
+                matches: [
+                    { teams: ['대기중', '대기중'], winner: null },
+                    { teams: ['대기중', '대기중'], winner: null }
+                ],
+                complete: false
+            },
+            finals: {
+                matches: [
+                    { teams: ['6경기 승자', '7경기 승자'], winner: null }
+                ],
+                complete: false
+            }
+        };
+
+        // 로컬 스토리지에서 상태 불러오기
+        function loadState() {
+            const saved = localStorage.getItem('tournamentState');
+            if (saved) {
+                tournamentState = JSON.parse(saved);
+                updateUI();
+            }
+        }
+
+        // 상태 저장
+        function saveState() {
+            localStorage.setItem('tournamentState', JSON.stringify(tournamentState));
+        }
+
+        // 점수 저장
+        function saveScores() {
+            const scores = {};
+            document.querySelectorAll(".score-input").forEach(input => {
+                scores[input.id] = input.value;
+            });
+            localStorage.setItem("winnerScores", JSON.stringify(scores));
+        }
+
+        // 점수 불러오기
+        function loadScores() {
+            const saved = localStorage.getItem("winnerScores");
+            if (saved) {
+                const scores = JSON.parse(saved);
+                Object.keys(scores).forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) input.value = scores[id];
+                });
+            }
+        }
+
+        // input 이벤트 → 자동 저장
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains("score-input")) {
+                saveScores();
+            }
+        });
+
+        // 영상 버튼 클릭 → 오버레이 띄우고 영상 재생
+        document.getElementById("playVideoBtn").addEventListener("click", function() {
+            if (document.getElementById("champion").classList.contains("active")) {
+                const overlay = document.getElementById("videoOverlay");
+                const video = document.getElementById("winnerVideo");
+                overlay.style.display = "flex";
+                video.currentTime = 0;
+                video.play();
+            } else {
+                alert("아직 우승자가 결정되지 않았습니다!");
+            }
+        });
+
+        // 영상이 끝나면 자동 닫기
+        document.getElementById("winnerVideo").addEventListener("ended", function() {
+            document.getElementById("videoOverlay").style.display = "none";
+        });
+
+        // 오버레이 클릭 시 닫기
+        document.getElementById("videoOverlay").addEventListener("click", function(e) {
+            if (e.target.id === "videoOverlay") {
+                this.style.display = "none";
+                document.getElementById("winnerVideo").pause();
+            }
+        });
+
+
+        // UI 업데이트
+        function updateUI() {
+            // 1차전 업데이트
+            tournamentState.quarterfinals.matches.forEach((match, matchIndex) => {
+                match.teams.forEach((team, teamIndex) => {
+                    const element = document.getElementById(`quarterfinals-${matchIndex}-${teamIndex}`);
+                    if (element) {
+                        element.querySelector('span').textContent = team;
+                        element.classList.remove('winner');
+                        if (match.winner === teamIndex) {
+                            element.classList.add('winner');
+                        }
+                    }
+                });
+            });
+
+            // 1차전 완료 확인
+            const allQuarterfinalsComplete = tournamentState.quarterfinals.matches.every(m => m.winner !== null);
+            
+            // 1차전이 모두 완료되고 아직 complete 상태가 아닐 때만 탈락자 선택 UI 표시
+            if (allQuarterfinalsComplete && !tournamentState.quarterfinals.complete) {
+                showEliminationSelector();
+            } else if (!allQuarterfinalsComplete) {
+                // 1차전이 완료되지 않았으면 탈락자 선택 UI 숨기기
+                document.getElementById('eliminationSelector').classList.remove('active');
+            }
+
+            // 탈락자 선택 완료시 2차전 표시
+            if (tournamentState.eliminatedTeam !== null && tournamentState.quarterfinals.complete) {
+                document.getElementById('eliminationSelector').classList.remove('active');
+                setupSemifinals();
+                document.getElementById('semifinals').style.display = 'block';
+            }
+
+            // 2차전 업데이트
+            if (tournamentState.semifinals.matches[0].teams[0] !== '대기중') {
+                document.getElementById('semifinals').style.display = 'block';
+                tournamentState.semifinals.matches.forEach((match, matchIndex) => {
+                    match.teams.forEach((team, teamIndex) => {
+                        const element = document.getElementById(`semifinals-${matchIndex}-${teamIndex}`);
+                        if (element) {
+                            element.querySelector('span').textContent = team;
+                            element.classList.remove('winner');
+                            if (match.winner === teamIndex) {
+                                element.classList.add('winner');
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 2차전 완료 확인 및 결승전 설정
+            const allSemifinalsComplete = tournamentState.semifinals.matches.every(m => m.winner !== null);
+            if (allSemifinalsComplete && tournamentState.semifinals.matches[0].teams[0] !== '대기중') {
+                if (!tournamentState.semifinals.complete) {
+                    setupFinals();
+                }
+                // 결승전 표시 (페이지 재진입 시에도)
+                if (tournamentState.finals.matches[0].teams[0] !== '6경기 승자') {
+                    document.getElementById('finals').style.display = 'block';
+                }
+            }
+
+            // 결승전 업데이트
+            if (tournamentState.finals.matches[0].teams[0] !== '6경기 승자') {
+                document.getElementById('finals').style.display = 'block';
+                tournamentState.finals.matches[0].teams.forEach((team, teamIndex) => {
+                    const element = document.getElementById(`finals-0-${teamIndex}`);
+                    if (element) {
+                        element.querySelector('span').textContent = team;
+                        element.classList.remove('winner');
+                        if (tournamentState.finals.matches[0].winner === teamIndex) {
+                            element.classList.add('winner');
+                        }
+                    }
+                });
+            }
+
+            // 우승팀 표시
+            if (tournamentState.finals.matches[0].winner !== null) {
+                const championName = tournamentState.finals.matches[0].teams[tournamentState.finals.matches[0].winner];
+                document.getElementById('championName').textContent = championName;
+                document.getElementById('champion').classList.add('active');
+            }
+        }
+
+        // 승자 선택
+        function selectWinner(round, matchIndex, teamIndex) {
+            const match = tournamentState[round].matches[matchIndex];
+
+            // 승자 토글
+            if (match.winner === teamIndex) {
+                match.winner = null;
+            } else {
+                match.winner = teamIndex;
+            }
+
+            // 1차전에서 승자가 바뀌었을 때
+            if (round === "quarterfinals") {
+                // 1차전이 완료된 상태에서 다른 팀으로 바꾼 경우
+                if (tournamentState.quarterfinals.complete) {
+                    // 탈락자/2차전/결승 초기화
+                    tournamentState.quarterfinals.complete = false;
+                    tournamentState.eliminatedTeam = null;
+
+                    tournamentState.semifinals = {
+                        matches: [
+                            { teams: ["대기중", "대기중"], winner: null },
+                            { teams: ["대기중", "대기중"], winner: null }
+                        ],
+                        complete: false
+                    };
+
+                    tournamentState.finals = {
+                        matches: [
+                            { teams: ["6경기 승자", "7경기 승자"], winner: null }
+                        ],
+                        complete: false
+                    };
+
+                    // UI 숨김 처리
+                    document.getElementById("semifinals").style.display = "none";
+                    document.getElementById("finals").style.display = "none";
+                    document.getElementById("champion").classList.remove("active");
+                }
+            }
+
+            // 2차전에서 승자가 바뀌었을 때
+            if (round === "semifinals") {
+                // 결승 참가자 업데이트
+                const finalists = [];
+                tournamentState.semifinals.matches.forEach(m => {
+                    if (m.winner !== null) {
+                        finalists.push(m.teams[m.winner]);
+                    }
+                });
+
+                if (finalists.length === 2) {
+                    tournamentState.finals.matches[0].teams = finalists;
+                    tournamentState.finals.matches[0].winner = null; // 결승전 승자 초기화
+                    tournamentState.semifinals.complete = true;
+
+                    // 🟡 우승자 박스 초기화
+                    document.getElementById("champion").classList.remove("active");
+                    document.getElementById("championName").textContent = "";
+
+                    document.getElementById("finals").style.display = "block";
+                }
+            }
+
+            saveState();
+            updateUI();
+        }
+
+        // 탈락자 선택 UI 표시
+        function showEliminationSelector() {
+            const winners = [];
+            tournamentState.quarterfinals.matches.forEach(match => {
+                if (match.winner !== null) {
+                    winners.push(match.teams[match.winner]);
+                }
+            });
+
+            const winnerTeamsDiv = document.getElementById('winnerTeams');
+            winnerTeamsDiv.innerHTML = '';
+            
+            winners.forEach(team => {
+                const btn = document.createElement('button');
+                btn.className = 'winner-team-btn';
+                btn.textContent = team;
+                btn.onclick = function() {
+                    document.querySelectorAll('.winner-team-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    tournamentState.eliminatedTeam = team;
+                };
+                winnerTeamsDiv.appendChild(btn);
+            });
+
+            document.getElementById('eliminationSelector').classList.add('active');
+        }
+
+        // 탈락 확정
+        function confirmElimination() {
+            if (tournamentState.eliminatedTeam === null) {
+                alert('탈락시킬 팀을 선택해주세요!');
+                return;
+            }
+            
+            tournamentState.quarterfinals.complete = true;
+            saveState();
+            updateUI();
+        }
+
+        // 2차전 설정
+        function setupSemifinals() {
+            const winners = [];
+            tournamentState.quarterfinals.matches.forEach(match => {
+                if (match.winner !== null) {
+                    const winnerTeam = match.teams[match.winner];
+                    if (winnerTeam !== tournamentState.eliminatedTeam) {
+                        winners.push(winnerTeam);
+                    }
+                }
+            });
+
+            // 4개 팀을 2개씩 나누어 배치
+            if (winners.length === 4) {
+                tournamentState.semifinals.matches[0].teams = [winners[0], winners[1]];
+                tournamentState.semifinals.matches[1].teams = [winners[2], winners[3]];
+                saveState();
+            }
+        }
+
+        // 결승전 설정
+        function setupFinals() {
+            const finalists = [];
+            tournamentState.semifinals.matches.forEach((match, index) => {
+                if (match.winner !== null) {
+                    finalists.push(match.teams[match.winner]);
+                }
+            });
+
+            if (finalists.length === 2) {
+                tournamentState.finals.matches[0].teams = finalists;
+                tournamentState.semifinals.complete = true;
+                document.getElementById('finals').style.display = 'block';
+                saveState();
+            }
+        }
+
+        // 토너먼트 초기화
+        function resetTournament() {
+            if (confirm('정말로 토너먼트를 초기화하시겠습니까?')) {
+                localStorage.removeItem('tournamentState');
+                location.reload();
+            }
+        }
+
+        // 페이지 로드시 상태 복원
+        window.onload = function() {
+            loadState();
+            loadScores();
+        };
+    </script>
+</body>
+</html>
