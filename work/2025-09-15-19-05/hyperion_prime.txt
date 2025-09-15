@@ -55,7 +55,7 @@ let __S3={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:-1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:48, allySep:68, horizon:8, bulletRad:22, bulletWeight:0.12, etaW:0.18, inertia:0.002, edgeW:0.086, rangeInW:0.017, rangeOutW:0.0105, minRange:260, maxRange:420, orbit:26, fleeBias:14, wHealth:1.34, wDist:0.07 };
+  const P={ edge:52, allySep:76, horizon:9, bulletRad:23, bulletWeight:0.13, etaW:0.22, inertia:0.0019, edgeW:0.09, rangeInW:0.018, rangeOutW:0.0105, minRange:300, maxRange:440, orbit:28, fleeBias:16, wHealth:1.34, wDist:0.07 };
   __S3.tick=(__S3.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S3.last&&Math.abs(__S3.last.x-tgt.x)<96&&Math.abs(__S3.last.y-tgt.y)<96){ vx=tgt.x-__S3.last.x; vy=tgt.y-__S3.last.y; } __S3.vx=__S3.vx*0.55+vx*0.45; __S3.vy=__S3.vy*0.55+vy*0.45; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S3.vx*__S3.vx+__S3.vy*__S3.vy, rv=rx*__S3.vx+ry*__S3.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,26); const ax=tgt.x+__S3.vx*t, ay=tgt.y+__S3.vy*t; const jitter=(((__S3.tick*23+(tank.x*13+tank.y*9)|0)%13)-6)*0.08; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S3.last={x:tgt.x,y:tgt.y}; }
@@ -64,7 +64,7 @@ function update(tank,enemies,allies,bulletInfo){
   const cands=[]; const add=(ang)=>{ const k=norm(Math.round(ang)); if(!cands.includes(k)) cands.push(k); };
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S3.spin); add(base-90-P.orbit*__S3.spin); add(base+55*__S3.spin); add(base-55*__S3.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
-  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); add(a+120); add(a-120); }
   for(let s=0;s<360;s+=30) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S3.lastMove=a; return; } } const fb=norm((__S3.tick*37+tank.x+tank.y)|0); if(tank.move(fb)){ __S3.lastMove=fb; return; }
 }
@@ -76,7 +76,7 @@ let __S4={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:48, allySep:68, horizon:8, bulletRad:22, bulletWeight:0.12, etaW:0.18, inertia:0.002, edgeW:0.086, rangeInW:0.017, rangeOutW:0.0105, minRange:255, maxRange:410, orbit:26, fleeBias:14, wHealth:1.34, wDist:0.07 };
+  const P={ edge:52, allySep:76, horizon:9, bulletRad:23, bulletWeight:0.13, etaW:0.22, inertia:0.0019, edgeW:0.09, rangeInW:0.018, rangeOutW:0.0105, minRange:295, maxRange:435, orbit:28, fleeBias:16, wHealth:1.34, wDist:0.07 };
   __S4.tick=(__S4.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S4.last&&Math.abs(__S4.last.x-tgt.x)<96&&Math.abs(__S4.last.y-tgt.y)<96){ vx=tgt.x-__S4.last.x; vy=tgt.y-__S4.last.y; } __S4.vx=__S4.vx*0.56+vx*0.44; __S4.vy=__S4.vy*0.56+vy*0.44; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S4.vx*__S4.vx+__S4.vy*__S4.vy, rv=rx*__S4.vx+ry*__S4.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,26); const ax=tgt.x+__S4.vx*t, ay=tgt.y+__S4.vy*t; const jitter=(((__S4.tick*29+(tank.x*9+tank.y*15)|0)%15)-7)*0.07; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S4.last={x:tgt.x,y:tgt.y}; }
@@ -85,7 +85,7 @@ function update(tank,enemies,allies,bulletInfo){
   const cands=[]; const add=(ang)=>{ const k=norm(Math.round(ang)); if(!cands.includes(k)) cands.push(k); };
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S4.spin); add(base-90-P.orbit*__S4.spin); add(base+55*__S4.spin); add(base-55*__S4.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
-  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); add(a+120); add(a-120); }
   for(let s=0;s<360;s+=30) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S4.lastMove=a; return; } } const fb=norm((__S4.tick*41+tank.x+tank.y)|0); if(tank.move(fb)){ __S4.lastMove=fb; return; }
 }
@@ -97,7 +97,7 @@ let __S5={tick:0,last:null,vx:0,vy:0,lastMove:undefined,spin:-1};
 function update(tank,enemies,allies,bulletInfo){
   "use strict";
   const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a|0;}; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v; const H=Math.hypot; const BUL=8; const SPEED=(tank.type===1?3:(tank.type===2?6:5));
-  const P={ edge:50, allySep:70, horizon:8, bulletRad:22, bulletWeight:0.12, etaW:0.18, inertia:0.0021, edgeW:0.088, rangeInW:0.017, rangeOutW:0.0105, minRange:260, maxRange:420, orbit:26, fleeBias:15, wHealth:1.36, wDist:0.07 };
+  const P={ edge:52, allySep:78, horizon:9, bulletRad:23, bulletWeight:0.13, etaW:0.22, inertia:0.002, edgeW:0.09, rangeInW:0.018, rangeOutW:0.0105, minRange:300, maxRange:445, orbit:28, fleeBias:16, wHealth:1.36, wDist:0.07 };
   __S5.tick=(__S5.tick||0)+1;
   let tgt=null,best=1e12; for(const e of enemies){ const s=e.health*P.wHealth+e.distance*P.wDist; if(s<best){best=s;tgt=e;} }
   if(tgt){ let vx=0,vy=0; if(__S5.last&&Math.abs(__S5.last.x-tgt.x)<96&&Math.abs(__S5.last.y-tgt.y)<96){ vx=tgt.x-__S5.last.x; vy=tgt.y-__S5.last.y; } __S5.vx=__S5.vx*0.55+vx*0.45; __S5.vy=__S5.vy*0.55+vy*0.45; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S5.vx*__S5.vx+__S5.vy*__S5.vy, rv=rx*__S5.vx+ry*__S5.vy, rr=rx*rx+ry*ry; const A=vv-BUL*BUL,B=2*rv,C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,26); const ax=tgt.x+__S5.vx*t, ay=tgt.y+__S5.vy*t; const jitter=(((__S5.tick*27+(tank.x*7+tank.y*9)|0)%15)-7)*0.07; tank.fire(toDeg(ax-tank.x,ay-tank.y)+jitter); __S5.last={x:tgt.x,y:tgt.y}; }
@@ -106,7 +106,7 @@ function update(tank,enemies,allies,bulletInfo){
   const cands=[]; const add=(ang)=>{ const k=norm(Math.round(ang)); if(!cands.includes(k)) cands.push(k); };
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S5.spin); add(base-90-P.orbit*__S5.spin); add(base+55*__S5.spin); add(base-55*__S5.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
-  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); add(a+120); add(a-120); }
   for(let s=0;s<360;s+=30) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S5.lastMove=a; return; } } const fb=norm((__S5.tick*43+tank.x+tank.y)|0); if(tank.move(fb)){ __S5.lastMove=fb; return; }
 }
@@ -131,4 +131,3 @@ function update(tank,enemies,allies,bulletInfo){
   for(let s=0;s<360;s+=30) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S6.lastMove=a; return; } } const fb=norm((__S6.tick*37+tank.x+tank.y)|0); if(tank.move(fb)){ __S6.lastMove=fb; return; }
 }
-
