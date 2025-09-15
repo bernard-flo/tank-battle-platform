@@ -7,5 +7,7 @@ Process:
   * Script File: Save your finally developed script to the result/ directory. The file must be a .txt compatible with the platform, and its name must match the timestamped workspace folder.
   * Comparison Report: In your workspace folder, create a RESULT.md file that documents the final performance metrics and proves its superiority over the other results.
 
-Simulation:
-* Repeat just 10 times only at one time.
+Simulation Args:
+* Repeat: 10
+* Sedd: 1
+* Concurrency: 4
