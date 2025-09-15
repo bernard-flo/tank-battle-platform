@@ -21,7 +21,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S1.spin); add(base-90-P.orbit*__S1.spin); add(base+50*__S1.spin); add(base-50*__S1.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
-  for(let s=0;s<360;s+=30) add(s);
+  for(let s=0;s<360;s+=15) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b));
   for(const a of cands){ if(tank.move(a)){ __S1.lastMove=a; return; } }
   const fb=norm((__S1.tick*37+tank.x+tank.y)|0); if(tank.move(fb)){ __S1.lastMove=fb; return; }
@@ -44,7 +44,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S2.spin); add(base-90-P.orbit*__S2.spin); add(base+50*__S2.spin); add(base-50*__S2.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
-  for(let s=0;s<360;s+=30) add(s);
+  for(let s=0;s<360;s+=15) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S2.lastMove=a; return; } } const fb=norm((__S2.tick*41+tank.x+tank.y)|0); if(tank.move(fb)){ __S2.lastMove=fb; return; }
 }
 
@@ -65,7 +65,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S3.spin); add(base-90-P.orbit*__S3.spin); add(base+55*__S3.spin); add(base-55*__S3.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); add(a+120); add(a-120); }
-  for(let s=0;s<360;s+=30) add(s);
+  for(let s=0;s<360;s+=15) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S3.lastMove=a; return; } } const fb=norm((__S3.tick*37+tank.x+tank.y)|0); if(tank.move(fb)){ __S3.lastMove=fb; return; }
 }
 
@@ -86,7 +86,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S4.spin); add(base-90-P.orbit*__S4.spin); add(base+55*__S4.spin); add(base-55*__S4.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); add(a+120); add(a-120); }
-  for(let s=0;s<360;s+=30) add(s);
+  for(let s=0;s<360;s+=15) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S4.lastMove=a; return; } } const fb=norm((__S4.tick*41+tank.x+tank.y)|0); if(tank.move(fb)){ __S4.lastMove=fb; return; }
 }
 
@@ -107,7 +107,7 @@ function update(tank,enemies,allies,bulletInfo){
   if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S5.spin); add(base-90-P.orbit*__S5.spin); add(base+55*__S5.spin); add(base-55*__S5.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); add(a+120); add(a-120); }
-  for(let s=0;s<360;s+=30) add(s);
+  for(let s=0;s<360;s+=15) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S5.lastMove=a; return; } } const fb=norm((__S5.tick*43+tank.x+tank.y)|0); if(tank.move(fb)){ __S5.lastMove=fb; return; }
 }
 
