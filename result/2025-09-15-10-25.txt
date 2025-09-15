@@ -1,0 +1,205 @@
+function name(){return "OmegaSigma-T1";}
+function type(){return Type.TANKER;}
+let __state={tick:0,lastTarget:null,lastV:{x:0,y:0}};
+function update(tank,enemies,allies,bulletInfo){
+  "use strict";
+  __state.tick=(__state.tick||0)+1;
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const H=Math.hypot; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const SPEED=(tank.type===1?3:(tank.type===2?6:5)); const BUL=8;
+
+  // Target selection: strong focus fire (lowest health; tiebreak distance)
+  let tgt=null; for(const e of enemies){ if(!tgt || e.health<tgt.health-1e-6 || (Math.abs(e.health-tgt.health)<1e-6 && e.distance<tgt.distance)) tgt=e; }
+
+  // Predictive aim: exact intercept using last target velocity
+  if(tgt){
+    const key=(__state.lastTarget&&__state.lastTarget.key)||null; const curKey = Math.round(tgt.x)+":"+Math.round(tgt.y);
+    let vx=0, vy=0; if(__state.lastTarget && __state.lastTarget.key===curKey){ vx=tgt.x-__state.lastTarget.x; vy=tgt.y-__state.lastTarget.y; }
+    // smooth velocity
+    __state.lastV={x:__state.lastV.x*0.5+vx*0.5, y:__state.lastV.y*0.5+vy*0.5};
+    const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__state.lastV.x*__state.lastV.x+__state.lastV.y*__state.lastV.y; const rr=rx*rx+ry*ry; const rv=rx*__state.lastV.x+ry*__state.lastV.y;
+    // Solve (v·v - c^2)t^2 + 2(rv)t + rr = 0
+    const A=vv - BUL*BUL; const B=2*rv; const C=rr; let t=0;
+    if(Math.abs(A)<1e-6){ t = (B!==0? -C/B : 0); }
+    else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2); } else t=0; }
+    t=clamp(t,0,30);
+    const ax = tgt.x + __state.lastV.x*t; const ay = tgt.y + __state.lastV.y*t;
+    const jitter = (((tank.x*29+tank.y*31+__state.tick*17)|0)%13 - 6) * 0.12;
+    tank.fire(toDeg(ax-tank.x, ay-tank.y) + jitter);
+    __state.lastTarget={x:tgt.x,y:tgt.y,key:curKey};
+  }
+
+  // Movement planning
+  const P={
+    edge:48, allySep:64, bulletRad:22, horizon:6,
+    minRange:180, maxRange:280, lowHpPad:40, finishHp:28,
+    inertia:0.0025, bulletWeight:0.1, edgeW:0.08, rangeInW:0.015, rangeOutW:0.01,
+    orbit:28, fleeBias:12
+  };
+  if(tgt){ if(tgt.health<=P.finishHp) { P.minRange-=40; P.maxRange-=30; } }
+  if(tank.health<55) P.minRange+=P.lowHpPad;
+
+  function riskForAngle(a){
+    const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED;
+    let risk=0; let px=tank.x, py=tank.y;
+    for(let k=1;k<=P.horizon;k++){
+      px+=dx; py+=dy;
+      // edges
+      if(px<P.edge||px>900-P.edge) risk += (P.edge - Math.min(px,900-px))*P.edgeW*0.5;
+      if(py<P.edge||py>600-P.edge) risk += (P.edge - Math.min(py,600-py))*P.edgeW*0.5;
+      // allies separation
+      for(const al of allies){ const d=H(px-al.x, py-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.02; }
+      // bullets (project k steps ahead)
+      for(const b of bulletInfo){ const bx=b.x + b.vx*k, by=b.y + b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk += (P.bulletRad-d)*P.bulletWeight; }
+      // maintain range
+      if(tgt){ const d=H(px-tgt.x, py-tgt.y); if(d<P.minRange) risk += (P.minRange-d)*P.rangeInW; else if(d>P.maxRange) risk += (d-P.maxRange)*P.rangeOutW; }
+    }
+    if(__state.lastMove!==undefined){ const da=Math.abs(norm(a-__state.lastMove)); const turn=Math.min(da,360-da); risk += turn*P.inertia; }
+    return risk;
+  }
+
+  // candidate angles
+  const cands=[]; const add=(ang)=>{ cands.push(norm(Math.round(ang))); };
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base+90+P.orbit); add(base-90-P.orbit); add(base); add(base+180); }
+  // bullets perpendiculars
+  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
+  // sweep
+  for(let s=0;s<360;s+=30) add(s);
+  // dedupe
+  const seen={}; const uniq=[]; for(const a of cands){ const k=a|0; if(!seen[k]){seen[k]=1; uniq.push(k);} }
+  uniq.sort((a,b)=>riskForAngle(a)-riskForAngle(b));
+  for(const a of uniq){ if(tank.move(a)){ __state.lastMove=a; return; } }
+  const fb=norm((__state.tick*53 + tank.x + tank.y)|0); if(tank.move(fb)) { __state.lastMove=fb; return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "OmegaSigma-T2";}
+function type(){return Type.TANKER;}
+let __state={tick:0,lastTarget:null,lastV:{x:0,y:0}};
+function update(tank,enemies,allies,bulletInfo){
+  "use strict";
+  __state.tick=(__state.tick||0)+1;
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const H=Math.hypot; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const SPEED=(tank.type===1?3:(tank.type===2?6:5)); const BUL=8;
+  let tgt=null; for(const e of enemies){ if(!tgt || e.health<tgt.health-1e-6 || (Math.abs(e.health-tgt.health)<1e-6 && e.distance<tgt.distance)) tgt=e; }
+  if(tgt){
+    const curKey = Math.round(tgt.x)+":"+Math.round(tgt.y);
+    let vx=0, vy=0; if(__state.lastTarget && __state.lastTarget.key===curKey){ vx=tgt.x-__state.lastTarget.x; vy=tgt.y-__state.lastTarget.y; }
+    __state.lastV={x:__state.lastV.x*0.5+vx*0.5, y:__state.lastV.y*0.5+vy*0.5};
+    const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__state.lastV.x*__state.lastV.x+__state.lastV.y*__state.lastV.y; const rr=rx*rx+ry*ry; const rv=rx*__state.lastV.x+ry*__state.lastV.y;
+    const A=vv - BUL*BUL; const B=2*rv; const C=rr; let t=0; if(Math.abs(A)<1e-6){ t = (B!==0? -C/B : 0); } else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2); } }
+    t=clamp(t,0,30);
+    const ax = tgt.x + __state.lastV.x*t; const ay = tgt.y + __state.lastV.y*t; tank.fire(toDeg(ax-tank.x, ay-tank.y));
+    __state.lastTarget={x:tgt.x,y:tgt.y,key:curKey};
+  }
+  const P={edge:48, allySep:64, bulletRad:22, horizon:6, minRange:190, maxRange:300, lowHpPad:40, finishHp:30, inertia:0.0025, bulletWeight:0.11, edgeW:0.08, rangeInW:0.015, rangeOutW:0.01, orbit:30, fleeBias:12};
+  if(tgt){ if(tgt.health<=P.finishHp) { P.minRange-=40; P.maxRange-=30; } }
+  if(tank.health<55) P.minRange+=P.lowHpPad;
+  function riskForAngle(a){ const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED; let risk=0; let px=tank.x, py=tank.y; for(let k=1;k<=P.horizon;k++){ px+=dx; py+=dy; if(px<P.edge||px>900-P.edge) risk += (P.edge - Math.min(px,900-px))*P.edgeW*0.5; if(py<P.edge||py>600-P.edge) risk += (P.edge - Math.min(py,600-py))*P.edgeW*0.5; for(const al of allies){ const d=H(px-al.x, py-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.02; } for(const b of bulletInfo){ const bx=b.x + b.vx*k, by=b.y + b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk += (P.bulletRad-d)*P.bulletWeight; } if(tgt){ const d=H(px-tgt.x, py-tgt.y); if(d<P.minRange) risk += (P.minRange-d)*P.rangeInW; else if(d>P.maxRange) risk += (d-P.maxRange)*P.rangeOutW; } } if(__state.lastMove!==undefined){ const da=Math.abs(norm(a-__state.lastMove)); const turn=Math.min(da,360-da); risk += turn*P.inertia; } return risk; }
+  const cands=[]; const add=(ang)=>{ cands.push(norm(Math.round(ang))); };
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base+90+P.orbit); add(base-90-P.orbit); add(base); add(base+180); }
+  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
+  for(let s=0;s<360;s+=30) add(s);
+  const seen={}; const uniq=[]; for(const a of cands){ const k=a|0; if(!seen[k]){seen[k]=1; uniq.push(k);} }
+  uniq.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of uniq){ if(tank.move(a)){ __state.lastMove=a; return; } } const fb=norm((__state.tick*61 + tank.x + tank.y)|0); if(tank.move(fb)) { __state.lastMove=fb; return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "OmegaSigma-D1";}
+function type(){return Type.DEALER;}
+let __state={tick:0,lastTarget:null,lastV:{x:0,y:0}};
+function update(tank,enemies,allies,bulletInfo){
+  "use strict";
+  __state.tick=(__state.tick||0)+1;
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const H=Math.hypot; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const SPEED=(tank.type===1?3:(tank.type===2?6:5)); const BUL=8;
+  let tgt=null; for(const e of enemies){ if(!tgt || e.health<tgt.health-1e-6 || (Math.abs(e.health-tgt.health)<1e-6 && e.distance<tgt.distance)) tgt=e; }
+  if(tgt){ const curKey=Math.round(tgt.x)+":"+Math.round(tgt.y); let vx=0,vy=0; if(__state.lastTarget&&__state.lastTarget.key===curKey){ vx=tgt.x-__state.lastTarget.x; vy=tgt.y-__state.lastTarget.y; } __state.lastV={x:__state.lastV.x*0.6+vx*0.4, y:__state.lastV.y*0.6+vy*0.4}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__state.lastV.x*__state.lastV.x+__state.lastV.y*__state.lastV.y; const rr=rx*rx+ry*ry; const rv=rx*__state.lastV.x+ry*__state.lastV.y; const A=vv - BUL*BUL; const B=2*rv; const C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2); } } t=clamp(t,0,32); const ax=tgt.x+__state.lastV.x*t, ay=tgt.y+__state.lastV.y*t; const jitter=((((tank.x*17+tank.y*23)|0)%21)-10)*0.08; tank.fire(toDeg(ax-tank.x, ay-tank.y)+jitter); __state.lastTarget={x:tgt.x,y:tgt.y,key:curKey}; }
+  const P={edge:52, allySep:70, bulletRad:21, horizon:7, minRange:260, maxRange:400, lowHpPad:60, finishHp:24, inertia:0.002, bulletWeight:0.11, edgeW:0.09, rangeInW:0.02, rangeOutW:0.012, orbit:36, fleeBias:16}; if(tgt&&tgt.health<=P.finishHp){ P.minRange-=45; P.maxRange-=35; } if(tank.health<40) P.minRange+=P.lowHpPad;
+  function riskForAngle(a){ const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED; let risk=0; let px=tank.x, py=tank.y; for(let k=1;k<=P.horizon;k++){ px+=dx; py+=dy; if(px<P.edge||px>900-P.edge) risk += (P.edge - Math.min(px,900-px))*P.edgeW*0.6; if(py<P.edge||py>600-P.edge) risk += (P.edge - Math.min(py,600-py))*P.edgeW*0.6; for(const al of allies){ const d=H(px-al.x,py-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.03; } for(const b of bulletInfo){ const bx=b.x+b.vx*k, by=b.y+b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk += (P.bulletRad-d)*P.bulletWeight; } if(tgt){ const d=H(px-tgt.x,py-tgt.y); if(d<P.minRange) risk += (P.minRange-d)*P.rangeInW; else if(d>P.maxRange) risk += (d-P.maxRange)*P.rangeOutW; } } if(__state.lastMove!==undefined){ const da=Math.abs(norm(a-__state.lastMove)); const turn=Math.min(da,360-da); risk+=turn*P.inertia; } return risk; }
+  const cands=[]; const add=(ang)=>{ cands.push(norm(Math.round(ang))); };
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base+90+P.orbit); add(base-90-P.orbit); add(base+180); add(base+45); add(base-45); }
+  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+120); add(a-120); }
+  for(let s=0;s<360;s+=30) add(s);
+  const seen={}; const uniq=[]; for(const a of cands){ const k=a|0; if(!seen[k]){seen[k]=1; uniq.push(k);} }
+  uniq.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of uniq){ if(tank.move(a)){ __state.lastMove=a; return; } } const fb=norm((__state.tick*43 + tank.x + tank.y)|0); if(tank.move(fb)) { __state.lastMove=fb; return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "OmegaSigma-D2";}
+function type(){return Type.DEALER;}
+let __state={tick:0,lastTarget:null,lastV:{x:0,y:0}};
+function update(tank,enemies,allies,bulletInfo){
+  "use strict";
+  __state.tick=(__state.tick||0)+1;
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const H=Math.hypot; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const SPEED=(tank.type===1?3:(tank.type===2?6:5)); const BUL=8;
+  let tgt=null; for(const e of enemies){ if(!tgt || e.health<tgt.health-1e-6 || (Math.abs(e.health-tgt.health)<1e-6 && e.distance<tgt.distance)) tgt=e; }
+  if(tgt){ const curKey=Math.round(tgt.x)+":"+Math.round(tgt.y); let vx=0,vy=0; if(__state.lastTarget&&__state.lastTarget.key===curKey){ vx=tgt.x-__state.lastTarget.x; vy=tgt.y-__state.lastTarget.y; } __state.lastV={x:__state.lastV.x*0.6+vx*0.4, y:__state.lastV.y*0.6+vy*0.4}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__state.lastV.x*__state.lastV.x+__state.lastV.y*__state.lastV.y; const rr=rx*rx+ry*ry; const rv=rx*__state.lastV.x+ry*__state.lastV.y; const A=vv - BUL*BUL; const B=2*rv; const C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2); } } t=clamp(t,0,32); const ax=tgt.x+__state.lastV.x*t, ay=tgt.y+__state.lastV.y*t; tank.fire(toDeg(ax-tank.x, ay-tank.y)); __state.lastTarget={x:tgt.x,y:tgt.y,key:curKey}; }
+  const P={edge:52, allySep:70, bulletRad:21, horizon:7, minRange:270, maxRange:410, lowHpPad:60, finishHp:24, inertia:0.002, bulletWeight:0.12, edgeW:0.09, rangeInW:0.02, rangeOutW:0.012, orbit:34, fleeBias:16}; if(tgt&&tgt.health<=P.finishHp){ P.minRange-=45; P.maxRange-=35; } if(tank.health<40) P.minRange+=P.lowHpPad;
+  function riskForAngle(a){ const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED; let risk=0; let px=tank.x, py=tank.y; for(let k=1;k<=P.horizon;k++){ px+=dx; py+=dy; if(px<P.edge||px>900-P.edge) risk += (P.edge - Math.min(px,900-px))*P.edgeW*0.6; if(py<P.edge||py>600-P.edge) risk += (P.edge - Math.min(py,600-py))*P.edgeW*0.6; for(const al of allies){ const d=H(px-al.x,py-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.03; } for(const b of bulletInfo){ const bx=b.x+b.vx*k, by=b.y+b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk += (P.bulletRad-d)*P.bulletWeight; } if(tgt){ const d=H(px-tgt.x,py-tgt.y); if(d<P.minRange) risk += (P.minRange-d)*P.rangeInW; else if(d>P.maxRange) risk += (d-P.maxRange)*P.rangeOutW; } } if(__state.lastMove!==undefined){ const da=Math.abs(norm(a-__state.lastMove)); const turn=Math.min(da,360-da); risk+=turn*P.inertia; } return risk; }
+  const cands=[]; const add=(ang)=>{ cands.push(norm(Math.round(ang))); };
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base+90+P.orbit); add(base-90-P.orbit); add(base+180); add(base+45); add(base-45); }
+  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+120); add(a-120); }
+  for(let s=0;s<360;s+=30) add(s);
+  const seen={}; const uniq=[]; for(const a of cands){ const k=a|0; if(!seen[k]){seen[k]=1; uniq.push(k);} }
+  uniq.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of uniq){ if(tank.move(a)){ __state.lastMove=a; return; } } const fb=norm((__state.tick*47 + tank.x + tank.y)|0); if(tank.move(fb)) { __state.lastMove=fb; return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "OmegaSigma-D3";}
+function type(){return Type.DEALER;}
+let __state={tick:0,lastTarget:null,lastV:{x:0,y:0}};
+function update(tank,enemies,allies,bulletInfo){
+  "use strict";
+  __state.tick=(__state.tick||0)+1;
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const H=Math.hypot; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const SPEED=(tank.type===1?3:(tank.type===2?6:5)); const BUL=8;
+  let tgt=null; for(const e of enemies){ if(!tgt || e.health<tgt.health-1e-6 || (Math.abs(e.health-tgt.health)<1e-6 && e.distance<tgt.distance)) tgt=e; }
+  if(tgt){ const curKey=Math.round(tgt.x)+":"+Math.round(tgt.y); let vx=0,vy=0; if(__state.lastTarget&&__state.lastTarget.key===curKey){ vx=tgt.x-__state.lastTarget.x; vy=tgt.y-__state.lastTarget.y; } __state.lastV={x:__state.lastV.x*0.6+vx*0.4, y:__state.lastV.y*0.6+vy*0.4}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__state.lastV.x*__state.lastV.x+__state.lastV.y*__state.lastV.y; const rr=rx*rx+ry*ry; const rv=rx*__state.lastV.x+ry*__state.lastV.y; const A=vv - BUL*BUL; const B=2*rv; const C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2); } } t=clamp(t,0,32); const ax=tgt.x+__state.lastV.x*t, ay=tgt.y+__state.lastV.y*t; tank.fire(toDeg(ax-tank.x, ay-tank.y)); __state.lastTarget={x:tgt.x,y:tgt.y,key:curKey}; }
+  const P={edge:52, allySep:68, bulletRad:21, horizon:7, minRange:255, maxRange:395, lowHpPad:60, finishHp:24, inertia:0.002, bulletWeight:0.12, edgeW:0.09, rangeInW:0.02, rangeOutW:0.012, orbit:38, fleeBias:15}; if(tgt&&tgt.health<=P.finishHp){ P.minRange-=45; P.maxRange-=35; } if(tank.health<40) P.minRange+=P.lowHpPad;
+  function riskForAngle(a){ const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED; let risk=0; let px=tank.x, py=tank.y; for(let k=1;k<=P.horizon;k++){ px+=dx; py+=dy; if(px<P.edge||px>900-P.edge) risk += (P.edge - Math.min(px,900-px))*P.edgeW*0.6; if(py<P.edge||py>600-P.edge) risk += (P.edge - Math.min(py,600-py))*P.edgeW*0.6; for(const al of allies){ const d=H(px-al.x,py-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.03; } for(const b of bulletInfo){ const bx=b.x+b.vx*k, by=b.y+b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk += (P.bulletRad-d)*P.bulletWeight; } if(tgt){ const d=H(px-tgt.x,py-tgt.y); if(d<P.minRange) risk += (P.minRange-d)*P.rangeInW; else if(d>P.maxRange) risk += (d-P.maxRange)*P.rangeOutW; } } if(__state.lastMove!==undefined){ const da=Math.abs(norm(a-__state.lastMove)); const turn=Math.min(da,360-da); risk+=turn*P.inertia; } return risk; }
+  const cands=[]; const add=(ang)=>{ cands.push(norm(Math.round(ang))); };
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base+90+P.orbit); add(base-90-P.orbit); add(base+180); add(base+60); add(base-60); }
+  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+120); add(a-120); }
+  for(let s=0;s<360;s+=30) add(s);
+  const seen={}; const uniq=[]; for(const a of cands){ const k=a|0; if(!seen[k]){seen[k]=1; uniq.push(k);} }
+  uniq.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of uniq){ if(tank.move(a)){ __state.lastMove=a; return; } } const fb=norm((__state.tick*41 + tank.x + tank.y)|0); if(tank.move(fb)) { __state.lastMove=fb; return; }
+}
+
+// ===== 다음 로봇 =====
+
+function name(){return "OmegaSigma-D4";}
+function type(){return Type.DEALER;}
+let __state={tick:0,lastTarget:null,lastV:{x:0,y:0}};
+function update(tank,enemies,allies,bulletInfo){
+  "use strict";
+  __state.tick=(__state.tick||0)+1;
+  const toDeg=(x,y)=>Math.atan2(y,x)*180/Math.PI; const toRad=(a)=>a*Math.PI/180; const norm=(a)=>{a%=360; if(a<0)a+=360; return a;};
+  const H=Math.hypot; const clamp=(v,lo,hi)=>v<lo?lo:v>hi?hi:v;
+  const SPEED=(tank.type===1?3:(tank.type===2?6:5)); const BUL=8;
+  let tgt=null; for(const e of enemies){ if(!tgt || e.health<tgt.health-1e-6 || (Math.abs(e.health-tgt.health)<1e-6 && e.distance<tgt.distance)) tgt=e; }
+  if(tgt){ const curKey=Math.round(tgt.x)+":"+Math.round(tgt.y); let vx=0,vy=0; if(__state.lastTarget&&__state.lastTarget.key===curKey){ vx=tgt.x-__state.lastTarget.x; vy=tgt.y-__state.lastTarget.y; } __state.lastV={x:__state.lastV.x*0.6+vx*0.4, y:__state.lastV.y*0.6+vy*0.4}; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__state.lastV.x*__state.lastV.x+__state.lastV.y*__state.lastV.y; const rr=rx*rx+ry*ry; const rv=rx*__state.lastV.x+ry*__state.lastV.y; const A=vv - BUL*BUL; const B=2*rv; const C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2); } } t=clamp(t,0,32); const ax=tgt.x+__state.lastV.x*t, ay=tgt.y+__state.lastV.y*t; tank.fire(toDeg(ax-tank.x, ay-tank.y)); __state.lastTarget={x:tgt.x,y:tgt.y,key:curKey}; }
+  const P={edge:52, allySep:68, bulletRad:21, horizon:7, minRange:265, maxRange:405, lowHpPad:60, finishHp:24, inertia:0.002, bulletWeight:0.12, edgeW:0.09, rangeInW:0.02, rangeOutW:0.012, orbit:34, fleeBias:16}; if(tgt&&tgt.health<=P.finishHp){ P.minRange-=45; P.maxRange-=35; } if(tank.health<40) P.minRange+=P.lowHpPad;
+  function riskForAngle(a){ const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED; let risk=0; let px=tank.x, py=tank.y; for(let k=1;k<=P.horizon;k++){ px+=dx; py+=dy; if(px<P.edge||px>900-P.edge) risk += (P.edge - Math.min(px,900-px))*P.edgeW*0.6; if(py<P.edge||py>600-P.edge) risk += (P.edge - Math.min(py,600-py))*P.edgeW*0.6; for(const al of allies){ const d=H(px-al.x,py-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.03; } for(const b of bulletInfo){ const bx=b.x+b.vx*k, by=b.y+b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk += (P.bulletRad-d)*P.bulletWeight; } if(tgt){ const d=H(px-tgt.x,py-tgt.y); if(d<P.minRange) risk += (P.minRange-d)*P.rangeInW; else if(d>P.maxRange) risk += (d-P.maxRange)*P.rangeOutW; } } if(__state.lastMove!==undefined){ const da=Math.abs(norm(a-__state.lastMove)); const turn=Math.min(da,360-da); risk+=turn*P.inertia; } return risk; }
+  const cands=[]; const add=(ang)=>{ cands.push(norm(Math.round(ang))); };
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base+90+P.orbit); add(base-90-P.orbit); add(base+180); add(base+60); add(base-60); }
+  let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
+  if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+120); add(a-120); }
+  for(let s=0;s<360;s+=30) add(s);
+  const seen={}; const uniq=[]; for(const a of cands){ const k=a|0; if(!seen[k]){seen[k]=1; uniq.push(k);} }
+  uniq.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of uniq){ if(tank.move(a)){ __state.lastMove=a; return; } } const fb=norm((__state.tick*37 + tank.x + tank.y)|0); if(tank.move(fb)) { __state.lastMove=fb; return; }
+}
