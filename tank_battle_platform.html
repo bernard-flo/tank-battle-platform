@@ -1222,6 +1222,147 @@ function update(tank, enemies, allies, bulletInfo) {
         let bullets = [];
         let gameRunning = false;
         let gameLoop;
+        
+        // ===== 사운드 매니저 (총소리 + BGM) =====
+        const Sound = (() => {
+            const TICK_MS = 50;
+
+            // 공통 유틸리티
+            const safePlay = (audio) => {
+                try {
+                    const p = audio.play();
+                    if (p && typeof p.catch === 'function') p.catch(() => {});
+                } catch (_) {}
+            };
+
+            const createAudio = (src, { loop = false, volume = 1, onError } = {}) => {
+                const a = new Audio(src);
+                if (onError) a.addEventListener('error', onError, { once: true });
+                a.loop = !!loop;
+                a.volume = volume;
+                return a;
+            };
+
+            const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+            // Gun
+            let gunTimer = null;
+            let gunDisabled = false;
+            const gunSrc = 'sound-gun.mp3';
+
+            const playGunOnce = () => {
+                if (gunDisabled) return;
+                try {
+                    const onErr = () => { gunDisabled = true; };
+                    const audio = createAudio(gunSrc, { volume: 0.1, onError: onErr });
+                    safePlay(audio);
+                } catch (_) { gunDisabled = true; }
+            };
+
+            const startGun = () => {
+                if (gunTimer) return;
+                if (gameRunning) playGunOnce();
+                gunTimer = setInterval(() => { if (gameRunning) playGunOnce(); }, 250);
+            };
+
+            const stopGun = () => {
+                if (!gunTimer) return;
+                clearInterval(gunTimer);
+                gunTimer = null;
+            };
+
+            // BGM
+            let bgm = null;
+            let bgmFade = null;
+            let bgmChosen = null;
+            let bgmDisabled = false;
+
+            const nextBgmSrc = () => {
+                try {
+                    const key = 'bgmIndex';
+                    const last = parseInt(localStorage.getItem(key) || '0', 10) || 0;
+                    const next = (last % 9) + 1; // 1..9
+                    localStorage.setItem(key, String(next));
+                    return `sound-bgm-${next}.mp3`;
+                } catch (_) {
+                    return 'sound-bgm-1.mp3';
+                }
+            };
+
+            const cancelFade = () => { if (bgmFade) { clearInterval(bgmFade); bgmFade = null; } };
+
+            const ensureBgm = (initialVolume = 0.8) => {
+                if (bgm || bgmDisabled) return;
+                try {
+                    if (!bgmChosen) bgmChosen = nextBgmSrc();
+                    const onErr = () => { bgmDisabled = true; };
+                    bgm = createAudio(bgmChosen, { loop: true, volume: initialVolume, onError: onErr });
+                } catch (_) { bgmDisabled = true; }
+            };
+
+            const fadeTo = (targetVol, durationMs) => {
+                if (!bgm) return;
+                cancelFade();
+                const startVol = bgm.volume || 0;
+                const endVol = clamp01(targetVol);
+                if (durationMs <= 0 || startVol === endVol) { bgm.volume = endVol; return; }
+                const steps = Math.max(1, Math.floor(durationMs / TICK_MS));
+                let step = 0;
+                bgmFade = setInterval(() => {
+                    step++;
+                    const ratio = Math.min(1, step / steps);
+                    const vol = startVol + (endVol - startVol) * ratio;
+                    bgm.volume = clamp01(+vol.toFixed(3));
+                    if (step >= steps) { cancelFade(); }
+                }, TICK_MS);
+            };
+
+            const startBgm = () => {
+                if (bgmDisabled) return;
+                ensureBgm(0.8);
+                if (!bgm) return;
+                if (!bgm.paused) return;
+                safePlay(bgm);
+            };
+
+            const fadeOutBgm = (durationMs = 3000) => {
+                if (!bgm) return;
+                const onDone = () => { try { bgm.pause(); } catch (_) {} };
+                cancelFade();
+                const startVol = bgm.volume;
+                const steps = Math.max(1, Math.floor(durationMs / TICK_MS));
+                let step = 0;
+                bgmFade = setInterval(() => {
+                    step++;
+                    const ratio = Math.max(0, 1 - step / steps);
+                    bgm.volume = clamp01(+(startVol * ratio).toFixed(3));
+                    if (step >= steps) { cancelFade(); onDone(); }
+                }, TICK_MS);
+            };
+
+            const resumeBgm = (durationMs = 1500, targetVol = 0.8) => {
+                if (bgmDisabled) return;
+                ensureBgm(0.0);
+                if (!bgm) return;
+                cancelFade();
+                safePlay(bgm);
+                fadeTo(targetVol, durationMs);
+            };
+
+            const stopBgm = () => {
+                cancelFade();
+                if (!bgm) return;
+                try { bgm.pause(); } catch (_) {}
+                try { bgm.currentTime = 0; } catch (_) {}
+                try { bgm.volume = 0.8; } catch (_) {}
+                bgm = null;
+                bgmChosen = null;
+            };
+
+            // 공개 API
+            return { startGun, stopGun, startBgm, fadeOutBgm, resumeBgm, stopBgm };
+        })();
+
         let playerData = [];
         
         function createPlayerInputs() {
@@ -1786,10 +1927,14 @@ function update(tank, enemies, allies, bulletInfo) {
             if (redAlive.length === 0 && blueAlive.length > 0) {
                 gameRunning = false;
                 clearInterval(gameLoop);
+                Sound.stopGun();
+                Sound.fadeOutBgm();
                 logMessage('🎉 BLUE TEAM WINS! 🎉', 'system');
             } else if (blueAlive.length === 0 && redAlive.length > 0) {
                 gameRunning = false;
                 clearInterval(gameLoop);
+                Sound.stopGun();
+                Sound.fadeOutBgm();
                 logMessage('🎉 RED TEAM WINS! 🎉', 'system');
             }
         }
@@ -1835,6 +1980,8 @@ function update(tank, enemies, allies, bulletInfo) {
         function backToSetup() {
             gameRunning = false;
             clearInterval(gameLoop);
+            Sound.stopGun();
+            Sound.stopBgm();
             // Tank Types Info 버튼 다시 표시
             const headerButtons = document.querySelector('.header-buttons');
             if (headerButtons) {
@@ -1851,6 +1998,8 @@ function update(tank, enemies, allies, bulletInfo) {
             logMessage('🚀 Battle Started!', 'system');
             
             gameLoop = setInterval(gameUpdate, 50);
+            Sound.startGun();
+            Sound.startBgm();
         }
         
         function pauseBattle() {
@@ -1858,15 +2007,21 @@ function update(tank, enemies, allies, bulletInfo) {
             if (gameRunning) {
                 gameLoop = setInterval(gameUpdate, 50);
                 logMessage('▶️ Battle Resumed!', 'system');
+                Sound.startGun();
+                Sound.resumeBgm();
             } else {
                 clearInterval(gameLoop);
                 logMessage('⏸️ Battle Paused!', 'system');
+                Sound.stopGun();
+                Sound.fadeOutBgm();
             }
         }
         
         function resetBattle() {
             gameRunning = false;
             clearInterval(gameLoop);
+            Sound.stopGun();
+            Sound.stopBgm();
             initializeGame();
             render();
             updateTeamLists();
