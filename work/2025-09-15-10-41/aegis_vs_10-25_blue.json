@@ -1,0 +1,35 @@
+{
+  "summaries": [
+    {
+      "seed": "202-0",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 1,
+      "blueAlive": 2,
+      "redEnergy": 13,
+      "blueEnergy": 88
+    },
+    {
+      "seed": "202-1",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 2,
+      "blueAlive": 3,
+      "redEnergy": 79,
+      "blueEnergy": 143
+    }
+  ],
+  "aggregate": {
+    "matches": 2,
+    "redWins": 0,
+    "blueWins": 0,
+    "draws": 2,
+    "avgTicks": 5000,
+    "avgRedAlive": 1.5,
+    "avgBlueAlive": 2.5,
+    "avgRedEnergy": 46,
+    "avgBlueEnergy": 115.5,
+    "baseSeed": "202",
+    "concurrency": 1
+  }
+}

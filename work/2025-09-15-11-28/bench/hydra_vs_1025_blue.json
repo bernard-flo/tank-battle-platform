@@ -1,0 +1,71 @@
+{
+  "summaries": [
+    {
+      "seed": "2400-0",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 1,
+      "blueAlive": 4,
+      "redEnergy": 9,
+      "blueEnergy": 264
+    },
+    {
+      "seed": "2400-3",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 2,
+      "blueAlive": 1,
+      "redEnergy": 79,
+      "blueEnergy": 61
+    },
+    {
+      "seed": "2400-1",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 1,
+      "blueAlive": 4,
+      "redEnergy": 9,
+      "blueEnergy": 264
+    },
+    {
+      "seed": "2400-4",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 2,
+      "blueAlive": 1,
+      "redEnergy": 79,
+      "blueEnergy": 61
+    },
+    {
+      "seed": "2400-2",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 1,
+      "blueAlive": 4,
+      "redEnergy": 9,
+      "blueEnergy": 264
+    },
+    {
+      "seed": "2400-5",
+      "winner": "draw",
+      "ticks": 5000,
+      "redAlive": 2,
+      "blueAlive": 1,
+      "redEnergy": 79,
+      "blueEnergy": 61
+    }
+  ],
+  "aggregate": {
+    "matches": 6,
+    "redWins": 0,
+    "blueWins": 0,
+    "draws": 6,
+    "avgTicks": 5000,
+    "avgRedAlive": 1.5,
+    "avgBlueAlive": 2.5,
+    "avgRedEnergy": 44,
+    "avgBlueEnergy": 162.5,
+    "baseSeed": "2400",
+    "concurrency": 3
+  }
+}
