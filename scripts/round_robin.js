@@ -72,9 +72,14 @@ function ensureDir(p) {
   fs.mkdirSync(p, { recursive: true });
 }
 
-function createOutDirs() {
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const base = path.join(PROJECT_ROOT, 'work', 'round_robin', stamp);
+function createOutDirs(specifiedBase) {
+  let base = specifiedBase;
+  if (!base) {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    base = path.join(PROJECT_ROOT, 'work', 'round_robin', stamp);
+  } else {
+    base = path.isAbsolute(base) ? base : path.join(PROJECT_ROOT, specifiedBase);
+  }
   const pairs = path.join(base, 'pairs');
   ensureDir(pairs);
   return { base, pairs };
@@ -157,7 +162,7 @@ function parseCLI() {
 async function main() {
   const cli = parseCLI();
   const files = listTeamFiles(RESULT_DIR);
-  const outDirs = createOutDirs();
+  const outDirs = createOutDirs(cli.out);
   const board = initScoreboard(files);
 
   const pairs = [];
