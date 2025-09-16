@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": "1-0",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 1,
+      "blueAlive": 3,
+      "redEnergy": 9,
+      "blueEnergy": 222
+    },
+    {
+      "seed": "1-4",
+      "winner": "blue",
+      "ticks": 2595,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 291
+    },
+    {
+      "seed": "1-8",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 1,
+      "blueAlive": 3,
+      "redEnergy": 2,
+      "blueEnergy": 209
+    },
+    {
+      "seed": "1-1",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 1,
+      "blueAlive": 3,
+      "redEnergy": 9,
+      "blueEnergy": 222
+    },
+    {
+      "seed": "1-5",
+      "winner": "blue",
+      "ticks": 2595,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 291
+    },
+    {
+      "seed": "1-9",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 1,
+      "blueAlive": 3,
+      "redEnergy": 2,
+      "blueEnergy": 209
+    },
+    {
+      "seed": "1-2",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 1,
+      "blueAlive": 3,
+      "redEnergy": 9,
+      "blueEnergy": 222
+    },
+    {
+      "seed": "1-6",
+      "winner": "blue",
+      "ticks": 2595,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 291
+    },
+    {
+      "seed": "1-3",
+      "winner": "blue",
+      "ticks": 3600,
+      "redAlive": 1,
+      "blueAlive": 3,
+      "redEnergy": 9,
+      "blueEnergy": 222
+    },
+    {
+      "seed": "1-7",
+      "winner": "blue",
+      "ticks": 2595,
+      "redAlive": 0,
+      "blueAlive": 4,
+      "redEnergy": 0,
+      "blueEnergy": 291
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 0,
+    "blueWins": 10,
+    "draws": 0,
+    "avgTicks": 3198,
+    "avgRedAlive": 0.6,
+    "avgBlueAlive": 3.4,
+    "avgRedEnergy": 4,
+    "avgBlueEnergy": 247,
+    "baseSeed": "1",
+    "concurrency": 4
+  }
+}

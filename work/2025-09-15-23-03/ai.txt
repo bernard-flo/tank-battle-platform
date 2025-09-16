@@ -17,20 +17,20 @@ function update(tank,enemies,allies,bulletInfo){
     t=clamp(t,0,26); const ax=tgt.x+__S1.vx*t, ay=tgt.y+__S1.vy*t; const jitter=(((__S1.tick*19+(tank.x*7+tank.y*11)|0)%11)-5)*0.1; tank.fire(toDeg(ax-tank.x, ay-tank.y)+jitter); __S1.last={x:tgt.x,y:tgt.y}; }
 
   // 3) movement planning with risk scoring
-  const P={ edge:46, allySep:64, bulletRad:22, horizon:7, inertia:0.0023, edgeW:0.085, bulletW:0.11, minRange:190, maxRange:290, lowHpPad:40, finishHp:26, finIn:36, finOut:28, orbit:24, fleeBias:12 };
+  const P={ edge:52, allySep:64, bulletRad:24, horizon:7, inertia:0.0026, edgeW:0.085, bulletW:0.13, minRange:170, maxRange:265, lowHpPad:38, finishHp:30, finIn:38, finOut:28, orbit:26, fleeBias:14 };
   if(tgt){ if(tgt.health<=P.finishHp){ P.minRange-=P.finIn; P.maxRange-=P.finOut; } }
   if(tank.health<60) P.minRange+=P.lowHpPad;
 
   function riskForAngle(a){ const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED; let risk=0; let px=tank.x, py=tank.y; for(let k=1;k<=P.horizon;k++){ px+=dx; py+=dy; if(px<P.edge||px>900-P.edge) risk += (P.edge-Math.min(px,900-px))*P.edgeW; if(py<P.edge||py>600-P.edge) risk += (P.edge-Math.min(py,600-py))*P.edgeW; for(const al of allies){ const d=H(px-al.x,py-al.y); if(d<P.allySep) risk += (P.allySep-d)*0.03; } for(const b of bulletInfo){ const bx=b.x+b.vx*k, by=b.y+b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk += (P.bulletRad-d)*P.bulletW*(1+0.2*(P.horizon-k)/P.horizon); } if(tgt){ const d=H(px-tgt.x,py-tgt.y); if(d<P.minRange) risk += (P.minRange-d)*0.017; else if(d>P.maxRange) risk += (d-P.maxRange)*0.010; } } if(__S1.lastMove!==undefined){ const da=Math.abs(((a-__S1.lastMove)%360+540)%360-180); risk+=da*P.inertia; } return risk; }
 
   const cands=[]; const add=(ang)=>{ const k=norm(Math.round(ang)); if(!cands.includes(k)) cands.push(k); };
-  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S1.spin); add(base-90-P.orbit*__S1.spin); add(base+55*__S1.spin); add(base-55*__S1.spin); }
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S1.spin); add(base-90-P.orbit*__S1.spin); add(base+60*__S1.spin); add(base-60*__S1.spin); }
   // bullets: choose hottest and dodge perpendicular
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
   for(let s=0;s<360;s+=20) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S1.lastMove=a; return; } }
-  const fb=norm((__S1.tick*47 + tank.x + tank.y)|0); if(tank.move(fb)){ __S1.lastMove=fb; return; }
+  const fb=norm((__S1.tick*47 + tank.x + tank.y)|0); if(tank.move(fb)){ __S1.lastMove=fb; return; } if(hot){ const flee=norm(toDeg(hot.vx,hot.vy)+180); if(tank.move(flee)){ __S1.lastMove=flee; return; } }
 }
 
 // ===== 다음 로봇 =====
@@ -45,16 +45,16 @@ function update(tank,enemies,allies,bulletInfo){
   let tgt=null; for(const e of enemies){ if(!tgt || e.health<tgt.health-1e-6 || (Math.abs(e.health-tgt.health)<1e-6 && e.distance<tgt.distance)) tgt=e; }
   if(tgt){ let vx=0,vy=0; if(__S2.last){ const lx=__S2.last.x, ly=__S2.last.y; if(Math.abs(tgt.x-lx)<110 && Math.abs(tgt.y-ly)<110){ vx=tgt.x-lx; vy=tgt.y-ly; } }
     __S2.vx=__S2.vx*0.5+vx*0.5; __S2.vy=__S2.vy*0.5+vy*0.5; const rx=tgt.x-tank.x, ry=tgt.y-tank.y; const vv=__S2.vx*__S2.vx+__S2.vy*__S2.vy; const rv=rx*__S2.vx+ry*__S2.vy; const rr=rx*rx+ry*ry; const A=vv-BUL*BUL, B=2*rv, C=rr; let t=0; if(Math.abs(A)<1e-6){ t=(B!==0?-C/B:0);} else { const disc=B*B-4*A*C; if(disc>=0){ const s=Math.sqrt(disc); const t1=(-B+s)/(2*A), t2=(-B-s)/(2*A); t=Math.max(t1,t2); if(t<0) t=Math.max(t1,t2);} } t=clamp(t,0,24); const ax=tgt.x+__S2.vx*t, ay=tgt.y+__S2.vy*t; const jitter=(((__S2.tick*17+(tank.x*11+tank.y*5)|0)%11)-5)*0.1; tank.fire(toDeg(ax-tank.x, ay-tank.y)+jitter); __S2.last={x:tgt.x,y:tgt.y}; }
-  const P={ edge:46, allySep:64, bulletRad:22, horizon:7, inertia:0.0022, edgeW:0.082, bulletW:0.11, minRange:200, maxRange:300, lowHpPad:38, finishHp:26, finIn:38, finOut:26, orbit:26, fleeBias:12 };
+  const P={ edge:52, allySep:64, bulletRad:24, horizon:7, inertia:0.0025, edgeW:0.085, bulletW:0.13, minRange:170, maxRange:265, lowHpPad:38, finishHp:30, finIn:38, finOut:28, orbit:26, fleeBias:14 };
   if(tgt){ if(tgt.health<=P.finishHp){ P.minRange-=P.finIn; P.maxRange-=P.finOut; } }
   if(tank.health<62) P.minRange+=P.lowHpPad;
   function riskForAngle(a){ const ar=toRad(a); const dx=Math.cos(ar)*SPEED, dy=Math.sin(ar)*SPEED; let risk=0; let px=tank.x, py=tank.y; for(let k=1;k<=P.horizon;k++){ px+=dx; py+=dy; if(px<P.edge||px>900-P.edge) risk+=(P.edge-Math.min(px,900-px))*P.edgeW; if(py<P.edge||py>600-P.edge) risk+=(P.edge-Math.min(py,600-py))*P.edgeW; for(const al of allies){ const d=H(px-al.x,py-al.y); if(d<P.allySep) risk+=(P.allySep-d)*0.03; } for(const b of bulletInfo){ const bx=b.x+b.vx*k, by=b.y+b.vy*k; const d=H(px-bx,py-by); if(d<P.bulletRad) risk+=(P.bulletRad-d)*P.bulletW*(1+0.18*(P.horizon-k)/P.horizon); } if(tgt){ const d=H(px-tgt.x,py-tgt.y); if(d<P.minRange) risk+=(P.minRange-d)*0.017; else if(d>P.maxRange) risk+=(d-P.maxRange)*0.010; } } if(__S2.lastMove!==undefined){ const da=Math.abs(((a-__S2.lastMove)%360+540)%360-180); risk+=da*P.inertia; } return risk; }
   const cands=[]; const add=(ang)=>{ const k=norm(Math.round(ang)); if(!cands.includes(k)) cands.push(k); };
-  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S2.spin); add(base-90-P.orbit*__S2.spin); add(base+50*__S2.spin); add(base-50*__S2.spin); }
+  if(tgt){ const base=toDeg(tgt.x-tank.x,tgt.y-tank.y); add(base); add(base+180); add(base+90+P.orbit*__S2.spin); add(base-90-P.orbit*__S2.spin); add(base+60*__S2.spin); add(base-60*__S2.spin); }
   let hot=null, md=1e9; for(const b of bulletInfo){ const dx=b.x-tank.x, dy=b.y-tank.y; const v=H(b.vx,b.vy)||1; const nx=b.vx/v, ny=b.vy/v; const proj=dx*nx+dy*ny; if(proj>0){ const px=b.x-proj*nx, py=b.y-proj*ny; const d=H(px-tank.x,py-tank.y); if(d<md){ md=d; hot=b; } } }
   if(hot){ const a=toDeg(hot.vx,hot.vy); add(a+90+P.fleeBias); add(a-90-P.fleeBias); add(a+135); add(a-135); }
   for(let s=0;s<360;s+=22) add(s);
-  cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S2.lastMove=a; return; } } const fb=norm((__S2.tick*41 + tank.x + tank.y)|0); if(tank.move(fb)){ __S2.lastMove=fb; return; }
+  cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S2.lastMove=a; return; } } const fb=norm((__S2.tick*41 + tank.x + tank.y)|0); if(tank.move(fb)){ __S2.lastMove=fb; return; } if(hot){ const flee=norm(toDeg(hot.vx,hot.vy)+180); if(tank.move(flee)){ __S2.lastMove=flee; return; } }
 }
 
 // ===== 다음 로봇 =====
@@ -152,4 +152,3 @@ function update(tank,enemies,allies,bulletInfo){
   for(let s=0;s<360;s+=30) add(s);
   cands.sort((a,b)=>riskForAngle(a)-riskForAngle(b)); for(const a of cands){ if(tank.move(a)){ __S6.lastMove=a; return; } } const fb=norm((__S6.tick*31 + tank.x + tank.y)|0); if(tank.move(fb)){ __S6.lastMove=fb; return; }
 }
-

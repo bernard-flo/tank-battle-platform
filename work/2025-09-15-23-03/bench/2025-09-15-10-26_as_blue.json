@@ -1,0 +1,107 @@
+{
+  "summaries": [
+    {
+      "seed": "1-0",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 114,
+      "blueEnergy": 35
+    },
+    {
+      "seed": "1-4",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 126,
+      "blueEnergy": 115
+    },
+    {
+      "seed": "1-8",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 5,
+      "blueAlive": 1,
+      "redEnergy": 205,
+      "blueEnergy": 30
+    },
+    {
+      "seed": "1-1",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 114,
+      "blueEnergy": 35
+    },
+    {
+      "seed": "1-5",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 126,
+      "blueEnergy": 115
+    },
+    {
+      "seed": "1-9",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 5,
+      "blueAlive": 1,
+      "redEnergy": 205,
+      "blueEnergy": 30
+    },
+    {
+      "seed": "1-2",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 114,
+      "blueEnergy": 35
+    },
+    {
+      "seed": "1-6",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 126,
+      "blueEnergy": 115
+    },
+    {
+      "seed": "1-3",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 114,
+      "blueEnergy": 35
+    },
+    {
+      "seed": "1-7",
+      "winner": "red",
+      "ticks": 3600,
+      "redAlive": 3,
+      "blueAlive": 2,
+      "redEnergy": 126,
+      "blueEnergy": 115
+    }
+  ],
+  "aggregate": {
+    "matches": 10,
+    "redWins": 10,
+    "blueWins": 0,
+    "draws": 0,
+    "avgTicks": 3600,
+    "avgRedAlive": 3.4,
+    "avgBlueAlive": 1.8,
+    "avgRedEnergy": 137,
+    "avgBlueEnergy": 66,
+    "baseSeed": "1",
+    "concurrency": 4
+  }
+}
