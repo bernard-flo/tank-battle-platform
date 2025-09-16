@@ -2,9 +2,10 @@
 set -euo pipefail
 
 # Run pairwise matches across all files in result/ in small chunks.
-# Usage: scripts/round_robin.sh [--limit N] [--concurrency 10] [--repeat 10] [--seed 1] [--runner secure|fast]
+# Usage: scripts/round_robin.sh [--limit N] [--parallel M] [--concurrency 10] [--repeat 10] [--seed 1] [--runner secure|fast]
 
 LIMIT=8
+PARALLEL=4
 REPEAT=10
 SEED=1
 CONCURRENCY=10
@@ -16,6 +17,7 @@ while [[ $# -gt 0 ]]; do
     --repeat) REPEAT="$2"; shift 2;;
     --seed) SEED="$2"; shift 2;;
     --concurrency) CONCURRENCY="$2"; shift 2;;
+    --parallel) PARALLEL="$2"; shift 2;;
     --runner) RUNNER="$2"; shift 2;;
     *) echo "Unknown arg: $1"; exit 1;;
   esac
@@ -27,7 +29,7 @@ readarray -t FILES < <(printf '%s\n' result/*.txt | sort)
 
 scheduled=0
 jobs_running=0
-max_parallel=4
+max_parallel="$PARALLEL"
 
 for ((i=0;i<${#FILES[@]};i++)); do
   for ((j=i+1;j<${#FILES[@]};j++)); do
@@ -53,4 +55,3 @@ for ((i=0;i<${#FILES[@]};i++)); do
 done
 wait || true
 echo "All pending pairs complete ($scheduled matches)."
-
