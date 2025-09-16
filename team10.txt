@@ -1,0 +1,93 @@
+function name() { return "Luca"; }
+function type() { return Type.TANKER; }
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies.reduce((a, b) => a.distance < b.distance ? a : b);
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    // 탱커는 무조건 돌진
+    if (!tank.move(fireAngle)) {
+      tank.move(fireAngle + 120); //
+    }
+  }
+}
+// ===== 다음 로봇 =====
+function name() { return "Jayce"; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+    let farthest = enemies.reduce((a, b) => a.distance > b.distance ? a : b);
+    const fireAngle = Math.atan2(farthest.y - tank.y - 20, farthest.x - tank.x) * 180 / Math.PI;
+    // 정확히 사격
+    tank.fire(fireAngle);
+    // 항상 거리를 유지 (뒤로 물러남)
+    if (farthest.distance < 500) {
+      tank.move(fireAngle + 50); // 적 반대 방향
+    } else {
+      tank.move(fireAngle + (Math.random() < 0.5 ? 10 : -10));
+    }
+}
+// ===== 다음 로봇 =====
+function name() { return "Ken"; }
+function type() { return Type.TANKER; }
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies.reduce((a, b) => a.distance < b.distance ? a : b);
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    // 탱커는 무조건 돌진
+    if (!tank.move(fireAngle)) {
+      tank.move(fireAngle + 120); //
+    }
+  }
+}
+// ===== 다음 로봇 =====
+function name() {
+  return "Kelley";
+}
+function type() {
+  return Type.NORMAL;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies.reduce((a, b) => a.distance < b.distance ? a : b);
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    if (nearest.distance > 200) {
+      tank.move(fireAngle);
+    } else {
+      tank.move(fireAngle + (Math.random() < 0.5 ? 180 : -180));
+    }
+  }
+}
+// ===== 다음 로봇 =====
+function name() { return "Lily"; }
+function type() { return Type.TANKER; }
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies.reduce((a, b) => a.distance < b.distance ? a : b);
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    // 탱커는 무조건 돌진
+    if (!tank.move(fireAngle)) {
+      tank.move(fireAngle + 60); // 비켜 돌파
+    }
+  }
+}
+// ===== 다음 로봇 =====
+function name() { return "Lily2"; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies.reduce((a, b) => a.distance < b.distance ? a : b);
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    // 정확히 사격
+    tank.fire(fireAngle);
+    // 항상 거리를 유지 (뒤로 물러남)
+    if (nearest.distance < 150) {
+      tank.move(fireAngle + 180); // 적 반대 방향
+    } else {
+      tank.move(fireAngle + (Math.random() < 0.5 ? 30 : -30));
+    }
+  }
+}
+// ===== 다음 로봇 =====

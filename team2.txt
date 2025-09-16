@@ -1,0 +1,597 @@
+function name() {
+                      return 'dave';
+                    }
+                    function type() {
+                      return Type.TANKER;
+                    }
+                    function update(tank, enemies, allies, bulletInfo) {
+                      if (enemies.length > 0) {
+                        let nearest = enemies[0];
+                        for (let enemy of enemies) {
+                          if (enemy.distance < nearest.distance) {
+                            nearest = enemy;
+                          }
+                        }
+                        const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+                        tank.fire(fireAngle);
+
+                        //move 시도 - 실패시 재호출 가능 (최대 10번)
+                        var i = 0
+                        for (i=0; i<10; i++) {
+                          tank.fire(fireAngle);
+                          if (tank.move(Math.random() * 360)) {
+                           break
+                          }
+                        }
+                        if(i == 10) {
+                          tank.move(fireAngle + 180);
+                        }
+                      }
+                    }
+
+// ===== 다음 로봇 =====
+
+// ===== [전략] 선봉대-후위대 분할 기동 - TANKER 코드 =====
+function name() {
+  return "Jeffrey";
+}
+
+function type() {
+  return Type.TANKER;
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length === 0) return;
+
+  // ===== 1. 아군 구성 분석 =====
+  // 이 코드에서는 딜러 타입 식별이 불가하므로, 체력이 낮은 아군을 딜러로 '추정'합니다.
+  const ourDealers = allies.filter(a => a.health <= 80).sort((a,b) => a.distance - b.distance);
+  const ourTankers = allies.filter(a => a.id !== tank.id);
+
+  // ===== 2. 위협 분석 및 통합 타겟 선정 (매우 중요!) =====
+  // 이전 전략의 패배 원인을 극복하기 위해 타겟팅 로직을 수정합니다.
+  
+  let primaryTarget;
+  
+  // 최우선 순위: 우리 딜러(추정)에게 가장 가까운 적을 '최대 위협'으로 간주합니다.
+  let mostDangerousEnemy = null;
+  if (ourDealers.length > 0) {
+      let closestDist = Infinity;
+      enemies.forEach(enemy => {
+          const distToDealer = Math.sqrt((enemy.x - ourDealers[0].x)**2 + (enemy.y - ourDealers[0].y)**2);
+          if (distToDealer < closestDist) {
+              closestDist = distToDealer;
+              mostDangerousEnemy = enemy;
+          }
+      });
+  }
+  
+  // 만약 딜러를 위협하는 적이 350 거리 이내로 접근했다면, 그를 최우선 제거 대상으로 설정합니다.
+  if (mostDangerousEnemy && mostDangerousEnemy.distance < 350) {
+      primaryTarget = mostDangerousEnemy;
+  } else {
+      // 위협적인 적이 없다면, 기존처럼 체력이 가장 낮은 적을 공격하여 수적 우위를 점합니다.
+      primaryTarget = enemies.reduce((prev, curr) => (prev.health < curr.health) ? prev : curr);
+  }
+
+  // ===== 3. 역할 자동 분담: 선봉대(Vanguard) vs 후위대(Rearguard) =====
+  // 자신을 포함한 모든 아군 탱커를 적과의 거리를 기준으로 정렬합니다.
+  const allTankers = [{...tank, distanceToEnemy: primaryTarget.distance}, ...ourTankers.map(t => {
+      const dist = Math.sqrt((t.x - primaryTarget.x)**2 + (t.y - primaryTarget.y)**2);
+      return {...t, distanceToEnemy: dist};
+  })].sort((a, b) => a.distanceToEnemy - b.distanceToEnemy);
+  
+  let myRole = 'Rearguard'; // 기본 역할은 후위대
+  // 정렬된 리스트에서 내가 첫번째 또는 두번째(가장 가까운) 탱커라면, 역할을 선봉대로 변경합니다.
+  if (allTankers.length > 0 && (allTankers[0].id === tank.id || (allTankers.length > 1 && allTankers[1].id === tank.id))) {
+      myRole = 'Vanguard';
+  }
+
+  // ===== 4. 역할에 따른 기동 =====
+  const fireAngle = Math.atan2(primaryTarget.y - tank.y, primaryTarget.x - tank.x) * 180 / Math.PI;
+  
+  if (myRole === 'Vanguard') {
+      // **선봉대 행동:** 목표를 향해 저돌적으로 전진하며 진형을 파괴합니다.
+      // 너무 가까워지면(거리 100 미만) 충돌을 피하기 위해 좌우로 움직입니다.
+      if (primaryTarget.distance < 100) {
+          if (!tank.move(fireAngle + 90)) {
+              tank.move(fireAngle - 90);
+          }
+      } else {
+          if (!tank.move(fireAngle)) {
+              tank.move(fireAngle + 15); // 경로가 막혔다면 살짝 다른 각도로 시도
+          }
+      }
+  } else { // myRole === 'Rearguard'
+      // **후위대 행동:** 딜러들을 보호하는 위치를 잡습니다.
+      if (ourDealers.length > 0) {
+          // 보호할 딜러와 타겟 사이에 위치하도록 이동합니다.
+          const guardX = ourDealers[0].x + (primaryTarget.x - ourDealers[0].x) * 0.3; // 딜러쪽에 30% 더 가깝게
+          const guardY = ourDealers[0].y + (primaryTarget.y - ourDealers[0].y) * 0.3;
+          const moveToGuardPositionAngle = Math.atan2(guardY - tank.y, guardX - tank.x) * 180 / Math.PI;
+          tank.move(moveToGuardPositionAngle);
+      } else {
+          // 보호할 딜러가 없으면 선봉대를 지원하는 위치로 이동합니다.
+          tank.move(fireAngle);
+      }
+  }
+
+  // ===== 5. 공격 =====
+  // 모든 역할은 통일된 타겟(primaryTarget)을 공격합니다. 이것이 집중 포화의 핵심입니다.
+  tank.fire(fireAngle);
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return 'RUSSO';
+}
+function type() {
+  return Type.TANKER; // Type.TANKER, Type.DEALER
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // 적이 있으면 항상 발사 시도
+  if (enemies.length > 0) {
+    // 타겟 우선순위 결정 (체력이 낮고 가까운 적 우선)
+    let target = findBestTarget(tank, enemies);
+    
+    if (target) {
+      // 예측 사격 각도 계산
+      const predictedAngle = calculatePredictiveShot(tank, target);
+      
+      // 예측 사격이 불가능하면 직사격
+      if (predictedAngle !== null) {
+        tank.fire(predictedAngle);
+      } else {
+        // 직사격으로 대체
+        const directAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+        tank.fire(directAngle);
+      }
+    }
+  }
+  
+  // 후방 지원 이동 로직 (전진하지 않고 후퇴 우선)
+  performSupportMovement(tank, enemies, bulletInfo, allies);
+}
+
+// 최적 타겟 선택 함수
+function findBestTarget(tank, enemies) {
+  let bestTarget = null;
+  let bestScore = -1;
+  
+  for (let enemy of enemies) {
+    // 점수 계산: 거리가 가깝고 체력이 낮을수록 높은 점수
+    const distance = enemy.distance;
+    const health = enemy.health || 100; // 기본값 설정
+    
+    // 거리 점수 (가까울수록 높음, 최대 사거리 고려)
+    const distanceScore = Math.max(0, (500 - distance) / 500);
+    
+    // 체력 점수 (낮을수록 높음)
+    const healthScore = Math.max(0, (100 - health) / 100);
+    
+    // 종합 점수 (거리 70%, 체력 30%)
+    const totalScore = distanceScore * 0.7 + healthScore * 0.3;
+    
+    if (totalScore > bestScore) {
+      bestScore = totalScore;
+      bestTarget = enemy;
+    }
+  }
+  
+  return bestTarget;
+}
+
+// 예측 사격 각도 계산 (더 관대한 사거리)
+function calculatePredictiveShot(tank, target) {
+  const bulletSpeed = 8; // 총알 속도
+  const dx = target.x - tank.x;
+  const dy = target.y - tank.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  // 총알이 목표에 도달하는 시간 계산
+  const timeToHit = distance / bulletSpeed;
+  
+  // 적의 이동 예측 (단순히 현재 각도로 계속 이동한다고 가정)
+  const enemySpeed = 5; // 기본 이동 속도
+  const predictedX = target.x + Math.cos(target.angle * Math.PI / 180) * enemySpeed * timeToHit;
+  const predictedY = target.y + Math.sin(target.angle * Math.PI / 180) * enemySpeed * timeToHit;
+  
+  // 예측 위치로의 발사 각도 계산
+  const predictedAngle = Math.atan2(predictedY - tank.y, predictedX - tank.x) * 180 / Math.PI;
+  
+  // 사거리 체크 완화 (더 멀어도 발사)
+  const predictedDistance = Math.sqrt((predictedX - tank.x) ** 2 + (predictedY - tank.y) ** 2);
+  if (predictedDistance > 600) {
+    return null; // 사거리 초과 (기존 400 -> 600으로 증가)
+  }
+  
+  return predictedAngle;
+}
+
+// 벽과의 거리 계산 함수 (battlefield 크기: 900x600)
+function getDistanceToWalls(tank) {
+  const x = tank.x;
+  const y = tank.y;
+  
+  return {
+    left: x,                    // 왼쪽 벽까지 거리
+    right: 900 - x,            // 오른쪽 벽까지 거리
+    top: y,                    // 위쪽 벽까지 거리
+    bottom: 600 - y            // 아래쪽 벽까지 거리
+  };
+}
+
+// 안전한 회피 방향 찾기 (벽과 충분한 거리 확보)
+function findSafeEvasionDirection(tank, preferredDirections) {
+  const wallDistances = getDistanceToWalls(tank);
+  const minSafeDistance = 80; // 벽에서 최소 안전 거리
+  
+  for (let angle of preferredDirections) {
+    let isSafe = true;
+    
+    // 각 방향으로 이동했을 때 벽과의 거리 체크
+    if (angle === 0 && wallDistances.top < minSafeDistance) isSafe = false;        // 위
+    if (angle === 90 && wallDistances.right < minSafeDistance) isSafe = false;     // 오른쪽
+    if (angle === 180 && wallDistances.bottom < minSafeDistance) isSafe = false;   // 아래
+    if (angle === 270 && wallDistances.left < minSafeDistance) isSafe = false;     // 왼쪽
+    
+    // 대각선 방향 체크
+    if (angle === 45 && (wallDistances.top < minSafeDistance || wallDistances.right < minSafeDistance)) isSafe = false;   // 우상
+    if (angle === 135 && (wallDistances.bottom < minSafeDistance || wallDistances.right < minSafeDistance)) isSafe = false; // 우하
+    if (angle === 225 && (wallDistances.bottom < minSafeDistance || wallDistances.left < minSafeDistance)) isSafe = false;  // 좌하
+    if (angle === 315 && (wallDistances.top < minSafeDistance || wallDistances.left < minSafeDistance)) isSafe = false;     // 좌상
+    
+    if (isSafe && tank.move(angle)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// 후방 지원 이동 로직 (전진하지 않고 후퇴/측면 이동 우선)
+function performSupportMovement(tank, enemies, bulletInfo, allies) {
+  // 위험한 총알 회피 (최우선) - 아래쪽으로 회피
+  let dangerDistance = 120;
+  let needEvasion = false;
+  
+  for (let bullet of bulletInfo) {
+    const bulletDistance = bullet.distance;
+    if (bulletDistance < dangerDistance) {
+      needEvasion = true;
+      break;
+    }
+  }
+  
+  // 긴급 회피 이동 - 벽 거리를 고려한 안전한 방향으로 회피
+  if (needEvasion) {
+    // 우선순위 방향들 (아래쪽 우선 + 벽과 안전거리 고려)
+    const evasionPriorities = [
+      180,  // 1순위: 아래쪽
+      225,  // 2순위: 좌하향
+      135,  // 3순위: 우하향
+      270,  // 4순위: 왼쪽
+      90,   // 5순위: 오른쪽
+      315,  // 6순위: 좌상향
+      45,   // 7순위: 우상향
+      0     // 8순위: 위쪽
+    ];
+    
+    // 벽과 안전한 거리를 고려한 회피
+    if (findSafeEvasionDirection(tank, evasionPriorities)) {
+      return;
+    }
+    
+    // 안전한 방향이 없으면 어디든 이동 (생존 우선)
+    for (let angle of evasionPriorities) {
+      if (tank.move(angle)) {
+        return;
+      }
+    }
+    return;
+  }
+  
+  // 후방 지원 포지셔닝
+  if (enemies.length > 0) {
+    const nearestEnemy = enemies.reduce((nearest, enemy) => 
+      enemy.distance < nearest.distance ? enemy : nearest, enemies[0]);
+    
+    const enemyAngle = Math.atan2(nearestEnemy.y - tank.y, nearestEnemy.x - tank.x) * 180 / Math.PI;
+    
+    // 후방 지원 거리 설정 (더 멀리)
+    const supportDistance = 300; // 지원 사격 최적 거리
+    const safeDistance = 200;    // 안전 거리
+    
+    if (nearestEnemy.distance < safeDistance) {
+      // 후퇴 우선순위 (아래쪽 우선 + 벽 거리 고려)
+      const retreatPriorities = [
+        180,  // 1순위: 아래쪽
+        225,  // 2순위: 좌하향
+        135,  // 3순위: 우하향
+        enemyAngle + 180,  // 4순위: 적 반대편
+        270,  // 5순위: 왼쪽
+        90,   // 6순위: 오른쪽
+        315,  // 7순위: 좌상향
+        45    // 8순위: 우상향
+      ];
+      
+      // 벽과 안전한 거리를 고려한 후퇴
+      if (findSafeEvasionDirection(tank, retreatPriorities)) {
+        return;
+      }
+      
+      // 안전한 방향이 없으면 어디든 후퇴
+      for (let angle of retreatPriorities) {
+        if (tank.move(angle)) {
+          return;
+        }
+      }
+    } else if (nearestEnemy.distance > supportDistance) {
+      // 너무 멀면 약간만 접근 (하지만 여전히 신중하게)
+      const approachAngle = enemyAngle + (Math.random() > 0.5 ? 30 : -30);
+      if (!tank.move(approachAngle)) {
+        // 접근이 안되면 측면 이동
+        tank.move(enemyAngle + 90);
+      }
+    } else {
+      // 적정 거리에서는 측면 이동으로 포지션 조정
+      const lateralAngle = enemyAngle + (Math.random() > 0.5 ? 90 : -90);
+      if (!tank.move(lateralAngle)) {
+        // 측면 이동이 안되면 약간 후퇴
+        tank.move(enemyAngle + 180 + (Math.random() * 60 - 30));
+      }
+    }
+  } else {
+    // 적이 없으면 아군과 적정 거리 유지하며 대기
+    if (allies.length > 0) {
+      const nearestAlly = allies.reduce((nearest, ally) => 
+        ally.distance < nearest.distance ? ally : nearest, allies[0]);
+      
+      // 아군과 너무 가까우면 살짝 떨어짐
+      if (nearestAlly.distance < 80) {
+        const allyAngle = Math.atan2(nearestAlly.y - tank.y, nearestAlly.x - tank.x) * 180 / Math.PI;
+        tank.move(allyAngle + 180 + (Math.random() * 60 - 30));
+      }
+    }
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+    return 'Juliet';
+}
+function type() {  
+    return Type.DEALER; // Type.TANKER, Type.DEALER
+}
+function update(tank, enemies, allies, bulletInfo) {
+    if (enemies.length > 0) {
+        // 1. 체력이 가장 낮은 적 찾기
+        let target = enemies[0];
+        for (let enemy of enemies) {
+            if (
+                enemy.hp < target.hp ||
+                (enemy.hp === target.hp && enemy.distance < target.distance)
+            ) {
+                target = enemy;
+            }
+        }
+
+        // 2. 공격 (딜러답게 계속 포화)
+        const fireAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+        tank.fire(fireAngle);
+
+        // 3. 아군 탱커 찾기
+        let nearestTanker = null;
+        for (let ally of allies) {
+            if (ally.type === Type.TANKER) {
+                if (!nearestTanker || ally.distance < nearestTanker.distance) {
+                    nearestTanker = ally;
+                }
+            }
+        }
+
+        // 4. 이동 로직
+        if (nearestTanker) {
+            // 탱커 쪽으로 이동
+            const hideAngle = Math.atan2(nearestTanker.y - tank.y, nearestTanker.x - tank.x) * 180 / Math.PI;
+            if (!tank.move(hideAngle)) {
+                tank.move(hideAngle + (Math.random() > 0.5 ? 30 : -30));
+            }
+        } else {
+            // 탱커 없으면 회피 + 공격 모드
+            const safeDistance = 120;
+            if (target.distance < safeDistance) {
+                // 가까우면 도망
+                const escapeAngle = fireAngle + 180 + (Math.random() * 40 - 20); // ±20° 랜덤
+                if (!tank.move(escapeAngle)) {
+                    tank.move(escapeAngle + (Math.random() * 20 - 10));
+                }
+            } else {
+                // 안전 거리면 지그재그 + 랜덤 각도로 이동
+                const randomOffset = 70 + Math.random() * 40; // 70~110°
+                const sideStepAngle = fireAngle + (Math.random() > 0.5 ? randomOffset : -randomOffset);
+                if (!tank.move(sideStepAngle)) {
+                    tank.move(sideStepAngle + (Math.random() * 30 - 15)); // ±15° 재시도
+                }
+            }
+        }
+    }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name() { 
+  return "Doyle"; 
+}
+
+function type() { 
+  return Type.TANKER; 
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length === 0) return;
+
+  // ---- 1) 사격: HP 낮은 적 ----
+  let target = enemies[0];
+  for (const e of enemies) {
+    if (e.health < target.health || (e.health === target.health && e.distance < target.distance)) {
+      target = e;
+    }
+  }
+  tank.fire(toDeg(Math.atan2(target.y - tank.y, target.x - tank.x)));
+
+  // ---- 2) 우리팀 최전방 y ----
+  let frontY;
+  if (tank.team === "red") {
+    frontY = Math.min(...allies.map(a => a.y), tank.y); // y가 작은 쪽이 앞
+  } else {
+    frontY = Math.max(...allies.map(a => a.y), tank.y); // y가 큰 쪽이 앞
+  }
+
+  // ---- 3) 세로 라인 목표 위치 ----
+  const BASE_X = (tank.team === "red") ? 250 : 650;
+  const LINE_SPACING = 100;
+
+  const tanks = allies.filter(a => a.type === Type.TANKER)
+    .concat([{id:tank.id, self:true}]);
+  tanks.sort((a,b) => (a.id < b.id ? -1 : 1));
+  const myIndex = tanks.findIndex(t => t.self);
+
+  let gx = BASE_X;
+  let gy = frontY + (tank.team === "red" ? -1 : 1) * (myIndex * LINE_SPACING);
+
+  // ---- 4) 작은 흔들기 (항상 유지) ----
+  gx += Math.sin(Date.now()/500 + myIndex) * 10;
+
+  // ---- 5) 이동 ----
+  const dx = gx - tank.x;
+  const dy = gy - tank.y;
+  const angle = toDeg(Math.atan2(dy, dx));
+
+  if (!tank.move(norm(angle))) {
+    tank.move(norm(angle+15));
+    tank.move(norm(angle-15));
+  }
+
+  // helpers
+  function toDeg(rad){ return rad*180/Math.PI; }
+  function norm(deg){ deg%=360; return deg<0?deg+360:deg; }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Brett";
+}
+
+function type() {
+  return Type.DEALER;
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // 예측 기반 총알 회피 로직 (최우선)
+  if (bulletInfo.length > 0) {
+    const dangerBullet = bulletInfo.find(bullet => {
+      // 총알의 다음 위치 예측
+      const nextBulletX = bullet.x + bullet.vx;
+      const nextBulletY = bullet.y + bullet.vy;
+      
+      // 내 탱크의 다음 위치 예측 (현재 이동 각도를 이용)
+      const rad = (tank.angle * Math.PI) / 180;
+      const nextTankX = tank.x + Math.cos(rad) * tank.speed;
+      const nextTankY = tank.y + Math.sin(rad) * tank.speed;
+
+      // 총알과 탱크 사이의 거리 계산
+      const distance = Math.sqrt(Math.pow(nextBulletX - nextTankX, 2) + Math.pow(nextBulletY - nextTankY, 2));
+      
+      return distance < (tank.size / 2 + 15); // 충돌 여유 반경을 조금 더 넓게 설정
+    });
+
+    if (dangerBullet) {
+      const bulletAngle = Math.atan2(dangerBullet.vy, dangerBullet.vx) * 180 / Math.PI;
+      const escapeAngle = bulletAngle + 90 + (Math.random() * 60 - 30);
+      tank.move(escapeAngle);
+      return; // 회피가 최우선이므로 다른 행동 중단
+    }
+  }
+
+  // 벽/모서리 회피 로직
+  const boundary = 50;
+  let escapeAngle = null;
+
+  if (tank.x < boundary) {
+    escapeAngle = 0;
+  } else if (tank.x > 900 - boundary) {
+    escapeAngle = 180;
+  } else if (tank.y < boundary) {
+    escapeAngle = 90;
+  } else if (tank.y > 600 - boundary) {
+    escapeAngle = 270;
+  }
+  
+  if (escapeAngle !== null) {
+    tank.move(escapeAngle);
+    return;
+  }
+
+  // 공격 로직
+  let targetEnemy = null;
+  let minHealth = Infinity;
+  if (enemies.length > 0) {
+    for (const enemy of enemies) {
+      if (enemy.health < minHealth) {
+        minHealth = enemy.health;
+        targetEnemy = enemy;
+      }
+    }
+  }
+
+  if (targetEnemy) {
+    const fireAngle = Math.atan2(targetEnemy.y - tank.y, targetEnemy.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+  } else {
+    tank.fire(Math.random() * 360);
+  }
+
+  // TANKER 라인 동기화 및 생존 이동 로직
+  const tankers = allies.filter(ally => ally.type === Type.TANKER);
+  let moveSuccess = false;
+
+  if (tankers.length > 0) {
+    let avgX = tankers.reduce((sum, t) => sum + t.x, 0) / tankers.length;
+    let avgY = tankers.reduce((sum, t) => sum + t.y, 0) / tankers.length;
+    
+    const isRedTeam = tank.x < 450;
+    
+    if (isRedTeam) {
+      if (tank.x < avgX - 100) {
+        const moveAngle = Math.atan2(avgY - tank.y, avgX - tank.x) * 180 / Math.PI;
+        moveSuccess = tank.move(moveAngle);
+      } else {
+        moveSuccess = tank.move(tank.angle);
+      }
+    } else { // 블루팀
+      if (tank.x > avgX + 100) {
+        const moveAngle = Math.atan2(avgY - tank.y, avgX - tank.x) * 180 / Math.PI;
+        moveSuccess = tank.move(moveAngle);
+      } else {
+        moveSuccess = tank.move(tank.angle);
+      }
+    }
+  } else if (targetEnemy) {
+    const escapeAngle = Math.atan2(targetEnemy.y - tank.y, targetEnemy.x - tank.x) * 180 / Math.PI + 180;
+    moveSuccess = tank.move(escapeAngle);
+  } else {
+    moveSuccess = tank.move(Math.random() * 360);
+  }
+  
+  if (!moveSuccess) {
+    tank.move(Math.random() * 360);
+  }
+}
+
+// ===== 다음 로봇 =====

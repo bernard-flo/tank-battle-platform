@@ -1,0 +1,127 @@
+function name() { return "Jasper"; }
+function type() { return Type.TANKER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function aimAt(t){return Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI;}
+  function scoreTarget(e){return (e.health*1.0)+(e.distance*0.25);} // low HP + closer preferred
+  function pickTarget(es){ if(!es||!es.length) return null; let b=es[0], s=scoreTarget(es[0]); for(let i=1;i<es.length;i++){const sc=scoreTarget(es[i]); if(sc<s){b=es[i]; s=sc;}} return b; }
+  function dodgeAngleFrom(b){ const rx=tank.x-b.x, ry=tank.y-b.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2) return null; const t=(rx*vx+ry*vy)/s2; if(t<0) return null; const cx=rx-t*vx, cy=ry-t*vy; const d2=cx*cx+cy*cy; const safe=(tank.size*0.5+6); if(d2<=safe*safe && t<=10){ const dir=Math.atan2(vy,vx)*180/Math.PI; return dir-90; } return null; }
+  function tryMoves(as){ for(let i=0;i<as.length;i++){ if(tank.move(as[i])) return true; } return false; }
+  function keepSpacing(als){ if(!als||!als.length) return false; let n=als[0]; for(let i=1;i<als.length;i++){ if(als[i].distance<n.distance) n=als[i]; } const minGap=tank.size*1.6; if(n.distance<minGap){ const away=Math.atan2(tank.y-n.y,tank.x-n.x)*180/Math.PI; return tryMoves([away,away+15,away-15]); } return false; }
+
+  // 1) Dodge imminent bullets
+  if(bulletInfo&&bulletInfo.length){ for(const b of bulletInfo){ const ang=dodgeAngleFrom(b); if(ang!==null){ if(tryMoves([ang,ang+20,ang-20,ang+180])) break; } } }
+
+  // 2) Acquire/Fire
+  const tgt=pickTarget(enemies); if(!tgt) return; const fireAng=aimAt(tgt); tank.fire(fireAng);
+
+  // 3) Hold ~120px; advance if far; strafe-left to tank
+  const want=120; if(tgt.distance>want+20){ if(tryMoves([fireAng, fireAng+10, fireAng-10])) return; }
+  else { const strafe=fireAng-90; if(tryMoves([strafe, strafe+15, strafe-15])) return; }
+
+  if(keepSpacing(allies)) return; // 4) avoid ally collision
+  tryMoves([fireAng+180, fireAng+45, fireAng-45]); // 5) fallback
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return "Yarn"; }
+function type() { return Type.TANKER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function aimAt(t){return Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI;}
+  function scoreTarget(e){return (e.health*1.0)+(e.distance*0.25);} 
+  function pickTarget(es){ if(!es||!es.length) return null; let b=es[0], s=scoreTarget(es[0]); for(let i=1;i<es.length;i++){const sc=scoreTarget(es[i]); if(sc<s){b=es[i]; s=sc;}} return b; }
+  function dodgeAngleFrom(b){ const rx=tank.x-b.x, ry=tank.y-b.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2) return null; const t=(rx*vx+ry*vy)/s2; if(t<0) return null; const cx=rx-t*vx, cy=ry-t*vy; const d2=cx*cx+cy*cy; const safe=(tank.size*0.5+6); if(d2<=safe*safe && t<=10){ const dir=Math.atan2(vy,vx)*180/Math.PI; return dir+90; } return null; }
+  function tryMoves(as){ for(let i=0;i<as.length;i++){ if(tank.move(as[i])) return true; } return false; }
+  function keepSpacing(als){ if(!als||!als.length) return false; let n=als[0]; for(let i=1;i<als.length;i++){ if(als[i].distance<n.distance) n=als[i]; } const minGap=tank.size*1.6; if(n.distance<minGap){ const away=Math.atan2(tank.y-n.y,tank.x-n.x)*180/Math.PI; return tryMoves([away,away+15,away-15]); } return false; }
+
+  if(bulletInfo&&bulletInfo.length){ for(const b of bulletInfo){ const ang=dodgeAngleFrom(b); if(ang!==null){ if(tryMoves([ang,ang+20,ang-20,ang+180])) break; } } }
+  const tgt=pickTarget(enemies); if(!tgt) return; const fireAng=aimAt(tgt); tank.fire(fireAng);
+  const want=120; if(tgt.distance>want+20){ if(tryMoves([fireAng, fireAng+10, fireAng-10])) return; }
+  else { const strafe=fireAng+90; if(tryMoves([strafe, strafe+15, strafe-15])) return; }
+  if(keepSpacing(allies)) return; 
+  tryMoves([fireAng+180, fireAng+45, fireAng-45]);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return "Jiny"; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function aimAt(t){return Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI;}
+  function scoreTarget(e){return (e.health*1.2)+(e.distance*0.15);} // bias to finishers
+  function pickTarget(es){ if(!es||!es.length) return null; let b=es[0], s=scoreTarget(es[0]); for(let i=1;i<es.length;i++){const sc=scoreTarget(es[i]); if(sc<s){b=es[i]; s=sc;}} return b; }
+  function dodgeAngleFrom(b){ const rx=tank.x-b.x, ry=tank.y-b.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2) return null; const t=(rx*vx+ry*vy)/s2; if(t<0) return null; const cx=rx-t*vx, cy=ry-t*vy; const d2=cx*cx+cy*cy; const safe=(tank.size*0.5+8); if(d2<=safe*safe && t<=12){ const dir=Math.atan2(vy,vx)*180/Math.PI; return dir-90; } return null; }
+  function tryMoves(as){ for(let i=0;i<as.length;i++){ if(tank.move(as[i])) return true; } return false; }
+  function keepSpacing(als){ if(!als||!als.length) return false; let n=als[0]; for(let i=1;i<als.length;i++){ if(als[i].distance<n.distance) n=als[i]; } const minGap=tank.size*1.8; if(n.distance<minGap){ const away=Math.atan2(tank.y-n.y,tank.x-n.x)*180/Math.PI; return tryMoves([away,away+20,away-20]); } return false; }
+
+  if(bulletInfo&&bulletInfo.length){ for(const b of bulletInfo){ const ang=dodgeAngleFrom(b); if(ang!==null){ if(tryMoves([ang,ang+25,ang-25,ang+180])) break; } } }
+  const tgt=pickTarget(enemies); if(!tgt) return; const fireAng=aimAt(tgt); tank.fire(fireAng);
+
+  // Maintain ~220px; back off if too close; then strafe-left
+  const ideal=220; if(tgt.distance<ideal){ if(tryMoves([fireAng+180, fireAng+200, fireAng+160])) return; }
+  if(tryMoves([fireAng-90, fireAng-75, fireAng-105])) return;
+  if(keepSpacing(allies)) return;
+  tryMoves([fireAng+180, fireAng+45, fireAng-45]);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return "Eli"; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function aimAt(t){return Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI;}
+  function scoreTarget(e){return (e.health*1.2)+(e.distance*0.15);} 
+  function pickTarget(es){ if(!es||!es.length) return null; let b=es[0], s=scoreTarget(es[0]); for(let i=1;i<es.length;i++){const sc=scoreTarget(es[i]); if(sc<s){b=es[i]; s=sc;}} return b; }
+  function dodgeAngleFrom(b){ const rx=tank.x-b.x, ry=tank.y-b.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2) return null; const t=(rx*vx+ry*vy)/s2; if(t<0) return null; const cx=rx-t*vx, cy=ry-t*vy; const d2=cx*cx+cy*cy; const safe=(tank.size*0.5+8); if(d2<=safe*safe && t<=12){ const dir=Math.atan2(vy,vx)*180/Math.PI; return dir+90; } return null; }
+  function tryMoves(as){ for(let i=0;i<as.length;i++){ if(tank.move(as[i])) return true; } return false; }
+  function keepSpacing(als){ if(!als||!als.length) return false; let n=als[0]; for(let i=1;i<als.length;i++){ if(als[i].distance<n.distance) n=als[i]; } const minGap=tank.size*1.8; if(n.distance<minGap){ const away=Math.atan2(tank.y-n.y,tank.x-n.x)*180/Math.PI; return tryMoves([away,away+20,away-20]); } return false; }
+
+  if(bulletInfo&&bulletInfo.length){ for(const b of bulletInfo){ const ang=dodgeAngleFrom(b); if(ang!==null){ if(tryMoves([ang,ang+25,ang-25,ang+180])) break; } } }
+  const tgt=pickTarget(enemies); if(!tgt) return; const fireAng=aimAt(tgt); tank.fire(fireAng);
+  const ideal=220; if(tgt.distance<ideal){ if(tryMoves([fireAng+180, fireAng+200, fireAng+160])) return; }
+  if(tryMoves([fireAng+90, fireAng+75, fireAng+105])) return;
+  if(keepSpacing(allies)) return;
+  tryMoves([fireAng+180, fireAng+45, fireAng-45]);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return "Stanley"; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function aimAt(t){return Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI;}
+  function scoreTarget(e){return (e.health*1.15)+(e.distance*0.18);} 
+  function pickTarget(es){ if(!es||!es.length) return null; let b=es[0], s=scoreTarget(es[0]); for(let i=1;i<es.length;i++){const sc=scoreTarget(es[i]); if(sc<s){b=es[i]; s=sc;}} return b; }
+  function dodgeAngleFrom(b){ const rx=tank.x-b.x, ry=tank.y-b.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2) return null; const t=(rx*vx+ry*vy)/s2; if(t<0) return null; const cx=rx-t*vx, cy=ry-t*vy; const d2=cx*cx+cy*cy; const safe=(tank.size*0.5+8); if(d2<=safe*safe && t<=12){ const dir=Math.atan2(vy,vx)*180/Math.PI; return dir-90; } return null; }
+  function tryMoves(as){ for(let i=0;i<as.length;i++){ if(tank.move(as[i])) return true; } return false; }
+  function keepSpacing(als){ if(!als||!als.length) return false; let n=als[0]; for(let i=1;i<als.length;i++){ if(als[i].distance<n.distance) n=als[i]; } const minGap=tank.size*1.8; if(n.distance<minGap){ const away=Math.atan2(tank.y-n.y,tank.x-n.x)*180/Math.PI; return tryMoves([away,away+20,away-20]); } return false; }
+
+  if(bulletInfo&&bulletInfo.length){ for(const b of bulletInfo){ const ang=dodgeAngleFrom(b); if(ang!==null){ if(tryMoves([ang,ang+25,ang-25,ang+180])) break; } } }
+  const tgt=pickTarget(enemies); if(!tgt) return; const fireAng=aimAt(tgt); tank.fire(fireAng);
+  const ideal=210; if(tgt.distance<ideal){ if(tryMoves([fireAng+180, fireAng+200, fireAng+160])) return; }
+  if(tryMoves([fireAng-90, fireAng-75, fireAng-105])) return;
+  if(keepSpacing(allies)) return;
+  tryMoves([fireAng+180, fireAng+45, fireAng-45]);
+}
+
+// ===== 다음 로봇 =====
+
+function name() { return "Dannis"; }
+function type() { return Type.DEALER; }
+function update(tank, enemies, allies, bulletInfo) {
+  function aimAt(t){return Math.atan2(t.y-tank.y,t.x-tank.x)*180/Math.PI;}
+  function scoreTarget(e){return (e.health*1.15)+(e.distance*0.18);} 
+  function pickTarget(es){ if(!es||!es.length) return null; let b=es[0], s=scoreTarget(es[0]); for(let i=1;i<es.length;i++){const sc=scoreTarget(es[i]); if(sc<s){b=es[i]; s=sc;}} return b; }
+  function dodgeAngleFrom(b){ const rx=tank.x-b.x, ry=tank.y-b.y, vx=b.vx, vy=b.vy; const s2=vx*vx+vy*vy; if(!s2) return null; const t=(rx*vx+ry*vy)/s2; if(t<0) return null; const cx=rx-t*vx, cy=ry-t*vy; const d2=cx*cx+cy*cy; const safe=(tank.size*0.5+8); if(d2<=safe*safe && t<=12){ const dir=Math.atan2(vy,vx)*180/Math.PI; return dir+90; } return null; }
+  function tryMoves(as){ for(let i=0;i<as.length;i++){ if(tank.move(as[i])) return true; } return false; }
+  function keepSpacing(als){ if(!als||!als.length) return false; let n=als[0]; for(let i=1;i<als.length;i++){ if(als[i].distance<n.distance) n=als[i]; } const minGap=tank.size*1.8; if(n.distance<minGap){ const away=Math.atan2(tank.y-n.y,tank.x-n.x)*180/Math.PI; return tryMoves([away,away+20,away-20]); } return false; }
+
+  if(bulletInfo&&bulletInfo.length){ for(const b of bulletInfo){ const ang=dodgeAngleFrom(b); if(ang!==null){ if(tryMoves([ang,ang+25,ang-25,ang+180])) break; } } }
+  const tgt=pickTarget(enemies); if(!tgt) return; const fireAng=aimAt(tgt); tank.fire(fireAng);
+  const ideal=210; if(tgt.distance<ideal){ if(tryMoves([fireAng+180, fireAng+200, fireAng+160])) return; }
+  if(tryMoves([fireAng+90, fireAng+75, fireAng+105])) return;
+  if(keepSpacing(allies)) return;
+  tryMoves([fireAng+180, fireAng+45, fireAng-45]);
+}
+
+// ===== 다음 로봇 =====

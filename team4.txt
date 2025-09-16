@@ -1,0 +1,462 @@
+function name() {
+  return 'Jeremy';
+}
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // 탱커 - Kai 스타일 (수직 패트롤 + 거리 유지)
+  if (enemies.length > 0) {
+    // 가장 가까운 적에게 집중
+    let target = enemies[0];
+    for (let enemy of enemies) {
+      if (enemy.distance < target.distance) {
+        target = enemy;
+      }
+    }
+    
+    const fireAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    
+    // 안전 거리 유지
+    const safeDistance = 300;
+    
+    if (target.distance < safeDistance - 50) {
+      // 너무 가까우면 대각선 후퇴
+      const retreatAngle = fireAngle + (tank.y > target.y ? 135 : -135);
+      if (!tank.move(retreatAngle)) {
+        tank.move(fireAngle + 180);
+      }
+    } else if (target.distance > 400) {
+      // 사정거리 유지를 위해 접근
+      const time = Date.now() / 2500;
+      const verticalWave = Math.sin(time) * 40;
+      const approachAngle = fireAngle + verticalWave;
+      
+      if (!tank.move(approachAngle)) {
+        const flank = fireAngle + (Math.random() > 0.5 ? 30 : -30);
+        tank.move(flank);
+      }
+    } else {
+      // 최적 거리에서 수직 패트롤
+      const time = Date.now() / 1800;
+      const patrolPhase = time % 4;
+      
+      let moveAngle;
+      if (patrolPhase < 1) {
+        moveAngle = 270; // 위로
+      } else if (patrolPhase < 2) {
+        moveAngle = fireAngle + 90; // 오른쪽
+      } else if (patrolPhase < 3) {
+        moveAngle = 90; // 아래로
+      } else {
+        moveAngle = fireAngle - 90; // 왼쪽
+      }
+      
+      // 경계 체크
+      if (tank.y < 60) {
+        moveAngle = 90;
+      } else if (tank.y > 540) {
+        moveAngle = 270;
+      }
+      
+      if (!tank.move(moveAngle)) {
+        // 원형 이동 백업
+        const orbitAngle = fireAngle + 90;
+        tank.move(orbitAngle);
+      }
+    }
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return 'Duke';
+}
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // Duke - Merry 근처에서 보호
+  
+  // Merry 찾기 (이름이 'Merry'인 아군)
+  let merry = null;
+  for (let ally of allies) {
+    // 실제로는 거리로 판단 (첫 번째 딜러가 Merry)
+    if (ally.distance < 500) {
+      merry = ally;
+      break;
+    }
+  }
+  
+  // Merry 근처로 이동 (100-150 거리 유지)
+  if (merry) {
+    const distToMerry = Math.sqrt((tank.x - merry.x) ** 2 + (tank.y - merry.y) ** 2);
+    
+    if (distToMerry > 150) {
+      // Merry에게 접근
+      const moveToMerry = Math.atan2(merry.y - tank.y, merry.x - tank.x) * 180 / Math.PI;
+      tank.move(moveToMerry);
+    } else if (distToMerry < 80) {
+      // 너무 가까우면 약간 떨어지기
+      const moveAway = Math.atan2(tank.y - merry.y, tank.x - merry.x) * 180 / Math.PI;
+      tank.move(moveAway);
+    }
+  }
+  
+  // 적 공격
+  if (enemies.length > 0) {
+    // Merry를 위협하는 가장 가까운 적 우선
+    let target = enemies[0];
+    if (merry) {
+      // Merry에게 가장 가까운 적 찾기
+      let threatToMerry = null;
+      let minDistToMerry = Infinity;
+      
+      for (let enemy of enemies) {
+        const distToMerry = Math.sqrt((enemy.x - merry.x) ** 2 + (enemy.y - merry.y) ** 2);
+        if (distToMerry < minDistToMerry) {
+          minDistToMerry = distToMerry;
+          threatToMerry = enemy;
+        }
+      }
+      
+      if (threatToMerry && minDistToMerry < 400) {
+        target = threatToMerry;
+      } else {
+        // 그렇지 않으면 가장 가까운 적
+        for (let enemy of enemies) {
+          if (enemy.distance < target.distance) {
+            target = enemy;
+          }
+        }
+      }
+    } else {
+      // Merry가 없으면 가장 가까운 적
+      for (let enemy of enemies) {
+        if (enemy.distance < target.distance) {
+          target = enemy;
+        }
+      }
+    }
+    
+    const fireAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    
+    // Merry 주변에서 원형 패트롤
+    if (merry && target.distance > 200) {
+      const time = Date.now() / 3000;
+      const angle = (time * Math.PI * 2) % (Math.PI * 2);
+      const patrolX = merry.x + Math.cos(angle) * 120;
+      const patrolY = merry.y + Math.sin(angle) * 120;
+      const patrolAngle = Math.atan2(patrolY - tank.y, patrolX - tank.x) * 180 / Math.PI;
+      tank.move(patrolAngle);
+    }
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return 'Frost';
+}
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // 탱커 - Kai 스타일 (역방향 패트롤)
+  if (enemies.length > 0) {
+    // 가장 가까운 적에게 집중
+    let target = enemies[0];
+    for (let enemy of enemies) {
+      if (enemy.distance < target.distance) {
+        target = enemy;
+      }
+    }
+    
+    const fireAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    
+    // 안전 거리 유지
+    const safeDistance = 300;
+    
+    if (target.distance < safeDistance - 50) {
+      // 너무 가까우면 대각선 후퇴
+      const retreatAngle = fireAngle + (tank.y > target.y ? 135 : -135);
+      if (!tank.move(retreatAngle)) {
+        tank.move(fireAngle + 180);
+      }
+    } else if (target.distance > 400) {
+      // 사정거리 유지를 위해 접근 (역 사인파)
+      const time = Date.now() / 2300;
+      const verticalWave = Math.sin(-time) * 40;
+      const approachAngle = fireAngle + verticalWave;
+      
+      if (!tank.move(approachAngle)) {
+        const flank = fireAngle + (Math.random() > 0.5 ? 30 : -30);
+        tank.move(flank);
+      }
+    } else {
+      // 최적 거리에서 수직 패트롤 (역순)
+      const time = Date.now() / 1600;
+      const patrolPhase = time % 4;
+      
+      let moveAngle;
+      if (patrolPhase < 1) {
+        moveAngle = 90; // 아래로 (역순)
+      } else if (patrolPhase < 2) {
+        moveAngle = fireAngle - 90; // 왼쪽 (역순)
+      } else if (patrolPhase < 3) {
+        moveAngle = 270; // 위로 (역순)
+      } else {
+        moveAngle = fireAngle + 90; // 오른쪽 (역순)
+      }
+      
+      // 경계 체크
+      if (tank.y < 60) {
+        moveAngle = 90;
+      } else if (tank.y > 540) {
+        moveAngle = 270;
+      }
+      
+      if (!tank.move(moveAngle)) {
+        // 원형 이동 백업
+        const orbitAngle = fireAngle - 90;
+        tank.move(orbitAngle);
+      }
+    }
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return 'Merry';
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // 후방 딜러 - 저체력 적 우선 타겟
+  if (enemies.length > 0) {
+    // 체력이 가장 낮은 적 우선
+    let target = enemies[0];
+    for (let enemy of enemies) {
+      if (enemy.health < target.health || 
+          (enemy.health === target.health && enemy.distance < target.distance)) {
+        target = enemy;
+      }
+    }
+    
+    const fireAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    
+    // 후방 유지
+    const backX = tank.x < 450 ? 100 : 800;
+    const idealDistance = 350;
+    
+    if (target.distance < idealDistance) {
+      // 너무 가까우면 후퇴
+      if (!tank.move(fireAngle + 180)) {
+        tank.move(fireAngle + 135);
+      }
+    } else if (Math.abs(tank.x - backX) > 50) {
+      // 후방 포지션으로 복귀
+      const returnAngle = Math.atan2(tank.y - 300, tank.x - backX) * 180 / Math.PI;
+      tank.move(returnAngle + 180);
+    } else {
+      // 상하 이동으로 회피
+      const dodge = tank.y < 300 ? 90 : 270;
+      tank.move(dodge);
+    }
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return 'Kai';
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // 후방 딜러 - 집중 사격형 + 수직 패트롤
+  if (enemies.length > 0) {
+    // 가장 가까운 적에게 집중
+    let target = enemies[0];
+    for (let enemy of enemies) {
+      if (enemy.distance < target.distance) {
+        target = enemy;
+      }
+    }
+    
+    const fireAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    
+    // 안전 거리 유지
+    const safeDistance = 300;
+    
+    if (target.distance < safeDistance - 50) {
+      // 너무 가까우면 대각선 후퇴
+      const retreatAngle = fireAngle + (tank.y > target.y ? 135 : -135);
+      if (!tank.move(retreatAngle)) {
+        tank.move(fireAngle + 180);
+      }
+    } else if (target.distance > 400) {
+      // 사정거리 유지를 위해 접근
+      const time = Date.now() / 2500;
+      const verticalWave = Math.sin(time) * 40;
+      const approachAngle = fireAngle + verticalWave;
+      
+      if (!tank.move(approachAngle)) {
+        const flank = fireAngle + (Math.random() > 0.5 ? 30 : -30);
+        tank.move(flank);
+      }
+    } else {
+      // 최적 거리에서 수직 패트롤
+      const time = Date.now() / 1800;
+      const patrolPhase = time % 4;
+      
+      let moveAngle;
+      if (patrolPhase < 1) {
+        moveAngle = 270; // 위로
+      } else if (patrolPhase < 2) {
+        moveAngle = fireAngle + 90; // 오른쪽
+      } else if (patrolPhase < 3) {
+        moveAngle = 90; // 아래로
+      } else {
+        moveAngle = fireAngle - 90; // 왼쪽
+      }
+      
+      // 경계 체크
+      if (tank.y < 60) {
+        moveAngle = 90;
+      } else if (tank.y > 540) {
+        moveAngle = 270;
+      }
+      
+      if (!tank.move(moveAngle)) {
+        // 원형 이동 백업
+        const orbitAngle = fireAngle + 90;
+        tank.move(orbitAngle);
+      }
+    }
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return 'Harry';
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // 후방 딜러 - 스마트 포지셔닝 + 수직 패트롤
+  if (enemies.length > 0 || bulletInfo.length > 0) {
+    // 위협 평가
+    let closestThreat = null;
+    let threatDistance = Infinity;
+    
+    // 총알 위협
+    for (let bullet of bulletInfo) {
+      if (bullet.distance < 80) {
+        closestThreat = bullet;
+        threatDistance = bullet.distance;
+      }
+    }
+    
+    // 긴급 회피
+    if (closestThreat && threatDistance < 80) {
+      const avoidAngle = Math.atan2(-closestThreat.vy, -closestThreat.vx) * 180 / Math.PI;
+      if (!tank.move(avoidAngle + 90)) {
+        tank.move(avoidAngle - 90);
+      }
+      return;
+    }
+    
+    // 적 공격
+    if (enemies.length > 0) {
+      // 중간 거리의 적 우선 (너무 가깝거나 멀지 않은)
+      let target = null;
+      let bestScore = -Infinity;
+      
+      for (let enemy of enemies) {
+        // 거리 점수 (200-400이 최적)
+        let distScore = 0;
+        if (enemy.distance >= 200 && enemy.distance <= 400) {
+          distScore = 100;
+        } else if (enemy.distance < 200) {
+          distScore = enemy.distance / 2;
+        } else {
+          distScore = 100 - (enemy.distance - 400) / 10;
+        }
+        
+        // 체력 점수 (낮을수록 좋음)
+        let healthScore = (100 - enemy.health) / 2;
+        
+        let totalScore = distScore + healthScore;
+        
+        if (totalScore > bestScore) {
+          bestScore = totalScore;
+          target = enemy;
+        }
+      }
+      
+      if (target) {
+        const fireAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+        tank.fire(fireAngle);
+        
+        // 포지셔닝 - 수직 패트롤 추가
+        if (target.distance < 250) {
+          // 후퇴
+          const escapeAngle = fireAngle + 180 + (Math.random() - 0.5) * 60;
+          if (!tank.move(escapeAngle)) {
+            tank.move(fireAngle + (tank.y > 300 ? -135 : 135));
+          }
+        } else if (target.distance > 350) {
+          // 접근하면서 상하 이동
+          const time = Date.now() / 2000;
+          const verticalOffset = Math.sin(time) * 30;
+          const approachAngle = fireAngle + verticalOffset;
+          if (!tank.move(approachAngle)) {
+            tank.move(fireAngle + (Math.random() > 0.5 ? 45 : -45));
+          }
+        } else {
+          // 최적 거리에서 상하 패트롤
+          const time = Date.now() / 1500;
+          const patrolPhase = time % 4;
+          
+          let moveAngle;
+          if (patrolPhase < 1) {
+            moveAngle = 270; // 위로
+          } else if (patrolPhase < 2) {
+            moveAngle = fireAngle + 90; // 측면
+          } else if (patrolPhase < 3) {
+            moveAngle = 90; // 아래로
+          } else {
+            moveAngle = fireAngle - 90; // 반대 측면
+          }
+          
+          // 경계 체크
+          if (tank.y < 50) {
+            moveAngle = 90;
+          } else if (tank.y > 550) {
+            moveAngle = 270;
+          }
+          
+          if (!tank.move(moveAngle)) {
+            // 막히면 지그재그
+            const zigzag = Math.sin(Date.now() / 500) > 0 ? 60 : -60;
+            tank.move(fireAngle + zigzag);
+          }
+        }
+      }
+    }
+  }
+}
+
+// ===== 다음 로봇 =====

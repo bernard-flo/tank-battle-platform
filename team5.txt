@@ -1,0 +1,416 @@
+function name() {
+  return "nova";
+}
+function type() {
+  return Type.TANKER;
+}function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies[0];
+    for (let enemy of enemies) {
+      if (enemy.distance < nearest.distance) {
+        nearest = enemy;
+      }
+    }
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+
+    // 예측하기 어려운 움직임 패턴
+    const time = Date.now() / 1000;
+    const chaosPattern = Math.sin(time * 2.7) * Math.cos(time * 1.8) * Math.tan(time * 0.5) * 120;
+    const randomBurst = Math.random() > 0.7 ? Math.random() * 180 - 90 : 0;
+    const unpredictableMove = fireAngle + chaosPattern + randomBurst;
+
+    if (!tank.move(unpredictableMove)) {
+      // 1차 실패 - 급격한 방향 전환
+      const suddenTurn = Math.random() * 360;
+      if (!tank.move(suddenTurn)) {
+        // 2차 실패 - 나선형 패턴
+        const spiralMove = fireAngle + (time * 90) % 360;
+        tank.move(spiralMove);
+      }
+    }
+  }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "nova2";
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length === 0) return;
+
+  // 1. 가장 위험한 적 선택 (가깝고 체력 낮은 적 우선)
+  let target = enemies.reduce((best, enemy) => {
+    const distScore = 200 / Math.max(enemy.distance, 30);
+    const healthScore = 150 / Math.max(enemy.health, 20);
+    const score = distScore + healthScore;
+    return !best || score > best.score ? {...enemy, score} : best;
+  }, null);
+
+  // 2. 예측 사격
+  const predictTime = target.distance / 8;
+  const predictedX = target.x + (target.vx || 0) * predictTime;
+  const predictedY = target.y + (target.vy || 0) * predictTime;
+  const fireAngle = Math.atan2(predictedY - tank.y, predictedX - tank.x) * 180 / Math.PI;
+  tank.fire(fireAngle);
+
+  // 3. 구석으로 이동 (한 번만)
+  if (!tank.isPositioned) {
+    const corners = [
+      {x: 50, y: 50},     // 좌상단
+      {x: 850, y: 50},    // 우상단
+      {x: 50, y: 550},    // 좌하단
+      {x: 850, y: 550}    // 우하단
+    ];
+    
+    // 가장 가까운 구석 찾기
+    const bestCorner = corners.reduce((best, corner) => {
+      const dist = Math.sqrt((corner.x - tank.x)**2 + (corner.y - tank.y)**2);
+      return !best || dist < best.dist ? {...corner, dist} : best;
+    }, null);
+
+    const cornerAngle = Math.atan2(bestCorner.y - tank.y, bestCorner.x - tank.x) * 180 / Math.PI;
+    
+    if (tank.move(cornerAngle)) {
+      if (Math.sqrt((bestCorner.x - tank.x)**2 + (bestCorner.y - tank.y)**2) < 100) {
+        tank.isPositioned = true; // 구석 도달
+      }
+    }
+  }
+}
+
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "frank";
+}
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies[0];
+    for (let enemy of enemies) {
+      if (enemy.distance < nearest.distance) {
+        nearest = enemy;
+      }
+    }
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+
+    // 예측하기 어려운 움직임 패턴
+    const time = Date.now() / 1000;
+    const chaosPattern = Math.sin(time * 2.7) * Math.cos(time * 1.8) * Math.tan(time * 0.5) * 120;
+    const randomBurst = Math.random() > 0.7 ? Math.random() * 180 - 90 : 0;
+    const unpredictableMove = fireAngle + chaosPattern + randomBurst;
+
+    if (!tank.move(unpredictableMove)) {
+      // 1차 실패 - 급격한 방향 전환
+      const suddenTurn = Math.random() * 360;
+      if (!tank.move(suddenTurn)) {
+        // 2차 실패 - 나선형 패턴
+        const spiralMove = fireAngle + (time * 90) % 360;
+        tank.move(spiralMove);
+      }
+    }
+  }
+}
+
+
+function calculateShakingMove(tank, enemies, allies, bulletInfo) {
+  // 시간 기반 흔들림 패턴 생성
+  const time = Date.now() / 1000; // 초 단위
+  const shakeFreq = 2.0; // 흔들림 주파수
+  const shakeAmplitude = 60; // 흔들림 크기 (각도)
+  
+  // 기본 이동 방향 계산
+  let baseAngle = 0;
+  let bestScore = -999999;
+
+  // 8방향 중 최적 방향 찾기
+  for (let angle = 0; angle < 360; angle += 45) {
+    let score = 0;
+    const moveDistance = tank.speed;
+    const newX = tank.x + Math.cos(angle * Math.PI / 180) * moveDistance;
+    const newY = tank.y + Math.sin(angle * Math.PI / 180) * moveDistance;
+
+    // 경계 체크
+    if (newX < 50 || newX > 850 || newY < 50 || newY > 550) {
+      continue;
+    }
+
+    // 적과의 거리 점수
+    const nearestEnemy = enemies.reduce((nearest, enemy) =>
+      !nearest || enemy.distance < nearest.distance ? enemy : nearest
+    , null);
+
+    if (nearestEnemy) {
+      const newDistance = Math.sqrt((newX - nearestEnemy.x)**2 + (newY - nearestEnemy.y)**2);
+      const optimalDistance = 130; // 탱커 최적 거리
+      score += Math.max(0, 70 - Math.abs(newDistance - optimalDistance));
+    }
+
+    // 탄막 회피
+    bulletInfo.forEach(bullet => {
+      if (bullet.team === tank.team) return;
+      const bulletDist = Math.sqrt((newX - bullet.x)**2 + (newY - bullet.y)**2);
+      if (bulletDist < 80) {
+        score -= (80 - bulletDist) * 2;
+      }
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      baseAngle = angle;
+    }
+  }
+
+  // 흔들림 패턴 적용
+  const shakeOffset = Math.sin(time * shakeFreq) * shakeAmplitude;
+  const finalAngle = baseAngle + shakeOffset;
+
+  return finalAngle;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "sunji";
+}
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length === 0) return;
+
+  // 1. 주 타겟 선택
+  let target = enemies.reduce((closest, enemy) =>
+    enemy.distance < closest.distance ? enemy : closest
+  );
+
+  // 2. 예측 사격
+  const predictTime = target.distance / 8;
+  const predictedX = target.x + (target.vx || 0) * predictTime;
+  const predictedY = target.y + (target.vy || 0) * predictTime;
+  const fireAngle = Math.atan2(predictedY - tank.y, predictedX - tank.x) * 180 / Math.PI;
+  tank.fire(fireAngle);
+
+  // 3. 흔들면서 기동하는 움직임
+  const shakeMove = calculateShakingMove(tank, enemies, allies, bulletInfo);
+  if (!tank.move(shakeMove)) {
+    // 1차 실패 - 랜덤하게 좌우로 흔들기
+    const randomShake = Math.random() > 0.5 ? fireAngle + 90 : fireAngle - 90;
+    if (!tank.move(randomShake)) {
+      // 2차 실패 - 반대로 흔들기
+      tank.move(fireAngle + (Math.random() > 0.5 ? 45 : -45));
+    }
+  }
+}
+
+function calculateShakingMove(tank, enemies, allies, bulletInfo) {
+  // 시간 기반 흔들림 패턴 생성
+  const time = Date.now() / 1000; // 초 단위
+  const shakeFreq = 2.0; // 흔들림 주파수
+  const shakeAmplitude = 60; // 흔들림 크기 (각도)
+  
+  // 기본 이동 방향 계산
+  let baseAngle = 0;
+  let bestScore = -999999;
+
+  // 8방향 중 최적 방향 찾기
+  for (let angle = 0; angle < 360; angle += 45) {
+    let score = 0;
+    const moveDistance = tank.speed;
+    const newX = tank.x + Math.cos(angle * Math.PI / 180) * moveDistance;
+    const newY = tank.y + Math.sin(angle * Math.PI / 180) * moveDistance;
+
+    // 경계 체크
+    if (newX < 50 || newX > 850 || newY < 50 || newY > 550) {
+      continue;
+    }
+
+    // 적과의 거리 점수
+    const nearestEnemy = enemies.reduce((nearest, enemy) =>
+      !nearest || enemy.distance < nearest.distance ? enemy : nearest
+    , null);
+
+    if (nearestEnemy) {
+      const newDistance = Math.sqrt((newX - nearestEnemy.x)**2 + (newY - nearestEnemy.y)**2);
+      const optimalDistance = 130; // 탱커 최적 거리
+      score += Math.max(0, 70 - Math.abs(newDistance - optimalDistance));
+    }
+
+    // 탄막 회피
+    bulletInfo.forEach(bullet => {
+      if (bullet.team === tank.team) return;
+      const bulletDist = Math.sqrt((newX - bullet.x)**2 + (newY - bullet.y)**2);
+      if (bulletDist < 80) {
+        score -= (80 - bulletDist) * 2;
+      }
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      baseAngle = angle;
+    }
+  }
+
+  // 흔들림 패턴 적용
+  const shakeOffset = Math.sin(time * shakeFreq) * shakeAmplitude;
+  const finalAngle = baseAngle + shakeOffset;
+
+  return finalAngle;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "kobe";
+}
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length === 0) return;
+
+  // 1. 주 타겟 선택
+  let target = enemies.reduce((closest, enemy) =>
+    enemy.distance < closest.distance ? enemy : closest
+  );
+
+  // 2. 예측 사격
+  const predictTime = target.distance / 8;
+  const predictedX = target.x + (target.vx || 0) * predictTime;
+  const predictedY = target.y + (target.vy || 0) * predictTime;
+  const fireAngle = Math.atan2(predictedY - tank.y, predictedX - tank.x) * 180 / Math.PI;
+  tank.fire(fireAngle);
+
+  // 3. 흔들면서 기동하는 움직임
+  const shakeMove = calculateShakingMove(tank, enemies, allies, bulletInfo);
+  if (!tank.move(shakeMove)) {
+    // 1차 실패 - 랜덤하게 좌우로 흔들기
+    const randomShake = Math.random() > 0.5 ? fireAngle + 90 : fireAngle - 90;
+    if (!tank.move(randomShake)) {
+      // 2차 실패 - 반대로 흔들기
+      tank.move(fireAngle + (Math.random() > 0.5 ? 45 : -45));
+    }
+  }
+}
+
+function calculateShakingMove(tank, enemies, allies, bulletInfo) {
+  // 시간 기반 흔들림 패턴 생성
+  const time = Date.now() / 1000; // 초 단위
+  const shakeFreq = 2.0; // 흔들림 주파수
+  const shakeAmplitude = 60; // 흔들림 크기 (각도)
+  
+  // 기본 이동 방향 계산
+  let baseAngle = 0;
+  let bestScore = -999999;
+
+  // 8방향 중 최적 방향 찾기
+  for (let angle = 0; angle < 360; angle += 45) {
+    let score = 0;
+    const moveDistance = tank.speed;
+    const newX = tank.x + Math.cos(angle * Math.PI / 180) * moveDistance;
+    const newY = tank.y + Math.sin(angle * Math.PI / 180) * moveDistance;
+
+    // 경계 체크
+    if (newX < 50 || newX > 850 || newY < 50 || newY > 550) {
+      continue;
+    }
+
+    // 적과의 거리 점수
+    const nearestEnemy = enemies.reduce((nearest, enemy) =>
+      !nearest || enemy.distance < nearest.distance ? enemy : nearest
+    , null);
+
+    if (nearestEnemy) {
+      const newDistance = Math.sqrt((newX - nearestEnemy.x)**2 + (newY - nearestEnemy.y)**2);
+      const optimalDistance = 130; // 탱커 최적 거리
+      score += Math.max(0, 70 - Math.abs(newDistance - optimalDistance));
+    }
+
+    // 탄막 회피
+    bulletInfo.forEach(bullet => {
+      if (bullet.team === tank.team) return;
+      const bulletDist = Math.sqrt((newX - bullet.x)**2 + (newY - bullet.y)**2);
+      if (bulletDist < 80) {
+        score -= (80 - bulletDist) * 2;
+      }
+    });
+
+    if (score > bestScore) {
+      bestScore = score;
+      baseAngle = angle;
+    }
+  }
+
+  // 흔들림 패턴 적용
+  const shakeOffset = Math.sin(time * shakeFreq) * shakeAmplitude;
+  const finalAngle = baseAngle + shakeOffset;
+
+  return finalAngle;
+}
+
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "edwin";
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length === 0) return;
+
+  // 1. 가장 위험한 적 선택 (가깝고 체력 낮은 적 우선)
+  let target = enemies.reduce((best, enemy) => {
+    const distScore = 200 / Math.max(enemy.distance, 30);
+    const healthScore = 150 / Math.max(enemy.health, 20);
+    const score = distScore + healthScore;
+    return !best || score > best.score ? {...enemy, score} : best;
+  }, null);
+
+  // 2. 예측 사격
+  const predictTime = target.distance / 8;
+  const predictedX = target.x + (target.vx || 0) * predictTime;
+  const predictedY = target.y + (target.vy || 0) * predictTime;
+  const fireAngle = Math.atan2(predictedY - tank.y, predictedX - tank.x) * 180 / Math.PI;
+  tank.fire(fireAngle);
+
+  // 3. 구석으로 이동 (한 번만)
+  if (!tank.isPositioned) {
+    const corners = [
+      {x: 50, y: 50},     // 좌상단
+      {x: 850, y: 50},    // 우상단
+      {x: 50, y: 550},    // 좌하단
+      {x: 850, y: 550}    // 우하단
+    ];
+    
+    // 가장 가까운 구석 찾기
+    const bestCorner = corners.reduce((best, corner) => {
+      const dist = Math.sqrt((corner.x - tank.x)**2 + (corner.y - tank.y)**2);
+      return !best || dist < best.dist ? {...corner, dist} : best;
+    }, null);
+
+    const cornerAngle = Math.atan2(bestCorner.y - tank.y, bestCorner.x - tank.x) * 180 / Math.PI;
+    
+    if (tank.move(cornerAngle)) {
+      if (Math.sqrt((bestCorner.x - tank.x)**2 + (bestCorner.y - tank.y)**2) < 100) {
+        tank.isPositioned = true; // 구석 도달
+      }
+    }
+  }
+}
+
+
+// ===== 다음 로봇 =====

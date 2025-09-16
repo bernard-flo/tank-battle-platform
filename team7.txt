@@ -1,0 +1,394 @@
+// Tank 1: TANKER (Defender 1)
+function name() {
+  return '루이'
+}
+function type() {
+  return Type.TANKER
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    // Find enemy centroid (average position)
+    let avgX = 0,
+      avgY = 0
+    for (let enemy of enemies) {
+      avgX += enemy.x
+      avgY += enemy.y
+    }
+    avgX /= enemies.length
+    avgY /= enemies.length
+
+    // Move toward enemy centroid to engage
+    const moveAngle = (Math.atan2(avgY - tank.y, avgX - tank.x) * 180) / Math.PI
+
+    // Avoid bullets if any detected
+    let safeMoveAngle = moveAngle
+    if (bulletInfo.length > 0) {
+      for (let bullet of bulletInfo) {
+        const bulletAngle = (Math.atan2(bullet.y - tank.y, bullet.x - tank.x) * 180) / Math.PI
+        if (Math.abs(bulletAngle - moveAngle) < 30) {
+          safeMoveAngle = moveAngle + 90 // Dodge perpendicularly
+          break
+        }
+      }
+    }
+
+    // Try moving, with retries at offset angles
+    let moved = tank.move(safeMoveAngle)
+    for (let i = 1; i <= 9 && !moved; i++) {
+      moved = tank.move(safeMoveAngle + (i % 2 === 0 ? i : -i) * 30)
+    }
+
+    // Target enemy attacking an ally or nearest enemy
+    let target = enemies[0]
+    for (let enemy of enemies) {
+      if (enemy.distance < target.distance) {
+        target = enemy
+      }
+      // Prioritize enemies targeting allies (assumption: enemy with low health is being attacked)
+      for (let ally of allies) {
+        if (Math.hypot(enemy.x - ally.x, enemy.y - ally.y) < 100) {
+          target = enemy
+          break
+        }
+      }
+    }
+    const fireAngle = (Math.atan2(target.y - tank.y, target.x - tank.x) * 180) / Math.PI
+    tank.fire(fireAngle)
+  }
+}
+
+// Tank 2: TANKER (Defender 2)
+function name() {
+  return '플로'
+}
+function type() {
+  return Type.TANKER
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // Same as Defender1 for consistency
+  if (enemies.length > 0) {
+    let avgX = 0,
+      avgY = 0
+    for (let enemy of enemies) {
+      avgX += enemy.x
+      avgY += enemy.y
+    }
+    avgX /= enemies.length
+    avgY /= enemies.length
+
+    const moveAngle = (Math.atan2(avgY - tank.y, avgX - tank.x) * 180) / Math.PI
+    let safeMoveAngle = moveAngle
+    if (bulletInfo.length > 0) {
+      for (let bullet of bulletInfo) {
+        const bulletAngle = (Math.atan2(bullet.y - tank.y, bullet.x - tank.x) * 180) / Math.PI
+        if (Math.abs(bulletAngle - moveAngle) < 30) {
+          safeMoveAngle = moveAngle + 90
+          break
+        }
+      }
+    }
+
+    let moved = tank.move(safeMoveAngle)
+    for (let i = 1; i <= 9 && !moved; i++) {
+      moved = tank.move(safeMoveAngle + (i % 2 === 0 ? i : -i) * 30)
+    }
+
+    let target = enemies[0]
+    for (let enemy of enemies) {
+      if (enemy.distance < target.distance) {
+        target = enemy
+      }
+      for (let ally of allies) {
+        if (Math.hypot(enemy.x - ally.x, enemy.y - ally.y) < 100) {
+          target = enemy
+          break
+        }
+      }
+    }
+    const fireAngle = (Math.atan2(target.y - tank.y, target.x - tank.x) * 180) / Math.PI
+    tank.fire(fireAngle)
+  }
+}
+
+// Tank 3: DEALER (Striker 1)
+function name() {
+  return '윈드'
+}
+function type() {
+  return Type.DEALER
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    // Find nearest TANKER ally to stay behind
+    let protector = null
+    for (let ally of allies) {
+      if (ally !== tank && ally.type === Type.TANKER) {
+        if (
+          !protector ||
+          Math.hypot(ally.x - tank.x, ally.y - tank.y) < Math.hypot(protector.x - tank.x, protector.y - tank.y)
+        ) {
+          protector = ally
+        }
+      }
+    }
+
+    // Move to maintain distance from nearest enemy (100–200 units)
+    let nearestEnemy = enemies[0]
+    for (let enemy of enemies) {
+      if (enemy.distance < nearestEnemy.distance) {
+        nearestEnemy = enemy
+      }
+    }
+    const distanceToEnemy = Math.hypot(nearestEnemy.x - tank.x, nearestEnemy.y - tank.y)
+    let moveAngle
+    if (protector) {
+      moveAngle = (Math.atan2(protector.y - tank.y, protector.x - tank.x) * 180) / Math.PI
+      if (distanceToEnemy < 100) {
+        moveAngle = (Math.atan2(tank.y - nearestEnemy.y, tank.x - nearestEnemy.x) * 180) / Math.PI // Retreat
+      }
+    } else {
+      moveAngle =
+        distanceToEnemy < 100
+          ? (Math.atan2(tank.y - nearestEnemy.y, tank.x - nearestEnemy.x) * 180) / Math.PI
+          : Math.random() * 360
+    }
+
+    // Avoid bullets
+    let safeMoveAngle = moveAngle
+    if (bulletInfo.length > 0) {
+      for (let bullet of bulletInfo) {
+        const bulletAngle = (Math.atan2(bullet.y - tank.y, bullet.x - tank.x) * 180) / Math.PI
+        if (Math.abs(bulletAngle - moveAngle) < 30) {
+          safeMoveAngle = moveAngle + 90
+          break
+        }
+      }
+    }
+
+    let moved = tank.move(safeMoveAngle)
+    for (let i = 1; i <= 9 && !moved; i++) {
+      moved = tank.move(safeMoveAngle + (i % 2 === 0 ? i : -i) * 30)
+    }
+
+    // Target enemy DEALER or NORMAL with lowest health
+    let target = enemies[0]
+    for (let enemy of enemies) {
+      if (
+        (enemy.type === Type.DEALER || enemy.type === Type.NORMAL) &&
+        (!target.type || enemy.health < target.health)
+      ) {
+        target = enemy
+      }
+    }
+    const fireAngle = (Math.atan2(target.y - tank.y, target.x - tank.x) * 180) / Math.PI
+    tank.fire(fireAngle)
+  }
+}
+
+// Tank 4: DEALER (Striker 2)
+function name() {
+  return '레이크'
+}
+function type() {
+  return Type.DEALER
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // Same as Striker1
+  if (enemies.length > 0) {
+    let protector = null
+    for (let ally of allies) {
+      if (ally !== tank && ally.type === Type.TANKER) {
+        if (
+          !protector ||
+          Math.hypot(ally.x - tank.x, ally.y - tank.y) < Math.hypot(protector.x - tank.x, protector.y - tank.y)
+        ) {
+          protector = ally
+        }
+      }
+    }
+
+    let nearestEnemy = enemies[0]
+    for (let enemy of enemies) {
+      if (enemy.distance < nearestEnemy.distance) {
+        nearestEnemy = enemy
+      }
+    }
+    const distanceToEnemy = Math.hypot(nearestEnemy.x - tank.x, nearestEnemy.y - tank.y)
+    let moveAngle
+    if (protector) {
+      moveAngle = (Math.atan2(protector.y - tank.y, protector.x - tank.x) * 180) / Math.PI
+      if (distanceToEnemy < 100) {
+        moveAngle = (Math.atan2(tank.y - nearestEnemy.y, tank.x - nearestEnemy.x) * 180) / Math.PI
+      }
+    } else {
+      moveAngle =
+        distanceToEnemy < 100
+          ? (Math.atan2(tank.y - nearestEnemy.y, tank.x - nearestEnemy.x) * 180) / Math.PI
+          : Math.random() * 360
+    }
+
+    let safeMoveAngle = moveAngle
+    if (bulletInfo.length > 0) {
+      for (let bullet of bulletInfo) {
+        const bulletAngle = (Math.atan2(bullet.y - tank.y, bullet.x - tank.x) * 180) / Math.PI
+        if (Math.abs(bulletAngle - moveAngle) < 30) {
+          safeMoveAngle = moveAngle + 90
+          break
+        }
+      }
+    }
+
+    let moved = tank.move(safeMoveAngle)
+    for (let i = 1; i <= 9 && !moved; i++) {
+      moved = tank.move(safeMoveAngle + (i % 2 === 0 ? i : -i) * 30)
+    }
+
+    let target = enemies[0]
+    for (let enemy of enemies) {
+      if (
+        (enemy.type === Type.DEALER || enemy.type === Type.NORMAL) &&
+        (!target.type || enemy.health < target.health)
+      ) {
+        target = enemy
+      }
+    }
+    const fireAngle = (Math.atan2(target.y - tank.y, target.x - tank.x) * 180) / Math.PI
+    tank.fire(fireAngle)
+  }
+}
+
+// Tank 5: DEALER (Striker 3)
+function name() {
+  return '네오'
+}
+function type() {
+  return Type.DEALER
+}
+function update(tank, enemies, allies, bulletInfo) {
+  // Same as Striker1
+  if (enemies.length > 0) {
+    let protector = null
+    for (let ally of allies) {
+      if (ally !== tank && ally.type === Type.TANKER) {
+        if (
+          !protector ||
+          Math.hypot(ally.x - tank.x, ally.y - tank.y) < Math.hypot(protector.x - tank.x, protector.y - tank.y)
+        ) {
+          protector = ally
+        }
+      }
+    }
+
+    let nearestEnemy = enemies[0]
+    for (let enemy of enemies) {
+      if (enemy.distance < nearestEnemy.distance) {
+        nearestEnemy = enemy
+      }
+    }
+    const distanceToEnemy = Math.hypot(nearestEnemy.x - tank.x, nearestEnemy.y - tank.y)
+    let moveAngle
+    if (protector) {
+      moveAngle = (Math.atan2(protector.y - tank.y, protector.x - tank.x) * 180) / Math.PI
+      if (distanceToEnemy < 100) {
+        moveAngle = (Math.atan2(tank.y - nearestEnemy.y, tank.x - nearestEnemy.x) * 180) / Math.PI
+      }
+    } else {
+      moveAngle =
+        distanceToEnemy < 100
+          ? (Math.atan2(tank.y - nearestEnemy.y, tank.x - nearestEnemy.x) * 180) / Math.PI
+          : Math.random() * 360
+    }
+
+    let safeMoveAngle = moveAngle
+    if (bulletInfo.length > 0) {
+      for (let bullet of bulletInfo) {
+        const bulletAngle = (Math.atan2(bullet.y - tank.y, bullet.x - tank.x) * 180) / Math.PI
+        if (Math.abs(bulletAngle - moveAngle) < 30) {
+          safeMoveAngle = moveAngle + 90
+          break
+        }
+      }
+    }
+
+    let moved = tank.move(safeMoveAngle)
+    for (let i = 1; i <= 9 && !moved; i++) {
+      moved = tank.move(safeMoveAngle + (i % 2 === 0 ? i : -i) * 30)
+    }
+
+    let target = enemies[0]
+    for (let enemy of enemies) {
+      if (
+        (enemy.type === Type.DEALER || enemy.type === Type.NORMAL) &&
+        (!target.type || enemy.health < target.health)
+      ) {
+        target = enemy
+      }
+    }
+    const fireAngle = (Math.atan2(target.y - tank.y, target.x - tank.x) * 180) / Math.PI
+    tank.fire(fireAngle)
+  }
+}
+
+// Tank 6: NORMAL (Support)
+function name() {
+  return '쉐리'
+}
+function type() {
+  return Type.NORMAL
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    // Support TANKERs if under attack, else assist DEALERs
+    let allyUnderAttack = null
+    for (let ally of allies) {
+      if (ally !== tank && ally.type === Type.TANKER) {
+        for (let enemy of enemies) {
+          if (Math.hypot(enemy.x - ally.x, enemy.y - ally.y) < 100) {
+            allyUnderAttack = ally
+            break
+          }
+        }
+      }
+    }
+
+    let moveAngle
+    if (allyUnderAttack) {
+      moveAngle = (Math.atan2(allyUnderAttack.y - tank.y, allyUnderAttack.x - tank.x) * 180) / Math.PI
+    } else {
+      let nearestEnemy = enemies[0]
+      for (let enemy of enemies) {
+        if (enemy.distance < nearestEnemy.distance) {
+          nearestEnemy = enemy
+        }
+      }
+      moveAngle = (Math.atan2(nearestEnemy.y - tank.y, nearestEnemy.x - tank.x) * 180) / Math.PI
+    }
+
+    // Avoid bullets
+    let safeMoveAngle = moveAngle
+    if (bulletInfo.length > 0) {
+      for (let bullet of bulletInfo) {
+        const bulletAngle = (Math.atan2(bullet.y - tank.y, bullet.x - tank.x) * 180) / Math.PI
+        if (Math.abs(bulletAngle - moveAngle) < 30) {
+          safeMoveAngle = moveAngle + 90
+          break
+        }
+      }
+    }
+
+    let moved = tank.move(safeMoveAngle)
+    for (let i = 1; i <= 9 && !moved; i++) {
+      moved = tank.move(safeMoveAngle + (i % 2 === 0 ? i : -i) * 30)
+    }
+
+    // Target low-health enemies to secure kills
+    let target = enemies[0]
+    for (let enemy of enemies) {
+      if (!target.type || enemy.health < target.health) {
+        target = enemy
+      }
+    }
+    const fireAngle = (Math.atan2(target.y - tank.y, target.x - tank.x) * 180) / Math.PI
+    tank.fire(fireAngle)
+  }
+}

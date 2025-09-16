@@ -1,0 +1,202 @@
+function name() {
+  return "Team 3 - Dan";
+}
+
+function type() {
+  return Type.TANKER;
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    // 가장 가까운 적 찾기
+    let nearest = enemies[0];
+    for (let enemy of enemies) {
+      if (enemy.distance < nearest.distance) nearest = enemy;
+    }
+
+    // 공격 각도 계산
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+
+    // 이동 각도: 기본은 적 방향
+    let moveAngle = fireAngle;
+
+    // 총알이 근처에 있으면 요리조리 회피
+    for (let bullet of bulletInfo) {
+      if (bullet.distance < 100) {
+        // 총알 각도 + 90~150도 범위 내로 살짝 피함
+        moveAngle = (bullet.angle + 90 + Math.random() * 60) % 360;
+        break; // 한 번만 회피 각도 적용
+      }
+    }
+
+    // 아군과 겹치지 않도록 살짝 이동 각도 조정
+    for (let ally of allies) {
+      if (ally.id !== tank.id && ally.distance < 50) {
+        moveAngle += 20; // 살짝 옆으로 이동
+      }
+    }
+
+    // 이동 시도 - 실패하면 랜덤으로 재시도
+    if(!tank.move(moveAngle)) {
+      tank.move(Math.random() * 360);
+    }
+  } else {
+    // 적이 없으면 랜덤 이동
+    tank.move(Math.random() * 360);
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return 'Team 3 - Wood';
+}
+function type() {
+  return Type.TANKER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  const toDeg = (r) => r * 180 / Math.PI;
+  const tryMove = (a) => {
+    if (tank.move(a)) return true;
+    const offs = [15, -15, 35, -35, 70, -70, 110, -110, 180];
+    for (let o of offs) if (tank.move(a + o)) return true;
+    return false;
+  };
+
+  if (enemies.length === 0) { tryMove(Math.random() * 360); return; }
+
+  // 적은 가장 가까운 대상
+  let target = enemies[0];
+  for (let e of enemies) if (e.distance < target.distance) target = e;
+
+  // 아군이 있으면 아군-적 사이로 개입해 교전선 형성
+  let moveAngle;
+  if (allies && allies.length > 0) {
+    let mate = allies[0];
+    for (let a of allies) if (a.distance < mate.distance) mate = a;
+    const midX = (mate.x + target.x) / 2;
+    const midY = (mate.y + target.y) / 2;
+    moveAngle = toDeg(Math.atan2(midY - tank.y, midX - tank.x));
+  } else {
+    moveAngle = toDeg(Math.atan2(target.y - tank.y, target.x - tank.x));
+  }
+
+  const fireAngle = toDeg(Math.atan2(target.y - tank.y, target.x - tank.x));
+  tank.fire(fireAngle);
+
+  // 교전선 유지: 너무 붙으면 약간 이탈, 멀면 전진
+  if (target.distance < 200) moveAngle += 150 + (Math.random() < 0.5 ? 20 : -20);
+
+  if (!tryMove(moveAngle)) tryMove(Math.random() * 360);
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Team 3 - Elon";
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies[0];
+    for (let enemy of enemies) if (enemy.distance < nearest.distance) nearest = enemy;
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    let moveAngle = fireAngle + 180; // 딜러는 후방 유지
+    for (let bullet of bulletInfo) {
+      if (bullet.distance < 80) moveAngle += 90 + Math.random() * 60;
+    }
+    for (let ally of allies) {
+      if (ally.id !== tank.id && ally.distance < 40) moveAngle += 20;
+    }
+    if(!tank.move(moveAngle)) tank.move(Math.random() * 360);
+  } else {
+    tank.move(Math.random() * 360);
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Team 3 - Obiwan";
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies[0];
+    for (let enemy of enemies) if (enemy.distance < nearest.distance) nearest = enemy;
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    let moveAngle = fireAngle + 160;
+    for (let bullet of bulletInfo) {
+      if (bullet.distance < 90) moveAngle += 80 + Math.random() * 40;
+    }
+    for (let ally of allies) {
+      if (ally.id !== tank.id && ally.distance < 40) moveAngle += 20;
+    }
+    if(!tank.move(moveAngle)) tank.move(Math.random() * 360);
+  } else {
+    tank.move(Math.random() * 360);
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Team 3 - Hazel";
+}
+function type() {
+  return Type.DEALER;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies[0];
+    for (let enemy of enemies) if (enemy.distance < nearest.distance) nearest = enemy;
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    let moveAngle = fireAngle + 170;
+    for (let bullet of bulletInfo) {
+      if (bullet.distance < 90) moveAngle += 70 + Math.random() * 50;
+    }
+    for (let ally of allies) {
+      if (ally.id !== tank.id && ally.distance < 40) moveAngle += 20;
+    }
+    if(!tank.move(moveAngle)) tank.move(Math.random() * 360);
+  } else {
+    tank.move(Math.random() * 360);
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Team 3 - Donkey";
+}
+function type() {
+  return Type.NORMAL;
+}
+function update(tank, enemies, allies, bulletInfo) {
+  if (enemies.length > 0) {
+    let nearest = enemies[0];
+    for (let enemy of enemies) if (enemy.distance < nearest.distance) nearest = enemy;
+    const fireAngle = Math.atan2(nearest.y - tank.y, nearest.x - tank.x) * 180 / Math.PI;
+    tank.fire(fireAngle);
+    let moveAngle = fireAngle + (Math.random() - 0.5) * 60; // 요리조리 이동
+    for (let bullet of bulletInfo) {
+      if (bullet.distance < 80) moveAngle += 80 + Math.random() * 60;
+    }
+    for (let ally of allies) {
+      if (ally.id !== tank.id && ally.distance < 40) moveAngle += 20;
+    }
+    if(!tank.move(moveAngle)) tank.move(Math.random() * 360);
+  } else {
+    tank.move(Math.random() * 360);
+  }
+}
+
+// ===== 다음 로봇 =====

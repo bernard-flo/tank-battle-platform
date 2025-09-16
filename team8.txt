@@ -1,0 +1,1493 @@
+function name() {
+  return "Ashton Commander";
+}
+
+function type() {
+  return Type.NORMAL; // 균형잡힌 성능으로 선택
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // === 전장 경계 정보 ===
+  const FIELD_WIDTH = 900;
+  const FIELD_HEIGHT = 600;
+  const SAFE_MARGIN = 60; // 경계로부터 안전 거리
+  
+  // === 현재 위치 위험도 분석 ===
+  let cornerDanger = calculateCornerDanger(tank.x, tank.y);
+  
+  // 총알 회피 우선순위 계산
+  let incomingBullets = bulletInfo.filter(bullet => bullet.distance < 120);
+  
+  if (incomingBullets.length > 0) {
+    // 구석을 피하면서 총알 회피
+    let escapeAngle = calculateSmartEscapeAngle(tank, incomingBullets);
+    if (tank.move(escapeAngle)) {
+      return; // 회피 성공하면 이번 턴 종료
+    }
+  }
+  
+  // === 구석에 몰렸을 때 긴급 탈출 ===
+  if (cornerDanger > 0.7) {
+    let centerEscapeAngle = calculateCenterEscapeAngle(tank);
+    if (tank.move(centerEscapeAngle)) {
+      return;
+    }
+  }
+  
+  // === 적 분석 및 타겟 선정 ===
+  if (enemies.length > 0) {
+    // 체력이 낮은 적을 우선 타겟으로 선정
+    let target = enemies.reduce((prev, curr) => {
+      let prevPriority = calculateTargetPriority(tank, prev);
+      let currPriority = calculateTargetPriority(tank, curr);
+      return currPriority > prevPriority ? curr : prev;
+    });
+    
+    // === 공격 각도 계산 (예측 사격) ===
+    let fireAngle = calculatePredictiveAngle(tank, target);
+    tank.fire(fireAngle);
+    
+    // === 이동 전략 (구석 회피 포함) ===
+    let moveAngle = calculateSafeMoveAngle(tank, target, enemies, allies);
+    
+    // 이동 시도 (구석 방향 제외)
+    let moveAttempts = generateSafeMoveAttempts(tank, moveAngle);
+    
+    for (let angle of moveAttempts) {
+      if (tank.move(angle)) {
+        break;
+      }
+    }
+  } else {
+    // 적이 없으면 안전한 중앙 지역으로 이동
+    let safePosition = findSafePosition(tank);
+    let centerAngle = Math.atan2(safePosition.y - tank.y, safePosition.x - tank.x) * 180 / Math.PI;
+    tank.move(centerAngle);
+  }
+  
+  // === 헬퍼 함수들 ===
+  
+  function calculateCornerDanger(x, y) {
+    // 각 경계로부터의 거리 계산
+    let leftDist = x;
+    let rightDist = FIELD_WIDTH - x;
+    let topDist = y;
+    let bottomDist = FIELD_HEIGHT - y;
+    
+    // 가장 가까운 경계까지의 거리
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 구석 위험도 (0~1, 1이 가장 위험)
+    return Math.max(0, 1 - minDist / SAFE_MARGIN);
+  }
+  
+  function calculateSmartEscapeAngle(tank, bullets) {
+    let dangerVector = { x: 0, y: 0 };
+    
+    bullets.forEach(bullet => {
+      let bulletToTank = {
+        x: tank.x - bullet.x,
+        y: tank.y - bullet.y
+      };
+      let distance = Math.sqrt(bulletToTank.x * bulletToTank.x + bulletToTank.y * bulletToTank.y);
+      
+      // 거리 기반 위험도 계산
+      let danger = Math.max(0, 120 - distance) / 120;
+      dangerVector.x += bulletToTank.x * danger;
+      dangerVector.y += bulletToTank.y * danger;
+    });
+    
+    // 중앙으로 향하는 벡터 추가 (구석 회피)
+    let centerVector = {
+      x: (FIELD_WIDTH / 2) - tank.x,
+      y: (FIELD_HEIGHT / 2) - tank.y
+    };
+    
+    // 구석에 가까울수록 중앙 벡터 가중치 증가
+    let cornerWeight = calculateCornerDanger(tank.x, tank.y) * 0.5;
+    dangerVector.x += centerVector.x * cornerWeight;
+    dangerVector.y += centerVector.y * cornerWeight;
+    
+    return Math.atan2(dangerVector.y, dangerVector.x) * 180 / Math.PI;
+  }
+  
+  function calculateCenterEscapeAngle(tank) {
+    // 전장 중앙으로 직진
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 약간의 랜덤성 추가로 예측 방지
+    centerX += (Math.random() - 0.5) * 100;
+    centerY += (Math.random() - 0.5) * 100;
+    
+    return Math.atan2(centerY - tank.y, centerX - tank.x) * 180 / Math.PI;
+  }
+  
+  function calculateTargetPriority(tank, enemy) {
+    let distance = enemy.distance;
+    let health = enemy.health || 100;
+    
+    // 거리와 체력 기반 우선순위
+    let distanceScore = Math.max(0, 200 - distance) / 200;
+    let healthScore = Math.max(0, 150 - health) / 150;
+    
+    return distanceScore * 0.6 + healthScore * 0.4;
+  }
+  
+  function calculatePredictiveAngle(tank, target) {
+    let basicAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    
+    // 거리에 따른 예측 사격
+    let distance = target.distance;
+    let prediction = distance > 100 ? Math.random() * 15 - 7.5 : 0;
+    
+    return basicAngle + prediction;
+  }
+  
+  function calculateSafeMoveAngle(tank, target, enemies, allies) {
+    let optimalDistance = 130;
+    let currentDistance = target.distance;
+    
+    let baseAngle;
+    if (currentDistance < optimalDistance) {
+      // 후퇴하되 중앙 방향 고려
+      baseAngle = Math.atan2(tank.y - target.y, tank.x - target.x) * 180 / Math.PI;
+    } else if (currentDistance > optimalDistance * 1.8) {
+      // 접근하되 구석 방향 피하기
+      baseAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    } else {
+      // 스트레이핑 (옆으로 이동)
+      let perpendicular = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI + 90;
+      baseAngle = Math.random() > 0.5 ? perpendicular : perpendicular + 180;
+    }
+    
+    // 구석으로 향하는 각도면 중앙 방향으로 조정
+    baseAngle = adjustAngleAwayFromCorners(tank, baseAngle);
+    
+    return baseAngle;
+  }
+  
+  function adjustAngleAwayFromCorners(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 60; // 예상 이동 위치
+    let futureY = tank.y + Math.sin(rad) * 60;
+    
+    // 경계에 너무 가까워지면 각도 조정
+    if (futureX < SAFE_MARGIN || futureX > FIELD_WIDTH - SAFE_MARGIN ||
+        futureY < SAFE_MARGIN || futureY > FIELD_HEIGHT - SAFE_MARGIN) {
+      
+      // 중앙 방향으로 각도 조정
+      let centerAngle = Math.atan2(FIELD_HEIGHT/2 - tank.y, FIELD_WIDTH/2 - tank.x) * 180 / Math.PI;
+      let adjustment = (centerAngle - angle) * 0.3; // 30% 조정
+      return angle + adjustment;
+    }
+    
+    return angle;
+  }
+  
+  function generateSafeMoveAttempts(tank, baseAngle) {
+    let attempts = [];
+    
+    // 기본 각도들 생성
+    let baseAttempts = [
+      baseAngle,
+      baseAngle + 30,
+      baseAngle - 30,
+      baseAngle + 60,
+      baseAngle - 60,
+      baseAngle + 90,
+      baseAngle - 90
+    ];
+    
+    // 각 각도가 구석으로 향하지 않는지 검사하고 우선순위 부여
+    baseAttempts.forEach(angle => {
+      let safety = calculateAngleSafety(tank, angle);
+      attempts.push({ angle: angle, safety: safety });
+    });
+    
+    // 안전도 순으로 정렬
+    attempts.sort((a, b) => b.safety - a.safety);
+    
+    return attempts.map(attempt => attempt.angle);
+  }
+  
+  function calculateAngleSafety(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 40;
+    let futureY = tank.y + Math.sin(rad) * 40;
+    
+    // 경계로부터의 거리 계산
+    let leftDist = futureX;
+    let rightDist = FIELD_WIDTH - futureX;
+    let topDist = futureY;
+    let bottomDist = FIELD_HEIGHT - futureY;
+    
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 안전도 반환 (경계에서 멀수록 안전)
+    return Math.max(0, minDist / SAFE_MARGIN);
+  }
+  
+  function findSafePosition(tank) {
+    // 전장 중앙 근처의 안전한 위치 찾기
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 중앙에서 약간 랜덤한 위치
+    let safeX = centerX + (Math.random() - 0.5) * 150;
+    let safeY = centerY + (Math.random() - 0.5) * 100;
+    
+    // 경계 범위 내로 제한
+    safeX = Math.max(SAFE_MARGIN, Math.min(FIELD_WIDTH - SAFE_MARGIN, safeX));
+    safeY = Math.max(SAFE_MARGIN, Math.min(FIELD_HEIGHT - SAFE_MARGIN, safeY));
+    
+    return { x: safeX, y: safeY };
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Brody Sniper";
+}
+
+function type() {
+  return Type.NORMAL; // 균형잡힌 성능으로 선택
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // === 전장 경계 정보 ===
+  const FIELD_WIDTH = 900;
+  const FIELD_HEIGHT = 600;
+  const SAFE_MARGIN = 60; // 경계로부터 안전 거리
+  
+  // === 현재 위치 위험도 분석 ===
+  let cornerDanger = calculateCornerDanger(tank.x, tank.y);
+  
+  // 총알 회피 우선순위 계산
+  let incomingBullets = bulletInfo.filter(bullet => bullet.distance < 120);
+  
+  if (incomingBullets.length > 0) {
+    // 구석을 피하면서 총알 회피
+    let escapeAngle = calculateSmartEscapeAngle(tank, incomingBullets);
+    if (tank.move(escapeAngle)) {
+      return; // 회피 성공하면 이번 턴 종료
+    }
+  }
+  
+  // === 구석에 몰렸을 때 긴급 탈출 ===
+  if (cornerDanger > 0.7) {
+    let centerEscapeAngle = calculateCenterEscapeAngle(tank);
+    if (tank.move(centerEscapeAngle)) {
+      return;
+    }
+  }
+  
+  // === 적 분석 및 타겟 선정 ===
+  if (enemies.length > 0) {
+    // 체력이 낮은 적을 우선 타겟으로 선정
+    let target = enemies.reduce((prev, curr) => {
+      let prevPriority = calculateTargetPriority(tank, prev);
+      let currPriority = calculateTargetPriority(tank, curr);
+      return currPriority > prevPriority ? curr : prev;
+    });
+    
+    // === 공격 각도 계산 (예측 사격) ===
+    let fireAngle = calculatePredictiveAngle(tank, target);
+    tank.fire(fireAngle);
+    
+    // === 이동 전략 (구석 회피 포함) ===
+    let moveAngle = calculateSafeMoveAngle(tank, target, enemies, allies);
+    
+    // 이동 시도 (구석 방향 제외)
+    let moveAttempts = generateSafeMoveAttempts(tank, moveAngle);
+    
+    for (let angle of moveAttempts) {
+      if (tank.move(angle)) {
+        break;
+      }
+    }
+  } else {
+    // 적이 없으면 안전한 중앙 지역으로 이동
+    let safePosition = findSafePosition(tank);
+    let centerAngle = Math.atan2(safePosition.y - tank.y, safePosition.x - tank.x) * 180 / Math.PI;
+    tank.move(centerAngle);
+  }
+  
+  // === 헬퍼 함수들 ===
+  
+  function calculateCornerDanger(x, y) {
+    // 각 경계로부터의 거리 계산
+    let leftDist = x;
+    let rightDist = FIELD_WIDTH - x;
+    let topDist = y;
+    let bottomDist = FIELD_HEIGHT - y;
+    
+    // 가장 가까운 경계까지의 거리
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 구석 위험도 (0~1, 1이 가장 위험)
+    return Math.max(0, 1 - minDist / SAFE_MARGIN);
+  }
+  
+  function calculateSmartEscapeAngle(tank, bullets) {
+    let dangerVector = { x: 0, y: 0 };
+    
+    bullets.forEach(bullet => {
+      let bulletToTank = {
+        x: tank.x - bullet.x,
+        y: tank.y - bullet.y
+      };
+      let distance = Math.sqrt(bulletToTank.x * bulletToTank.x + bulletToTank.y * bulletToTank.y);
+      
+      // 거리 기반 위험도 계산
+      let danger = Math.max(0, 120 - distance) / 120;
+      dangerVector.x += bulletToTank.x * danger;
+      dangerVector.y += bulletToTank.y * danger;
+    });
+    
+    // 중앙으로 향하는 벡터 추가 (구석 회피)
+    let centerVector = {
+      x: (FIELD_WIDTH / 2) - tank.x,
+      y: (FIELD_HEIGHT / 2) - tank.y
+    };
+    
+    // 구석에 가까울수록 중앙 벡터 가중치 증가
+    let cornerWeight = calculateCornerDanger(tank.x, tank.y) * 0.5;
+    dangerVector.x += centerVector.x * cornerWeight;
+    dangerVector.y += centerVector.y * cornerWeight;
+    
+    return Math.atan2(dangerVector.y, dangerVector.x) * 180 / Math.PI;
+  }
+  
+  function calculateCenterEscapeAngle(tank) {
+    // 전장 중앙으로 직진
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 약간의 랜덤성 추가로 예측 방지
+    centerX += (Math.random() - 0.5) * 100;
+    centerY += (Math.random() - 0.5) * 100;
+    
+    return Math.atan2(centerY - tank.y, centerX - tank.x) * 180 / Math.PI;
+  }
+  
+  function calculateTargetPriority(tank, enemy) {
+    let distance = enemy.distance;
+    let health = enemy.health || 100;
+    
+    // 거리와 체력 기반 우선순위
+    let distanceScore = Math.max(0, 200 - distance) / 200;
+    let healthScore = Math.max(0, 150 - health) / 150;
+    
+    return distanceScore * 0.6 + healthScore * 0.4;
+  }
+  
+  function calculatePredictiveAngle(tank, target) {
+    let basicAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    
+    // 거리에 따른 예측 사격
+    let distance = target.distance;
+    let prediction = distance > 100 ? Math.random() * 15 - 7.5 : 0;
+    
+    return basicAngle + prediction;
+  }
+  
+  function calculateSafeMoveAngle(tank, target, enemies, allies) {
+    let optimalDistance = 130;
+    let currentDistance = target.distance;
+    
+    let baseAngle;
+    if (currentDistance < optimalDistance) {
+      // 후퇴하되 중앙 방향 고려
+      baseAngle = Math.atan2(tank.y - target.y, tank.x - target.x) * 180 / Math.PI;
+    } else if (currentDistance > optimalDistance * 1.8) {
+      // 접근하되 구석 방향 피하기
+      baseAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    } else {
+      // 스트레이핑 (옆으로 이동)
+      let perpendicular = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI + 90;
+      baseAngle = Math.random() > 0.5 ? perpendicular : perpendicular + 180;
+    }
+    
+    // 구석으로 향하는 각도면 중앙 방향으로 조정
+    baseAngle = adjustAngleAwayFromCorners(tank, baseAngle);
+    
+    return baseAngle;
+  }
+  
+  function adjustAngleAwayFromCorners(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 60; // 예상 이동 위치
+    let futureY = tank.y + Math.sin(rad) * 60;
+    
+    // 경계에 너무 가까워지면 각도 조정
+    if (futureX < SAFE_MARGIN || futureX > FIELD_WIDTH - SAFE_MARGIN ||
+        futureY < SAFE_MARGIN || futureY > FIELD_HEIGHT - SAFE_MARGIN) {
+      
+      // 중앙 방향으로 각도 조정
+      let centerAngle = Math.atan2(FIELD_HEIGHT/2 - tank.y, FIELD_WIDTH/2 - tank.x) * 180 / Math.PI;
+      let adjustment = (centerAngle - angle) * 0.3; // 30% 조정
+      return angle + adjustment;
+    }
+    
+    return angle;
+  }
+  
+  function generateSafeMoveAttempts(tank, baseAngle) {
+    let attempts = [];
+    
+    // 기본 각도들 생성
+    let baseAttempts = [
+      baseAngle,
+      baseAngle + 30,
+      baseAngle - 30,
+      baseAngle + 60,
+      baseAngle - 60,
+      baseAngle + 90,
+      baseAngle - 90
+    ];
+    
+    // 각 각도가 구석으로 향하지 않는지 검사하고 우선순위 부여
+    baseAttempts.forEach(angle => {
+      let safety = calculateAngleSafety(tank, angle);
+      attempts.push({ angle: angle, safety: safety });
+    });
+    
+    // 안전도 순으로 정렬
+    attempts.sort((a, b) => b.safety - a.safety);
+    
+    return attempts.map(attempt => attempt.angle);
+  }
+  
+  function calculateAngleSafety(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 40;
+    let futureY = tank.y + Math.sin(rad) * 40;
+    
+    // 경계로부터의 거리 계산
+    let leftDist = futureX;
+    let rightDist = FIELD_WIDTH - futureX;
+    let topDist = futureY;
+    let bottomDist = FIELD_HEIGHT - futureY;
+    
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 안전도 반환 (경계에서 멀수록 안전)
+    return Math.max(0, minDist / SAFE_MARGIN);
+  }
+  
+  function findSafePosition(tank) {
+    // 전장 중앙 근처의 안전한 위치 찾기
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 중앙에서 약간 랜덤한 위치
+    let safeX = centerX + (Math.random() - 0.5) * 150;
+    let safeY = centerY + (Math.random() - 0.5) * 100;
+    
+    // 경계 범위 내로 제한
+    safeX = Math.max(SAFE_MARGIN, Math.min(FIELD_WIDTH - SAFE_MARGIN, safeX));
+    safeY = Math.max(SAFE_MARGIN, Math.min(FIELD_HEIGHT - SAFE_MARGIN, safeY));
+    
+    return { x: safeX, y: safeY };
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Derrick Hunter";
+}
+
+function type() {
+  return Type.NORMAL; // 균형잡힌 성능으로 선택
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // === 전장 경계 정보 ===
+  const FIELD_WIDTH = 900;
+  const FIELD_HEIGHT = 600;
+  const SAFE_MARGIN = 60; // 경계로부터 안전 거리
+  
+  // === 현재 위치 위험도 분석 ===
+  let cornerDanger = calculateCornerDanger(tank.x, tank.y);
+  
+  // 총알 회피 우선순위 계산
+  let incomingBullets = bulletInfo.filter(bullet => bullet.distance < 120);
+  
+  if (incomingBullets.length > 0) {
+    // 구석을 피하면서 총알 회피
+    let escapeAngle = calculateSmartEscapeAngle(tank, incomingBullets);
+    if (tank.move(escapeAngle)) {
+      return; // 회피 성공하면 이번 턴 종료
+    }
+  }
+  
+  // === 구석에 몰렸을 때 긴급 탈출 ===
+  if (cornerDanger > 0.7) {
+    let centerEscapeAngle = calculateCenterEscapeAngle(tank);
+    if (tank.move(centerEscapeAngle)) {
+      return;
+    }
+  }
+  
+  // === 적 분석 및 타겟 선정 ===
+  if (enemies.length > 0) {
+    // 체력이 낮은 적을 우선 타겟으로 선정
+    let target = enemies.reduce((prev, curr) => {
+      let prevPriority = calculateTargetPriority(tank, prev);
+      let currPriority = calculateTargetPriority(tank, curr);
+      return currPriority > prevPriority ? curr : prev;
+    });
+    
+    // === 공격 각도 계산 (예측 사격) ===
+    let fireAngle = calculatePredictiveAngle(tank, target);
+    tank.fire(fireAngle);
+    
+    // === 이동 전략 (구석 회피 포함) ===
+    let moveAngle = calculateSafeMoveAngle(tank, target, enemies, allies);
+    
+    // 이동 시도 (구석 방향 제외)
+    let moveAttempts = generateSafeMoveAttempts(tank, moveAngle);
+    
+    for (let angle of moveAttempts) {
+      if (tank.move(angle)) {
+        break;
+      }
+    }
+  } else {
+    // 적이 없으면 안전한 중앙 지역으로 이동
+    let safePosition = findSafePosition(tank);
+    let centerAngle = Math.atan2(safePosition.y - tank.y, safePosition.x - tank.x) * 180 / Math.PI;
+    tank.move(centerAngle);
+  }
+  
+  // === 헬퍼 함수들 ===
+  
+  function calculateCornerDanger(x, y) {
+    // 각 경계로부터의 거리 계산
+    let leftDist = x;
+    let rightDist = FIELD_WIDTH - x;
+    let topDist = y;
+    let bottomDist = FIELD_HEIGHT - y;
+    
+    // 가장 가까운 경계까지의 거리
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 구석 위험도 (0~1, 1이 가장 위험)
+    return Math.max(0, 1 - minDist / SAFE_MARGIN);
+  }
+  
+  function calculateSmartEscapeAngle(tank, bullets) {
+    let dangerVector = { x: 0, y: 0 };
+    
+    bullets.forEach(bullet => {
+      let bulletToTank = {
+        x: tank.x - bullet.x,
+        y: tank.y - bullet.y
+      };
+      let distance = Math.sqrt(bulletToTank.x * bulletToTank.x + bulletToTank.y * bulletToTank.y);
+      
+      // 거리 기반 위험도 계산
+      let danger = Math.max(0, 120 - distance) / 120;
+      dangerVector.x += bulletToTank.x * danger;
+      dangerVector.y += bulletToTank.y * danger;
+    });
+    
+    // 중앙으로 향하는 벡터 추가 (구석 회피)
+    let centerVector = {
+      x: (FIELD_WIDTH / 2) - tank.x,
+      y: (FIELD_HEIGHT / 2) - tank.y
+    };
+    
+    // 구석에 가까울수록 중앙 벡터 가중치 증가
+    let cornerWeight = calculateCornerDanger(tank.x, tank.y) * 0.5;
+    dangerVector.x += centerVector.x * cornerWeight;
+    dangerVector.y += centerVector.y * cornerWeight;
+    
+    return Math.atan2(dangerVector.y, dangerVector.x) * 180 / Math.PI;
+  }
+  
+  function calculateCenterEscapeAngle(tank) {
+    // 전장 중앙으로 직진
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 약간의 랜덤성 추가로 예측 방지
+    centerX += (Math.random() - 0.5) * 100;
+    centerY += (Math.random() - 0.5) * 100;
+    
+    return Math.atan2(centerY - tank.y, centerX - tank.x) * 180 / Math.PI;
+  }
+  
+  function calculateTargetPriority(tank, enemy) {
+    let distance = enemy.distance;
+    let health = enemy.health || 100;
+    
+    // 거리와 체력 기반 우선순위
+    let distanceScore = Math.max(0, 200 - distance) / 200;
+    let healthScore = Math.max(0, 150 - health) / 150;
+    
+    return distanceScore * 0.6 + healthScore * 0.4;
+  }
+  
+  function calculatePredictiveAngle(tank, target) {
+    let basicAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    
+    // 거리에 따른 예측 사격
+    let distance = target.distance;
+    let prediction = distance > 100 ? Math.random() * 15 - 7.5 : 0;
+    
+    return basicAngle + prediction;
+  }
+  
+  function calculateSafeMoveAngle(tank, target, enemies, allies) {
+    let optimalDistance = 130;
+    let currentDistance = target.distance;
+    
+    let baseAngle;
+    if (currentDistance < optimalDistance) {
+      // 후퇴하되 중앙 방향 고려
+      baseAngle = Math.atan2(tank.y - target.y, tank.x - target.x) * 180 / Math.PI;
+    } else if (currentDistance > optimalDistance * 1.8) {
+      // 접근하되 구석 방향 피하기
+      baseAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    } else {
+      // 스트레이핑 (옆으로 이동)
+      let perpendicular = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI + 90;
+      baseAngle = Math.random() > 0.5 ? perpendicular : perpendicular + 180;
+    }
+    
+    // 구석으로 향하는 각도면 중앙 방향으로 조정
+    baseAngle = adjustAngleAwayFromCorners(tank, baseAngle);
+    
+    return baseAngle;
+  }
+  
+  function adjustAngleAwayFromCorners(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 60; // 예상 이동 위치
+    let futureY = tank.y + Math.sin(rad) * 60;
+    
+    // 경계에 너무 가까워지면 각도 조정
+    if (futureX < SAFE_MARGIN || futureX > FIELD_WIDTH - SAFE_MARGIN ||
+        futureY < SAFE_MARGIN || futureY > FIELD_HEIGHT - SAFE_MARGIN) {
+      
+      // 중앙 방향으로 각도 조정
+      let centerAngle = Math.atan2(FIELD_HEIGHT/2 - tank.y, FIELD_WIDTH/2 - tank.x) * 180 / Math.PI;
+      let adjustment = (centerAngle - angle) * 0.3; // 30% 조정
+      return angle + adjustment;
+    }
+    
+    return angle;
+  }
+  
+  function generateSafeMoveAttempts(tank, baseAngle) {
+    let attempts = [];
+    
+    // 기본 각도들 생성
+    let baseAttempts = [
+      baseAngle,
+      baseAngle + 30,
+      baseAngle - 30,
+      baseAngle + 60,
+      baseAngle - 60,
+      baseAngle + 90,
+      baseAngle - 90
+    ];
+    
+    // 각 각도가 구석으로 향하지 않는지 검사하고 우선순위 부여
+    baseAttempts.forEach(angle => {
+      let safety = calculateAngleSafety(tank, angle);
+      attempts.push({ angle: angle, safety: safety });
+    });
+    
+    // 안전도 순으로 정렬
+    attempts.sort((a, b) => b.safety - a.safety);
+    
+    return attempts.map(attempt => attempt.angle);
+  }
+  
+  function calculateAngleSafety(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 40;
+    let futureY = tank.y + Math.sin(rad) * 40;
+    
+    // 경계로부터의 거리 계산
+    let leftDist = futureX;
+    let rightDist = FIELD_WIDTH - futureX;
+    let topDist = futureY;
+    let bottomDist = FIELD_HEIGHT - futureY;
+    
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 안전도 반환 (경계에서 멀수록 안전)
+    return Math.max(0, minDist / SAFE_MARGIN);
+  }
+  
+  function findSafePosition(tank) {
+    // 전장 중앙 근처의 안전한 위치 찾기
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 중앙에서 약간 랜덤한 위치
+    let safeX = centerX + (Math.random() - 0.5) * 150;
+    let safeY = centerY + (Math.random() - 0.5) * 100;
+    
+    // 경계 범위 내로 제한
+    safeX = Math.max(SAFE_MARGIN, Math.min(FIELD_WIDTH - SAFE_MARGIN, safeX));
+    safeY = Math.max(SAFE_MARGIN, Math.min(FIELD_HEIGHT - SAFE_MARGIN, safeY));
+    
+    return { x: safeX, y: safeY };
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Mint Assassin";
+}
+
+function type() {
+  return Type.NORMAL; // 균형잡힌 성능으로 선택
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // === 전장 경계 정보 ===
+  const FIELD_WIDTH = 900;
+  const FIELD_HEIGHT = 600;
+  const SAFE_MARGIN = 60; // 경계로부터 안전 거리
+  
+  // === 현재 위치 위험도 분석 ===
+  let cornerDanger = calculateCornerDanger(tank.x, tank.y);
+  
+  // 총알 회피 우선순위 계산
+  let incomingBullets = bulletInfo.filter(bullet => bullet.distance < 120);
+  
+  if (incomingBullets.length > 0) {
+    // 구석을 피하면서 총알 회피
+    let escapeAngle = calculateSmartEscapeAngle(tank, incomingBullets);
+    if (tank.move(escapeAngle)) {
+      return; // 회피 성공하면 이번 턴 종료
+    }
+  }
+  
+  // === 구석에 몰렸을 때 긴급 탈출 ===
+  if (cornerDanger > 0.7) {
+    let centerEscapeAngle = calculateCenterEscapeAngle(tank);
+    if (tank.move(centerEscapeAngle)) {
+      return;
+    }
+  }
+  
+  // === 적 분석 및 타겟 선정 ===
+  if (enemies.length > 0) {
+    // 체력이 낮은 적을 우선 타겟으로 선정
+    let target = enemies.reduce((prev, curr) => {
+      let prevPriority = calculateTargetPriority(tank, prev);
+      let currPriority = calculateTargetPriority(tank, curr);
+      return currPriority > prevPriority ? curr : prev;
+    });
+    
+    // === 공격 각도 계산 (예측 사격) ===
+    let fireAngle = calculatePredictiveAngle(tank, target);
+    tank.fire(fireAngle);
+    
+    // === 이동 전략 (구석 회피 포함) ===
+    let moveAngle = calculateSafeMoveAngle(tank, target, enemies, allies);
+    
+    // 이동 시도 (구석 방향 제외)
+    let moveAttempts = generateSafeMoveAttempts(tank, moveAngle);
+    
+    for (let angle of moveAttempts) {
+      if (tank.move(angle)) {
+        break;
+      }
+    }
+  } else {
+    // 적이 없으면 안전한 중앙 지역으로 이동
+    let safePosition = findSafePosition(tank);
+    let centerAngle = Math.atan2(safePosition.y - tank.y, safePosition.x - tank.x) * 180 / Math.PI;
+    tank.move(centerAngle);
+  }
+  
+  // === 헬퍼 함수들 ===
+  
+  function calculateCornerDanger(x, y) {
+    // 각 경계로부터의 거리 계산
+    let leftDist = x;
+    let rightDist = FIELD_WIDTH - x;
+    let topDist = y;
+    let bottomDist = FIELD_HEIGHT - y;
+    
+    // 가장 가까운 경계까지의 거리
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 구석 위험도 (0~1, 1이 가장 위험)
+    return Math.max(0, 1 - minDist / SAFE_MARGIN);
+  }
+  
+  function calculateSmartEscapeAngle(tank, bullets) {
+    let dangerVector = { x: 0, y: 0 };
+    
+    bullets.forEach(bullet => {
+      let bulletToTank = {
+        x: tank.x - bullet.x,
+        y: tank.y - bullet.y
+      };
+      let distance = Math.sqrt(bulletToTank.x * bulletToTank.x + bulletToTank.y * bulletToTank.y);
+      
+      // 거리 기반 위험도 계산
+      let danger = Math.max(0, 120 - distance) / 120;
+      dangerVector.x += bulletToTank.x * danger;
+      dangerVector.y += bulletToTank.y * danger;
+    });
+    
+    // 중앙으로 향하는 벡터 추가 (구석 회피)
+    let centerVector = {
+      x: (FIELD_WIDTH / 2) - tank.x,
+      y: (FIELD_HEIGHT / 2) - tank.y
+    };
+    
+    // 구석에 가까울수록 중앙 벡터 가중치 증가
+    let cornerWeight = calculateCornerDanger(tank.x, tank.y) * 0.5;
+    dangerVector.x += centerVector.x * cornerWeight;
+    dangerVector.y += centerVector.y * cornerWeight;
+    
+    return Math.atan2(dangerVector.y, dangerVector.x) * 180 / Math.PI;
+  }
+  
+  function calculateCenterEscapeAngle(tank) {
+    // 전장 중앙으로 직진
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 약간의 랜덤성 추가로 예측 방지
+    centerX += (Math.random() - 0.5) * 100;
+    centerY += (Math.random() - 0.5) * 100;
+    
+    return Math.atan2(centerY - tank.y, centerX - tank.x) * 180 / Math.PI;
+  }
+  
+  function calculateTargetPriority(tank, enemy) {
+    let distance = enemy.distance;
+    let health = enemy.health || 100;
+    
+    // 거리와 체력 기반 우선순위
+    let distanceScore = Math.max(0, 200 - distance) / 200;
+    let healthScore = Math.max(0, 150 - health) / 150;
+    
+    return distanceScore * 0.6 + healthScore * 0.4;
+  }
+  
+  function calculatePredictiveAngle(tank, target) {
+    let basicAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    
+    // 거리에 따른 예측 사격
+    let distance = target.distance;
+    let prediction = distance > 100 ? Math.random() * 15 - 7.5 : 0;
+    
+    return basicAngle + prediction;
+  }
+  
+  function calculateSafeMoveAngle(tank, target, enemies, allies) {
+    let optimalDistance = 130;
+    let currentDistance = target.distance;
+    
+    let baseAngle;
+    if (currentDistance < optimalDistance) {
+      // 후퇴하되 중앙 방향 고려
+      baseAngle = Math.atan2(tank.y - target.y, tank.x - target.x) * 180 / Math.PI;
+    } else if (currentDistance > optimalDistance * 1.8) {
+      // 접근하되 구석 방향 피하기
+      baseAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    } else {
+      // 스트레이핑 (옆으로 이동)
+      let perpendicular = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI + 90;
+      baseAngle = Math.random() > 0.5 ? perpendicular : perpendicular + 180;
+    }
+    
+    // 구석으로 향하는 각도면 중앙 방향으로 조정
+    baseAngle = adjustAngleAwayFromCorners(tank, baseAngle);
+    
+    return baseAngle;
+  }
+  
+  function adjustAngleAwayFromCorners(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 60; // 예상 이동 위치
+    let futureY = tank.y + Math.sin(rad) * 60;
+    
+    // 경계에 너무 가까워지면 각도 조정
+    if (futureX < SAFE_MARGIN || futureX > FIELD_WIDTH - SAFE_MARGIN ||
+        futureY < SAFE_MARGIN || futureY > FIELD_HEIGHT - SAFE_MARGIN) {
+      
+      // 중앙 방향으로 각도 조정
+      let centerAngle = Math.atan2(FIELD_HEIGHT/2 - tank.y, FIELD_WIDTH/2 - tank.x) * 180 / Math.PI;
+      let adjustment = (centerAngle - angle) * 0.3; // 30% 조정
+      return angle + adjustment;
+    }
+    
+    return angle;
+  }
+  
+  function generateSafeMoveAttempts(tank, baseAngle) {
+    let attempts = [];
+    
+    // 기본 각도들 생성
+    let baseAttempts = [
+      baseAngle,
+      baseAngle + 30,
+      baseAngle - 30,
+      baseAngle + 60,
+      baseAngle - 60,
+      baseAngle + 90,
+      baseAngle - 90
+    ];
+    
+    // 각 각도가 구석으로 향하지 않는지 검사하고 우선순위 부여
+    baseAttempts.forEach(angle => {
+      let safety = calculateAngleSafety(tank, angle);
+      attempts.push({ angle: angle, safety: safety });
+    });
+    
+    // 안전도 순으로 정렬
+    attempts.sort((a, b) => b.safety - a.safety);
+    
+    return attempts.map(attempt => attempt.angle);
+  }
+  
+  function calculateAngleSafety(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 40;
+    let futureY = tank.y + Math.sin(rad) * 40;
+    
+    // 경계로부터의 거리 계산
+    let leftDist = futureX;
+    let rightDist = FIELD_WIDTH - futureX;
+    let topDist = futureY;
+    let bottomDist = FIELD_HEIGHT - futureY;
+    
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 안전도 반환 (경계에서 멀수록 안전)
+    return Math.max(0, minDist / SAFE_MARGIN);
+  }
+  
+  function findSafePosition(tank) {
+    // 전장 중앙 근처의 안전한 위치 찾기
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 중앙에서 약간 랜덤한 위치
+    let safeX = centerX + (Math.random() - 0.5) * 150;
+    let safeY = centerY + (Math.random() - 0.5) * 100;
+    
+    // 경계 범위 내로 제한
+    safeX = Math.max(SAFE_MARGIN, Math.min(FIELD_WIDTH - SAFE_MARGIN, safeX));
+    safeY = Math.max(SAFE_MARGIN, Math.min(FIELD_HEIGHT - SAFE_MARGIN, safeY));
+    
+    return { x: safeX, y: safeY };
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Shen Phantom";
+}
+
+function type() {
+  return Type.NORMAL; // 균형잡힌 성능으로 선택
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // === 전장 경계 정보 ===
+  const FIELD_WIDTH = 900;
+  const FIELD_HEIGHT = 600;
+  const SAFE_MARGIN = 60; // 경계로부터 안전 거리
+  
+  // === 현재 위치 위험도 분석 ===
+  let cornerDanger = calculateCornerDanger(tank.x, tank.y);
+  
+  // 총알 회피 우선순위 계산
+  let incomingBullets = bulletInfo.filter(bullet => bullet.distance < 120);
+  
+  if (incomingBullets.length > 0) {
+    // 구석을 피하면서 총알 회피
+    let escapeAngle = calculateSmartEscapeAngle(tank, incomingBullets);
+    if (tank.move(escapeAngle)) {
+      return; // 회피 성공하면 이번 턴 종료
+    }
+  }
+  
+  // === 구석에 몰렸을 때 긴급 탈출 ===
+  if (cornerDanger > 0.7) {
+    let centerEscapeAngle = calculateCenterEscapeAngle(tank);
+    if (tank.move(centerEscapeAngle)) {
+      return;
+    }
+  }
+  
+  // === 적 분석 및 타겟 선정 ===
+  if (enemies.length > 0) {
+    // 체력이 낮은 적을 우선 타겟으로 선정
+    let target = enemies.reduce((prev, curr) => {
+      let prevPriority = calculateTargetPriority(tank, prev);
+      let currPriority = calculateTargetPriority(tank, curr);
+      return currPriority > prevPriority ? curr : prev;
+    });
+    
+    // === 공격 각도 계산 (예측 사격) ===
+    let fireAngle = calculatePredictiveAngle(tank, target);
+    tank.fire(fireAngle);
+    
+    // === 이동 전략 (구석 회피 포함) ===
+    let moveAngle = calculateSafeMoveAngle(tank, target, enemies, allies);
+    
+    // 이동 시도 (구석 방향 제외)
+    let moveAttempts = generateSafeMoveAttempts(tank, moveAngle);
+    
+    for (let angle of moveAttempts) {
+      if (tank.move(angle)) {
+        break;
+      }
+    }
+  } else {
+    // 적이 없으면 안전한 중앙 지역으로 이동
+    let safePosition = findSafePosition(tank);
+    let centerAngle = Math.atan2(safePosition.y - tank.y, safePosition.x - tank.x) * 180 / Math.PI;
+    tank.move(centerAngle);
+  }
+  
+  // === 헬퍼 함수들 ===
+  
+  function calculateCornerDanger(x, y) {
+    // 각 경계로부터의 거리 계산
+    let leftDist = x;
+    let rightDist = FIELD_WIDTH - x;
+    let topDist = y;
+    let bottomDist = FIELD_HEIGHT - y;
+    
+    // 가장 가까운 경계까지의 거리
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 구석 위험도 (0~1, 1이 가장 위험)
+    return Math.max(0, 1 - minDist / SAFE_MARGIN);
+  }
+  
+  function calculateSmartEscapeAngle(tank, bullets) {
+    let dangerVector = { x: 0, y: 0 };
+    
+    bullets.forEach(bullet => {
+      let bulletToTank = {
+        x: tank.x - bullet.x,
+        y: tank.y - bullet.y
+      };
+      let distance = Math.sqrt(bulletToTank.x * bulletToTank.x + bulletToTank.y * bulletToTank.y);
+      
+      // 거리 기반 위험도 계산
+      let danger = Math.max(0, 120 - distance) / 120;
+      dangerVector.x += bulletToTank.x * danger;
+      dangerVector.y += bulletToTank.y * danger;
+    });
+    
+    // 중앙으로 향하는 벡터 추가 (구석 회피)
+    let centerVector = {
+      x: (FIELD_WIDTH / 2) - tank.x,
+      y: (FIELD_HEIGHT / 2) - tank.y
+    };
+    
+    // 구석에 가까울수록 중앙 벡터 가중치 증가
+    let cornerWeight = calculateCornerDanger(tank.x, tank.y) * 0.5;
+    dangerVector.x += centerVector.x * cornerWeight;
+    dangerVector.y += centerVector.y * cornerWeight;
+    
+    return Math.atan2(dangerVector.y, dangerVector.x) * 180 / Math.PI;
+  }
+  
+  function calculateCenterEscapeAngle(tank) {
+    // 전장 중앙으로 직진
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 약간의 랜덤성 추가로 예측 방지
+    centerX += (Math.random() - 0.5) * 100;
+    centerY += (Math.random() - 0.5) * 100;
+    
+    return Math.atan2(centerY - tank.y, centerX - tank.x) * 180 / Math.PI;
+  }
+  
+  function calculateTargetPriority(tank, enemy) {
+    let distance = enemy.distance;
+    let health = enemy.health || 100;
+    
+    // 거리와 체력 기반 우선순위
+    let distanceScore = Math.max(0, 200 - distance) / 200;
+    let healthScore = Math.max(0, 150 - health) / 150;
+    
+    return distanceScore * 0.6 + healthScore * 0.4;
+  }
+  
+  function calculatePredictiveAngle(tank, target) {
+    let basicAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    
+    // 거리에 따른 예측 사격
+    let distance = target.distance;
+    let prediction = distance > 100 ? Math.random() * 15 - 7.5 : 0;
+    
+    return basicAngle + prediction;
+  }
+  
+  function calculateSafeMoveAngle(tank, target, enemies, allies) {
+    let optimalDistance = 130;
+    let currentDistance = target.distance;
+    
+    let baseAngle;
+    if (currentDistance < optimalDistance) {
+      // 후퇴하되 중앙 방향 고려
+      baseAngle = Math.atan2(tank.y - target.y, tank.x - target.x) * 180 / Math.PI;
+    } else if (currentDistance > optimalDistance * 1.8) {
+      // 접근하되 구석 방향 피하기
+      baseAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    } else {
+      // 스트레이핑 (옆으로 이동)
+      let perpendicular = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI + 90;
+      baseAngle = Math.random() > 0.5 ? perpendicular : perpendicular + 180;
+    }
+    
+    // 구석으로 향하는 각도면 중앙 방향으로 조정
+    baseAngle = adjustAngleAwayFromCorners(tank, baseAngle);
+    
+    return baseAngle;
+  }
+  
+  function adjustAngleAwayFromCorners(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 60; // 예상 이동 위치
+    let futureY = tank.y + Math.sin(rad) * 60;
+    
+    // 경계에 너무 가까워지면 각도 조정
+    if (futureX < SAFE_MARGIN || futureX > FIELD_WIDTH - SAFE_MARGIN ||
+        futureY < SAFE_MARGIN || futureY > FIELD_HEIGHT - SAFE_MARGIN) {
+      
+      // 중앙 방향으로 각도 조정
+      let centerAngle = Math.atan2(FIELD_HEIGHT/2 - tank.y, FIELD_WIDTH/2 - tank.x) * 180 / Math.PI;
+      let adjustment = (centerAngle - angle) * 0.3; // 30% 조정
+      return angle + adjustment;
+    }
+    
+    return angle;
+  }
+  
+  function generateSafeMoveAttempts(tank, baseAngle) {
+    let attempts = [];
+    
+    // 기본 각도들 생성
+    let baseAttempts = [
+      baseAngle,
+      baseAngle + 30,
+      baseAngle - 30,
+      baseAngle + 60,
+      baseAngle - 60,
+      baseAngle + 90,
+      baseAngle - 90
+    ];
+    
+    // 각 각도가 구석으로 향하지 않는지 검사하고 우선순위 부여
+    baseAttempts.forEach(angle => {
+      let safety = calculateAngleSafety(tank, angle);
+      attempts.push({ angle: angle, safety: safety });
+    });
+    
+    // 안전도 순으로 정렬
+    attempts.sort((a, b) => b.safety - a.safety);
+    
+    return attempts.map(attempt => attempt.angle);
+  }
+  
+  function calculateAngleSafety(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 40;
+    let futureY = tank.y + Math.sin(rad) * 40;
+    
+    // 경계로부터의 거리 계산
+    let leftDist = futureX;
+    let rightDist = FIELD_WIDTH - futureX;
+    let topDist = futureY;
+    let bottomDist = FIELD_HEIGHT - futureY;
+    
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 안전도 반환 (경계에서 멀수록 안전)
+    return Math.max(0, minDist / SAFE_MARGIN);
+  }
+  
+  function findSafePosition(tank) {
+    // 전장 중앙 근처의 안전한 위치 찾기
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 중앙에서 약간 랜덤한 위치
+    let safeX = centerX + (Math.random() - 0.5) * 150;
+    let safeY = centerY + (Math.random() - 0.5) * 100;
+    
+    // 경계 범위 내로 제한
+    safeX = Math.max(SAFE_MARGIN, Math.min(FIELD_WIDTH - SAFE_MARGIN, safeX));
+    safeY = Math.max(SAFE_MARGIN, Math.min(FIELD_HEIGHT - SAFE_MARGIN, safeY));
+    
+    return { x: safeX, y: safeY };
+  }
+}
+
+// ===== 다음 로봇 =====
+
+function name() {
+  return "Derrick Clone";
+}
+
+function type() {
+  return Type.NORMAL; // 균형잡힌 성능으로 선택
+}
+
+function update(tank, enemies, allies, bulletInfo) {
+  // === 전장 경계 정보 ===
+  const FIELD_WIDTH = 900;
+  const FIELD_HEIGHT = 600;
+  const SAFE_MARGIN = 60; // 경계로부터 안전 거리
+  
+  // === 현재 위치 위험도 분석 ===
+  let cornerDanger = calculateCornerDanger(tank.x, tank.y);
+  
+  // 총알 회피 우선순위 계산
+  let incomingBullets = bulletInfo.filter(bullet => bullet.distance < 120);
+  
+  if (incomingBullets.length > 0) {
+    // 구석을 피하면서 총알 회피
+    let escapeAngle = calculateSmartEscapeAngle(tank, incomingBullets);
+    if (tank.move(escapeAngle)) {
+      return; // 회피 성공하면 이번 턴 종료
+    }
+  }
+  
+  // === 구석에 몰렸을 때 긴급 탈출 ===
+  if (cornerDanger > 0.7) {
+    let centerEscapeAngle = calculateCenterEscapeAngle(tank);
+    if (tank.move(centerEscapeAngle)) {
+      return;
+    }
+  }
+  
+  // === 적 분석 및 타겟 선정 ===
+  if (enemies.length > 0) {
+    // 체력이 낮은 적을 우선 타겟으로 선정
+    let target = enemies.reduce((prev, curr) => {
+      let prevPriority = calculateTargetPriority(tank, prev);
+      let currPriority = calculateTargetPriority(tank, curr);
+      return currPriority > prevPriority ? curr : prev;
+    });
+    
+    // === 공격 각도 계산 (예측 사격) ===
+    let fireAngle = calculatePredictiveAngle(tank, target);
+    tank.fire(fireAngle);
+    
+    // === 이동 전략 (구석 회피 포함) ===
+    let moveAngle = calculateSafeMoveAngle(tank, target, enemies, allies);
+    
+    // 이동 시도 (구석 방향 제외)
+    let moveAttempts = generateSafeMoveAttempts(tank, moveAngle);
+    
+    for (let angle of moveAttempts) {
+      if (tank.move(angle)) {
+        break;
+      }
+    }
+  } else {
+    // 적이 없으면 안전한 중앙 지역으로 이동
+    let safePosition = findSafePosition(tank);
+    let centerAngle = Math.atan2(safePosition.y - tank.y, safePosition.x - tank.x) * 180 / Math.PI;
+    tank.move(centerAngle);
+  }
+  
+  // === 헬퍼 함수들 ===
+  
+  function calculateCornerDanger(x, y) {
+    // 각 경계로부터의 거리 계산
+    let leftDist = x;
+    let rightDist = FIELD_WIDTH - x;
+    let topDist = y;
+    let bottomDist = FIELD_HEIGHT - y;
+    
+    // 가장 가까운 경계까지의 거리
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 구석 위험도 (0~1, 1이 가장 위험)
+    return Math.max(0, 1 - minDist / SAFE_MARGIN);
+  }
+  
+  function calculateSmartEscapeAngle(tank, bullets) {
+    let dangerVector = { x: 0, y: 0 };
+    
+    bullets.forEach(bullet => {
+      let bulletToTank = {
+        x: tank.x - bullet.x,
+        y: tank.y - bullet.y
+      };
+      let distance = Math.sqrt(bulletToTank.x * bulletToTank.x + bulletToTank.y * bulletToTank.y);
+      
+      // 거리 기반 위험도 계산
+      let danger = Math.max(0, 120 - distance) / 120;
+      dangerVector.x += bulletToTank.x * danger;
+      dangerVector.y += bulletToTank.y * danger;
+    });
+    
+    // 중앙으로 향하는 벡터 추가 (구석 회피)
+    let centerVector = {
+      x: (FIELD_WIDTH / 2) - tank.x,
+      y: (FIELD_HEIGHT / 2) - tank.y
+    };
+    
+    // 구석에 가까울수록 중앙 벡터 가중치 증가
+    let cornerWeight = calculateCornerDanger(tank.x, tank.y) * 0.5;
+    dangerVector.x += centerVector.x * cornerWeight;
+    dangerVector.y += centerVector.y * cornerWeight;
+    
+    return Math.atan2(dangerVector.y, dangerVector.x) * 180 / Math.PI;
+  }
+  
+  function calculateCenterEscapeAngle(tank) {
+    // 전장 중앙으로 직진
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 약간의 랜덤성 추가로 예측 방지
+    centerX += (Math.random() - 0.5) * 100;
+    centerY += (Math.random() - 0.5) * 100;
+    
+    return Math.atan2(centerY - tank.y, centerX - tank.x) * 180 / Math.PI;
+  }
+  
+  function calculateTargetPriority(tank, enemy) {
+    let distance = enemy.distance;
+    let health = enemy.health || 100;
+    
+    // 거리와 체력 기반 우선순위
+    let distanceScore = Math.max(0, 200 - distance) / 200;
+    let healthScore = Math.max(0, 150 - health) / 150;
+    
+    return distanceScore * 0.6 + healthScore * 0.4;
+  }
+  
+  function calculatePredictiveAngle(tank, target) {
+    let basicAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    
+    // 거리에 따른 예측 사격
+    let distance = target.distance;
+    let prediction = distance > 100 ? Math.random() * 15 - 7.5 : 0;
+    
+    return basicAngle + prediction;
+  }
+  
+  function calculateSafeMoveAngle(tank, target, enemies, allies) {
+    let optimalDistance = 130;
+    let currentDistance = target.distance;
+    
+    let baseAngle;
+    if (currentDistance < optimalDistance) {
+      // 후퇴하되 중앙 방향 고려
+      baseAngle = Math.atan2(tank.y - target.y, tank.x - target.x) * 180 / Math.PI;
+    } else if (currentDistance > optimalDistance * 1.8) {
+      // 접근하되 구석 방향 피하기
+      baseAngle = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI;
+    } else {
+      // 스트레이핑 (옆으로 이동)
+      let perpendicular = Math.atan2(target.y - tank.y, target.x - tank.x) * 180 / Math.PI + 90;
+      baseAngle = Math.random() > 0.5 ? perpendicular : perpendicular + 180;
+    }
+    
+    // 구석으로 향하는 각도면 중앙 방향으로 조정
+    baseAngle = adjustAngleAwayFromCorners(tank, baseAngle);
+    
+    return baseAngle;
+  }
+  
+  function adjustAngleAwayFromCorners(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 60; // 예상 이동 위치
+    let futureY = tank.y + Math.sin(rad) * 60;
+    
+    // 경계에 너무 가까워지면 각도 조정
+    if (futureX < SAFE_MARGIN || futureX > FIELD_WIDTH - SAFE_MARGIN ||
+        futureY < SAFE_MARGIN || futureY > FIELD_HEIGHT - SAFE_MARGIN) {
+      
+      // 중앙 방향으로 각도 조정
+      let centerAngle = Math.atan2(FIELD_HEIGHT/2 - tank.y, FIELD_WIDTH/2 - tank.x) * 180 / Math.PI;
+      let adjustment = (centerAngle - angle) * 0.3; // 30% 조정
+      return angle + adjustment;
+    }
+    
+    return angle;
+  }
+  
+  function generateSafeMoveAttempts(tank, baseAngle) {
+    let attempts = [];
+    
+    // 기본 각도들 생성
+    let baseAttempts = [
+      baseAngle,
+      baseAngle + 30,
+      baseAngle - 30,
+      baseAngle + 60,
+      baseAngle - 60,
+      baseAngle + 90,
+      baseAngle - 90
+    ];
+    
+    // 각 각도가 구석으로 향하지 않는지 검사하고 우선순위 부여
+    baseAttempts.forEach(angle => {
+      let safety = calculateAngleSafety(tank, angle);
+      attempts.push({ angle: angle, safety: safety });
+    });
+    
+    // 안전도 순으로 정렬
+    attempts.sort((a, b) => b.safety - a.safety);
+    
+    return attempts.map(attempt => attempt.angle);
+  }
+  
+  function calculateAngleSafety(tank, angle) {
+    let rad = (angle * Math.PI) / 180;
+    let futureX = tank.x + Math.cos(rad) * 40;
+    let futureY = tank.y + Math.sin(rad) * 40;
+    
+    // 경계로부터의 거리 계산
+    let leftDist = futureX;
+    let rightDist = FIELD_WIDTH - futureX;
+    let topDist = futureY;
+    let bottomDist = FIELD_HEIGHT - futureY;
+    
+    let minDist = Math.min(leftDist, rightDist, topDist, bottomDist);
+    
+    // 안전도 반환 (경계에서 멀수록 안전)
+    return Math.max(0, minDist / SAFE_MARGIN);
+  }
+  
+  function findSafePosition(tank) {
+    // 전장 중앙 근처의 안전한 위치 찾기
+    let centerX = FIELD_WIDTH / 2;
+    let centerY = FIELD_HEIGHT / 2;
+    
+    // 중앙에서 약간 랜덤한 위치
+    let safeX = centerX + (Math.random() - 0.5) * 150;
+    let safeY = centerY + (Math.random() - 0.5) * 100;
+    
+    // 경계 범위 내로 제한
+    safeX = Math.max(SAFE_MARGIN, Math.min(FIELD_WIDTH - SAFE_MARGIN, safeX));
+    safeY = Math.max(SAFE_MARGIN, Math.min(FIELD_HEIGHT - SAFE_MARGIN, safeY));
+    
+    return { x: safeX, y: safeY };
+  }
+}
+
+// ===== 다음 로봇 =====

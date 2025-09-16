@@ -1,0 +1,112 @@
+// R1 탱커: 실드 선두 + 탄 회피 + 집중사격
+function name(){ return "Julian"; }
+function type(){ return Type.TANKER; }
+function update(tank,enemies,allies,bulletInfo){
+    if(enemies.length===0) return;
+    // 공통 타겟: 체력 가장 낮은 적
+    let target=enemies[0];for(const e of enemies){ if(e.health<target.health) target=e; }
+    const aim=Math.atan2(target.y-tank.y,target.x-tank.x)*180/Math.PI;
+    // 탄 회피(가장 가까운 탄 기준)
+    let threat=null,td=1e9;for(const b of bulletInfo){ if(b.distance<td){td=b.distance;threat=b;} }
+    const tryMove=(ang)=>{ if(tank.move(ang)) return true; const offs=[20,-20,45,-45,90,-90,135,-135,180]; for(const o of offs){ if(tank.move(ang+o)) return true; } return false; };
+    if(threat && td<140){
+        const bulletAngle=Math.atan2(threat.vy,threat.vx)*180/Math.PI;
+        tryMove(bulletAngle+90);
+    }else{
+        // 지그재그로 압박
+        const wiggle=(Date.now()/100)%360;
+        tryMove(aim+(wiggle<180?20:-20));
+    }
+    tank.fire(aim);
+}
+
+// ===== 다음 로봇 =====
+
+// R2 탱커: 사이드 어그로 + 탄 회피 상이 페이즈
+function name(){ return "Gideon"; }
+function type(){ return Type.TANKER; }
+function update(tank,enemies,allies,bulletInfo){
+    if(enemies.length===0) return;
+    let target=enemies[0];for(const e of enemies){ if(e.health<target.health) target=e; }
+    const aim=Math.atan2(target.y-tank.y,target.x-tank.x)*180/Math.PI;
+    let threat=null,td=1e9;for(const b of bulletInfo){ if(b.distance<td){td=b.distance;threat=b;} }
+    const tryMove=(ang)=>{ if(tank.move(ang)) return true; const o=[25,-25,60,-60,110,-110,150,-150,180]; for(const x of o){ if(tank.move(ang+x)) return true; } return false; };
+    if(threat && td<160){
+        const bulletAngle=Math.atan2(threat.vy,threat.vx)*180/Math.PI;
+        tryMove(bulletAngle-90);
+    }else{
+        // 측면 압박
+        tryMove(aim+35);
+    }
+    tank.fire(aim);
+}
+
+// ===== 다음 로봇 =====
+
+// R3 딜러: 카이팅(200~260 유지) + 탄 회피 + 집중사격
+function name(){ return "Nora"; }
+function type(){ return Type.DEALER; }
+function update(tank,enemies,allies,bulletInfo){
+    if(enemies.length===0) return;
+    let target=enemies[0];for(const e of enemies){ if(e.health<target.health) target=e; }
+    const d=target.distance, aim=Math.atan2(target.y-tank.y,target.x-tank.x)*180/Math.PI;
+    let threat=null,td=1e9;for(const b of bulletInfo){ if(b.distance<td){td=b.distance;threat=b;} }
+    const tryMove=(ang)=>{ if(tank.move(ang)) return true; const o=[20,-20,45,-45,90,-90,135,-135,180]; for(const x of o){ if(tank.move(ang+x)) return true; } return false; };
+    if(threat && td<120){
+        const ba=Math.atan2(threat.vy,threat.vx)*180/Math.PI; tryMove(ba+90);
+    }else if(d<180){ tryMove(aim+180);
+    }else if(d>260){ tryMove(aim);
+    }else{ tryMove(aim+90); }
+    tank.fire(aim);
+}
+
+// ===== 다음 로봇 =====
+
+// R4 딜러: 카이팅(딥 스트레이프) + 저체력 스나이프
+function name(){ return "Eve"; }
+function type(){ return Type.DEALER; }
+function update(tank,enemies,allies,bulletInfo){
+    if(enemies.length===0) return;
+    let target=enemies[0];for(const e of enemies){ if(e.health<target.health) target=e; }
+    const d=target.distance, aim=Math.atan2(target.y-tank.y,target.x-tank.x)*180/Math.PI;
+    let threat=null,td=1e9;for(const b of bulletInfo){ if(b.distance<td){td=b.distance;threat=b;} }
+    const tryMove=(ang)=>{ if(tank.move(ang)) return true; const o=[25,-25,60,-60,100,-100,140,-140,180]; for(const x of o){ if(tank.move(ang+x)) return true; } return false; };
+    if(threat && td<130){
+        const ba=Math.atan2(threat.vy,threat.vx)*180/Math.PI; tryMove(ba-90);
+    }else if(d<170){ tryMove(aim+180);
+    }else if(d>270){ tryMove(aim);
+    }else{ const s=((Date.now()/90)|0)%2?+75:-75; tryMove(aim+s); }
+    tank.fire(aim);
+}
+
+// ===== 다음 로봇 =====
+
+// R5 플랭커L: 측후면 각도로 유인 + 포커스
+function name(){ return "Qube"; }
+function type(){ return Type.NORMAL; }
+function update(tank,enemies,allies,bulletInfo){
+    if(enemies.length===0) return;
+    let target=enemies[0];for(const e of enemies){ if(e.health<target.health) target=e; }
+    const aim=Math.atan2(target.y-tank.y,target.x-tank.x)*180/Math.PI;
+    let threat=null,td=1e9;for(const b of bulletInfo){ if(b.distance<td){td=b.distance;threat=b;} }
+    const tryMove=(ang)=>{ if(tank.move(ang)) return true; const o=[30,-30,60,-60,120,-120,150,-150,180]; for(const x of o){ if(tank.move(ang+x)) return true; } return false; };
+    if(threat && td<120){ const ba=Math.atan2(threat.vy,threat.vx)*180/Math.PI; tryMove(ba+90); }
+    else{ tryMove(aim+60); }
+    tank.fire(aim);
+}
+
+// ===== 다음 로봇 =====
+
+// R6 플랭커R: 반대측 각도 + 막히면 즉시 반전
+function name(){ return "Qube2"; }
+function type(){ return Type.NORMAL; }
+function update(tank,enemies,allies,bulletInfo){
+    if(enemies.length===0) return;
+    let target=enemies[0];for(const e of enemies){ if(e.health<target.health) target=e; }
+    const aim=Math.atan2(target.y-tank.y,target.x-tank.x)*180/Math.PI;
+    let threat=null,td=1e9;for(const b of bulletInfo){ if(b.distance<td){td=b.distance;threat=b;} }
+    const tryMove=(ang)=>{ if(tank.move(ang)) return true; const o=[-60,60,-120,120,-30,30,150,-150,180]; for(const x of o){ if(tank.move(ang+x)) return true; } return false; };
+    if(threat && td<120){ const ba=Math.atan2(threat.vy,threat.vx)*180/Math.PI; tryMove(ba-90); }
+    else if(!tryMove(aim-60)){ tryMove(aim+120); }
+    tank.fire(aim);
+}
