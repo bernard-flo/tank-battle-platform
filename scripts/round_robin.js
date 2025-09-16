@@ -139,7 +139,23 @@ function toRankingArray(board) {
   return arr;
 }
 
+function parseCLI() {
+  const args = {};
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a.startsWith('--')) {
+      const k = a.slice(2);
+      const n = argv[i + 1];
+      if (n && !n.startsWith('--')) { args[k] = n; i++; }
+      else { args[k] = true; }
+    }
+  }
+  return args;
+}
+
 async function main() {
+  const cli = parseCLI();
   const files = listTeamFiles(RESULT_DIR);
   const outDirs = createOutDirs();
   const board = initScoreboard(files);
@@ -151,14 +167,19 @@ async function main() {
     }
   }
 
-  console.log(`Found ${files.length} team scripts. Running ${pairs.length} pairings...`);
+  const totalPairs = pairs.length;
+  const start = cli.start ? Math.max(0, parseInt(cli.start, 10)) : 0;
+  const count = cli.count ? Math.max(1, parseInt(cli.count, 10)) : (totalPairs - start);
+  const end = Math.min(totalPairs, start + count);
 
-  for (let idx = 0; idx < pairs.length; idx++) {
+  console.log(`Found ${files.length} team scripts. Total pairings: ${totalPairs}. Running range [${start}, ${end}).`);
+
+  for (let idx = start; idx < end; idx++) {
     const [redFile, blueFile] = pairs[idx];
     const redKey = niceName(redFile);
     const blueKey = niceName(blueFile);
     const outJson = path.join(outDirs.pairs, `${redKey}__vs__${blueKey}.json`);
-    process.stdout.write(`[${idx + 1}/${pairs.length}] ${redKey} (red) vs ${blueKey} (blue) ... `);
+    process.stdout.write(`[${idx + 1}/${totalPairs}] ${redKey} (red) vs ${blueKey} (blue) ... `);
     const { data } = await runPair(redFile, blueFile, outJson);
     const agg = data.aggregate || data.summary || {};
     if (!agg || (agg.matches !== undefined && agg.matches !== REPEAT)) {
@@ -193,4 +214,3 @@ if (require.main === module) {
     process.exit(1);
   });
 }
-
